@@ -5,8 +5,8 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "launchUrl": "http://dev-observability.blocksdevelopers.com:5000",
-      "applicationUrl": "http://dev-observability.blocksdevelopers.com:5000",
+      "launchUrl": "http://dev-observability.blocksdevelopers.com:5001",
+      "applicationUrl": "http://dev-observability.blocksdevelopers.com:5001",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
