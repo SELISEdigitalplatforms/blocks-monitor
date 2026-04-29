@@ -7,6 +7,7 @@
 	<PackageVersion Include="Handlebars.Net" Version="2.1.6" />
 	<PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.9.0" />
 	<PackageVersion Include="FluentValidation" Version="12.0.0" />
+	<PackageVersion Include="MailKit" Version="4.14.1" />
 	<PackageVersion Include="FluentValidation.AspNetCore" Version="11.3.0" />
 	<PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
 	<PackageVersion Include="SixLabors.Fonts" Version="2.1.2" />
