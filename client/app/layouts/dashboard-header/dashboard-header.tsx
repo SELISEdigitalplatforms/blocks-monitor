@@ -41,14 +41,14 @@ export function DashboardHeader() {
             <EnvironmentList />
           </div>
           <ModeToggle />
-          <div className="pointer-events-auto">
+          <div className="pointer-events-auto flex items-center">
             <Notification />
           </div>
-          <div className="pointer-events-auto">
+          <div className="pointer-events-auto flex items-center">
             <LanguageSelector />
           </div>
           <BlocksAppLauncher />
-          <div className="pointer-events-auto">
+          <div className="pointer-events-auto flex items-center">
             <UserDropdownMenu />
           </div>
         </div>
