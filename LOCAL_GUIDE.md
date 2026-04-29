@@ -53,7 +53,7 @@ All development workflows are handled via:
 ### Available Commands
 
 * `./run.sh -b` or `--backend`
-  Run only the .NET API (default port: 5000)
+  Run only the .NET API (default port: 5001)
 
 * `./run.sh -w` or `--worker`
   Run only the .NET Worker service
