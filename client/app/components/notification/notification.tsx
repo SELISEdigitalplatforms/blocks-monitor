@@ -7,7 +7,7 @@ export function Notification() {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="text-muted-foreground transition-colors hover:text-primary"
+          className="relative z-50 pointer-events-auto text-muted-foreground transition-colors hover:text-primary"
           aria-label="Notifications"
         >
           <Bell className="h-5 w-5" />

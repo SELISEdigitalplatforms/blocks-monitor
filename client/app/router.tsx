@@ -5,7 +5,6 @@ import { PublicLayout } from "./layouts/public-layout";
 import { OidcLayout } from "./layouts/oidc-layout";
 import { DashboardLayout } from "./layouts/dashboard-layout";
 import { ConsoleLayout } from "./layouts/console-layout";
-import { ProjectOverviewLayout } from "./layouts/project-overview-layout";
 
 // Auth routes (public, with auth layout)
 import LoginPage from "./routes/auth/login";
@@ -53,6 +52,9 @@ import SecretManagementPage from "./routes/dashboard/secret-management";
 import AiModelSelectedRoute from "./routes/dashboard/ai-model-selected";
 import ManagedServicesPage from "./routes/dashboard/managed-services";
 import ProfilePage from "./routes/dashboard/profile";
+import HealthPage from "./routes/dashboard/health";
+import HealthMonitorPage from "./routes/dashboard/health-monitor";
+import HealthIncidentsPage from "./routes/dashboard/health-incidents";
 
 // Console pages
 import { Console } from "./pages/console/console";
@@ -133,6 +135,9 @@ export const router = createBrowserRouter([
       { path: "/managed-services", element: <ManagedServicesPage /> },
       { path: "/services/captcha", element: <Navigate to="/services/secret-management?tab=captcha" replace /> },
       { path: "/services/captcha/logs", element: <CaptchaLogsPage /> },
+      { path: "/health", element: <HealthPage /> },
+      { path: "/health/monitor/:id", element: <HealthMonitorPage /> },
+      { path: "/health/monitor/incidents/:id", element: <HealthIncidentsPage /> },
     ],
   },
 
@@ -160,8 +165,8 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // ── Root redirect: authenticated users go to console ──
-  { path: "/", element: <Navigate to="/console" replace /> },
+  // ── Root redirect: authenticated users go to health ──
+  { path: "/", element: <Navigate to="/health" replace /> },
 
   // ── Catch-all: redirect to login ──
   { path: "*", element: <Navigate to="/login" replace /> },
