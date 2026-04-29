@@ -156,7 +156,7 @@ export default function LoginSimplePage() {
 
     const params = new URLSearchParams({
       response_type: "code",
-      client_id: "44ce2f9b-0ca4-4ad8-b8d4-bb775b61d68e",
+      client_id: "1bd234da-1fa1-4264-982e-3debb1078be5",
       redirect_uri: "https://dev-observability.blocksdevelopers.com/oidc",
       scope: "openId",
       audience: "https://dev-observability.blocksdevelopers.com",

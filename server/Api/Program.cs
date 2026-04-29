@@ -40,13 +40,41 @@ Directory.CreateDirectory(wwwrootPath);
 
 ApplyFrontendRuntimeSettings(builder.Configuration, wwwrootPath);
 
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new() { Title = "Blocks Observability API", Version = "v1" });
+    options.AddSecurityDefinition("Bearer", new()
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+    });
+    options.AddSecurityRequirement(new()
+    {
+        {
+            new() { Reference = new() { Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, Id = "Bearer" } },
+            []
+        }
+    });
+    var xmlFile = Path.Combine(AppContext.BaseDirectory, "Blocks.Alert.xml");
+    if (File.Exists(xmlFile))
+        options.IncludeXmlComments(xmlFile);
+});
+
 services.RegisterAllServices();
 services.AddApplicationServices();
+Alert.DomainService.ServiceRegistry.AddApplicationServices(services);
 services.AddCloudDomainServices();
 services.AddCloudLmtServices();
 services.AddCloudConfigurationServices();
 
 var app = builder.Build();
+
+app.UseSwagger();
+app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", "Blocks Observability API v1"));
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
