@@ -26,6 +26,23 @@ export const CLOUD_BUILD_ENDPOINTS = {
   SETTINGS: "/api/settings",
 };
 
+export const ALERT_ENDPOINTS = {
+  SAVE_MONITOR: "/api/Monitor/SaveMonitor",
+  UPDATE_MONITOR: "/api/Monitor/UpdateMonitor",
+  DELETE_MONITOR: "/api/Monitor/DeleteMonitor",
+  GET_MONITOR_LIST: "/api/Monitor/GetMonitorList",
+  GET_MONITOR_LIST_BY_REPO_ID: "/api/Monitor/GetMonitorListByRepoId",
+  GET_MONITOR_DETAILS: "/api/Monitor/GetMonitorDetails",
+  IS_EXTERNAL_SERVICE_CONFIGURED: "/api/Monitor/IsExternalServiceConfigured",
+  GET_INCIDENT_LIST: "/api/Monitor/GetIncidentList",
+  GET_MONITOR_BY_ID: "/api/Monitor/GetMonitorById",
+  GET_MONITOR_RESPONSE_TIME: "/api/Monitor/GetMonitorResponseTime",
+  GET_MONITOR_DOWN_TIME: "/api/Monitor/GetMonitorDownTime",
+  SAVE_HEALTH: "/api/Health/SaveHealth",
+  UPDATE_HEALTH: "/api/Health/UpdateHealth",
+  DELETE_HEALTH: "/api/Health/DeleteHealth",
+} as const;
+
 export const MIGRATION_ENDPOINTS = {
   GET_STATUS: "/api/identifier/migration/status",
   START_MIGRATION: "/api/identifier/migration/start",

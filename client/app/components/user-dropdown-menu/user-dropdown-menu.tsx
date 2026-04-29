@@ -41,7 +41,7 @@ export function UserDropdownMenu() {
         <Button
           variant="link"
           size="icon"
-          className="relative h-10 w-10 overflow-hidden rounded-full bg-[hsl(var(--avatar-surface-default))] p-0 text-base font-normal text-[hsl(var(--avatar-text-high-emphasis))] hover:no-underline"
+          className="relative z-50 pointer-events-auto h-10 w-10 overflow-hidden rounded-full bg-[hsl(var(--avatar-surface-default))] p-0 text-base font-normal text-[hsl(var(--avatar-text-high-emphasis))] hover:no-underline"
         >
           <UserDropdownMenuLogo />
         </Button>
