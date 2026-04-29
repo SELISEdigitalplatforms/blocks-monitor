@@ -66,14 +66,14 @@ export function ConsoleHeader() {
               )}
               <div className="relative z-50 flex min-w-0 flex-1 flex-wrap items-center justify-end gap-3">
                 <ModeToggle />
-                <div className="pointer-events-auto">
+                <div className="pointer-events-auto flex items-center">
                   <Notification />
                 </div>
-                <div className="pointer-events-auto">
+                <div className="pointer-events-auto flex items-center">
                   <LanguageSelector />
                 </div>
                 <BlocksAppLauncher />
-                <div className="pointer-events-auto">
+                <div className="pointer-events-auto flex items-center">
                   <UserDropdownMenu />
                 </div>
               </div>
@@ -83,14 +83,14 @@ export function ConsoleHeader() {
         <div className="relative z-50 hidden sm:flex sm:items-center sm:gap-4">
           {isConsoleButtonVisible && <BackToConsoleNavigator />}
           <ModeToggle />
-          <div className="pointer-events-auto">
+          <div className="pointer-events-auto flex items-center">
             <Notification />
           </div>
-          <div className="pointer-events-auto">
+          <div className="pointer-events-auto flex items-center">
             <LanguageSelector />
           </div>
           <BlocksAppLauncher />
-          <div className="pointer-events-auto">
+          <div className="pointer-events-auto flex items-center">
             <UserDropdownMenu />
           </div>
         </div>
