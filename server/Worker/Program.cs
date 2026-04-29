@@ -14,6 +14,8 @@ using Iam.DomainService.Users;
 using Mfa.DomainService.Configuration;
 using Worker;
 using Worker.Configuration;
+using DomainService.Shared.Entity;
+using MonitoringWorker.Consumers;
 using Worker.Consumers;
 using Worker.Consumers.Identifier;
 using Worker.Consumers.Users;
@@ -59,6 +61,8 @@ IHostBuilder CreateHostBuilder(string[] args) =>
 
             #region Identifier Service Consumers
             services.AddApplicationServices();
+            Alert.DomainService.ServiceRegistry.AddApplicationServices(services);
+            services.AddSingleton<IConsumer<MonitorConfigurationUpdateQueue>, MonitorConfigurationUpdateConsumer>();
             services.AddSingleton<IConsumer<Tenant>, ConfigureProjectConsumer>();
             services.AddSingleton<IConsumer<DisableDomainBindingRequest>, DisableDomainBindingConsumer>();
             services.AddSingleton<IConsumer<RestoreProjectRequest>, RestoreProjectConsumer>();
