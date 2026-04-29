@@ -1,10 +1,10 @@
 {
-  "name": "blocks-idp-client",
+  "name": "blocks-observability-client",
   "private": true,
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 4000 --host abc.com",
+    "dev": "vite --port 4000 --host dev-observability.seliseblocks.com",
     "local": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
