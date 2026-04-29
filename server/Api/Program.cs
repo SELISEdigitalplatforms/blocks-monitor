@@ -66,6 +66,7 @@ services.AddSwaggerGen(options =>
 
 services.RegisterAllServices();
 services.AddApplicationServices();
+Alert.DomainService.ServiceRegistry.AddApplicationServices(services);
 services.AddCloudDomainServices();
 services.AddCloudLmtServices();
 services.AddCloudConfigurationServices();
