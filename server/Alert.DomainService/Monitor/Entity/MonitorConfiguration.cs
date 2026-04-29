@@ -1,0 +1,89 @@
+﻿using Blocks.Genesis;
+using DomainService.Monitor.Models;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace DomainService.Monitor.Entity
+{
+    public enum MonitorTypes
+    {
+        HTTP,
+        PING,
+        TCP,
+        DNS,
+        KEYWORD
+    }
+
+    public enum ProtocolTypes
+    {
+        HTTP,
+        HTTPS
+    }
+
+    public enum HttpMethodTypes
+    {
+        HEAD,
+        GET,
+        POST
+    }
+
+    public enum AuthorizationTypes
+    {
+        NONE,
+        BASIC,
+        BEARER,
+        API_KEY
+    }
+
+    public enum MonitorConfigurationTypes
+    {
+        OutboundPing, // You send pings to other services
+        InboundPing   // You receive pings from other services
+    }
+
+    public enum MonitorSourcetypes
+    {
+        Infrastructure,
+        DeployedServices,
+        BlocksServices,
+        ExternnalServices,
+    }
+
+    [BsonIgnoreExtraElements]
+    public class MonitorConfiguration: BaseEntity
+    {
+        public string? TenantId { get; set; }
+        public string? ExternalServiceId { get; set; }
+        public string? RepoId { get; set; }
+        public string? RepoName { get; set; }
+        public string Name { get; set; }
+        public string Url { get; set; }
+
+        public MonitorConfigurationTypes MonitorConfigurationType { get; set; }
+        public MonitorSourcetypes MonitorSourcetypes { get; set; } = MonitorSourcetypes.DeployedServices;
+
+        public MonitorTypes? MonitorType { get; set; }
+        public ProtocolTypes? ProtocolType { get; set; }
+        public HttpMethodTypes? HttpMethodType { get; set; }
+        public AuthorizationTypes? AuthorizationType { get; set; }
+
+        public int IntervalInSeconds { get; set; } = 30;
+        public int TimeoutInSeconds { get; set; } = 60;
+        public int GracePeriodInSeconds { get; set; } = 30;
+
+        public DateTime? LastIncidentAt { get; set; }
+        public DateTime? LastCheckedAt { get; set; }
+
+
+        public bool IsActive { get; set; } = true;
+        public bool CurrentStatus { get; set; } = true;
+
+
+        public string? ExpectedContent { get; set; }
+        public string? CustomHttpHeaders { get; set; }
+        public string? CustomPayload { get; set; }
+        public List<string> SuccessHttpResponseCodes { get; set; } = new List<string>();
+        public List<string> Regions { get; set; } = new List<string>();
+        public List<string> Emails { get; set; } = new List<string>();
+        public List<IncidentListSummary> IncidentSummaries { get; set; } = new List<IncidentListSummary>();
+    }
+}
