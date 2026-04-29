@@ -80,7 +80,7 @@ run_frontend() {
 
     if [ ! -d "$CLIENT_DIR/node_modules" ]; then
         echo "Installing dependencies..."
-        npm --prefix "$CLIENT_DIR" install
+        npm --prefix "$CLIENT_DIR" clean-install
     fi
 
     free_port $FRONTEND_PORT
