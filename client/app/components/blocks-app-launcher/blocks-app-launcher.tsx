@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui-kits/popover/popover";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui-kits/dialog/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui-kits/popover/popover";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 interface BlocksApp {
   key: string;
@@ -167,13 +167,13 @@ function LauncherTriggerIcon() {
       className="h-5 w-5"
     >
       {/* Honeycomb / squircle grid */}
-      <rect x="1"  y="1"  width="5" height="5" rx="1.5" />
-      <rect x="7.5" y="1"  width="5" height="5" rx="1.5" />
-      <rect x="14" y="1"  width="5" height="5" rx="1.5" />
-      <rect x="1"  y="7.5" width="5" height="5" rx="1.5" />
+      <rect x="1" y="1" width="5" height="5" rx="1.5" />
+      <rect x="7.5" y="1" width="5" height="5" rx="1.5" />
+      <rect x="14" y="1" width="5" height="5" rx="1.5" />
+      <rect x="1" y="7.5" width="5" height="5" rx="1.5" />
       <rect x="7.5" y="7.5" width="5" height="5" rx="1.5" />
       <rect x="14" y="7.5" width="5" height="5" rx="1.5" />
-      <rect x="1"  y="14" width="5" height="5" rx="1.5" />
+      <rect x="1" y="14" width="5" height="5" rx="1.5" />
       <rect x="7.5" y="14" width="5" height="5" rx="1.5" />
       <rect x="14" y="14" width="5" height="5" rx="1.5" />
     </svg>
@@ -217,8 +217,6 @@ export function BlocksAppLauncher() {
   const [isHydrated, setIsHydrated] = useState(false);
   const location = useLocation();
 
-  // Only show launcher on dashboard and services routes
-  const isAllowedRoute = location.pathname.includes("/dashboard") || location.pathname.includes("/services");
 
   // Load favourites from localStorage on mount
   useEffect(() => {
@@ -245,7 +243,7 @@ export function BlocksAppLauncher() {
     saveFavourites(newFavourites);
   };
 
-  if (!isHydrated || !isAllowedRoute) return null;
+  if (!isHydrated) return null;
 
   const favourites = SELISE_APPS.filter((a) => favouriteKeys.has(a.key));
   const moreApps = SELISE_APPS.filter((a) => !favouriteKeys.has(a.key));
