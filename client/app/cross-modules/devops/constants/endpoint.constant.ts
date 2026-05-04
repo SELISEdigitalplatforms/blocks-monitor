@@ -1,49 +1,55 @@
+import { API_BASES } from "@/constants/endpoint.constant";
+import { getRuntimeEnv } from "@/lib/runtime-env";
+
+const CLOUD_BUILD_API_BASE =
+  getRuntimeEnv("BLOCKS_DEPLOYMENT_APP_URL");
+
 export const CLOUD_BUILD_ENDPOINTS = {
   // Authentication & Authorization
-  ACCESS_TOKEN: "/api/auth/accessToken",
-  IS_AUTHORIZED: "/api/auth/isAuthorized",
-  REMOVE_AUTHORIZATION: "/api/auth/removeAuthorization",
-  REMOVE_ACCESS_TOKEN: "/api/auth/removeAccessToken",
+  ACCESS_TOKEN: `${CLOUD_BUILD_API_BASE}/api/auth/accessToken`,
+  IS_AUTHORIZED: `${CLOUD_BUILD_API_BASE}/api/auth/isAuthorized`,
+  REMOVE_AUTHORIZATION: `${CLOUD_BUILD_API_BASE}/api/auth/removeAuthorization`,
+  REMOVE_ACCESS_TOKEN: `${CLOUD_BUILD_API_BASE}/api/auth/removeAccessToken`,
 
   // GitHub Repositories
-  GITHUB_REPOS: "/api/github/repos",
-  GITHUB_USER: "/api/github/user",
-  GITHUB_BRANCHES: "/api/github/branches",
-  GITHUB_BRANCH_EXISTS: "/api/github/branchExists",
+  GITHUB_REPOS: `${CLOUD_BUILD_API_BASE}/api/github/repos`,
+  GITHUB_USER: `${CLOUD_BUILD_API_BASE}/api/github/user`,
+  GITHUB_BRANCHES: `${CLOUD_BUILD_API_BASE}/api/github/branches`,
+  GITHUB_BRANCH_EXISTS: `${CLOUD_BUILD_API_BASE}/api/github/branchExists`,
 
   // Build & Deployment
-  BUILD_BUILD: "/api/build/clone",
-  RUN_BUILD: "/api/build/run",
-  MANUAL: "/api/build/manual",
-  BUILD: "/api/build",
+  BUILD_BUILD: `${CLOUD_BUILD_API_BASE}/api/build/clone`,
+  RUN_BUILD: `${CLOUD_BUILD_API_BASE}/api/build/run`,
+  MANUAL: `${CLOUD_BUILD_API_BASE}/api/build/manual`,
+  BUILD: `${CLOUD_BUILD_API_BASE}/api/build`,
 
   // Repository Management
-  REPOS: "/api/repos",
-  REPOS_LIST: "/api/repos/list",
-  REPO_DETAILS: "/api/repos/details",
+  REPOS: `${CLOUD_BUILD_API_BASE}/api/repos`,
+  REPOS_LIST: `${CLOUD_BUILD_API_BASE}/api/repos/list`,
+  REPO_DETAILS: `${CLOUD_BUILD_API_BASE}/api/repos/details`,
 
   // Build Settings
-  SETTINGS: "/api/settings",
+  SETTINGS: `${CLOUD_BUILD_API_BASE}/api/settings`,
 };
 
 export const ALERT_ENDPOINTS = {
-  SAVE_MONITOR: "/api/Monitor/SaveMonitor",
-  UPDATE_MONITOR: "/api/Monitor/UpdateMonitor",
-  DELETE_MONITOR: "/api/Monitor/DeleteMonitor",
-  GET_MONITOR_LIST: "/api/Monitor/GetMonitorList",
-  GET_MONITOR_LIST_BY_REPO_ID: "/api/Monitor/GetMonitorListByRepoId",
-  GET_MONITOR_DETAILS: "/api/Monitor/GetMonitorDetails",
-  IS_EXTERNAL_SERVICE_CONFIGURED: "/api/Monitor/IsExternalServiceConfigured",
-  GET_INCIDENT_LIST: "/api/Monitor/GetIncidentList",
-  GET_MONITOR_BY_ID: "/api/Monitor/GetMonitorById",
-  GET_MONITOR_RESPONSE_TIME: "/api/Monitor/GetMonitorResponseTime",
-  GET_MONITOR_DOWN_TIME: "/api/Monitor/GetMonitorDownTime",
-  SAVE_HEALTH: "/api/Health/SaveHealth",
-  UPDATE_HEALTH: "/api/Health/UpdateHealth",
-  DELETE_HEALTH: "/api/Health/DeleteHealth",
+  SAVE_MONITOR: `${API_BASES.ALERT}/Monitor/SaveMonitor`,
+  UPDATE_MONITOR: `${API_BASES.ALERT}/Monitor/UpdateMonitor`,
+  DELETE_MONITOR: `${API_BASES.ALERT}/Monitor/DeleteMonitor`,
+  GET_MONITOR_LIST: `${API_BASES.ALERT}/Monitor/GetMonitorList`,
+  GET_MONITOR_LIST_BY_REPO_ID: `${API_BASES.ALERT}/Monitor/GetMonitorListByRepoId`,
+  GET_MONITOR_DETAILS: `${API_BASES.ALERT}/Monitor/GetMonitorDetails`,
+  IS_EXTERNAL_SERVICE_CONFIGURED: `${API_BASES.ALERT}/Monitor/IsExternalServiceConfigured`,
+  GET_INCIDENT_LIST: `${API_BASES.ALERT}/Monitor/GetIncidentList`,
+  GET_MONITOR_BY_ID: `${API_BASES.ALERT}/Monitor/GetMonitorById`,
+  GET_MONITOR_RESPONSE_TIME: `${API_BASES.ALERT}/Monitor/GetMonitorResponseTime`,
+  GET_MONITOR_DOWN_TIME: `${API_BASES.ALERT}/Monitor/GetMonitorDownTime`,
+  SAVE_HEALTH: `${API_BASES.ALERT}/Health/SaveHealth`,
+  UPDATE_HEALTH: `${API_BASES.ALERT}/Health/UpdateHealth`,
+  DELETE_HEALTH: `${API_BASES.ALERT}/Health/DeleteHealth`,
 } as const;
 
 export const MIGRATION_ENDPOINTS = {
-  GET_STATUS: "/api/identifier/migration/status",
-  START_MIGRATION: "/api/identifier/migration/start",
+  GET_STATUS: `${API_BASES.IDENTIFIER}/migration/status`,
+  START_MIGRATION: `${API_BASES.IDENTIFIER}/migration/start`,
 };
