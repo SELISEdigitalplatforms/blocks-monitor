@@ -84,12 +84,12 @@ if (File.Exists(indexHtml))
 {
     app.MapFallbackToFile("/index.html");
    // x-blocks-key cookie
-   // check if domain match 
+   // check if domain match
    // get google captch key BLOCKS_GOOGLE_SITE_KEY
-   // Base Url 
-   // Construct URL 
- 
-    
+   // Base Url
+   // Construct URL
+
+
 }
 
 ApplicationConfigurations.ConfigureMiddleware(app);
@@ -130,9 +130,11 @@ static void ApplyFrontendRuntimeSettings(IConfiguration configuration, string we
     var replacements = new Dictionary<string, string?>
     {
         ["__BLOCKS_API_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_API_BASE_URL"),
+        ["__BLOCKS_DEPLOYMENT_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_DEPLOYMENT_APP_URL"),
         ["__BLOCKS_X_BLOCKS_KEY__"] = Environment.GetEnvironmentVariable("BLOCKS_X_BLOCKS_KEY"),
         ["__BLOCKS_GOOGLE_SITE_KEY__"] = Environment.GetEnvironmentVariable("BLOCKS_GOOGLE_SITE_KEY"),
         ["__BLOCKS_CONSTRUCT_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_CONSTRUCT_URL"),
+        ["__BLOCKS_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_APP_URL")
     };
 
     var files = Directory.EnumerateFiles(webRootPath, "*", SearchOption.AllDirectories)
