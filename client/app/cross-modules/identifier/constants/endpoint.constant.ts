@@ -1,4 +1,5 @@
 import { API_BASES } from "@/constants/endpoint.constant";
+import { getRuntimeEnv } from "@/lib/runtime-env";
 
 // ─── People endpoints ─────────────────────────────────────────────────────────
 
@@ -75,7 +76,10 @@ export const SERVICE_REGISTRY_ENDPOINTS = {
 
 const BUILD_SUBPATH = "/build";
 
+const CLOUD_BUILD_API_BASE =
+  getRuntimeEnv("BLOCKS_DEPLOYMENT_APP_URL");
+
 export const CLOUD_BUILD_ENDPOINTS = {
-  REPOS_LIST: `${API_BASES.CLOUD_BUILD}${BUILD_SUBPATH}/repos-list`,
-  REPO_UPDATE: `${API_BASES.CLOUD_BUILD}${BUILD_SUBPATH}/repo-update`,
+  REPOS_LIST: `${CLOUD_BUILD_API_BASE}/${API_BASES.CLOUD_BUILD}${BUILD_SUBPATH}/repos-list`,
+  REPO_UPDATE: `${CLOUD_BUILD_API_BASE}/${API_BASES.CLOUD_BUILD}${BUILD_SUBPATH}/repo-update`,
 } as const;
