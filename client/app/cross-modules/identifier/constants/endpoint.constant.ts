@@ -74,12 +74,32 @@ export const SERVICE_REGISTRY_ENDPOINTS = {
 
 // ─── Cloud Build endpoints ────────────────────────────────────────────────────
 
-const BUILD_SUBPATH = "/build";
+const BUILD_SUBPATH = "build";
 
-const CLOUD_BUILD_API_BASE =
-  getRuntimeEnv("BLOCKS_DEPLOYMENT_APP_URL");
+
+
+const rawDeploymentBase = getRuntimeEnv("BLOCKS_DEPLOYMENT_APP_URL");
+const deploymentBase = rawDeploymentBase.replace(/\/+$/, "");
+
+
+let didWarnMissingDeploymentBase = false;
+
+const buildDeploymentEndpoint = (path: string): string => {
+  const cleanedPath = path.replace(/^\/+/, "");
+  if (!deploymentBase) {
+    if (!didWarnMissingDeploymentBase) {
+      console.warn(
+        "BLOCKS_DEPLOYMENT_APP_URL is missing; deployment endpoints will use the current origin.",
+      );
+      didWarnMissingDeploymentBase = true;
+    }
+    return `/api/${cleanedPath}`;
+  }
+
+  return `${deploymentBase}/api/${cleanedPath}`;
+};
 
 export const CLOUD_BUILD_ENDPOINTS = {
-  REPOS_LIST: `${CLOUD_BUILD_API_BASE}/${API_BASES.CLOUD_BUILD}${BUILD_SUBPATH}/repos-list`,
-  REPO_UPDATE: `${CLOUD_BUILD_API_BASE}/${API_BASES.CLOUD_BUILD}${BUILD_SUBPATH}/repo-update`,
+  REPOS_LIST: buildDeploymentEndpoint(`${BUILD_SUBPATH}/repos-list`),
+  REPO_UPDATE: buildDeploymentEndpoint(`${BUILD_SUBPATH}/repo-update`),
 } as const;
