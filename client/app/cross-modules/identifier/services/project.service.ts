@@ -64,12 +64,12 @@ export class ProjectService {
     return http.post(PROJECT_ENDPOINTS.ADD_ASSET, payload);
   }
 
-  getEnvRepositories(projectkey: string): Promise<{
+  getEnvRepositories(projectKey: string): Promise<{
     data: IEnvRepository[];
     errors: unknown | null;
     isSuccess: boolean;
   }> {
-    const url = `${CLOUD_BUILD_ENDPOINTS.REPOS_LIST}?projectkey=${projectkey}`;
+    const url = `${CLOUD_BUILD_ENDPOINTS.REPOS_LIST}?projectkey=${projectKey}`;
     return http.get(url);
   }
 
