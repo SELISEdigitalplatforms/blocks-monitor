@@ -5,9 +5,13 @@ import {
   DialogTitle,
 } from "@/components/ui-kits/dialog/dialog";
 import { Button } from "@/components/ui-kits/button/button";
+import { Input } from "@/components/ui-kits/input/input";
 import { Plus, Trash } from "lucide-react";
 import { useState } from "react";
-import { useUpdateHealth, useUpdateSingleMonitor } from "@blocks-devops/hooks/alerts";
+import {
+  useUpdateHealth,
+  useUpdateSingleMonitor,
+} from "@blocks-devops/hooks/alerts";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { ErrorTransformer } from "@blocks-devops/utils/error-transform";
 import { z } from "zod";
@@ -28,7 +32,12 @@ type INotificationProps = {
   projectKey: string;
 };
 
-const NotificationModal = ({ open, onOpenChange, data, request }: NotificationProviderProps) => {
+const NotificationModal = ({
+  open,
+  onOpenChange,
+  data,
+  request,
+}: NotificationProviderProps) => {
   const updateMutation = useUpdateSingleMonitor();
   const updateHealth = useUpdateHealth();
   const [emailList, setEmailList] = useState<string[]>(data.emails || []);
@@ -43,7 +52,9 @@ const NotificationModal = ({ open, onOpenChange, data, request }: NotificationPr
   const getEmailError = (email: string): string | null => {
     const result = emailSchema.safeParse(email);
     if (!result.success) {
-      return result.error.errors[0]?.message || "Please enter a valid email address";
+      return (
+        result.error.errors[0]?.message || "Please enter a valid email address"
+      );
     }
     return null;
   };
@@ -59,9 +70,9 @@ const NotificationModal = ({ open, onOpenChange, data, request }: NotificationPr
     const newEmails = [...emailList];
     newEmails[index] = value;
     setEmailList(newEmails);
-    
+
     const newErrors = { ...emailErrors };
-    
+
     if (!value.trim()) {
       newErrors[index] = "Email is required";
     } else if (!isValidEmail(value)) {
@@ -70,7 +81,7 @@ const NotificationModal = ({ open, onOpenChange, data, request }: NotificationPr
     } else {
       delete newErrors[index];
     }
-    
+
     setEmailErrors(newErrors);
   };
 
@@ -175,7 +186,9 @@ const NotificationModal = ({ open, onOpenChange, data, request }: NotificationPr
     onOpenChange(false);
   };
   const hasValidEmail = (): boolean => {
-    return emailList.some((email) => email.trim() && isValidEmail(email.trim()));
+    return emailList.some(
+      (email) => email.trim() && isValidEmail(email.trim()),
+    );
   };
   const isSaveDisabled = (): boolean => {
     const hasErrors = Object.keys(emailErrors).length > 0;
@@ -197,12 +210,12 @@ const NotificationModal = ({ open, onOpenChange, data, request }: NotificationPr
                 <div key={index} className="flex w-full flex-col gap-1">
                   <div className="flex w-full items-center gap-2">
                     <div className="flex flex-1 flex-col">
-                      <input
+                      <Input
                         type="email"
-                        className={`w-full rounded border px-3 py-2 focus:outline-none focus:ring ${
+                        className={`focus-visible:ring-2 focus-visible:ring-offset-0 ${
                           emailErrors[index]
-                            ? "border-red-500 focus:ring-red-200"
-                            : "focus:ring-blue-200"
+                            ? "border-destructive focus-visible:ring-destructive"
+                            : "focus-visible:ring-primary"
                         }`}
                         placeholder="Enter email address"
                         value={item}
@@ -217,15 +230,16 @@ const NotificationModal = ({ open, onOpenChange, data, request }: NotificationPr
                         }}
                       />
                       {emailErrors[index] && (
-                        <span className="mt-1 text-xs text-red-500">{emailErrors[index]}</span>
+                        <span className="mt-1 text-xs text-red-500">
+                          {emailErrors[index]}
+                        </span>
                       )}
                     </div>
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={() => removeEmail(index)}
-                      className="h-fit w-fit p-1"
-                    >
+                      className="h-fit w-fit p-1">
                       <Trash className="h-4 w-4 text-error" />
                     </Button>
                   </div>
@@ -236,8 +250,7 @@ const NotificationModal = ({ open, onOpenChange, data, request }: NotificationPr
                   type="button"
                   variant="outline"
                   onClick={addEmail}
-                  className="mt-2 self-start"
-                >
+                  className="mt-2 self-start">
                   <Plus className="mr-2 h-4 w-4" />
                   Add email
                 </Button>
@@ -250,7 +263,10 @@ const NotificationModal = ({ open, onOpenChange, data, request }: NotificationPr
               Cancel
             </Button>
 
-            <Button type="button" onClick={handleEditClick} disabled={isSaveDisabled()}>
+            <Button
+              type="button"
+              onClick={handleEditClick}
+              disabled={isSaveDisabled()}>
               Save
             </Button>
           </div>

@@ -1,5 +1,5 @@
 import { EllipsisVertical } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,11 +28,12 @@ import { useQueryClient } from "@tanstack/react-query";
 type AlertActionProps = {
   monitorId: string;
   isActive: boolean;
-  goBack?: boolean;
   name: string;
   request: boolean;
   projectKey: string;
+  goBack?: boolean;
   monitorSourceType?: number;
+  children?: ReactNode;
 };
 
 const AlertAction = ({
@@ -43,6 +44,7 @@ const AlertAction = ({
   request,
   projectKey,
   monitorSourceType,
+  children = <EllipsisVertical className="h-5 w-5" />,
 }: AlertActionProps) => {
   const activityState = isActive ? "Pause" : "Resume";
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState<boolean>(false);
@@ -50,33 +52,27 @@ const AlertAction = ({
 
   return (
     <>
-      <div className="flex items-center gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <EllipsisVertical className="h-5 w-5" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              className="gap-2"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsUpdateDialogOpen(true);
-              }}
-            >
-              <span>{activityState}</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="gap-2"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDeleteDialogOpen(true);
-              }}
-            >
-              <span>Delete</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="flex items-center gap-2">
+          <DropdownMenuItem
+            className="gap-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsUpdateDialogOpen(true);
+            }}>
+            <span>{activityState}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="gap-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsDeleteDialogOpen(true);
+            }}>
+            <span>Delete</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {isUpdateDialogOpen && (
         <UpdateMonitorDialog
@@ -128,7 +124,6 @@ const UpdateMonitorDialog = ({
   request,
   name,
   projectKey,
-  monitorSourceType,
 }: UpdateMonitorDialogProps) => {
   const updateMutation = useUpdateSingleMonitor();
   const updateHealth = useUpdateHealth();
@@ -152,14 +147,20 @@ const UpdateMonitorDialog = ({
         });
       }
 
-      await queryClient.invalidateQueries({ queryKey: ["health-monitor-list"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["health-monitor-list"],
+      });
       await queryClient.invalidateQueries({ queryKey: ["monitor-list-by-id"] });
-      await queryClient.invalidateQueries({ queryKey: ["get-monitor-by-id", monitorId] });
+      await queryClient.invalidateQueries({
+        queryKey: ["get-monitor-by-id", monitorId],
+      });
 
       toast({
         variant: "success",
         title: "Success",
-        description: isActive ? "Monitor paused successfully" : "Monitor resumed successfully",
+        description: isActive
+          ? "Monitor paused successfully"
+          : "Monitor resumed successfully",
       });
 
       onOpenChange(false);
@@ -187,7 +188,10 @@ const UpdateMonitorDialog = ({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" disabled={isLoading} onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            disabled={isLoading}
+            onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button onClick={handleUpdate} disabled={isLoading}>
@@ -241,23 +245,21 @@ const DeleteMonitorDialog = ({
         <DialogHeader>
           <DialogTitle>Remove monitor?</DialogTitle>
           <DialogDescription>
-            This action will permanently delete the monitor and its related history. This cannot be
-            undone.
+            This action will permanently delete the monitor and its related
+            history. This cannot be undone.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button
             variant="outline"
             disabled={deleteMutation.isPending}
-            onClick={() => onOpenChange(false)}
-          >
+            onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
             Confirm
           </Button>
         </DialogFooter>
