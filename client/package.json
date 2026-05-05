@@ -8,7 +8,10 @@
     "local": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "lint": "eslint \"app/**/*.{ts,tsx}\"",
+    "lint:fix": "eslint \"app/**/*.{ts,tsx}\" --fix",
+    "prepare": "husky install .husky"
   },
   "dependencies": {
     "@beefree.io/sdk": "^11.4.0",
@@ -67,15 +70,25 @@
     "zustand": "^5.0.1"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.57.0",
+    "@typescript-eslint/parser": "^8.57.0",
     "@types/node": "^20.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.3.0",
     "autoprefixer": "^10.4.19",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.10",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.1",
     "typescript": "~5.7.0",
     "vite": "^6.0.0"
+  },
+  "lint-staged": {
+    "app/**/*.{ts,tsx}": "eslint --max-warnings 0"
   }
 }
