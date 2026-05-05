@@ -1,5 +1,10 @@
 "use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-kits/card/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui-kits/card/card";
 import {
   useGetMonitorById,
   useGetMonitorDetails,
@@ -25,6 +30,7 @@ import {
   ResponseSkeletonLoader,
 } from "@blocks-devops/components/add-repo/skeleton-loader-card";
 import { useProjectStore } from "@/store/useProjectStore";
+import { BackIconButton } from "@/components/buttons";
 
 interface MonitorSummaryProps {
   data: IMonitorSummary[];
@@ -77,12 +83,20 @@ export const formatDuration = (ms: number) => {
   return `${seconds}s`;
 };
 
-const MonitorSummary = ({ data, status, incident, createdAt }: MonitorSummaryProps) => {
-  const toMilliseconds = (value: string): number => parseInt(value, 10) * 24 * 60 * 60 * 1000;
+const MonitorSummary = ({
+  data,
+  status,
+  incident,
+  createdAt,
+}: MonitorSummaryProps) => {
+  const toMilliseconds = (value: string): number =>
+    parseInt(value, 10) * 24 * 60 * 60 * 1000;
   const now = Date.now();
   const incidentDate = new Date(incident);
   const incidentTime =
-    incidentDate.getUTCFullYear() === 1 ? new Date(createdAt).getTime() : incidentDate.getTime();
+    incidentDate.getUTCFullYear() === 1
+      ? new Date(createdAt).getTime()
+      : incidentDate.getTime();
 
   const incidentDuration = formatDuration(now - incidentTime);
 
@@ -95,15 +109,15 @@ const MonitorSummary = ({ data, status, incident, createdAt }: MonitorSummaryPro
               key={`status-${index}`}
               className={`flex flex-1 flex-col rounded-md border-0 border-l-8 shadow-none ${
                 status ? "border-l-green-500" : "border-l-red-500"
-              } bg-transparent py-2 pl-4`}
-            >
-              <CardTitle className="text-base font-medium">Current Status</CardTitle>
+              } bg-transparent py-2 pl-4`}>
+              <CardTitle className="text-base font-medium">
+                Current Status
+              </CardTitle>
               <CardContent className="mt-3 flex flex-col gap-3">
                 <span
                   className={`text-xl font-semibold capitalize ${
                     status ? "text-green-500" : "text-red-500"
-                  }`}
-                >
+                  }`}>
                   {item.status}
                 </span>
                 <span className="text-xs font-medium text-medium-emphasis">
@@ -128,15 +142,17 @@ const MonitorSummary = ({ data, status, incident, createdAt }: MonitorSummaryPro
                 : index === 2
                   ? "border-l-chart-blue"
                   : "border-l-chart-purple"
-            }`}
-          >
+            }`}>
             <CardTitle className="text-base font-medium">
               Last {item.range?.slice(0, -1)} days
             </CardTitle>
             <CardContent className="mt-3 flex flex-col gap-3">
-              <span className="text-xl font-semibold">{uptimePercentage.toFixed(2)}%</span>
+              <span className="text-xl font-semibold">
+                {uptimePercentage.toFixed(2)}%
+              </span>
               <span className="text-xs font-medium text-primary underline">
-                {item.incidentCount} incidents, {formatDuration(item.totalDurationMs!)} down
+                {item.incidentCount} incidents,{" "}
+                {formatDuration(item.totalDurationMs!)} down
               </span>
             </CardContent>
           </Card>
@@ -147,7 +163,8 @@ const MonitorSummary = ({ data, status, incident, createdAt }: MonitorSummaryPro
 };
 
 const MonitorDetails = () => {
-  const [openNotificationSettings, setOpenNotificationSettings] = useState(false);
+  const [openNotificationSettings, setOpenNotificationSettings] =
+    useState(false);
   const [open, setOpen] = useState(false);
   const [timeRange, setTimeRange] = useState("1h");
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
@@ -157,10 +174,13 @@ const MonitorDetails = () => {
   const monitorId = params.id as string;
 
   const { data, isLoading } = useGetMonitorDetails(monitorId as string);
-  const { data: monitorData, isLoading: isMonitorLoading } = useGetMonitorById(monitorId as string);
+  const { data: monitorData, isLoading: isMonitorLoading } = useGetMonitorById(
+    monitorId as string,
+  );
   const repoName = monitorData?.data?.repoName;
   const repoId = monitorData?.data?.repoId;
-  const request = monitorData?.data?.monitorConfigurationType === 0 ? true : false;
+  const request =
+    monitorData?.data?.monitorConfigurationType === 0 ? true : false;
   const interval = monitorData?.data?.intervalInSeconds as number;
   const monitorSourceType = monitorData?.data?.monitorSourceTypes;
   const { data: rtData, isLoading: isRTLoading } = useGetMonitorDownTime({
@@ -191,30 +211,31 @@ const MonitorDetails = () => {
 
   return (
     <main>
-      <div className="hidden md:flex">{/* <PageBreadcrumb breadcrumbIndex={2} /> */}</div>
       <div className="mb-[18px] flex items-center justify-between md:mb-[24px]">
         <div className="flex items-center">
-          {" "}
-          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-6 w-6" />
-          </Button>
-          <h1 className="text-lg font-semibold md:text-2xl">{monitorData?.data?.name}</h1>
+          <BackIconButton
+            data-testid="back-button"
+            icon={<ArrowLeft className="h-6 w-6" />}
+            onClick={() => navigate(-1)}
+            className="h-8 w-8"
+          />
+          <h1 className="text-lg font-semibold md:text-2xl">
+            {monitorData?.data?.name}
+          </h1>
         </div>
         {monitorSourceType !== 2 && (
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               className="flex-1 sm:flex-none"
-              onClick={() => setOpenNotificationSettings((open) => !open)}
-            >
+              onClick={() => setOpenNotificationSettings((open) => !open)}>
               <Settings className="mr-2 h-4 w-4" />
               Notification Settings
             </Button>
             <Button
               variant="outline"
               className="flex-1 sm:flex-none"
-              onClick={() => setOpen((open) => !open)}
-            >
+              onClick={() => setOpen((open) => !open)}>
               <Settings className="mr-2 h-4 w-4" />
               Configure
             </Button>
@@ -272,13 +293,17 @@ const MonitorDetails = () => {
                 {data?.monitorIncidents && data.monitorIncidents.length > 4 && (
                   <Button
                     variant="outline"
-                    onClick={() => navigate(`/health/monitor/incidents/${monitorId}`)}
-                  >
+                    onClick={() =>
+                      navigate(`/health/monitor/incidents/${monitorId}`)
+                    }>
                     View all incidents
                   </Button>
                 )}
               </div>
-              <IncidentList data={data?.monitorIncidents || []} showLastStatus={request} />{" "}
+              <IncidentList
+                data={data?.monitorIncidents || []}
+                showLastStatus={request}
+              />{" "}
             </div>
           </CardContent>
           <AddSingleMonitor
