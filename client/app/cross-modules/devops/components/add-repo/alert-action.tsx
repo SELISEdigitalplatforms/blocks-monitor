@@ -54,7 +54,9 @@ const AlertAction = ({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="flex items-center gap-2">
+        <DropdownMenuContent
+          align="end"
+          className="flex items-center gap-2 flex-col">
           <DropdownMenuItem
             className="gap-2"
             onClick={(e) => {
