@@ -18,7 +18,7 @@ import { useState } from "react";
 import AddSingleMonitor from "@blocks-devops/components/add-repo/add-repo";
 import { Separator } from "@/components/ui-kits/separator/separator";
 import { BREADCRUMB_CUSTOM_TITLES } from "@/constants/breadcrumb-custom-title";
-import { ArrowLeft, Settings } from "lucide-react";
+import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
 import AlertAction from "@blocks-devops/components/add-repo/alert-action";
 import { IMonitorSummary } from "@blocks-devops/models/alerts";
@@ -210,9 +210,9 @@ const MonitorDetails = () => {
   BREADCRUMB_CUSTOM_TITLES["/alerts/monitor"] = "Alert";
 
   return (
-    <main>
+    <div>
       <div className="mb-[18px] flex items-center justify-between md:mb-[24px]">
-        <div className="flex items-center">
+        <div className="flex items-center gap-1">
           <BackIconButton
             data-testid="back-button"
             icon={<ArrowLeft className="h-6 w-6" />}
@@ -239,21 +239,21 @@ const MonitorDetails = () => {
               <Settings className="mr-2 h-4 w-4" />
               Configure
             </Button>
-            <Button variant={"outline"}>
-              <AlertAction
-                monitorId={monitorId as string}
-                isActive={monitorData?.data?.isActive ?? false}
-                name={monitorData?.data?.name || ""}
-                request={request}
-                projectKey={projectKey}
-                monitorSourceType={monitorSourceType}
-              />
-            </Button>
+            <AlertAction
+              monitorId={monitorId as string}
+              isActive={monitorData?.data?.isActive ?? false}
+              name={monitorData?.data?.name || ""}
+              request={request}
+              projectKey={projectKey}
+              monitorSourceType={monitorSourceType}>
+              <Button variant="outline" size="icon" aria-label="Actions">
+                <EllipsisVertical className="h-4 w-4" />
+              </Button>
+            </AlertAction>
           </div>
         )}
       </div>
       <div className="flex flex-col gap-5">
-        {" "}
         <MonitorCard
           onOpenChange={setOpenNotificationSettings}
           repoName={monitorData?.data?.repoName || ""}
@@ -330,7 +330,7 @@ const MonitorDetails = () => {
           />
         </Card>
       </div>
-    </main>
+    </div>
   );
 };
 
