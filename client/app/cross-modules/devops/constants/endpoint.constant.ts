@@ -1,35 +1,37 @@
 import { API_BASES } from "@/constants/endpoint.constant";
-import { getRuntimeEnv } from "@/lib/runtime-env";
-
-const CLOUD_BUILD_API_BASE =
-  getRuntimeEnv("BLOCKS_DEPLOYMENT_APP_URL");
 
 export const CLOUD_BUILD_ENDPOINTS = {
   // Authentication & Authorization
-  ACCESS_TOKEN: `${CLOUD_BUILD_API_BASE}/api/auth/accessToken`,
-  IS_AUTHORIZED: `${CLOUD_BUILD_API_BASE}/api/auth/isAuthorized`,
-  REMOVE_AUTHORIZATION: `${CLOUD_BUILD_API_BASE}/api/auth/removeAuthorization`,
-  REMOVE_ACCESS_TOKEN: `${CLOUD_BUILD_API_BASE}/api/auth/removeAccessToken`,
+  ACCESS_TOKEN:
+    "https://dev-deployment.blocksdevelopers.com/api/auth/accessToken",
+  IS_AUTHORIZED:
+    "https://dev-deployment.blocksdevelopers.com/api/auth/isAuthorized",
+  REMOVE_AUTHORIZATION:
+    "https://dev-deployment.blocksdevelopers.com/api/auth/removeAuthorization",
+  REMOVE_ACCESS_TOKEN:
+    "https://dev-deployment.blocksdevelopers.com/api/auth/removeAccessToken",
 
   // GitHub Repositories
-  GITHUB_REPOS: `${CLOUD_BUILD_API_BASE}/api/github/repos`,
-  GITHUB_USER: `${CLOUD_BUILD_API_BASE}/api/github/user`,
-  GITHUB_BRANCHES: `${CLOUD_BUILD_API_BASE}/api/github/branches`,
-  GITHUB_BRANCH_EXISTS: `${CLOUD_BUILD_API_BASE}/api/github/branchExists`,
+  GITHUB_REPOS: "https://dev-deployment.blocksdevelopers.com/api/github/repos",
+  GITHUB_USER: "https://dev-deployment.blocksdevelopers.com/api/github/user",
+  GITHUB_BRANCHES:
+    "https://dev-deployment.blocksdevelopers.com/api/github/branches",
+  GITHUB_BRANCH_EXISTS:
+    "https://dev-deployment.blocksdevelopers.com/api/github/branchExists",
 
   // Build & Deployment
-  BUILD_BUILD: `${CLOUD_BUILD_API_BASE}/api/build/clone`,
-  RUN_BUILD: `${CLOUD_BUILD_API_BASE}/api/build/run`,
-  MANUAL: `${CLOUD_BUILD_API_BASE}/api/build/manual`,
-  BUILD: `${CLOUD_BUILD_API_BASE}/api/build`,
+  BUILD_BUILD: "https://dev-deployment.blocksdevelopers.com/api/build/clone",
+  RUN_BUILD: "https://dev-deployment.blocksdevelopers.com/api/build/run",
+  MANUAL: "https://dev-deployment.blocksdevelopers.com/api/build/manual",
+  BUILD: "https://dev-deployment.blocksdevelopers.com/api/build",
 
   // Repository Management
-  REPOS: `${CLOUD_BUILD_API_BASE}/api/repos`,
-  REPOS_LIST: `${CLOUD_BUILD_API_BASE}/api/repos/list`,
-  REPO_DETAILS: `${CLOUD_BUILD_API_BASE}/api/repos/details`,
+  REPOS: "https://dev-deployment.blocksdevelopers.com/api/repos",
+  REPOS_LIST: "https://dev-deployment.blocksdevelopers.com/api/repos/list",
+  REPO_DETAILS: "https://dev-deployment.blocksdevelopers.com/api/repos/details",
 
   // Build Settings
-  SETTINGS: `${CLOUD_BUILD_API_BASE}/api/settings`,
+  SETTINGS: "https://dev-deployment.blocksdevelopers.com/api/settings",
 };
 
 export const ALERT_ENDPOINTS = {
