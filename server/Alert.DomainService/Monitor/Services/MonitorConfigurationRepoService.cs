@@ -85,17 +85,19 @@ namespace DomainService.Monitor.Services
                     filter = fb.Or(
                         fb.In(m => m.MonitorSourcetypes, new[]
                         {
-                    MonitorSourceTypes.Infrastructure,
-                    MonitorSourceTypes.BlocksServices
+                            MonitorSourceTypes.Infrastructure,
+                            MonitorSourceTypes.BlocksServices
                         }),
 
                         fb.And(
-                            fb.Eq(m => m.MonitorSourcetypes, MonitorSourceTypes.DeployedServices),
-                            fb.Eq(m => m.TenantId, tenantId)
-                        ),
+                            fb.In(m => m.MonitorSourcetypes, new[]
+                            {
+                                MonitorSourceTypes.DeployedServices,
+                                MonitorSourceTypes.ExternalServices,
+                                MonitorSourceTypes.OtherServices,
+                                MonitorSourceTypes.        OtherServices,
 
-                        fb.And(
-                            fb.Eq(m => m.MonitorSourcetypes, MonitorSourceTypes.ExternalServices),
+                            }),
                             fb.Eq(m => m.TenantId, tenantId)
                         )
                     );

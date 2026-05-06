@@ -45,7 +45,11 @@ namespace DomainService.Health.Services
                         };
                     }
 
-                    if (parsedEnum != MonitorSourceTypes.ExternalServices && parsedEnum != MonitorSourceTypes.BlocksServices)
+                    if (parsedEnum != MonitorSourceTypes.ExternalServices &&
+                        parsedEnum != MonitorSourceTypes.BlocksServices &&
+                        parsedEnum != MonitorSourceTypes.OtherServices &&
+                        parsedEnum != MonitorSourceTypes.        OtherServices
+)
                     {
                         return new BaseApiResponse
                         {

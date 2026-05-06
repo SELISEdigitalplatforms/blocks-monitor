@@ -153,7 +153,10 @@ namespace DomainService.Monitor.Services
 
                     if (parsedEnum != MonitorSourceTypes.ExternalServices &&
                         parsedEnum != MonitorSourceTypes.BlocksServices &&
-                        parsedEnum != MonitorSourceTypes.DeployedServices)
+                        parsedEnum != MonitorSourceTypes.DeployedServices &&
+                        parsedEnum != MonitorSourceTypes.OtherServices &&
+                        parsedEnum != MonitorSourceTypes.        OtherServices
+)
                     {
                         return new BaseApiResponse
                         {
