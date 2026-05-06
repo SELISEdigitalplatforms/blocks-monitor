@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { http } from "@/lib/http-client";
-import { APIResponse } from "@/models/api-response";
+import { APIResponse } from "@/models/api-response.model";
 import {
   IClientConfigResponse,
   IDeleteOidcClientPayload,

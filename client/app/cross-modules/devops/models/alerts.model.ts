@@ -1,3 +1,4 @@
+import type { BaseRequestParams, ProjectKey } from "@/models";
 import { MONITOR_SOURCE_TYPES } from "../constants/alert.constant";
 
 export interface ITags {
@@ -175,6 +176,11 @@ export interface IAlertResponse<T> {
   statusCode: number;
   data: T;
 }
+export interface IGetHealthMonitorListPayload extends BaseRequestParams {
+  projectKey: ProjectKey;
+  monitorSourceType: MONITOR_SOURCE_TYPES | null;
+}
+
 export interface IGetMonitorList {
   errors: string[] | null;
   isSuccess: boolean;

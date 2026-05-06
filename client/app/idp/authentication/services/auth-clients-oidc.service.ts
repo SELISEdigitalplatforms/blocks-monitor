@@ -1,5 +1,5 @@
 import { http } from "@/lib/http-client";
-import { APIResponse } from "@/models/api-response";
+import { APIResponse } from "@/models/api-response.model";
 import {
   IDeleteOidcClientPayload,
   IDeleteOidcClientResponse,

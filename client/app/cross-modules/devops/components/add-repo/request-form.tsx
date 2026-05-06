@@ -47,7 +47,7 @@ import { ErrorTransformer } from "@blocks-devops/utils/error-transform";
 import { useEffect } from "react";
 import { Slider } from "@/components/ui-kits/slider/slider";
 import { useNavigate } from "react-router-dom";
-import type { IAddSingleMonitorPayload } from "../../models/alerts";
+import type { IAddSingleMonitorPayload } from "../../models/alerts.model";
 
 const RequestForm = ({
   itemId,

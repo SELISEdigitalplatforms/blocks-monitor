@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui-kits/card/card";
-import { IIncidentSummaries } from "@blocks-devops/models/alerts";
+import { IIncidentSummaries } from "@/cross-modules/devops/models/alerts.model";
 import React, { useState, useMemo } from "react";
 
 type IProgressBar = {

@@ -18,8 +18,9 @@ import { useAlertFilterQueryParams } from "../alert/alerts-filter-toolbar";
 import { Button } from "@/components/ui-kits/button/button";
 import { Plus } from "lucide-react";
 import AddSingleMonitor from "../../components/add-repo/add-monitor";
+import { Pagination } from "@/components/ui-kits/pagination/pagination";
 
-const validTabs: TabKey[] = ["all", "services", "deployed", "external"];
+const validTabs: TabKey[] = ["all", "services", "deployed", "external", "others"];
 
 const Health = () => {
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
@@ -32,7 +33,7 @@ const Health = () => {
   const [open, setOpen] = useState(false);
 
   const monitorSourceType = useMemo(
-    () => TABS[activeTab].monitorSourceType,
+    () =>  TABS[activeTab].monitorSourceType,
     [activeTab],
   );
   const { queryParams, setQueryParams } = useAlertFilterQueryParams();
@@ -41,12 +42,16 @@ const Health = () => {
     setQueryParams((params) => ({ ...params, page }));
   };
 
-  const { data, isLoading } = useGetHealthMonitorList(
+  const handlePageSizeChange = (pageSize: number) => {
+    setQueryParams((params) => ({ ...params, page: 0, pageSize }));
+  };
+
+  const { data, isLoading } = useGetHealthMonitorList({
     projectKey,
     monitorSourceType,
-    queryParams.page,
-    queryParams.pageSize,
-  );
+    pageNumber: queryParams.page,
+    pageSize: queryParams.pageSize,
+  });
 
   return (
     <main>
@@ -108,12 +113,21 @@ const Health = () => {
           <AlertsList
             data={data?.data || []}
             isLoading={isLoading}
-            pageNumber={queryParams.page}
-            pageSize={queryParams.pageSize}
-            onPageChange={handlePageChange}
-            totalCount={data?.totalCount}
           />
         </CardContent>
+        {/* Pagination */}
+        {data?.totalCount !== undefined && (
+          <div className="mt-5 flex items-center md:justify-end">
+            <Pagination
+              page={queryParams.page}
+              pageSize={queryParams.pageSize}
+              pageSizeOptions={[5, 10, 20]}
+              onPageSizeChange={handlePageSizeChange}
+              onChange={handlePageChange}
+              totalCount={data?.totalCount || 0}
+            />
+          </div>
+        )}
       </Card>
 
       <AddSingleMonitor

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui-kits/sheet/sheet";
 import { Separator } from "@/components/ui-kits/separator/separator";
 import { MobileMenuItem } from "@/components/menus/mobile-menu-item";
-import { Menu } from "@/models/menu-models";
+import { Menu } from "@/models/menu.model";
 
 const projectOverviewMenuItems: Menu[] = [
   {

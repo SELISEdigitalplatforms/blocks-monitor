@@ -263,6 +263,10 @@ const AddSingleMonitor = ({
               className="flex flex-wrap gap-4"
               disabled={isEditMode}>
               <div className="flex items-center gap-2">
+                <RadioGroupItem value="none" id="monitor-source-none" />
+                <label htmlFor="monitor-source-none">None</label>
+              </div>
+              <div className="flex items-center gap-2">
                 <RadioGroupItem value="deployed" id="monitor-source-deployed" />
                 <label htmlFor="monitor-source-deployed">Deployed</label>
               </div>
@@ -272,10 +276,6 @@ const AddSingleMonitor = ({
                   id="monitor-source-my-services"
                 />
                 <label htmlFor="monitor-source-my-services">My services</label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="none" id="monitor-source-none" />
-                <label htmlFor="monitor-source-none">None</label>
               </div>
             </RadioGroup>
 

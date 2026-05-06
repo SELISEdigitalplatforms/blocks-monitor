@@ -1,4 +1,4 @@
-import { PeopleGroupedByEnvironments } from "@/models/people";
+import { PeopleGroupedByEnvironments } from "@/models/people.model";
 
 export interface IPeopleAcceptInvitationPayload {
   code: string;

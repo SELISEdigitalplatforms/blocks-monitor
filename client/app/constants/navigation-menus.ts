@@ -1,7 +1,17 @@
 import { Activity } from "lucide-react";
-import { Menu } from "@/models/menu-models";
-import { Home, Package, Users, BookMinus, Settings, Shield, Key, ShieldCheck, ScanFace, Lock, Zap, Gauge, GitBranch } from "lucide-react";
+import { Menu } from "@/models/menu.model";
+import {
+  Home,
+  Package,
+  Users,
+  BookMinus,
+  Settings,
+  Key,
+  Lock,
+  Zap,
 
+  // Gauge, GitBranch, Shield , ShieldCheck, ScanFace,
+} from "lucide-react";
 
 export const navigationMenus: Menu[] = [
   {
