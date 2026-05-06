@@ -1,9 +1,10 @@
-import {
+import type {
   IAddSingleMonitorPayload,
+  IGetHealthMonitorListPayload,
   ISaveHealth,
   IUpdateHealth,
   IUpdateMonitor,
-} from "@blocks-devops/models/alerts";
+} from "@/cross-modules/devops/models/alerts.model";
 import { alertsService } from "@blocks-devops/services/alerts.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -86,12 +87,8 @@ export const useGetMonitorList = (projectKey: string, repoId: string) => {
     refetchOnMount: "always",
   });
 };
-export const useGetHealthMonitorList = (
-  projectKey: string,
-  monitorSourceType?: number,
-  pageNumber: number = 0,
-  pageSize: number = 10,
-) => {
+export const useGetHealthMonitorList = (payload: IGetHealthMonitorListPayload) => {
+ const {projectKey, monitorSourceType, pageNumber = 0, pageSize = 10} = payload;
   return useQuery({
     queryKey: [
       "health-monitor-list",

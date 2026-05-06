@@ -1,21 +1,22 @@
+export type APIError<T = unknown> = T & { errors: string[] };
+
 export type APIErrorResponse<T = unknown> = {
+ error: APIError<T>;
   data?: never;
-  error: APIError<T>;
   status?: number;
 };
 
-export type APIError<T = unknown> = { errors: string[] } & T;
 
 export interface APIResponse<T> {
+ data: T;
   isSuccess?: boolean;
-  data: T;
   error?: unknown;
   status?: number;
 }
 
-export interface IAPIResponse<T> {
+export interface APIListResponse<T> {
   data: T;
+  totalCount: number;
   errors?: unknown;
   status?: number;
-  totalCount: number;
 }

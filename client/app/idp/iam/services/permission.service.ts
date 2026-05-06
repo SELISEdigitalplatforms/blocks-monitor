@@ -1,5 +1,5 @@
 import { http } from "@/lib/http-client";
-import { IAPIResponse } from "@/models/api-response";
+import { APIListResponse } from "@/models/api-response.model";
 import {
   CreatePermissionPayload,
   CreatePermissionResponse,
@@ -19,7 +19,7 @@ import { PERMISSION_ENDPOINTS } from "../constants/endpoint.constant";
 export class PermissionService {
   getPermissions(
     payload: IGetPermissionsPayload,
-  ): Promise<IAPIResponse<IPermission[]> & { totalCount: number }> {
+  ): Promise<APIListResponse<IPermission[]> & { totalCount: number }> {
     return http.post(PERMISSION_ENDPOINTS.GET_PERMISSIONS, payload);
   }
 

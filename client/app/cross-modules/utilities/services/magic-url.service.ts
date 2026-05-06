@@ -10,13 +10,13 @@ import {
   ISaveMagicUrlConfigPayload,
   ISaveMagicUrlConfigResponse,
 } from "@blocks-utilities/models/magic-url-config.model";
-import { IAPIResponse } from "@/models/api-response";
+import { APIListResponse } from "@/models/api-response.model";
 import { MAGIC_URL_ENDPOINTS } from "@blocks-utilities/constants/endpoint.constant";
 
 export class MagicUrlService {
   async getMagicUrl(payload: IGetMagicUrlByIdPayload): Promise<MagicUrl> {
     const { ItemId, projectKey } = payload;
-    const response = await http.get<IAPIResponse<MagicUrl>>(
+    const response = await http.get<APIListResponse<MagicUrl>>(
       `${MAGIC_URL_ENDPOINTS.GET_LINK}?ItemId=${ItemId}&ProjectKey=${projectKey}`,
     );
     return response.data;
@@ -49,7 +49,7 @@ export class MagicUrlService {
       params.append("ExpiryDateRange.StartDate", expiryDateRangeStartDate);
     if (expiryDateRangeEndDate) params.append("ExpiryDateRange.EndDate", expiryDateRangeEndDate);
 
-    const response = await http.get<IAPIResponse<MagicUrl[]>>(
+    const response = await http.get<APIListResponse<MagicUrl[]>>(
       `${MAGIC_URL_ENDPOINTS.GET_LINKS}?${params.toString()}`,
     );
 

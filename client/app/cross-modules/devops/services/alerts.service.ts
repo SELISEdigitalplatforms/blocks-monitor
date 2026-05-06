@@ -7,6 +7,7 @@ import type {
   IAddSingleMonitorResponse,
   IAlertResponse,
   IDeleteHealthResponse,
+  IGetHealthMonitorListPayload,
   IGetMonitorList,
   IIncidentSummaryResponse,
   IMonitorIncidentListResponse,
@@ -14,7 +15,7 @@ import type {
   ISaveSingleHealthResponse,
   IUpdateHealth,
   IUpdateMonitor,
-} from "@blocks-devops/models/alerts";
+} from "@/cross-modules/devops/models/alerts.model";
 
 class AlertsService {
   async addSingleMonitor(payload: IAddSingleMonitorPayload) {
@@ -52,17 +53,12 @@ class AlertsService {
     pageNumber,
     pageSize,
     monitorSourceType,
-  }: {
-    projectKey: string;
-    pageNumber: number;
-    pageSize: number;
-    monitorSourceType?: number;
-  }) {
+  }: IGetHealthMonitorListPayload) {
     const params = new URLSearchParams({
       projectKey,
       pageNumber: pageNumber.toString(),
       pageSize: pageSize.toString(),
-      ...(monitorSourceType !== undefined && {
+      ...(monitorSourceType !== null && {
         monitorSourceType: monitorSourceType.toString(),
       }),
     });

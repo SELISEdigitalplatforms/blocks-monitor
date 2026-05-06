@@ -46,6 +46,7 @@ namespace DomainService.Monitor.Entity
         DeployedServices,
         BlocksServices,
         ExternalServices,
+        OtherServices,
     }
 
     [BsonIgnoreExtraElements]
