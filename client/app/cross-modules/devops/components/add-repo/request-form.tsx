@@ -16,7 +16,10 @@ import {
   FormMessage,
 } from "@/components/ui-kits/form/form";
 import { Input } from "@/components/ui-kits/input/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui-kits/radio-group/radio-group";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@/components/ui-kits/radio-group/radio-group";
 
 import { Switch } from "@/components/ui-kits/switch/switch";
 import { Textarea } from "@/components/ui-kits/textarea/textarea";
@@ -33,13 +36,18 @@ import {
   useUpdateSingleMonitor,
 } from "@blocks-devops/hooks/alerts";
 import { useForm } from "react-hook-form";
-import { addAlertRepoDefaultValues, AddAlertRepoForm, addAlertRepoSchema } from "./utils";
+import {
+  addAlertRepoDefaultValues,
+  AddAlertRepoForm,
+  addAlertRepoSchema,
+} from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { ErrorTransformer } from "@blocks-devops/utils/error-transform";
 import { useEffect } from "react";
 import { Slider } from "@/components/ui-kits/slider/slider";
 import { useNavigate } from "react-router-dom";
+import type { IAddSingleMonitorPayload } from "../../models/alerts";
 
 const RequestForm = ({
   itemId,
@@ -48,11 +56,11 @@ const RequestForm = ({
   repoName,
   externalServiceId,
 }: {
-  itemId?: string;
-  repoId: string;
-  repoName: string;
-  externalServiceId?: string;
   onClose: (value: boolean) => void;
+  itemId?: string;
+  repoId?: string;
+  repoName?: string;
+  externalServiceId?: string;
 }) => {
   const { isPending, mutateAsync } = useAddSingleMonitor();
   const updateMutation = useUpdateSingleMonitor();
@@ -97,7 +105,7 @@ const RequestForm = ({
 
   const onSubmit = async (formValues: AddAlertRepoForm) => {
     try {
-      const payload: any = {
+      const payload: IAddSingleMonitorPayload = {
         itemId: itemId || "",
         projectKey,
         name: formValues.name,
@@ -109,10 +117,13 @@ const RequestForm = ({
           formValues.requestConfiguration.http_methods === "2"
             ? formValues.requestConfiguration.request_body
             : "",
-        intervalInSeconds: MONITOR_INTERVAL[formValues.monitorSettings.monitor_interval],
-        timeoutInSeconds: MONITOR_INTERVAL[formValues.monitorSettings.request_timeout],
+        intervalInSeconds:
+          MONITOR_INTERVAL[formValues.monitorSettings.monitor_interval],
+        timeoutInSeconds:
+          MONITOR_INTERVAL[formValues.monitorSettings.request_timeout],
         customHttpHeaders: JSON.stringify({
-          [formValues.requestConfiguration.x_header_name]: formValues.requestConfiguration.value,
+          [formValues.requestConfiguration.x_header_name]:
+            formValues.requestConfiguration.value,
         }),
         isActive: true,
         httpMethodType: formValues.requestConfiguration.http_methods,
@@ -135,7 +146,9 @@ const RequestForm = ({
       }
       if (!res.isSuccess) return showErrorToast({ errors: res.message });
       showSuccessToast({
-        description: itemId ? "Monitor successfully updated." : "Monitor successfully created.",
+        description: itemId
+          ? "Monitor successfully updated."
+          : "Monitor successfully created.",
       });
       form.reset();
       onClose(false);
@@ -155,8 +168,8 @@ const RequestForm = ({
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input 
-                    {...field} 
+                  <Input
+                    {...field}
                     disabled={itemId ? true : false}
                     onBlur={(e) => {
                       field.onChange(e.target.value.trim());
@@ -269,15 +282,18 @@ const RequestForm = ({
                         <RadioGroup
                           onValueChange={field.onChange}
                           value={field.value}
-                          className="flex flex-col gap-4"
-                        >
+                          className="flex flex-col gap-4">
                           <div className="flex gap-6">
                             {HTTP_METHODS.map((item, index) => (
-                              <FormItem className="flex items-center gap-2" key={index}>
+                              <FormItem
+                                className="flex items-center gap-2"
+                                key={index}>
                                 <FormControl>
                                   <RadioGroupItem value={item.value} />
                                 </FormControl>
-                                <FormLabel className="!mt-0">{item.label}</FormLabel>
+                                <FormLabel className="!mt-0">
+                                  {item.label}
+                                </FormLabel>
                               </FormItem>
                             ))}
                           </div>
@@ -326,7 +342,9 @@ const RequestForm = ({
                 />
                 {sendAsJson && (
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <span className="text-lg font-semibold md:col-span-2">Request headers</span>
+                    <span className="text-lg font-semibold md:col-span-2">
+                      Request headers
+                    </span>
 
                     <FormField
                       control={form.control}

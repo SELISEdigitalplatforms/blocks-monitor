@@ -12,15 +12,24 @@ export const useAddSingleMonitor = () => {
 
   return useMutation({
     mutationKey: ["agent-monitor"],
-    mutationFn: (payload: IAddSingleMonitorPayload) => alertsService.addSingleMonitor(payload),
+    mutationFn: (payload: IAddSingleMonitorPayload) =>
+      alertsService.addSingleMonitor(payload),
     onSuccess: (_data, variables) => {
       // Invalidate monitor list for the affected project so lists refresh
-      queryClient.invalidateQueries({ queryKey: ["monitor-list-by-id", variables.projectKey] });
+      queryClient.invalidateQueries({
+        queryKey: ["monitor-list-by-id", variables.projectKey],
+      });
       // If editing an existing monitor, invalidate its details/analytics
       if (variables.itemId) {
-        queryClient.invalidateQueries({ queryKey: ["get-monitor-details", variables.itemId] });
-        queryClient.invalidateQueries({ queryKey: ["get-monitor-response-id", variables.itemId] });
-        queryClient.invalidateQueries({ queryKey: ["get-monitor-by-id", variables.itemId] });
+        queryClient.invalidateQueries({
+          queryKey: ["get-monitor-details", variables.itemId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["get-monitor-response-id", variables.itemId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["get-monitor-by-id", variables.itemId],
+        });
       }
     },
   });
@@ -29,7 +38,8 @@ export const useUpdateSingleMonitor = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ["update-individual-monitor"],
-    mutationFn: (payload: IUpdateMonitor) => alertsService.updateSingleMonitor(payload),
+    mutationFn: (payload: IUpdateMonitor) =>
+      alertsService.updateSingleMonitor(payload),
     onSuccess: (variables) => {
       queryClient.invalidateQueries({
         queryKey: ["get-monitor-details"],
@@ -55,7 +65,7 @@ export const useDeleteMonitor = () => {
     mutationFn: (itemId: string) => alertsService.deleteSingleMonitor(itemId),
     onSuccess: () => {
       // Invalidate ALL queries that start with these prefixes
-       queryClient.invalidateQueries({
+      queryClient.invalidateQueries({
         queryKey: ["health-monitor-list"],
       });
 
@@ -83,10 +93,22 @@ export const useGetHealthMonitorList = (
   pageSize: number = 10,
 ) => {
   return useQuery({
-    queryKey: ["health-monitor-list", projectKey, monitorSourceType, pageNumber, pageSize],
+    queryKey: [
+      "health-monitor-list",
+      projectKey,
+      monitorSourceType,
+      pageNumber,
+      pageSize,
+    ],
     queryFn: () =>
-      alertsService.getHealthMonitorList(projectKey, monitorSourceType, pageNumber, pageSize),
+      alertsService.getHealthMonitorList({
+        projectKey,
+        monitorSourceType,
+        pageNumber,
+        pageSize,
+      }),
     refetchOnMount: "always",
+    enabled: !!projectKey,
   });
 };
 export const useGetMonitorListById = (projectKey: string, repoId: string) => {
@@ -116,7 +138,8 @@ export const useGetAllIncidentList = (
 ) => {
   return useQuery({
     queryKey: ["get-all-incident-list", monitorId, pageNumber, pageSize],
-    queryFn: () => alertsService.getAllMonitorIncidentList(monitorId, pageNumber, pageSize),
+    queryFn: () =>
+      alertsService.getAllMonitorIncidentList(monitorId, pageNumber, pageSize),
     enabled: !!monitorId,
     placeholderData: (previousData) => previousData,
   });
@@ -220,14 +243,20 @@ export const useSaveHealth = () => {
     mutationFn: (payload: ISaveHealth) => alertsService.saveHealth(payload),
     onSuccess: (_data, variables) => {
       // Invalidate monitor list for the affected project so lists refresh
-      queryClient.invalidateQueries({ queryKey: ["monitor-list-by-id", _data.data.itemId] });
+      queryClient.invalidateQueries({
+        queryKey: ["monitor-list-by-id", _data.data.itemId],
+      });
       // If editing an existing monitor, invalidate its details/analytics
       if (variables) {
-        queryClient.invalidateQueries({ queryKey: ["get-monitor-details", _data.data.itemId] });
+        queryClient.invalidateQueries({
+          queryKey: ["get-monitor-details", _data.data.itemId],
+        });
         queryClient.invalidateQueries({
           queryKey: ["get-monitor-response-id", _data.data.itemId],
         });
-        queryClient.invalidateQueries({ queryKey: ["get-monitor-by-id", _data.data.itemId] });
+        queryClient.invalidateQueries({
+          queryKey: ["get-monitor-by-id", _data.data.itemId],
+        });
       }
     },
   });
@@ -239,7 +268,7 @@ export const useUpdateHealth = () => {
     mutationFn: (payload: IUpdateHealth) => alertsService.updateHealth(payload),
     onSuccess: (variables) => {
       // Invalidate ALL queries that start with these prefixes
-     
+
       queryClient.invalidateQueries({
         queryKey: ["get-monitor-details"],
       });
@@ -252,8 +281,6 @@ export const useUpdateHealth = () => {
       queryClient.invalidateQueries({
         queryKey: ["monitor-list-by-id"],
       });
-
-     
 
       // Also try refetching specific queries
       queryClient.refetchQueries({
