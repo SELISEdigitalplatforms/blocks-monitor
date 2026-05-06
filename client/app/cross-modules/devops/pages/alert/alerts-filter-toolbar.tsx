@@ -1,13 +1,21 @@
 import { FilterToolbar, useSortQueryParams } from "@/components/filter-toolbar";
-import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from "nuqs";
+import {
+  parseAsArrayOf,
+  parseAsIndex,
+  parseAsInteger,
+  parseAsString,
+  useQueryStates,
+} from "nuqs";
+import { parseAsHealthTabKey } from "../../constants/health.constant";
 
 type ALertFilter = { search: string; repositories: string[] };
 
 export const useAlertFilterQueryParams = () => {
   const [queryParams, setQueryParams] = useQueryStates({
+    tab: parseAsHealthTabKey.withDefault("all"),
     search: parseAsString.withDefault(""),
     repositories: parseAsArrayOf(parseAsString).withDefault([]),
-    page: parseAsInteger.withDefault(0),
+    page: parseAsIndex.withDefault(0),
     pageSize: parseAsInteger.withDefault(10),
   });
   return { queryParams, setQueryParams };
@@ -42,7 +50,10 @@ export function AlertsFilterToolbar({ repositories }: AlertFilterToolBarProps) {
           props: { options: repositories },
         },
       ]}
-      values={{ search: queryParams.search, repositories: queryParams.repositories }}
+      values={{
+        search: queryParams.search,
+        repositories: queryParams.repositories,
+      }}
       defaultValues={{ search: "", repositories: [] }}
       onChange={changeHandler}
       onReset={resetHandler}
