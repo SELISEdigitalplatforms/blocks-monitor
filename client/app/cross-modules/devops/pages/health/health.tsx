@@ -1,5 +1,7 @@
 "use client";
+import { Button } from "@/components/ui-kits/button/button";
 import { Card, CardContent } from "@/components/ui-kits/card/card";
+import { Pagination } from "@/components/ui-kits/pagination/pagination";
 import {
   Select,
   SelectContent,
@@ -9,34 +11,34 @@ import {
 } from "@/components/ui-kits/select/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui-kits/tabs/tabs";
 import { useProjectStore } from "@/store/useProjectStore";
-import { TabKey, TABS } from "@blocks-devops/constants/health.constant";
+import {
+  type HealthTabKey,
+  HEALTH_TABS,
+} from "@blocks-devops/constants/health.constant";
 import { useGetHealthMonitorList } from "@blocks-devops/hooks/alerts";
 import { AlertsList } from "@blocks-devops/pages/alert/alerts-list";
-import { useQueryState } from "nuqs";
-import { useMemo, useState } from "react";
-import { useAlertFilterQueryParams } from "../alert/alerts-filter-toolbar";
-import { Button } from "@/components/ui-kits/button/button";
 import { Plus } from "lucide-react";
+import { useMemo, useState } from "react";
 import AddSingleMonitor from "../../components/add-repo/add-monitor";
-import { Pagination } from "@/components/ui-kits/pagination/pagination";
-
-const validTabs: TabKey[] = ["all", "services", "deployed", "external", "others"];
+import { useAlertFilterQueryParams } from "../alert/alerts-filter-toolbar";
 
 const Health = () => {
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
-  const [activeTab, setActiveTab] = useQueryState<TabKey>("tab", {
-    defaultValue: "all",
-    parse: (value: string) => {
-      return validTabs.includes(value as TabKey) ? (value as TabKey) : "all";
-    },
-  });
+  const { queryParams, setQueryParams } = useAlertFilterQueryParams();
   const [open, setOpen] = useState(false);
 
   const monitorSourceType = useMemo(
-    () =>  TABS[activeTab].monitorSourceType,
-    [activeTab],
+    () => HEALTH_TABS[queryParams.tab].monitorSourceType,
+    [queryParams.tab],
   );
-  const { queryParams, setQueryParams } = useAlertFilterQueryParams();
+
+  const handleTabChange = (tab: string) => {
+    setQueryParams((params) => ({
+      ...params,
+      page: 0,
+      tab: tab as HealthTabKey,
+    }));
+  };
 
   const handlePageChange = (page: number) => {
     setQueryParams((params) => ({ ...params, page }));
@@ -62,20 +64,16 @@ const Health = () => {
       </div>
 
       <div className="flex items-baseline justify-between">
-        <Tabs
-          value={activeTab}
-          onValueChange={(value) => setActiveTab(value as TabKey)}>
+        <Tabs value={queryParams.tab} onValueChange={handleTabChange}>
           <div className="mb-5 mt-6 flex items-center justify-between rounded text-base">
             {/* Mobile Select */}
             <div className="md:hidden">
-              <Select
-                value={activeTab}
-                onValueChange={(value) => setActiveTab(value as TabKey)}>
+              <Select value={queryParams.tab} onValueChange={handleTabChange}>
                 <SelectTrigger className="w-32">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(TABS).map(([key, { label }]) => (
+                  {Object.entries(HEALTH_TABS).map(([key, { label }]) => (
                     <SelectItem key={key} value={key}>
                       {label}
                     </SelectItem>
@@ -87,7 +85,7 @@ const Health = () => {
             {/* Desktop Tabs */}
             <div className="hidden md:block">
               <TabsList>
-                {Object.entries(TABS).map(([key, { label }]) => (
+                {Object.entries(HEALTH_TABS).map(([key, { label }]) => (
                   <TabsTrigger key={key} value={key}>
                     {label}
                   </TabsTrigger>
@@ -110,10 +108,7 @@ const Health = () => {
       {/* Alert List Table */}
       <Card>
         <CardContent>
-          <AlertsList
-            data={data?.data || []}
-            isLoading={isLoading}
-          />
+          <AlertsList data={data?.data || []} isLoading={isLoading} />
         </CardContent>
         {/* Pagination */}
         {data?.totalCount !== undefined && (
