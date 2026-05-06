@@ -96,7 +96,7 @@ const AddSingleMonitor = ({
     if (sourceType === "deployed") return MONITOR_SOURCE_TYPES.DeployedServices;
     if (sourceType === "my-services")
       return MONITOR_SOURCE_TYPES.ExternalServices;
-    return undefined;
+    return MONITOR_SOURCE_TYPES.OtherServices;
   }, [sourceType]);
 
   const prefillName = useMemo(() => {
@@ -206,6 +206,8 @@ const AddSingleMonitor = ({
       monitorSourceTypes === Number(MONITOR_SOURCE_TYPES.ExternalServices);
     const isDeployedSource =
       monitorSourceTypes === Number(MONITOR_SOURCE_TYPES.DeployedServices);
+    const isNoneSource =
+      monitorSourceTypes === Number(MONITOR_SOURCE_TYPES.OtherServices);
 
     if (isExternalSource) {
       setSourceType("my-services");
@@ -219,6 +221,13 @@ const AddSingleMonitor = ({
       setSourceType("deployed");
       if (monitorDetails.data.repoId)
         setSelectedRepoId(monitorDetails.data.repoId);
+      return;
+    }
+
+    if (isNoneSource) {
+      setSourceType("none");
+      setSelectedRepoId("");
+      setSelectedServiceId("");
     }
   }, [itemId, monitorDetails]);
 
