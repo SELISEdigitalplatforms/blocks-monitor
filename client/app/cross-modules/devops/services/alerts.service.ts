@@ -1,11 +1,12 @@
 import { http } from "@/lib/http-client";
 import { ALERT_ENDPOINTS } from "@blocks-devops/constants/endpoint.constant";
-import {
+import type {
   GetMonitorByIdResponse,
   GetMonitorPingLogsResponse,
   IAddSingleMonitorPayload,
   IAddSingleMonitorResponse,
   IAlertResponse,
+  IDeleteHealthResponse,
   IGetMonitorList,
   IIncidentSummaryResponse,
   IMonitorIncidentListResponse,
@@ -46,12 +47,17 @@ class AlertsService {
     return http.get<IAlertResponse<IAddSingleMonitorResponse>>(url);
   }
 
-  async getHealthMonitorList(
-    projectKey: string,
-    monitorSourceType?: number,
-    pageNumber: number = 0,
-    pageSize: number = 10,
-  ) {
+  async getHealthMonitorList({
+    projectKey,
+    pageNumber,
+    pageSize,
+    monitorSourceType,
+  }: {
+    projectKey: string;
+    pageNumber: number;
+    pageSize: number;
+    monitorSourceType?: number;
+  }) {
     const params = new URLSearchParams({
       projectKey,
       pageNumber: pageNumber.toString(),
@@ -62,7 +68,7 @@ class AlertsService {
     });
 
     const url = `${ALERT_ENDPOINTS.GET_MONITOR_LIST}?${params.toString()}`;
-    return http.get<any>(url);
+    return http.get<IGetMonitorList>(url);
   }
 
   async getAllMonitorIncidentList(
@@ -78,11 +84,19 @@ class AlertsService {
     return http.get<GetMonitorByIdResponse>(url);
   }
 
-  async GetMonitorResponseTime(payload: { monitorId: string; startTime: string; endTime: string }) {
+  async GetMonitorResponseTime(payload: {
+    monitorId: string;
+    startTime: string;
+    endTime: string;
+  }) {
     const url = `${ALERT_ENDPOINTS.GET_MONITOR_RESPONSE_TIME}?monitorId=${encodeURIComponent(payload.monitorId)}&startTime=${encodeURIComponent(payload.startTime)}&endTime=${encodeURIComponent(payload.endTime)}`;
     return http.get<GetMonitorPingLogsResponse>(url);
   }
-  async GetMonitorDownTime(payload: { monitorId: string; startTime: string; endTime: string }) {
+  async GetMonitorDownTime(payload: {
+    monitorId: string;
+    startTime: string;
+    endTime: string;
+  }) {
     const url = `${ALERT_ENDPOINTS.GET_MONITOR_DOWN_TIME}?monitorId=${encodeURIComponent(payload.monitorId)}&startDate=${payload.startTime}&endDate=${payload.endTime}`;
     return http.get<GetMonitorPingLogsResponse>(url);
   }
@@ -92,11 +106,11 @@ class AlertsService {
   }
   async updateHealth(payload: IUpdateHealth) {
     const url = ALERT_ENDPOINTS.UPDATE_HEALTH;
-    return http.post<any>(url, payload);
+    return http.post<ISaveSingleHealthResponse>(url, payload);
   }
   async deleteHealth(itemId: string) {
     const url = `${ALERT_ENDPOINTS.DELETE_HEALTH}?itemId=${encodeURIComponent(itemId)}`;
-    return http.delete<any>(url);
+    return http.delete<IDeleteHealthResponse>(url);
   }
 }
 export const alertsService = new AlertsService();

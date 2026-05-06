@@ -12,7 +12,11 @@ import { DialogClose } from "@/components/ui-kits/dialog/dialog";
 import { Button } from "@/components/ui-kits/button/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addACallbackSchema, AddCallbackForm, addCallbackFormDefaultValues } from "./utils";
+import {
+  addACallbackSchema,
+  AddCallbackForm,
+  addCallbackFormDefaultValues,
+} from "./schema";
 import {
   MONITOR_INTERVAL,
   MONITOR_SOURCE_TYPES,
@@ -20,11 +24,16 @@ import {
 } from "@blocks-devops/constants/alert.constant";
 import { InfoTooltip } from "@/components/info-tool-tip/info-tool-tip";
 import { Slider } from "@/components/ui-kits/slider/slider";
-import { useGetHealthById, useSaveHealth, useUpdateHealth } from "@blocks-devops/hooks/alerts";
+import {
+  useGetHealthById,
+  useSaveHealth,
+  useUpdateHealth,
+} from "@blocks-devops/hooks/alerts";
 import { useProjectStore } from "@/store/useProjectStore";
 import { useEffect } from "react";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { ErrorTransformer } from "@blocks-devops/utils/error-transform";
+import type { ISaveHealth } from "../../models/alerts";
 
 const CallbackForm = ({
   itemId,
@@ -33,10 +42,10 @@ const CallbackForm = ({
   externalServiceId,
   onClose,
 }: {
-  itemId?: string;
   onClose: (value: boolean) => void;
-  repoName: string;
-  repoId: string;
+  itemId?: string;
+  repoName?: string;
+  repoId?: string;
   externalServiceId?: string;
 }) => {
   const { isPending, mutateAsync } = useSaveHealth();
@@ -62,9 +71,10 @@ const CallbackForm = ({
       });
     }
   }, [healthData, itemId, form]);
+
   const onSubmit = async (formValues: AddCallbackForm) => {
     try {
-      const payload: any = {
+      const payload: ISaveHealth = {
         repoName: repoName,
         repoId: repoId,
         projectKey,
@@ -89,7 +99,9 @@ const CallbackForm = ({
       }
       if (!res.isSuccess) return showErrorToast({ errors: res.message });
       showSuccessToast({
-        description: itemId ? "Monitor successfully updated." : "Monitor successfully created.",
+        description: itemId
+          ? "Monitor successfully updated."
+          : "Monitor successfully created.",
       });
       form.reset();
       onClose(false);
@@ -110,8 +122,8 @@ const CallbackForm = ({
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input 
-                    {...field} 
+                  <Input
+                    {...field}
                     disabled={itemId ? true : false}
                     onBlur={(e) => {
                       field.onChange(e.target.value.trim());

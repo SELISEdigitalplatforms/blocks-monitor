@@ -55,10 +55,10 @@ const AlertAction = ({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
         <DropdownMenuContent
-          align="end"
-          className="flex items-center gap-2 flex-col">
+          align="center"
+          className="flex pointer-events-auto gap-2 flex-col">
           <DropdownMenuItem
-            className="gap-2"
+            className="gap-2 cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               setIsUpdateDialogOpen(true);
@@ -66,7 +66,7 @@ const AlertAction = ({
             <span>{activityState}</span>
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="gap-2"
+            className="gap-2 cursor-pointer text-destructive"
             onClick={(e) => {
               e.stopPropagation();
               setIsDeleteDialogOpen(true);
