@@ -64,11 +64,15 @@ export const useAddAssets = () => {
   });
 };
 
-export const useGetEnvRepositories = (projectKey: string) => {
+export const useGetEnvRepositories = (
+  projectKey: string,
+  enabled: boolean = true,
+) => {
   return useQuery({
     queryKey: ["env-repositories", projectKey],
     queryFn: () => crossProjectService.getEnvRepositories(projectKey),
-    enabled: !!projectKey,
+    enabled: enabled && !!projectKey,
+    refetchOnMount: "always",
   });
 };
 
