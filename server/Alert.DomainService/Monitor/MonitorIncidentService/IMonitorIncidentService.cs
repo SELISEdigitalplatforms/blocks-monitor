@@ -2,7 +2,7 @@
 using DomainService.Monitor.Models;
 using DomainService.Shared.Models;
 
-namespace DomainService.Monitor.MonitorIncidentSevice
+namespace DomainService.Monitor.MonitorIncidentService
 {
     public interface IMonitorIncidentService
     {
