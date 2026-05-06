@@ -151,12 +151,14 @@ namespace DomainService.Monitor.Services
                         };
                     }
 
-                    if (parsedEnum != MonitorSourcetypes.ExternnalServices && parsedEnum != MonitorSourcetypes.BlocksServices)
+                    if (parsedEnum != MonitorSourcetypes.ExternnalServices &&
+                        parsedEnum != MonitorSourcetypes.BlocksServices &&
+                        parsedEnum != MonitorSourcetypes.DeployedServices)
                     {
                         return new BaseApiResponse
                         {
                             IsSuccess = false,
-                            Message = $"Invalid MonitorSourcetype"
+                            Message = $"Invalid MonitorSourceType"
                         };
                     }
 

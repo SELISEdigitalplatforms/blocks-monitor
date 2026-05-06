@@ -37,7 +37,11 @@ import {
 } from "@blocks-identifier/constants/endpoint.constant";
 
 export class ProjectService {
-  getProjects(page: number, pageSize: number, tenantGroupId: string): Promise<IProjectGroup[]> {
+  getProjects(
+    page: number,
+    pageSize: number,
+    tenantGroupId: string,
+  ): Promise<IProjectGroup[]> {
     const url = `${PROJECT_ENDPOINTS.GETS}?page=${page}&pageSize=${pageSize}&tenantGroupId=${tenantGroupId}`;
     return http.get(url);
   }
@@ -70,7 +74,7 @@ export class ProjectService {
     isSuccess: boolean;
   }> {
     const url = `${CLOUD_BUILD_ENDPOINTS.REPOS_LIST}?projectkey=${projectKey}`;
-    return http.get(url);
+    return http.get(url, undefined, { absoluteUrl: true });
   }
 
   repoUpdate(payload: {
@@ -85,7 +89,9 @@ export class ProjectService {
     errors: unknown | null;
     isSuccess: boolean;
   }> {
-    return http.post(CLOUD_BUILD_ENDPOINTS.REPO_UPDATE, payload);
+    return http.post(CLOUD_BUILD_ENDPOINTS.REPO_UPDATE, payload, undefined, {
+      absoluteUrl: true,
+    });
   }
 
   getProject(payload: IGetProjectPayload): Promise<IGetProjectResponse> {
@@ -107,14 +113,20 @@ export class ProjectService {
     return http.post(DOMAIN_ENDPOINTS.CONFIGURE, payload);
   }
 
-  updateProject(payload: IUpdateProjectPayload): Promise<IUpdateProjectResponse> {
+  updateProject(
+    payload: IUpdateProjectPayload,
+  ): Promise<IUpdateProjectResponse> {
     return http.post(PROJECT_ENDPOINTS.UPDATE, payload);
   }
 
-  updateTenantGroup(payload: IUpdateTenantGroupPayload): Promise<IUpdateProjectResponse> {
+  updateTenantGroup(
+    payload: IUpdateTenantGroupPayload,
+  ): Promise<IUpdateProjectResponse> {
     return http.post(PROJECT_ENDPOINTS.UPDATE_TENANT_GROUP, payload);
   }
-  disableProject(payload: IDisableProjectPayload): Promise<IDisableProjectResponse> {
+  disableProject(
+    payload: IDisableProjectPayload,
+  ): Promise<IDisableProjectResponse> {
     return http.post(PROJECT_ENDPOINTS.DISABLE, payload);
   }
 
@@ -123,11 +135,15 @@ export class ProjectService {
   }
 
   // Data Migration Methods
-  initiateMigration(payload: IMigrationRequest): Promise<IMigrationInitiateResponse> {
+  initiateMigration(
+    payload: IMigrationRequest,
+  ): Promise<IMigrationInitiateResponse> {
     return http.post(MIGRATION_ENDPOINTS.MIGRATE, payload);
   }
 
-  verifyMigration(payload: IVerifyMigrationRequest): Promise<IMigrationVerificationResponse> {
+  verifyMigration(
+    payload: IVerifyMigrationRequest,
+  ): Promise<IMigrationVerificationResponse> {
     return http.post(MIGRATION_ENDPOINTS.VERIFY, payload);
   }
 
@@ -136,7 +152,9 @@ export class ProjectService {
     return http.get(url);
   }
 
-  savePublicCertificate(payload: ISavePublicCertificatePayload): Promise<IUpdateProjectResponse> {
+  savePublicCertificate(
+    payload: ISavePublicCertificatePayload,
+  ): Promise<IUpdateProjectResponse> {
     return http.post(PROJECT_ENDPOINTS.UPDATE_TOKEN_VALIDATION, payload);
   }
 
@@ -213,7 +231,9 @@ export class ProjectService {
     return http.post(PROJECT_ENDPOINTS.SAVE_JWT_CLAIMS, payload);
   }
 
-  getSubscriptionUsage(projectKey: string): Promise<IGetSubscriptionUsageResponse> {
+  getSubscriptionUsage(
+    projectKey: string,
+  ): Promise<IGetSubscriptionUsageResponse> {
     return http.get(`${SUBSCRIPTION_ENDPOINTS.GETS}?projectKey=${projectKey}`);
   }
 }

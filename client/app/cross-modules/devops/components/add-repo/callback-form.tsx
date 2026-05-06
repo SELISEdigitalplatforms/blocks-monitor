@@ -40,6 +40,10 @@ const CallbackForm = ({
   repoName,
   repoId,
   externalServiceId,
+  prefillName,
+  monitorSourceType,
+  isSourceBlocked,
+  sourceError,
   onClose,
 }: {
   onClose: (value: boolean) => void;
@@ -47,6 +51,10 @@ const CallbackForm = ({
   repoName?: string;
   repoId?: string;
   externalServiceId?: string;
+  prefillName?: string;
+  monitorSourceType?: MONITOR_SOURCE_TYPES;
+  isSourceBlocked?: boolean;
+  sourceError?: string;
 }) => {
   const { isPending, mutateAsync } = useSaveHealth();
   const updateMutation = useUpdateHealth();
@@ -62,6 +70,13 @@ const CallbackForm = ({
   });
 
   useEffect(() => {
+    if (itemId) return;
+    if (prefillName !== undefined) {
+      form.setValue("name", prefillName, { shouldValidate: true });
+    }
+  }, [prefillName, itemId, form]);
+
+  useEffect(() => {
     if (healthData?.data && itemId) {
       const data = healthData.data;
       form.reset({
@@ -74,7 +89,12 @@ const CallbackForm = ({
 
   const onSubmit = async (formValues: AddCallbackForm) => {
     try {
-      const payload: ISaveHealth = {
+      const payload: ISaveHealth & {
+        repoId?: string;
+        repoName?: string;
+        externalServiceId?: string;
+        monitorSourceType?: MONITOR_SOURCE_TYPES;
+      } = {
         repoName: repoName,
         repoId: repoId,
         projectKey,
@@ -84,8 +104,8 @@ const CallbackForm = ({
         isActive: true,
         externalServiceId: externalServiceId,
       };
-      if (externalServiceId) {
-        payload.monitorSourceType = MONITOR_SOURCE_TYPES.ExternalServices;
+      if (monitorSourceType) {
+        payload.monitorSourceType = monitorSourceType;
       }
       let res;
       if (!itemId) {
@@ -203,10 +223,17 @@ const CallbackForm = ({
               Cancel
             </Button>
           </DialogClose>
-          <Button type="submit" disabled={isPending || !form.formState.isValid}>
+          <Button
+            type="submit"
+            disabled={
+              isPending || !form.formState.isValid || Boolean(isSourceBlocked)
+            }>
             Save
           </Button>
         </div>
+        {sourceError && (
+          <p className="pt-2 text-sm text-destructive">{sourceError}</p>
+        )}
       </form>
     </Form>
   );

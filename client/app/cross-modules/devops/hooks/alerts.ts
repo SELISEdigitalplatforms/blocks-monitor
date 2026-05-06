@@ -111,11 +111,24 @@ export const useGetHealthMonitorList = (
     enabled: !!projectKey,
   });
 };
-export const useGetMonitorListById = (projectKey: string, repoId: string) => {
+export const useGetMonitorListById = (
+  projectKey: string,
+  repoId: string,
+  enabled: boolean = true,
+) => {
   return useQuery({
     queryKey: ["monitor-list-by-id", projectKey, repoId],
     queryFn: () => alertsService.getMonitorListById(projectKey, repoId),
     refetchOnMount: "always",
+    enabled,
+  });
+};
+
+export const useIsExternalServiceConfigured = (externalServiceId: string) => {
+  return useQuery({
+    queryKey: ["external-service-configured", externalServiceId],
+    queryFn: () => alertsService.isExternalServiceConfigured(externalServiceId),
+    enabled: !!externalServiceId,
   });
 };
 export const useGetMonitorDetails = (monitorId: string) => {

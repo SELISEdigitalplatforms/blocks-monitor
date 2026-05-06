@@ -55,12 +55,22 @@ const RequestForm = ({
   repoId,
   repoName,
   externalServiceId,
+  prefillName,
+  prefillUrl,
+  monitorSourceType,
+  isSourceBlocked,
+  sourceError,
 }: {
   onClose: (value: boolean) => void;
   itemId?: string;
   repoId?: string;
   repoName?: string;
   externalServiceId?: string;
+  prefillName?: string;
+  prefillUrl?: string;
+  monitorSourceType?: MONITOR_SOURCE_TYPES;
+  isSourceBlocked?: boolean;
+  sourceError?: string;
 }) => {
   const { isPending, mutateAsync } = useAddSingleMonitor();
   const updateMutation = useUpdateSingleMonitor();
@@ -75,6 +85,16 @@ const RequestForm = ({
   });
   const httpMethod = form.watch("requestConfiguration.http_methods");
   const sendAsJson = form.watch("requestConfiguration.json_switcher");
+
+  useEffect(() => {
+    if (itemId) return;
+    if (prefillName !== undefined) {
+      form.setValue("name", prefillName, { shouldValidate: true });
+    }
+    if (prefillUrl !== undefined) {
+      form.setValue("urlMonitor", prefillUrl, { shouldValidate: true });
+    }
+  }, [prefillName, prefillUrl, itemId, form]);
   useEffect(() => {
     if (monitorData?.data && itemId) {
       const data = monitorData.data;
@@ -105,7 +125,10 @@ const RequestForm = ({
 
   const onSubmit = async (formValues: AddAlertRepoForm) => {
     try {
-      const payload: IAddSingleMonitorPayload = {
+      const payload: IAddSingleMonitorPayload & {
+        externalServiceId?: string;
+        monitorSourceType?: MONITOR_SOURCE_TYPES;
+      } = {
         itemId: itemId || "",
         projectKey,
         name: formValues.name,
@@ -130,8 +153,8 @@ const RequestForm = ({
         protocolType: "HTTP",
         externalServiceId: externalServiceId,
       };
-      if (externalServiceId) {
-        payload.monitorSourceType = MONITOR_SOURCE_TYPES.ExternalServices;
+      if (monitorSourceType) {
+        payload.monitorSourceType = monitorSourceType;
       }
 
       let res;
@@ -385,10 +408,17 @@ const RequestForm = ({
               Cancel
             </Button>
           </DialogClose>
-          <Button type="submit" disabled={isPending || !form.formState.isValid}>
+          <Button
+            type="submit"
+            disabled={
+              isPending || !form.formState.isValid || Boolean(isSourceBlocked)
+            }>
             Save
           </Button>
         </div>
+        {sourceError && (
+          <p className="pt-2 text-sm text-destructive">{sourceError}</p>
+        )}
       </form>
     </Form>
   );
