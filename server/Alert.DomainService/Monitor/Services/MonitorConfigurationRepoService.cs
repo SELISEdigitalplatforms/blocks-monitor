@@ -52,23 +52,23 @@ namespace DomainService.Monitor.Services
             }
         }
 
-        public async Task<(List<MonitorConfiguration> Items, int TotalCount)>GetConfigurationListAsync(string tenantId, string? monitorSourcetype, int pageNumber, int pageSize)
+        public async Task<(List<MonitorConfiguration> Items, int TotalCount)>GetConfigurationListAsync(string tenantId, string? monitorSourceType, int pageNumber, int pageSize)
         {
             try
             {
                 var fb = Builders<MonitorConfiguration>.Filter;
                 FilterDefinition<MonitorConfiguration> filter;
 
-                if (!string.IsNullOrWhiteSpace(monitorSourcetype))
+                if (!string.IsNullOrWhiteSpace(monitorSourceType))
                 {
-                    if (!Enum.TryParse<MonitorSourcetypes>(monitorSourcetype, true, out var parsedType))
+                    if (!Enum.TryParse<MonitorSourceTypes>(monitorSourceType, true, out var parsedType))
                     {
-                        _logger.LogWarning("Invalid MonitorSourcetype value: {MonitorSourcetype}", monitorSourcetype);
+                        _logger.LogWarning("Invalid MonitorSourceType value: {MonitorSourceType}", monitorSourceType);
                         return (new List<MonitorConfiguration>(), 0);
                     }
 
-                    if (parsedType == MonitorSourcetypes.Infrastructure ||
-                        parsedType == MonitorSourcetypes.BlocksServices)
+                    if (parsedType == MonitorSourceTypes.Infrastructure ||
+                        parsedType == MonitorSourceTypes.BlocksServices)
                     {
                         filter = fb.Eq(m => m.MonitorSourcetypes, parsedType);
                     }
@@ -85,17 +85,17 @@ namespace DomainService.Monitor.Services
                     filter = fb.Or(
                         fb.In(m => m.MonitorSourcetypes, new[]
                         {
-                    MonitorSourcetypes.Infrastructure,
-                    MonitorSourcetypes.BlocksServices
+                    MonitorSourceTypes.Infrastructure,
+                    MonitorSourceTypes.BlocksServices
                         }),
 
                         fb.And(
-                            fb.Eq(m => m.MonitorSourcetypes, MonitorSourcetypes.DeployedServices),
+                            fb.Eq(m => m.MonitorSourcetypes, MonitorSourceTypes.DeployedServices),
                             fb.Eq(m => m.TenantId, tenantId)
                         ),
 
                         fb.And(
-                            fb.Eq(m => m.MonitorSourcetypes, MonitorSourcetypes.ExternnalServices),
+                            fb.Eq(m => m.MonitorSourcetypes, MonitorSourceTypes.ExternalServices),
                             fb.Eq(m => m.TenantId, tenantId)
                         )
                     );
@@ -119,9 +119,9 @@ namespace DomainService.Monitor.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex,
-                    "Error retrieving MonitorConfigurations for TenantId {TenantId} and MonitorSourcetype {MonitorSourcetype}",
+                    "Error retrieving MonitorConfigurations for TenantId {TenantId} and MonitorSourceType {MonitorSourceType}",
                     tenantId,
-                    monitorSourcetype);
+                    monitorSourceType);
 
                 return (new List<MonitorConfiguration>(), 0);
             }
@@ -266,7 +266,7 @@ namespace DomainService.Monitor.Services
                     return null;
 
                 var filter = Builders<MonitorConfiguration>.Filter.And(
-                    Builders<MonitorConfiguration>.Filter.Eq(m => m.MonitorSourcetypes, MonitorSourcetypes.ExternnalServices),
+                    Builders<MonitorConfiguration>.Filter.Eq(m => m.MonitorSourcetypes, MonitorSourceTypes.ExternalServices),
                     Builders<MonitorConfiguration>.Filter.Eq(m => m.ExternalServiceId, externalServiceId)
                 );
 
