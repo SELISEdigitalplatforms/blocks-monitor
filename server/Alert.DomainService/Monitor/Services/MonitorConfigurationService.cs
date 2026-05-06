@@ -5,7 +5,7 @@ using Azure.Core;
 using Blocks.Genesis;
 using DomainService.Monitor.Entity;
 using DomainService.Monitor.Models;
-using DomainService.Monitor.MonitorIncidentSevice;
+using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Shared.Entity;
 using DomainService.Shared.Models;
 using DomainService.Shared.Utilities;

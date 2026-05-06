@@ -4,7 +4,7 @@ using DomainService.Alert.Services;
 using DomainService.Health.HealthWorkerService;
 using DomainService.Health.Services;
 using DomainService.Monitor.Models;
-using DomainService.Monitor.MonitorIncidentSevice;
+using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.MonitorSchedulingService;
 using DomainService.Monitor.Services;
 using DomainService.Validators;
