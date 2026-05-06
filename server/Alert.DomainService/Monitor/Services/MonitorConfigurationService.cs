@@ -60,13 +60,13 @@ namespace DomainService.Monitor.Services
             };
         }
 
-        public async Task<PaginatedResponse> GetConfigurationListAsync(string tenantId, string? monitorSourcetype, int pageNumber, int pageSize)
+        public async Task<PaginatedResponse> GetConfigurationListAsync(string tenantId, string? monitorSourceType, int pageNumber, int pageSize)
         {
             var data = new List<MonitorConfiguration>();
             int totalCount = 0;
             try
             {
-                (data, totalCount) = await _monitorConfigurationRepoService.GetConfigurationListAsync(tenantId, monitorSourcetype, pageNumber, pageSize);
+                (data, totalCount) = await _monitorConfigurationRepoService.GetConfigurationListAsync(tenantId, monitorSourceType, pageNumber, pageSize);
                 var monitorIds = data.Select(x => x.ItemId).ToList();
                 var start = DateTime.UtcNow.AddHours(-24);
                 var end = DateTime.UtcNow;
@@ -139,21 +139,21 @@ namespace DomainService.Monitor.Services
                     };
                 }
 
-                MonitorSourcetypes monitorSourcetypeEnum = MonitorSourcetypes.DeployedServices;
-                if (!string.IsNullOrEmpty(request.MonitorSourcetype))
+                MonitorSourceTypes monitorSourceTypeEnum = MonitorSourceTypes.DeployedServices;
+                if (!string.IsNullOrEmpty(request.MonitorSourceType))
                 {
-                    if (!Enum.TryParse<MonitorSourcetypes>(request.MonitorSourcetype, true, out var parsedEnum))
+                    if (!Enum.TryParse<MonitorSourceTypes>(request.MonitorSourceType, true, out var parsedEnum))
                     {
                         return new BaseApiResponse
                         {
                             IsSuccess = false,
-                            Message = $"Invalid MonitorSourcetype: {request.MonitorSourcetype}"
+                            Message = $"Invalid MonitorSourceType: {request.MonitorSourceType}"
                         };
                     }
 
-                    if (parsedEnum != MonitorSourcetypes.ExternnalServices &&
-                        parsedEnum != MonitorSourcetypes.BlocksServices &&
-                        parsedEnum != MonitorSourcetypes.DeployedServices)
+                    if (parsedEnum != MonitorSourceTypes.ExternalServices &&
+                        parsedEnum != MonitorSourceTypes.BlocksServices &&
+                        parsedEnum != MonitorSourceTypes.DeployedServices)
                     {
                         return new BaseApiResponse
                         {
@@ -162,7 +162,7 @@ namespace DomainService.Monitor.Services
                         };
                     }
 
-                    monitorSourcetypeEnum = parsedEnum;
+                    monitorSourceTypeEnum = parsedEnum;
                 }
 
                 MonitorConfiguration monitorConfiguration = new MonitorConfiguration
@@ -172,8 +172,8 @@ namespace DomainService.Monitor.Services
                     CreatedDate = DateTime.UtcNow,
                     MonitorConfigurationType = MonitorConfigurationTypes.OutboundPing,
                     CreatedBy = GetCurrentUserId(),
-                    MonitorSourcetypes = monitorSourcetypeEnum,
-                    ExternalServiceId = monitorSourcetypeEnum == MonitorSourcetypes.ExternnalServices
+                    MonitorSourcetypes = monitorSourceTypeEnum,
+                    ExternalServiceId = monitorSourceTypeEnum == MonitorSourceTypes.ExternalServices
                                ? request.ExternalServiceId
                                : null
                 };
@@ -194,11 +194,11 @@ namespace DomainService.Monitor.Services
                         Payload = payload
                     });
 
-                    _logger.LogInformation("Queued monitor configration update for {Monitor}", monitorConfiguration.ItemId);
+                    _logger.LogInformation("Queued monitor configuration update for {Monitor}", monitorConfiguration.ItemId);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to enqueue monitor configration update for {Monitor}", monitorConfiguration.ItemId);
+                    _logger.LogError(ex, "Failed to enqueue monitor configuration update for {Monitor}", monitorConfiguration.ItemId);
                 }
                 return new BaseApiResponse()
                 {
@@ -236,7 +236,7 @@ namespace DomainService.Monitor.Services
                 MonitorConfiguration monitorConfiguration;
 
                 monitorConfiguration = await _monitorConfigurationRepoService.GetConfigurationAsync(request.ItemId);
-                if (monitorConfiguration == null || monitorConfiguration.MonitorSourcetypes == MonitorSourcetypes.Infrastructure || monitorConfiguration.MonitorSourcetypes == MonitorSourcetypes.BlocksServices)
+                if (monitorConfiguration == null || monitorConfiguration.MonitorSourcetypes == MonitorSourceTypes.Infrastructure || monitorConfiguration.MonitorSourcetypes == MonitorSourceTypes.BlocksServices)
                 {
                     _logger.LogError("MonitorConfiguration with ItemId {ItemId} not found.", request.ItemId);
                     return new BaseApiResponse()
@@ -263,11 +263,11 @@ namespace DomainService.Monitor.Services
                         Payload = payload
                     });
 
-                    _logger.LogInformation("Queued monitor configration update for {Monitor}", monitorConfiguration.ItemId);
+                    _logger.LogInformation("Queued monitor configuration update for {Monitor}", monitorConfiguration.ItemId);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to enqueue monitor configration update for {Monitor}", monitorConfiguration.ItemId);
+                    _logger.LogError(ex, "Failed to enqueue monitor configuration update for {Monitor}", monitorConfiguration.ItemId);
                 }
                 return new BaseApiResponse()
                 {
@@ -352,7 +352,7 @@ namespace DomainService.Monitor.Services
             try
             {
                 var monitorConfiguration = await _monitorConfigurationRepoService.GetConfigurationAsync(itemId);
-                if (monitorConfiguration == null || monitorConfiguration.MonitorSourcetypes == MonitorSourcetypes.Infrastructure || monitorConfiguration.MonitorSourcetypes == MonitorSourcetypes.BlocksServices)
+                if (monitorConfiguration == null || monitorConfiguration.MonitorSourcetypes == MonitorSourceTypes.Infrastructure || monitorConfiguration.MonitorSourcetypes == MonitorSourceTypes.BlocksServices)
                 {
                     _logger.LogError("MonitorConfiguration with ItemId {ItemId} not found.", itemId);
                     return new BaseApiResponse()

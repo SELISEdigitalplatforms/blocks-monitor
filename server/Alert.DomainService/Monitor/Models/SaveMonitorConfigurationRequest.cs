@@ -18,7 +18,7 @@
         public int? TimeoutInSeconds { get; set; }
         public bool IsActive { get; set; }
 
-        public string? MonitorSourcetype { get; set; }
+        public string? MonitorSourceType { get; set; }
 
         public string? ExpectedContent { get; set; }
         public string? CustomHttpHeaders { get; set; }
