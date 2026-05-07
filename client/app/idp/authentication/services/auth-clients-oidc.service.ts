@@ -1,5 +1,5 @@
 import { http } from "@/lib/http-client";
-import { APIResponse } from "@/models/api-response.model";
+import { ApiResponse } from "@/models/api-response.model";
 import {
   IDeleteOidcClientPayload,
   IDeleteOidcClientResponse,
@@ -20,7 +20,9 @@ export class AuthOidc {
       oIDCClientCredentials: IOidcConfigResponse[];
       errors: Record<string, string> | null;
       isSuccess: boolean;
-    }>(`${AUTH_OIDC_ENDPOINTS.GET_OIDC_CLIENTS}?ProjectKey=${payload.projectKey}`);
+    }>(
+      `${AUTH_OIDC_ENDPOINTS.GET_OIDC_CLIENTS}?ProjectKey=${payload.projectKey}`,
+    );
   }
 
   async getOidcCredential(payload: IGetOidcPayload): Promise<{
@@ -39,13 +41,13 @@ export class AuthOidc {
 
   saveOidcCredential(
     payload: ISaveOidcCredentialPayload,
-  ): Promise<APIResponse<ISaveOidcCredentialResponse>> {
+  ): Promise<ApiResponse<ISaveOidcCredentialResponse>> {
     return http.post(AUTH_OIDC_ENDPOINTS.SAVE_OIDC_CLIENT, payload);
   }
 
   deleteOidcCredential(
     payload: IDeleteOidcClientPayload,
-  ): Promise<APIResponse<IDeleteOidcClientResponse>> {
+  ): Promise<ApiResponse<IDeleteOidcClientResponse>> {
     return http.post(AUTH_OIDC_ENDPOINTS.DELETE_OIDC_CLIENT, payload);
   }
 }
