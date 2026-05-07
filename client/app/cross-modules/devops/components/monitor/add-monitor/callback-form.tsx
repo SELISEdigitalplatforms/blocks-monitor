@@ -33,7 +33,7 @@ import { useProjectStore } from "@/store/useProjectStore";
 import { useEffect } from "react";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { ErrorTransformer } from "@blocks-devops/utils/error-transform";
-import type { ISaveHealth } from "../../models/alerts.model";
+import type { ISaveHealth } from "../../../models/alerts.model";
 
 const CallbackForm = ({
   itemId,

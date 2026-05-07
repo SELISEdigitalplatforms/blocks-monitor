@@ -236,7 +236,7 @@ const AddSingleMonitor = ({
       <DialogContent className="md:max-w-screen-sm">
         <DialogHeader>
           <DialogTitle>
-            {itemId ? "Configure monitor" : "Add single monitor"}
+            {itemId ? "Configure" : "Add" + " " + "monitor"}
           </DialogTitle>
         </DialogHeader>
         <div className="max-h-[70vh] overflow-y-auto px-2">
@@ -264,7 +264,7 @@ const AddSingleMonitor = ({
 
           <div className="mb-4 rounded-md border border-input bg-background p-4">
             <label className="mb-2 block text-sm font-medium">
-              Monitor Source
+              Tag a Service
             </label>
             <RadioGroup
               value={sourceType}

@@ -1,19 +1,30 @@
-import { FilterControls, useSortQueryParams } from "@/components/filter-toolbar";
-import { ScrollArea, ScrollBar } from "@/components/ui-kits/scroll-area/scroll-area";
+import {
+  FilterControls,
+  useSortQueryParams,
+} from "@/components/filter-toolbar";
+import {
+  ScrollArea,
+  ScrollBar,
+} from "@/components/ui-kits/scroll-area/scroll-area";
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
 import {
- Table,
- TableBody,
- TableCell,
- TableHead,
- TableHeader,
- TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui-kits/table/table";
 import { useProjectStore } from "@/store/useProjectStore";
-import AlertAction from "@blocks-devops/components/add-repo/alert-action";
-import ProgressBar from "@blocks-devops/components/add-repo/progress-bar";
+import AlertAction from "@/cross-modules/devops/components/alert/alert-action";
+import ProgressBar from "@/cross-modules/devops/components/alert/progress-bar";
 import { AlertTree } from "@/cross-modules/devops/models/alerts.model";
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -70,15 +81,10 @@ function formatDate(ms: number): string {
 const useAlertSortQueryParams = () =>
   useSortQueryParams({ initial: { property: "name", isDescending: false } });
 
-export function AlertsList({
-  data,
-  isLoading,
-}: AlertsListProps) {
+export function AlertsList({ data, isLoading }: AlertsListProps) {
   const navigate = useNavigate();
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
   const { sortQueryParams, setSortQueryParams } = useAlertSortQueryParams();
-
-
 
   const columns = useMemo<ColumnDef<AlertTree>[]>(
     () => [
@@ -112,7 +118,10 @@ export function AlertsList({
           />
         ),
         cell: ({ row }) => {
-          const monitorType = row.original.monitorConfigurationType === 0 ? "Request" : "Callback";
+          const monitorType =
+            row.original.monitorConfigurationType === 0
+              ? "Request"
+              : "Callback";
           return (
             <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
               <span>{monitorType}</span>
@@ -156,7 +165,8 @@ export function AlertsList({
           const zeroDate = new Date("0001-01-01T00:00:00Z").getTime();
           const lastIncidentTime = new Date(lastIncidentDateStr).getTime();
           const createdTime = new Date(createdDate).getTime();
-          const incidentTime = lastIncidentTime === zeroDate ? createdTime : lastIncidentTime;
+          const incidentTime =
+            lastIncidentTime === zeroDate ? createdTime : lastIncidentTime;
           const uptime = Date.now() - incidentTime;
           const formattedDate = formatDate(uptime);
 
@@ -197,13 +207,16 @@ export function AlertsList({
         accessorKey: "AlertActions",
         header: () => <div className="text-center"></div>,
         cell: ({ row }) => {
-          const request = row.original.monitorConfigurationType === 0 ? true : false;
+          const request =
+            row.original.monitorConfigurationType === 0 ? true : false;
           const name = row.original.name;
           const monitorSourceType = row.original.monitorSourceTypes;
           return (
             <>
               {monitorSourceType !== 2 ? (
-                <div onClick={(e) => e.stopPropagation()} className="flex justify-center">
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex justify-center">
                   <AlertAction
                     monitorId={row.original.itemId as string}
                     isActive={row.original.isActive ?? false}
@@ -234,51 +247,56 @@ export function AlertsList({
   };
   if (isLoading) return <LoadingSkelton />;
   return (
-      <ScrollArea className="w-full">
-        <Table className="text-sm">
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="px-4 py-2 hover:bg-transparent">
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="font-bold text-medium-emphasis">
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
+    <ScrollArea className="w-full">
+      <Table className="text-sm">
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow
+              key={headerGroup.id}
+              className="px-4 py-2 hover:bg-transparent">
+              {headerGroup.headers.map((header) => (
+                <TableHead
+                  key={header.id}
+                  className="font-bold text-medium-emphasis">
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+                className="text-medium-emphasis"
+                onClick={() => handleRowClick(row.original.itemId as string)}
+                isHoverable>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
                 ))}
               </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className="text-medium-emphasis"
-                  onClick={() => handleRowClick(row.original.itemId as string)}
-                  isHoverable
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={table.getAllColumns().length}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell
+                colSpan={table.getAllColumns().length}
+                className="h-24 text-center text-muted-foreground">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   );
 }
