@@ -15,20 +15,20 @@ import IncidentList from "./incident-list";
 import ResponseTime from "./response-time";
 import { Button } from "@/components/ui-kits/button/button";
 import { useState } from "react";
-import AddSingleMonitor from "@/cross-modules/devops/components/add-repo/add-monitor";
+import AddSingleMonitor from "@/cross-modules/devops/components/monitor/add-monitor/add-monitor";
 import { Separator } from "@/components/ui-kits/separator/separator";
 import { BREADCRUMB_CUSTOM_TITLES } from "@/constants/breadcrumb-custom-title";
 import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
-import AlertAction from "@blocks-devops/components/add-repo/alert-action";
+import AlertAction from "@/cross-modules/devops/components/alert/alert-action";
 import { IMonitorSummary } from "@/cross-modules/devops/models/alerts.model";
-import MonitorCard from "@blocks-devops/components/add-repo/monitor-card";
-import NotificationModal from "@blocks-devops/components/add-repo/notification-modal";
+import MonitorCard from "@/cross-modules/devops/components/monitor/monitor-details/monitor-card";
+import NotificationModal from "@/cross-modules/devops/components/alert/notification-modal";
 import {
   LoadingListSkelton,
   MonitorCardSkeleton,
   ResponseSkeletonLoader,
-} from "@blocks-devops/components/add-repo/skeleton-loader-card";
+} from "@/cross-modules/devops/components/monitor/monitor-details/monitor-details-skeletons";
 import { useProjectStore } from "@/store/useProjectStore";
 import { BackIconButton } from "@/components/buttons";
 
