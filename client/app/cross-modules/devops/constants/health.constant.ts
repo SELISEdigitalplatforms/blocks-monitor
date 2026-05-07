@@ -7,18 +7,6 @@ export const HEALTH_TABS = {
     label: "Blocks services",
     monitorSourceType: MONITOR_SOURCE_TYPES.BlocksServices,
   },
-  // deployed: {
-  //   label: "Deployed services",
-  //   monitorSourceType: MONITOR_SOURCE_TYPES.DeployedServices,
-  // },
-  // external: {
-  //   label: "My services",
-  //   monitorSourceType: MONITOR_SOURCE_TYPES.ExternalServices,
-  // },
-  // others: {
-  //   label: "Others",
-  //   monitorSourceType: MONITOR_SOURCE_TYPES.OtherServices,
-  // },
 } as const;
 export type HealthTabKey = keyof typeof HEALTH_TABS;
 

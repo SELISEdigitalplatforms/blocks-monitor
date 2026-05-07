@@ -1,4 +1,8 @@
-import type { BaseRequestParams, ProjectKey } from "@/models";
+import type {
+  ApiPaginatedResponse,
+  BaseRequestParams,
+  ProjectKey,
+} from "@/models";
 import { MONITOR_SOURCE_TYPES } from "../constants/alert.constant";
 
 export interface ITags {
@@ -181,14 +185,10 @@ export interface IGetHealthMonitorListPayload extends BaseRequestParams {
   monitorSourceType: MONITOR_SOURCE_TYPES | null;
 }
 
-export interface IGetMonitorList {
-  errors: string[] | null;
-  isSuccess: boolean;
-  message: string;
-  statusCode: number;
-  data: AlertTree[];
-  totalCount: number;
-}
+export interface IGetMonitorList extends ApiPaginatedResponse<
+  AlertTree,
+  string[] | null
+> {}
 
 export interface IAddSingleMonitorResponse {
   tenantId: string;
