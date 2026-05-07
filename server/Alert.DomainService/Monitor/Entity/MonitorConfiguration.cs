@@ -40,12 +40,13 @@ namespace DomainService.Monitor.Entity
         InboundPing   // You receive pings from other services
     }
 
-    public enum MonitorSourcetypes
+    public enum MonitorSourceTypes
     {
         Infrastructure,
         DeployedServices,
         BlocksServices,
-        ExternnalServices,
+        ExternalServices,
+        OtherServices,
     }
 
     [BsonIgnoreExtraElements]
@@ -59,7 +60,7 @@ namespace DomainService.Monitor.Entity
         public string Url { get; set; }
 
         public MonitorConfigurationTypes MonitorConfigurationType { get; set; }
-        public MonitorSourcetypes MonitorSourcetypes { get; set; } = MonitorSourcetypes.DeployedServices;
+        public MonitorSourceTypes MonitorSourcetypes { get; set; } = MonitorSourceTypes.DeployedServices;
 
         public MonitorTypes? MonitorType { get; set; }
         public ProtocolTypes? ProtocolType { get; set; }

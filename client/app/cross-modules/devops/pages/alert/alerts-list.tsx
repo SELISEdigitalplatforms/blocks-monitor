@@ -1,32 +1,26 @@
-import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
-import { AlertTree } from "@blocks-devops/models/alerts";
-import { useMemo } from "react";
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { FilterControls, useSortQueryParams } from "@/components/filter-toolbar";
 import { ScrollArea, ScrollBar } from "@/components/ui-kits/scroll-area/scroll-area";
+import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+ Table,
+ TableBody,
+ TableCell,
+ TableHead,
+ TableHeader,
+ TableRow,
 } from "@/components/ui-kits/table/table";
-import { useNavigate } from "react-router-dom";
-import { useAlertFilterQueryParams } from "./alerts-filter-toolbar";
-import ProgressBar from "@blocks-devops/components/add-repo/progress-bar";
-import AlertAction from "@blocks-devops/components/add-repo/alert-action";
-import { ArrowUp, ArrowDown } from "lucide-react";
 import { useProjectStore } from "@/store/useProjectStore";
-import { Pagination } from "@/components/ui-kits/pagination/pagination";
+import AlertAction from "@blocks-devops/components/add-repo/alert-action";
+import ProgressBar from "@blocks-devops/components/add-repo/progress-bar";
+import { AlertTree } from "@/cross-modules/devops/models/alerts.model";
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { ArrowDown, ArrowUp } from "lucide-react";
+import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 type AlertsListProps = {
   data: AlertTree[];
   isLoading: boolean;
-  pageNumber?: number;
-  pageSize?: number;
-  totalCount?: number;
-  onPageChange?: (page: number) => void;
 };
 
 export const LoadingSkelton = () => (
@@ -79,20 +73,12 @@ const useAlertSortQueryParams = () =>
 export function AlertsList({
   data,
   isLoading,
-  pageNumber,
-  pageSize = 10,
-  totalCount = 0,
-  onPageChange,
 }: AlertsListProps) {
   const navigate = useNavigate();
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
-  const { setQueryParams } = useAlertFilterQueryParams();
   const { sortQueryParams, setSortQueryParams } = useAlertSortQueryParams();
 
-  const pageChangeHandler = (page: number) => {
-    setQueryParams((params) => ({ ...params, page }));
-  };
-  const handlePageChange = onPageChange || pageChangeHandler;
+
 
   const columns = useMemo<ColumnDef<AlertTree>[]>(
     () => [
@@ -248,11 +234,8 @@ export function AlertsList({
   };
   if (isLoading) return <LoadingSkelton />;
   return (
-    <>
-      {" "}
       <ScrollArea className="w-full">
         <Table className="text-sm">
-          {" "}
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="px-4 py-2 hover:bg-transparent">
@@ -295,19 +278,7 @@ export function AlertsList({
             )}
           </TableBody>
         </Table>
-        {totalCount > pageSize && (
-          <div className="mt-5 flex items-center md:justify-end">
-            <Pagination
-              page={pageNumber as number}
-              pageSize={pageSize as number}
-              pageSizeOptions={[pageSize as number]}
-              onChange={handlePageChange}
-              totalCount={totalCount || 0}
-            />
-          </div>
-        )}
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
-    </>
   );
 }

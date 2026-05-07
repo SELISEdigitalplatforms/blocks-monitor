@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Menu } from "@/models/menu-models";
+import { Menu } from "@/models/menu.model";
 
 export function useFilteredMenus(menus: Menu[]): Menu[] {
   return useMemo(() => {

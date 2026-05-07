@@ -12,7 +12,11 @@ import { DialogClose } from "@/components/ui-kits/dialog/dialog";
 import { Button } from "@/components/ui-kits/button/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addACallbackSchema, AddCallbackForm, addCallbackFormDefaultValues } from "./utils";
+import {
+  addACallbackSchema,
+  AddCallbackForm,
+  addCallbackFormDefaultValues,
+} from "./schema";
 import {
   MONITOR_INTERVAL,
   MONITOR_SOURCE_TYPES,
@@ -20,24 +24,37 @@ import {
 } from "@blocks-devops/constants/alert.constant";
 import { InfoTooltip } from "@/components/info-tool-tip/info-tool-tip";
 import { Slider } from "@/components/ui-kits/slider/slider";
-import { useGetHealthById, useSaveHealth, useUpdateHealth } from "@blocks-devops/hooks/alerts";
+import {
+  useGetHealthById,
+  useSaveHealth,
+  useUpdateHealth,
+} from "@blocks-devops/hooks/alerts";
 import { useProjectStore } from "@/store/useProjectStore";
 import { useEffect } from "react";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { ErrorTransformer } from "@blocks-devops/utils/error-transform";
+import type { ISaveHealth } from "../../models/alerts.model";
 
 const CallbackForm = ({
   itemId,
   repoName,
   repoId,
   externalServiceId,
+  prefillName,
+  monitorSourceType,
+  isSourceBlocked,
+  sourceError,
   onClose,
 }: {
-  itemId?: string;
   onClose: (value: boolean) => void;
-  repoName: string;
-  repoId: string;
+  itemId?: string;
+  repoName?: string;
+  repoId?: string;
   externalServiceId?: string;
+  prefillName?: string;
+  monitorSourceType?: MONITOR_SOURCE_TYPES;
+  isSourceBlocked?: boolean;
+  sourceError?: string;
 }) => {
   const { isPending, mutateAsync } = useSaveHealth();
   const updateMutation = useUpdateHealth();
@@ -53,6 +70,13 @@ const CallbackForm = ({
   });
 
   useEffect(() => {
+    if (itemId) return;
+    if (prefillName !== undefined) {
+      form.setValue("name", prefillName, { shouldValidate: true });
+    }
+  }, [prefillName, itemId, form]);
+
+  useEffect(() => {
     if (healthData?.data && itemId) {
       const data = healthData.data;
       form.reset({
@@ -62,9 +86,15 @@ const CallbackForm = ({
       });
     }
   }, [healthData, itemId, form]);
+
   const onSubmit = async (formValues: AddCallbackForm) => {
     try {
-      const payload: any = {
+      const payload: ISaveHealth & {
+        repoId?: string;
+        repoName?: string;
+        externalServiceId?: string;
+        monitorSourceType?: MONITOR_SOURCE_TYPES;
+      } = {
         repoName: repoName,
         repoId: repoId,
         projectKey,
@@ -74,8 +104,8 @@ const CallbackForm = ({
         isActive: true,
         externalServiceId: externalServiceId,
       };
-      if (externalServiceId) {
-        payload.monitorSourceType = MONITOR_SOURCE_TYPES.ExternalServices;
+      if (monitorSourceType) {
+        payload.monitorSourceType = monitorSourceType;
       }
       let res;
       if (!itemId) {
@@ -89,7 +119,9 @@ const CallbackForm = ({
       }
       if (!res.isSuccess) return showErrorToast({ errors: res.message });
       showSuccessToast({
-        description: itemId ? "Monitor successfully updated." : "Monitor successfully created.",
+        description: itemId
+          ? "Monitor successfully updated."
+          : "Monitor successfully created.",
       });
       form.reset();
       onClose(false);
@@ -110,8 +142,8 @@ const CallbackForm = ({
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input 
-                    {...field} 
+                  <Input
+                    {...field}
                     disabled={itemId ? true : false}
                     onBlur={(e) => {
                       field.onChange(e.target.value.trim());
@@ -191,10 +223,17 @@ const CallbackForm = ({
               Cancel
             </Button>
           </DialogClose>
-          <Button type="submit" disabled={isPending || !form.formState.isValid}>
+          <Button
+            type="submit"
+            disabled={
+              isPending || !form.formState.isValid || Boolean(isSourceBlocked)
+            }>
             Save
           </Button>
         </div>
+        {sourceError && (
+          <p className="pt-2 text-sm text-destructive">{sourceError}</p>
+        )}
       </form>
     </Form>
   );

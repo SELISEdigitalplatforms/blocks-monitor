@@ -10,13 +10,13 @@ import {
   IRequest,
   IResponse,
 } from "../models/trace.model";
-import { IAPIResponse } from "@/models/api-response";
+import { APIListResponse } from "@/models/api-response.model";
 import { TRACE_ENDPOINTS } from "../constants/endpoint.constant";
 
 export class TraceService {
   async getTraces(payload: IGetTracesPayload): Promise<IGetTracesResponse> {
     try {
-      const response = await http.post<IAPIResponse<Trace[]>>(TRACE_ENDPOINTS.GET_TRACES, payload);
+      const response = await http.post<APIListResponse<Trace[]>>(TRACE_ENDPOINTS.GET_TRACES, payload);
 
       const parsedData: TraceTree[] = response.data.map((trace) => ({
         ...trace,
@@ -49,9 +49,9 @@ export class TraceService {
   async getTraceByTraceId({
     traceId,
     projectKey,
-  }: IGetTraceByTraceIdPayload): Promise<IAPIResponse<TraceTree>> {
+  }: IGetTraceByTraceIdPayload): Promise<APIListResponse<TraceTree>> {
     try {
-      const response = await http.get<IAPIResponse<Trace[]>>(
+      const response = await http.get<APIListResponse<Trace[]>>(
         `${TRACE_ENDPOINTS.GET_TRACE}?TraceId=${traceId}&ProjectKey=${projectKey}`,
       );
 

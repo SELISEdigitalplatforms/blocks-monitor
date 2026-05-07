@@ -12,7 +12,7 @@ import { useMemo } from "react";
 import { CellContext, ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { Pagination } from "@/components/ui-kits/pagination/pagination";
 import { parseAsInteger, useQueryStates } from "nuqs";
-import { IncidentTree } from "@blocks-devops/models/alerts";
+import { IncidentTree } from "@/cross-modules/devops/models/alerts.model";
 
 type IncidentListProps = {
   data: IncidentTree[];

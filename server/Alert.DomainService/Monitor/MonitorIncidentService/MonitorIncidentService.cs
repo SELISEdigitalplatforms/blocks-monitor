@@ -6,7 +6,7 @@ using DomainService.Monitor.Services;
 using DomainService.Shared.Models;
 using Microsoft.Extensions.Logging;
 
-namespace DomainService.Monitor.MonitorIncidentSevice
+namespace DomainService.Monitor.MonitorIncidentService
 {
     public class MonitorIncidentService : IMonitorIncidentService
     {
@@ -200,7 +200,7 @@ namespace DomainService.Monitor.MonitorIncidentSevice
                     TotalDurationMs = kv.Value.TotalDurationMs,
                     IncidentCount = kv.Value.IncidentCount
                 }).ToList();
-                                
+
                 // Fetch recent ping logs (optional - last 10 or configurable)
                 var recentPingLogs = await _monitorIncidentRepoService.GetIncidentsByMonitorIdAsync(monitorConfig, 1, 5);
 
@@ -209,7 +209,7 @@ namespace DomainService.Monitor.MonitorIncidentSevice
                 response.Message = "Incident summary fetched successfully.";
                 response.DateRangeSummary = dateRangeSummaryList;
                 response.MonitorIncidents = recentPingLogs;
-                
+
                 return response;
             }
             catch (Exception ex)

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DomainService.Health.Services
 {
-    public class HealthConfigurationService 
+    public class HealthConfigurationService
     {
         private readonly ILogger<HealthConfigurationService> _logger;
         private readonly HealthConfigurationRepoService _healthConfigurationRepoService;
@@ -33,28 +33,32 @@ namespace DomainService.Health.Services
             {
                 string guid = Guid.NewGuid().ToString();
                 var url = $"{_configuration["AlertServiceUrl"]}/{guid}";
-                MonitorSourcetypes monitorSourcetypeEnum = MonitorSourcetypes.DeployedServices;
-                if (!string.IsNullOrEmpty(request.MonitorSourcetype))
+                MonitorSourceTypes monitorSourceTypeEnum = MonitorSourceTypes.DeployedServices;
+                if (!string.IsNullOrEmpty(request.MonitorSourceType))
                 {
-                    if (!Enum.TryParse<MonitorSourcetypes>(request.MonitorSourcetype, true, out var parsedEnum))
+                    if (!Enum.TryParse<MonitorSourceTypes>(request.MonitorSourceType, true, out var parsedEnum))
                     {
                         return new BaseApiResponse
                         {
                             IsSuccess = false,
-                            Message = $"Invalid MonitorSourcetype: {request.MonitorSourcetype}"
+                            Message = $"Invalid MonitorSourceType: {request.MonitorSourceType}"
                         };
                     }
 
-                    if (parsedEnum != MonitorSourcetypes.ExternnalServices && parsedEnum != MonitorSourcetypes.BlocksServices)
+                    if (parsedEnum != MonitorSourceTypes.ExternalServices &&
+                        parsedEnum != MonitorSourceTypes.BlocksServices &&
+                        parsedEnum != MonitorSourceTypes.OtherServices &&
+                        parsedEnum != MonitorSourceTypes.        OtherServices
+)
                     {
                         return new BaseApiResponse
                         {
                             IsSuccess = false,
-                            Message = $"Invalid MonitorSourcetype"
+                            Message = $"Invalid MonitorSourceType"
                         };
                     }
 
-                    monitorSourcetypeEnum = parsedEnum;
+                    monitorSourceTypeEnum = parsedEnum;
                 }
 
                 var healthConfiguration = new MonitorConfiguration
@@ -69,12 +73,12 @@ namespace DomainService.Health.Services
                     GracePeriodInSeconds = request.GracePeriodInSeconds,
                     IsActive = request.IsActive,
                     MonitorConfigurationType = MonitorConfigurationTypes.InboundPing,
-                    MonitorSourcetypes = monitorSourcetypeEnum,
-                    ExternalServiceId = monitorSourcetypeEnum == MonitorSourcetypes.ExternnalServices
+                    MonitorSourcetypes = monitorSourceTypeEnum,
+                    ExternalServiceId = monitorSourceTypeEnum == MonitorSourceTypes.ExternalServices
                                ? request.ExternalServiceId
                                : null,
                     CreatedDate = DateTime.UtcNow,
-                    CreatedBy = BlocksContext.GetContext().UserId
+                    CreatedBy = BlocksContext.GetContext()?.UserId
                 };
 
                 await _healthConfigurationRepoService.SaveOrUpdateConfigurationAsync(healthConfiguration);
@@ -123,7 +127,7 @@ namespace DomainService.Health.Services
                     : existing.GracePeriodInSeconds;
                 existing.IsActive = request.IsActive;
                 existing.LastUpdatedDate = DateTime.UtcNow;
-                existing.LastUpdatedBy = BlocksContext.GetContext().UserId;
+                existing.LastUpdatedBy = BlocksContext.GetContext()?.UserId;
                 if (request.Emails != null && request.Emails.Count > 0)
                     existing.Emails = request.Emails;
 
