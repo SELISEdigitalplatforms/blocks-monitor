@@ -96,6 +96,7 @@ namespace DomainService.Monitor.Services
             }
             return new PaginatedResponse()
             {
+                StatusCode = HttpStatusCode.OK,
                 IsSuccess = true,
                 Message = "Success",
                 Data = data,

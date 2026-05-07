@@ -29,6 +29,10 @@ module.exports = {
     "react/jsx-uses-react": "off",
     "no-unused-vars": "off",
     "no-console": ["error", { allow: ["warn", "error"] }],
+    "@typescript-eslint/no-empty-object-type": [
+      "error",
+      { allowInterfaces: "with-single-extends" },
+    ],
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {
