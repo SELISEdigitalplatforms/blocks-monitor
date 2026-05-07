@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { http } from "@/lib/http-client";
-import { APIResponse } from "@/models/api-response.model";
+import { ApiResponse } from "@/models/api-response.model";
 import {
   IClientConfigResponse,
   IDeleteOidcClientPayload,
@@ -12,7 +12,9 @@ import {
 import { AUTH_CLIENT_ENDPOINTS } from "../constants/endpoint.constant";
 
 export class AuthClientsService {
-  getClientCredentials(payload: IGetClientsPayload): Promise<IClientConfigResponse[]> {
+  getClientCredentials(
+    payload: IGetClientsPayload,
+  ): Promise<IClientConfigResponse[]> {
     return http.get(
       `${AUTH_CLIENT_ENDPOINTS.GET_CLIENT_CREDENTIALS}?ProjectKey=${payload.projectKey}`,
     );
@@ -20,13 +22,13 @@ export class AuthClientsService {
 
   saveClientCredential(
     payload: ISaveClientCredentialPayload,
-  ): Promise<APIResponse<ISaveClientCredentialResponse>> {
+  ): Promise<ApiResponse<ISaveClientCredentialResponse>> {
     return http.post(AUTH_CLIENT_ENDPOINTS.SAVE_CLIENT_CREDENTIAL, payload);
   }
 
   deleteClientCredential(
     payload: IDeleteOidcClientPayload,
-  ): Promise<APIResponse<IDeleteOidcClientResponse>> {
+  ): Promise<ApiResponse<IDeleteOidcClientResponse>> {
     return http.post(AUTH_CLIENT_ENDPOINTS.DELETE_CLIENT_CREDENTIAL, payload);
   }
 }
