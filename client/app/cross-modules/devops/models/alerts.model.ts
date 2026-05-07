@@ -1,3 +1,6 @@
+import type { BaseRequestParams, ProjectKey } from "@/models";
+import { MONITOR_SOURCE_TYPES } from "../constants/alert.constant";
+
 export interface ITags {
   ecosystem: string;
   habitat: string;
@@ -125,13 +128,19 @@ export interface IAddSingleMonitorPayload {
   customPayload: string;
   successHttpResponseCodes?: string[];
   regions?: string[];
+  externalServiceId?: string;
+  monitorSourceType?: MONITOR_SOURCE_TYPES;
 }
 export interface ISaveHealth {
+  isActive: boolean;
+  repoName?: string;
+  repoId?: string;
   projectKey?: string;
   name?: string;
-  isActive: boolean;
   intervalInSeconds?: number;
   gracePeriodInSeconds?: number;
+  externalServiceId?: string;
+  monitorSourceType?: MONITOR_SOURCE_TYPES;
 }
 export interface IUpdateHealth extends ISaveHealth {
   itemId: string;
@@ -167,12 +176,18 @@ export interface IAlertResponse<T> {
   statusCode: number;
   data: T;
 }
+export interface IGetHealthMonitorListPayload extends BaseRequestParams {
+  projectKey: ProjectKey;
+  monitorSourceType: MONITOR_SOURCE_TYPES | null;
+}
+
 export interface IGetMonitorList {
   errors: string[] | null;
   isSuccess: boolean;
   message: string;
   statusCode: number;
   data: AlertTree[];
+  totalCount: number;
 }
 
 export interface IAddSingleMonitorResponse {
@@ -214,6 +229,17 @@ export interface ISaveHealthResponse extends IAddSingleMonitorResponse {
 }
 export interface ISaveSingleHealthResponse {
   data: ISaveHealthResponse;
+  isSuccess: boolean;
+  message: string;
+  statusCode: number;
+  errors: string[] | null;
+}
+
+export interface IDeleteHealthResponse {
+  isSuccess: boolean;
+  message: string;
+  statusCode: number;
+  errors: string[] | null;
 }
 export interface MonitorDetails {
   tenantId: string;

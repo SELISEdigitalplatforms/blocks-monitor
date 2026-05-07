@@ -115,7 +115,7 @@ namespace DomainService.Health.Services
                 await _healthConfigCollection.UpdateOneAsync(x => x.ItemId == config.ItemId, update);
                 await _notificationAlertService.HandleNotificationAlertAsync(config, incident);
                 await _emailAlertService.HandleEmailAlertAsync(config, incident);
-                _logger.LogInformation("Created new DOWN incident for {{HealthName}} ({{Url}})", config.Name, config.Url);
+                _logger.LogInformation("Created new DOWN incident for {HealthName} ({Url})", config.Name, config.Url);
             }
             catch (Exception ex)
             {

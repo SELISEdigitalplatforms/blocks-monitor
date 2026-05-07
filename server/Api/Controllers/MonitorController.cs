@@ -1,5 +1,5 @@
 ﻿using DomainService.Monitor.Models;
-using DomainService.Monitor.MonitorIncidentSevice;
+using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.Services;
 using DomainService.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
-    /// <summary>  
-    /// Controller for managing monitor configurations, incidents, and response times.  
-    /// </summary>  
+    /// <summary>
+    /// Controller for managing monitor configurations, incidents, and response times.
+    /// </summary>
     [ApiController]
     [Route("[controller]/[action]")]
     public class MonitorController : ControllerBase
@@ -19,12 +19,12 @@ namespace Api.Controllers
         private readonly IMonitorIncidentService _monitorIncidentService;
         private readonly IMonitorPingService _monitorPingService;
 
-        /// <summary>  
-        /// Initializes a new instance of the <see cref="MonitorController"/> class.  
-        /// </summary>  
-        /// <param name="monitorConfigurationService">Service for monitor configuration operations.</param>  
-        /// <param name="monitorPingService">Service for monitor ping operations.</param>  
-        /// <param name="monitorIncidentService">Service for monitor incident operations.</param>  
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MonitorController"/> class.
+        /// </summary>
+        /// <param name="monitorConfigurationService">Service for monitor configuration operations.</param>
+        /// <param name="monitorPingService">Service for monitor ping operations.</param>
+        /// <param name="monitorIncidentService">Service for monitor incident operations.</param>
         public MonitorController(
             IMonitorConfigurationService monitorConfigurationService,
             IMonitorPingService monitorPingService,
@@ -37,11 +37,11 @@ namespace Api.Controllers
             _monitorIncidentService = monitorIncidentService;
         }
 
-        /// <summary>  
-        /// Retrieves a list of monitor configurations for a given project.  
-        /// </summary>  
-        /// <param name="projectKey">The project key to filter monitor configurations.</param>  
-        /// <returns>A list of monitor configurations.</returns>  
+        /// <summary>
+        /// Retrieves a list of monitor configurations for a given project.
+        /// </summary>
+        /// <param name="projectKey">The project key to filter monitor configurations.</param>
+        /// <returns>A list of monitor configurations.</returns>
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetMonitorList([FromQuery] string projectKey, [FromQuery] string? monitorSourcetype, [FromQuery] int pageNumber = 0, [FromQuery] int pageSize = 10)
@@ -51,11 +51,11 @@ namespace Api.Controllers
         }
 
 
-        /// <summary>  
-        /// Retrieves a list of monitor configurations for a given project.  
-        /// </summary>  
-        /// <param name="projectKey">The project key to filter monitor configurations.</param>  
-        /// <returns>A list of monitor configurations.</returns>  
+        /// <summary>
+        /// Retrieves a list of monitor configurations for a given project.
+        /// </summary>
+        /// <param name="projectKey">The project key to filter monitor configurations.</param>
+        /// <returns>A list of monitor configurations.</returns>
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetMonitorListByRepoId([FromQuery] string projectKey, string repoId)
@@ -64,11 +64,11 @@ namespace Api.Controllers
             return Ok(result);
         }
 
-        /// <summary>  
-        /// Retrieves a list of monitor configurations for a given project.  
-        /// </summary>  
-        /// <param name="projectKey">The project key to filter monitor configurations.</param>  
-        /// <returns>A list of monitor configurations.</returns>  
+        /// <summary>
+        /// Retrieves a list of monitor configurations for a given project.
+        /// </summary>
+        /// <param name="projectKey">The project key to filter monitor configurations.</param>
+        /// <returns>A list of monitor configurations.</returns>
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetMonitorById([FromQuery] string monitorId)
@@ -77,11 +77,11 @@ namespace Api.Controllers
             return Ok(result);
         }
 
-        /// <summary>  
-        /// Saves a new monitor configuration.  
-        /// </summary>  
-        /// <param name="request">The request containing monitor configuration details.</param>  
-        /// <returns>The result of the save operation.</returns>  
+        /// <summary>
+        /// Saves a new monitor configuration.
+        /// </summary>
+        /// <param name="request">The request containing monitor configuration details.</param>
+        /// <returns>The result of the save operation.</returns>
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> SaveMonitor([FromBody] SaveMonitorConfigurationRequest request)
@@ -90,11 +90,11 @@ namespace Api.Controllers
             return Ok(result);
         }
 
-        /// <summary>  
-        /// Updates an existing monitor configuration.  
-        /// </summary>  
-        /// <param name="request">The request containing updated monitor configuration details.</param>  
-        /// <returns>The result of the update operation.</returns>  
+        /// <summary>
+        /// Updates an existing monitor configuration.
+        /// </summary>
+        /// <param name="request">The request containing updated monitor configuration details.</param>
+        /// <returns>The result of the update operation.</returns>
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> UpdateMonitor([FromBody] UpdateMonitorConfigurationRequest request)
@@ -103,11 +103,11 @@ namespace Api.Controllers
             return Ok(result);
         }
 
-        /// <summary>  
-        /// Deletes a monitor configuration by its ID.  
-        /// </summary>  
-        /// <param name="itemId">The ID of the monitor configuration to delete.</param>  
-        /// <returns>The result of the delete operation.</returns>  
+        /// <summary>
+        /// Deletes a monitor configuration by its ID.
+        /// </summary>
+        /// <param name="itemId">The ID of the monitor configuration to delete.</param>
+        /// <returns>The result of the delete operation.</returns>
         [Authorize]
         [HttpDelete]
         public async Task<IActionResult> DeleteMonitor([FromQuery] string itemId)
@@ -116,13 +116,13 @@ namespace Api.Controllers
             return Ok(result);
         }
 
-        /// <summary>  
-        /// Retrieves a paginated list of incidents for a specific monitor.  
-        /// </summary>  
-        /// <param name="monitorId">The ID of the monitor.</param>  
-        /// <param name="pageNumber">The page number for pagination.</param>  
-        /// <param name="pageSize">The number of items per page.</param>  
-        /// <returns>A paginated list of incidents.</returns>  
+        /// <summary>
+        /// Retrieves a paginated list of incidents for a specific monitor.
+        /// </summary>
+        /// <param name="monitorId">The ID of the monitor.</param>
+        /// <param name="pageNumber">The page number for pagination.</param>
+        /// <param name="pageSize">The number of items per page.</param>
+        /// <returns>A paginated list of incidents.</returns>
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetIncidentList([FromQuery] string monitorId, int pageNumber = 0, int pageSize = 10)
@@ -131,11 +131,11 @@ namespace Api.Controllers
             return Ok(result);
         }
 
-        /// <summary>  
-        /// Retrieves details of incidents for a specific monitor.  
-        /// </summary>  
-        /// <param name="monitorId">The ID of the monitor.</param>  
-        /// <returns>Details of incidents for the monitor.</returns>  
+        /// <summary>
+        /// Retrieves details of incidents for a specific monitor.
+        /// </summary>
+        /// <param name="monitorId">The ID of the monitor.</param>
+        /// <returns>Details of incidents for the monitor.</returns>
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetMonitorDetails([FromQuery] string monitorId)
@@ -144,13 +144,13 @@ namespace Api.Controllers
             return Ok(result);
         }
 
-        /// <summary>  
-        /// Retrieves the response time logs for a monitor within a specified date range.  
-        /// </summary>  
-        /// <param name="monitorId">The ID of the monitor.</param>  
-        /// <param name="startDate">The start date of the range (optional).</param>  
-        /// <param name="endDate">The end date of the range (optional).</param>  
-        /// <returns>The response time logs for the monitor.</returns>  
+        /// <summary>
+        /// Retrieves the response time logs for a monitor within a specified date range.
+        /// </summary>
+        /// <param name="monitorId">The ID of the monitor.</param>
+        /// <param name="startDate">The start date of the range (optional).</param>
+        /// <param name="endDate">The end date of the range (optional).</param>
+        /// <returns>The response time logs for the monitor.</returns>
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetMonitorResponseTime([FromQuery] string monitorId, string? startDate, string? endDate)

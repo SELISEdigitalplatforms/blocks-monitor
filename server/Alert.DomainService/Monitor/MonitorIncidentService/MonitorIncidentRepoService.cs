@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace DomainService.Monitor.MonitorIncidentSevice
+namespace DomainService.Monitor.MonitorIncidentService
 {
     public class MonitorIncidentRepoService : IMonitorIncidentRepoService
     {

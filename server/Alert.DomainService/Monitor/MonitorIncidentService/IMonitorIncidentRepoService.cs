@@ -1,7 +1,7 @@
 using DomainService.Monitor.Entity;
 using DomainService.Monitor.Models;
 
-namespace DomainService.Monitor.MonitorIncidentSevice
+namespace DomainService.Monitor.MonitorIncidentService
 {
     public interface IMonitorIncidentRepoService
     {
