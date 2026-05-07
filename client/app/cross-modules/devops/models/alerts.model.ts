@@ -111,6 +111,8 @@ export interface AlertTree extends Alert {
   monitorType: number;
   monitorConfigurationType: number;
   monitorSourceTypes: number;
+  externalServiceId: string | null;
+  externalServiceName: string | null;
 }
 
 export interface IAddSingleMonitorPayload {

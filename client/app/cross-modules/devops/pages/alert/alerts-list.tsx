@@ -28,6 +28,7 @@ import {
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAlertFilterQueryParams } from "./alerts-filter-toolbar";
 
 type AlertsListProps = {
   data: AlertTree[];
@@ -84,6 +85,7 @@ const useAlertSortQueryParams = () =>
 export function AlertsList({ data, isLoading }: AlertsListProps) {
   const navigate = useNavigate();
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
+  const { queryParams } = useAlertFilterQueryParams();
   const { sortQueryParams, setSortQueryParams } = useAlertSortQueryParams();
 
   const columns = useMemo<ColumnDef<AlertTree>[]>(
@@ -144,6 +146,28 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
           return (
             <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
               <span className="break-all">{url}</span>
+            </div>
+          );
+        },
+      },
+
+      {
+        accessorKey: "taggedService",
+        header: () => (
+          <FilterControls.SortHeader
+            id="tagged_service"
+            label="Tagged Service"
+            value={sortQueryParams}
+            onChange={setSortQueryParams}
+          />
+        ),
+        cell: ({ row }) => {
+          const value =
+            row.original.repoName || row.original.externalServiceName || "-";
+
+          return (
+            <div className="flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
+              <span className="break-all">{value}</span>
             </div>
           );
         },
@@ -239,6 +263,11 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    state: {
+      columnVisibility: {
+        taggedService: queryParams.tab === "all",
+      },
+    },
   });
   const handleRowClick = (itemId: string) => {
     if (itemId) {
