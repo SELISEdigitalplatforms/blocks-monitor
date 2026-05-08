@@ -1,22 +1,25 @@
 import { http } from "@/lib/http-client";
-import {
+import type {
   IGetMagicUrlByIdPayload,
   IGetMagicUrlsPayload,
   IGetMagicUrlsResponse,
   MagicUrl,
   ICreateMagicUrlPayload,
 } from "@blocks-utilities/models/magic-url.model";
-import {
+import type {
   ISaveMagicUrlConfigPayload,
   ISaveMagicUrlConfigResponse,
 } from "@blocks-utilities/models/magic-url-config.model";
-import { ApiPaginatedResponse } from "@/models/api-response.model";
+import type {
+  ApiPaginatedResponse,
+  ApiResponse,
+} from "@/models/api-response.model";
 import { MAGIC_URL_ENDPOINTS } from "@blocks-utilities/constants/endpoint.constant";
 
 export class MagicUrlService {
   async getMagicUrl(payload: IGetMagicUrlByIdPayload): Promise<MagicUrl> {
     const { ItemId, projectKey } = payload;
-    const response = await http.get<ApiPaginatedResponse<MagicUrl>>(
+    const response = await http.get<ApiResponse<MagicUrl>>(
       `${MAGIC_URL_ENDPOINTS.GET_LINK}?ItemId=${ItemId}&ProjectKey=${projectKey}`,
     );
     return response.data;
@@ -52,13 +55,13 @@ export class MagicUrlService {
     if (expiryDateRangeEndDate)
       params.append("ExpiryDateRange.EndDate", expiryDateRangeEndDate);
 
-    const response = await http.get<ApiPaginatedResponse<MagicUrl[]>>(
+    const response = await http.get<ApiPaginatedResponse<MagicUrl>>(
       `${MAGIC_URL_ENDPOINTS.GET_LINKS}?${params.toString()}`,
     );
 
     return {
       data: response.data,
-      errors: response.errors ?? [],
+      errors: response.error ?? [],
       totalCount: response.totalCount ?? 0,
     };
   }

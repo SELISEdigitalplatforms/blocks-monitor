@@ -1,6 +1,6 @@
 import { http } from "@/lib/http-client";
-import { ApiPaginatedResponse } from "@/models/api-response.model";
-import {
+import type { ApiPaginatedResponse } from "@/models/api-response.model";
+import type {
   CreatePermissionPayload,
   CreatePermissionResponse,
   IGetPermissionByIdPayload,
@@ -19,7 +19,7 @@ import { PERMISSION_ENDPOINTS } from "../constants/endpoint.constant";
 export class PermissionService {
   getPermissions(
     payload: IGetPermissionsPayload,
-  ): Promise<ApiPaginatedResponse<IPermission[]> & { totalCount: number }> {
+  ): Promise<ApiPaginatedResponse<IPermission>> {
     return http.post(PERMISSION_ENDPOINTS.GET_PERMISSIONS, payload);
   }
 

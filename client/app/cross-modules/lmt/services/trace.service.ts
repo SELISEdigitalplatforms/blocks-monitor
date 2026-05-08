@@ -1,5 +1,5 @@
 import { http } from "@/lib/http-client";
-import {
+import type {
   IGetTraceByTraceIdPayload,
   IGetTracesPayload,
   IGetTracesResponse,
@@ -10,13 +10,13 @@ import {
   IRequest,
   IResponse,
 } from "../models/trace.model";
-import { ApiPaginatedResponse } from "@/models/api-response.model";
+import type { ApiPaginatedResponse } from "@/models/api-response.model";
 import { TRACE_ENDPOINTS } from "../constants/endpoint.constant";
 
 export class TraceService {
   async getTraces(payload: IGetTracesPayload): Promise<IGetTracesResponse> {
     try {
-      const response = await http.post<ApiPaginatedResponse<Trace[]>>(
+      const response = await http.post<ApiPaginatedResponse<Trace>>(
         TRACE_ENDPOINTS.GET_TRACES,
         payload,
       );
@@ -40,7 +40,7 @@ export class TraceService {
 
       return {
         data: parsedData,
-        errors: response.errors ?? [],
+        errors: response.error ?? [],
         totalCount: response.totalCount ?? 0,
       };
     } catch (error) {
@@ -52,9 +52,13 @@ export class TraceService {
   async getTraceByTraceId({
     traceId,
     projectKey,
-  }: IGetTraceByTraceIdPayload): Promise<ApiPaginatedResponse<TraceTree>> {
+  }: IGetTraceByTraceIdPayload): Promise<{
+    data: TraceTree | null;
+    error: unknown;
+    totalCount: number;
+  }> {
     try {
-      const response = await http.get<ApiPaginatedResponse<Trace[]>>(
+      const response = await http.get<ApiPaginatedResponse<Trace>>(
         `${TRACE_ENDPOINTS.GET_TRACE}?TraceId=${traceId}&ProjectKey=${projectKey}`,
       );
 
@@ -113,8 +117,8 @@ export class TraceService {
       }
 
       return {
-        data: parsedData as TraceTree,
-        errors: [],
+        data: parsedData,
+        error: [],
         totalCount: 0,
       };
     } catch (error) {
