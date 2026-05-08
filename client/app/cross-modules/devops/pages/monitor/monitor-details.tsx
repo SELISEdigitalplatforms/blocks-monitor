@@ -11,8 +11,8 @@ import {
   useGetMonitorDownTime,
 } from "@blocks-devops/hooks/alerts";
 import { useNavigate, useParams } from "react-router-dom";
-import IncidentList from "./incident-list";
-import ResponseTime from "./response-time";
+import IncidentList from "../../components/incident/incident-list";
+import ResponseTime from "../../components/monitor/details/response-time";
 import { Button } from "@/components/ui-kits/button/button";
 import { useState } from "react";
 import AddSingleMonitor from "@/cross-modules/devops/components/monitor/add-monitor/add-monitor";
@@ -22,13 +22,13 @@ import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
 import AlertAction from "@/cross-modules/devops/components/alert/alert-action";
 import { IMonitorSummary } from "@/cross-modules/devops/models/alerts.model";
-import MonitorCard from "@/cross-modules/devops/components/monitor/monitor-details/monitor-card";
+import MonitorCard from "@/cross-modules/devops/components/monitor/details/monitor-card";
 import NotificationModal from "@/cross-modules/devops/components/alert/notification-modal";
 import {
   LoadingListSkelton,
   MonitorCardSkeleton,
   ResponseSkeletonLoader,
-} from "@/cross-modules/devops/components/monitor/monitor-details/monitor-details-skeletons";
+} from "@/cross-modules/devops/components/monitor/details/monitor-details-skeletons";
 import { useProjectStore } from "@/store/useProjectStore";
 import { BackIconButton } from "@/components/buttons";
 

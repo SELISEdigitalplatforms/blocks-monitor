@@ -16,11 +16,11 @@ import {
   HEALTH_TABS,
 } from "@blocks-devops/constants/health.constant";
 import { useGetHealthMonitorList } from "@blocks-devops/hooks/alerts";
-import { AlertsList } from "@blocks-devops/pages/alert/alerts-list";
+import { AlertsList } from "@blocks-devops/components/alert/alerts-list";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import AddSingleMonitor from "../../components/monitor/add-monitor/add-monitor";
-import { useAlertFilterQueryParams } from "../alert/alerts-filter-toolbar";
+import { useAlertFilterQueryParams } from "@blocks-devops/components/alert/alerts-filter-toolbar";
 
 const Health = () => {
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";

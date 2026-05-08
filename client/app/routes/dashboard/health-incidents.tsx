@@ -1,4 +1,4 @@
-import IncidentPage from "@blocks-devops/pages/alert/incident-page";
+import IncidentPage from "@/cross-modules/devops/pages/incidents/incident-page";
 
 export default function HealthIncidentsPage() {
   return (
