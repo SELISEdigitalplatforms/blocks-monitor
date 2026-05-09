@@ -1,13 +1,20 @@
 import { z } from "zod";
+
+export type FormType = "request" | "callback";
+export type SourceType = "deployed" | "my-services" | "none";
+
 const URL_REGEX =
   /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/;
+
 const monitorSettingsSchema = z.object({
   monitor_interval: z.number(),
   request_timeout: z.number(),
+  grace_time: z.number(),
   check_ssl_errors: z.boolean().optional().default(false),
   ssl_expiry_reminders: z.boolean().optional().default(false),
   domain_expiry_reminders: z.boolean().optional().default(false),
 });
+
 const requestConfigurationSchema = z
   .object({
     http_methods: z.string().trim(),
@@ -42,53 +49,88 @@ const requestConfigurationSchema = z
     }
   });
 
-export const addAlertRepoSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Service name is required")
-    .max(100, "Service name too long. Maximum 100 characters allowed."),
-  urlMonitor: z
-    .string()
-    .min(1, "URL is required")
-    .regex(URL_REGEX, "Please enter a valid URL (must start with http:// or https://)"),
-  monitorSettings: monitorSettingsSchema,
-  requestConfiguration: requestConfigurationSchema,
-});
+export const addMonitorSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(1, "Service name is required")
+      .max(100, "Service name too long. Maximum 100 characters allowed."),
+    monitorType: z.enum(["request", "callback"]),
+    sourceType: z.enum(["none", "deployed", "my-services"]),
+    selectedRepoId: z.string().default(""),
+    selectedServiceId: z.string().default(""),
+    urlMonitor: z.string().url().default(""),
+    monitorSettings: monitorSettingsSchema,
+    requestConfiguration: requestConfigurationSchema,
+  })
+  .superRefine((data, ctx) => {
+    if (data.sourceType === "deployed" && !data.selectedRepoId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Select a deployed repo.",
+        path: ["selectedRepoId"],
+      });
+    }
 
-export type AddAlertRepoForm = z.infer<typeof addAlertRepoSchema>;
+    if (data.sourceType === "my-services" && !data.selectedServiceId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Select a service.",
+        path: ["selectedServiceId"],
+      });
+    }
 
-export const addAlertRepoDefaultValues: AddAlertRepoForm = {
+    if (data.monitorType === "request") {
+      if (!data.urlMonitor.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "URL is required",
+          path: ["urlMonitor"],
+        });
+      } else if (!URL_REGEX.test(data.urlMonitor)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "Please enter a valid URL (must start with http:// or https://)",
+          path: ["urlMonitor"],
+        });
+      }
+    }
+
+    if (data.monitorType === "callback" && !data.monitorSettings.grace_time) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Grace time is required",
+        path: ["monitorSettings", "grace_time"],
+      });
+    }
+  });
+
+export type AddMonitorForm = z.infer<typeof addMonitorSchema>;
+
+export const getAddMonitorDefaultValues = (
+  monitorType: FormType = "request",
+): AddMonitorForm => ({
   name: "",
+  monitorType,
+  sourceType: "none",
+  selectedRepoId: "",
+  selectedServiceId: "",
   urlMonitor: "",
   monitorSettings: {
     monitor_interval: 2,
     request_timeout: 3,
+    grace_time: 3,
     check_ssl_errors: false,
     ssl_expiry_reminders: false,
     domain_expiry_reminders: false,
   },
   requestConfiguration: {
-    http_methods: "0", // Default to GET
-    request_body: `{"key": "value"}`,
+    http_methods: "0",
+    request_body: '{"key": "value"}',
     json_switcher: false,
     x_header_name: "",
     value: "",
   },
-};
-
-export const addACallbackSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Service name is required")
-    .max(100, "Service name too long")
-    .refine((val) => val.trim().length > 0, "Service name cannot contain only whitespace"),
-  monitor_interval: z.number(),
-  grace_time: z.number(),
 });
-export type AddCallbackForm = z.infer<typeof addACallbackSchema>;
-export const addCallbackFormDefaultValues: AddCallbackForm = {
-  name: "",
-  monitor_interval: 2,
-  grace_time: 3,
-};

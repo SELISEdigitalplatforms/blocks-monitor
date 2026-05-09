@@ -147,6 +147,7 @@ export interface ISaveHealth {
   intervalInSeconds?: number;
   gracePeriodInSeconds?: number;
   externalServiceId?: string;
+  externalServiceName?: string;
   monitorSourceType?: MONITOR_SOURCE_TYPES;
 }
 export interface IUpdateHealth extends ISaveHealth {
