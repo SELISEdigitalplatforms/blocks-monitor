@@ -55,7 +55,7 @@ import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { useProjectStore } from "@/store/useProjectStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DialogClose } from "@radix-ui/react-dialog";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import {
@@ -171,6 +171,18 @@ export function AddSingleMonitorForm({ itemId }: Props) {
     repoDuplicate,
     serviceDuplicate,
   ]);
+
+  useEffect(() => {
+    if (sourceError) {
+      form.setError("sourceType", {
+        type: "manual",
+        message: sourceError,
+      });
+      return;
+    }
+
+    form.clearErrors("sourceType");
+  }, [form, sourceError]);
 
   const isSourceBlocked = !!sourceError;
 
