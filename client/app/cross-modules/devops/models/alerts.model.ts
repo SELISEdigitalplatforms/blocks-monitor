@@ -135,6 +135,7 @@ export interface IAddSingleMonitorPayload {
   successHttpResponseCodes?: string[];
   regions?: string[];
   externalServiceId?: string;
+  externalServiceName?: string;
   monitorSourceType?: MONITOR_SOURCE_TYPES;
 }
 export interface ISaveHealth {
@@ -372,8 +373,10 @@ export interface IMonitorDetails {
   organizationIds: [];
   protocolType: number;
   regions: [];
-  repoId: string;
-  repoName: string;
+  repoId: string | null;
+  repoName: string | null;
+  externalServiceId: string | null;
+  externalServiceName: string | null;
   successHttpResponseCodes: [];
   tags: [];
   tenantId: string;

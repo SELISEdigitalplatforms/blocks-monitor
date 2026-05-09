@@ -219,7 +219,7 @@ const MonitorDetails = () => {
             onClick={() => navigate(-1)}
             className="h-8 w-8"
           />
-          <h1 className="text-lg font-semibold md:text-2xl">
+          <h1 className="text-lg font-semibold md:text-2xl break-all max-w-[40vw]">
             {monitorData?.data?.name}
           </h1>
         </div>
@@ -256,7 +256,8 @@ const MonitorDetails = () => {
       <div className="flex flex-col gap-5">
         <MonitorCard
           onOpenChange={setOpenNotificationSettings}
-          repoName={monitorData?.data?.repoName || ""}
+          repoName={monitorData?.data?.repoName}
+          externalServiceName={monitorData?.data?.externalServiceName}
           url={monitorData?.data?.url || ""}
           request={request}
           emails={monitorData?.data?.emails || []}

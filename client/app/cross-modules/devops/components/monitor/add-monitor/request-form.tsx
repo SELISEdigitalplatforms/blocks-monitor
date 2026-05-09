@@ -55,6 +55,7 @@ const RequestForm = ({
   repoId,
   repoName,
   externalServiceId,
+  externalServiceName,
   prefillName,
   prefillUrl,
   monitorSourceType,
@@ -66,6 +67,7 @@ const RequestForm = ({
   repoId?: string;
   repoName?: string;
   externalServiceId?: string;
+  externalServiceName?: string;
   prefillName?: string;
   prefillUrl?: string;
   monitorSourceType?: MONITOR_SOURCE_TYPES;
@@ -152,6 +154,7 @@ const RequestForm = ({
         httpMethodType: formValues.requestConfiguration.http_methods,
         protocolType: "HTTP",
         externalServiceId: externalServiceId,
+        externalServiceName: externalServiceName,
       };
       if (monitorSourceType) {
         payload.monitorSourceType = monitorSourceType;
