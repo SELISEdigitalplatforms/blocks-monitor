@@ -104,7 +104,7 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
           const name = row.original.name || row.original.operationName || "N/A";
           return (
             <div className="ml-2 flex flex-row items-center sm:ml-0 sm:w-[180px]">
-              <span>{name}</span>
+              <span className="break-all">{name}</span>
             </div>
           );
         },
@@ -126,7 +126,7 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
               : "Callback";
           return (
             <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
-              <span>{monitorType}</span>
+              <span className="break-all">{monitorType}</span>
             </div>
           );
         },

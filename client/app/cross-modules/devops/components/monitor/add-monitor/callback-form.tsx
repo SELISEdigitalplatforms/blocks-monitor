@@ -40,6 +40,7 @@ const CallbackForm = ({
   repoName,
   repoId,
   externalServiceId,
+  externalServiceName,
   prefillName,
   monitorSourceType,
   isSourceBlocked,
@@ -51,6 +52,7 @@ const CallbackForm = ({
   repoName?: string;
   repoId?: string;
   externalServiceId?: string;
+  externalServiceName?: string;
   prefillName?: string;
   monitorSourceType?: MONITOR_SOURCE_TYPES;
   isSourceBlocked?: boolean;
@@ -93,6 +95,7 @@ const CallbackForm = ({
         repoId?: string;
         repoName?: string;
         externalServiceId?: string;
+        externalServiceName?: string;
         monitorSourceType?: MONITOR_SOURCE_TYPES;
       } = {
         repoName: repoName,
@@ -103,6 +106,7 @@ const CallbackForm = ({
         gracePeriodInSeconds: MONITOR_INTERVAL[formValues.grace_time],
         isActive: true,
         externalServiceId: externalServiceId,
+        externalServiceName: externalServiceName,
       };
       if (monitorSourceType) {
         payload.monitorSourceType = monitorSourceType;
