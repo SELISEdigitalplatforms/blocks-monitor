@@ -115,45 +115,37 @@ export interface AlertTree extends Alert {
   externalServiceName: string | null;
 }
 
-export interface IAddSingleMonitorPayload {
-  itemId: string;
-  projectKey: string;
+interface BaseMonitorPayload {
+  projectKey: ProjectKey;
+  name: string;
+  monitorType: string;
+  monitorSourceType: MONITOR_SOURCE_TYPES;
+  intervalInSeconds: number;
+  isActive: boolean;
+}
+
+export interface IAddSingleMonitorPayload extends Partial<IUpdateSingleMonitorPayload> {}
+
+export interface IUpdateSingleMonitorPayload extends BaseMonitorPayload {
   repoId: string;
   repoName: string;
-  name: string;
+  externalServiceId: string;
+  externalServiceName: string;
   url: string;
-  monitorType: string;
   protocolType: string;
   httpMethodType: string;
-  authorizationType?: string;
-  intervalInSeconds: number;
+  authorizationType: string;
   timeoutInSeconds: number;
-  isActive: boolean;
-  expectedContent?: string;
   customHttpHeaders: string;
   customPayload: string;
-  successHttpResponseCodes?: string[];
-  regions?: string[];
-  externalServiceId?: string;
-  externalServiceName?: string;
-  monitorSourceType?: MONITOR_SOURCE_TYPES;
 }
-export interface ISaveHealth {
-  isActive: boolean;
-  repoName?: string;
-  repoId?: string;
-  projectKey?: string;
-  name?: string;
-  intervalInSeconds?: number;
-  gracePeriodInSeconds?: number;
-  externalServiceId?: string;
-  externalServiceName?: string;
-  monitorSourceType?: MONITOR_SOURCE_TYPES;
-}
-export interface IUpdateHealth extends ISaveHealth {
-  itemId: string;
-  emails?: string[];
-  repoName?: string;
+export interface ISaveHealth extends Partial<IUpdateHealth> {}
+export interface IUpdateHealth extends BaseMonitorPayload {
+  repoName: string;
+  repoId: string;
+  externalServiceId: string;
+  externalServiceName: string;
+  gracePeriodInSeconds: number;
 }
 
 export interface IUpdateMonitor {

@@ -20,18 +20,6 @@ export const useAddSingleMonitor = () => {
       queryClient.invalidateQueries({
         queryKey: ["monitor-list-by-id", variables.projectKey],
       });
-      // If editing an existing monitor, invalidate its details/analytics
-      if (variables.itemId) {
-        queryClient.invalidateQueries({
-          queryKey: ["get-monitor-details", variables.itemId],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["get-monitor-response-id", variables.itemId],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["get-monitor-by-id", variables.itemId],
-        });
-      }
     },
   });
 };
@@ -87,8 +75,15 @@ export const useGetMonitorList = (projectKey: string, repoId: string) => {
     refetchOnMount: "always",
   });
 };
-export const useGetHealthMonitorList = (payload: IGetHealthMonitorListPayload) => {
- const {projectKey, monitorSourceType, pageNumber = 0, pageSize = 10} = payload;
+export const useGetHealthMonitorList = (
+  payload: IGetHealthMonitorListPayload,
+) => {
+  const {
+    projectKey,
+    monitorSourceType,
+    pageNumber = 0,
+    pageSize = 10,
+  } = payload;
   return useQuery({
     queryKey: [
       "health-monitor-list",

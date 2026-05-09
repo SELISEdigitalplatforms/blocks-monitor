@@ -901,9 +901,6 @@ const AddSingleMonitor = ({
                   Save
                 </Button>
               </div>
-              {sourceError && (
-                <p className="pt-2 text-sm text-destructive">{sourceError}</p>
-              )}
             </div>
           </form>
         </Form>

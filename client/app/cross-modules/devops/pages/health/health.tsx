@@ -19,8 +19,10 @@ import { useGetHealthMonitorList } from "@blocks-devops/hooks/alerts";
 import { AlertsList } from "@blocks-devops/components/alert/alerts-list";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
-import AddSingleMonitor from "../../components/monitor/add-monitor/add-monitor";
+// import AddSingleMonitor from "../../components/monitor/add-monitor/add-monitor";
 import { useAlertFilterQueryParams } from "@blocks-devops/components/alert/alerts-filter-toolbar";
+import { MonitorModal } from "../../components/monitor/modal/monitor-modal";
+import { AddSingleMonitorForm } from "../../components/monitor/form/add-monitor-form";
 
 const Health = () => {
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
@@ -125,14 +127,18 @@ const Health = () => {
         )}
       </Card>
 
-      <AddSingleMonitor
+      <MonitorModal open={open} onOpenChange={setOpen} itemId={null}>
+        <AddSingleMonitorForm itemId={null} />
+      </MonitorModal>
+
+      {/* <AddSingleMonitor
         open={open}
         onOpenChange={setOpen}
         itemId={""}
         request={true}
         repoId={""}
         repoName={""}
-      />
+      /> */}
     </main>
   );
 };
