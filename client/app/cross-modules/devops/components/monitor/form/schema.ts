@@ -49,7 +49,7 @@ const requestConfigurationSchema = z
     }
   });
 
-export const addMonitorSchema = z
+export const monitorSchema = z
   .object({
     name: z
       .string()
@@ -82,7 +82,7 @@ export const addMonitorSchema = z
     }
 
     if (data.monitorType === "request") {
-      if (!data.urlMonitor.trim()) {
+      if (!data.urlMonitor) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "URL is required",
@@ -107,11 +107,11 @@ export const addMonitorSchema = z
     }
   });
 
-export type AddMonitorForm = z.infer<typeof addMonitorSchema>;
+export type MonitorForm = z.infer<typeof monitorSchema>;
 
-export const getAddMonitorDefaultValues = (
+export const getMonitorFormDefaultValues = (
   monitorType: FormType = "request",
-): AddMonitorForm => ({
+): MonitorForm => ({
   name: "",
   monitorType,
   sourceType: "none",
