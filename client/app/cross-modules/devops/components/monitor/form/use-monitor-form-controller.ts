@@ -13,7 +13,7 @@ import {
   toFormValuesFromMonitorDetails,
   toUpdateCallbackPayload,
   toUpdateRequestPayload,
-} from "./mappers";
+} from "./util";
 import { ErrorTransformer } from "@/cross-modules/devops/utils/error-transform";
 import { useGetAllServices } from "@/cross-modules/identifier/hooks/use-services";
 import { useGetEnvRepositories } from "@/hooks/use-project";
@@ -122,7 +122,8 @@ export const useMonitorFormController = ({
     useIsExternalServiceConfigured(selectedServiceId);
 
   const repoDuplicate = useMemo(() => {
-    if (isEditMode || sourceType !== "deployed" || !selectedRepoId) return false;
+    if (isEditMode || sourceType !== "deployed" || !selectedRepoId)
+      return false;
     const monitors = repoMonitorList?.data || [];
     return monitors.some((monitor) => monitor.itemId !== itemId);
   }, [isEditMode, sourceType, selectedRepoId, repoMonitorList, itemId]);
@@ -142,9 +143,7 @@ export const useMonitorFormController = ({
     }
 
     if (sourceType === "my-services" && !selectedServiceId) {
-      return isLoadingServices
-        ? "Loading services..."
-        : "Select a service.";
+      return isLoadingServices ? "Loading services..." : "Select a service.";
     }
 
     if (repoDuplicate) {
@@ -210,7 +209,10 @@ export const useMonitorFormController = ({
     if (!repo) return;
 
     const prefillUrl =
-      repo.customDeploymentUrl || repo.defaultDeploymentUrl || repo.repoUrl || "";
+      repo.customDeploymentUrl ||
+      repo.defaultDeploymentUrl ||
+      repo.repoUrl ||
+      "";
 
     form.setValue("name", repo.repoName || "", { shouldValidate: true });
     form.setValue("urlMonitor", prefillUrl || "", { shouldValidate: true });
@@ -233,7 +235,8 @@ export const useMonitorFormController = ({
     if (isSourceBlocked) return;
 
     const fallbackRepoName = monitorDetails?.data?.repoName || "";
-    const fallbackExternalServiceName = monitorDetails?.data?.externalServiceName || "";
+    const fallbackExternalServiceName =
+      monitorDetails?.data?.externalServiceName || "";
 
     const context = {
       itemId: itemId || "",
@@ -247,7 +250,9 @@ export const useMonitorFormController = ({
       if (values.monitorConfigurationType === "request") {
         const res =
           mode === "add"
-            ? await addMutation.mutateAsync(toCreateRequestPayload(values, context))
+            ? await addMutation.mutateAsync(
+                toCreateRequestPayload(values, context),
+              )
             : await updateRequestMutation.mutateAsync(
                 toUpdateRequestPayload(values, context),
               );

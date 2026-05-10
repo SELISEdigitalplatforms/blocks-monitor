@@ -35,9 +35,14 @@ import { Switch } from "@/components/ui-kits/switch/switch";
 import { Textarea } from "@/components/ui-kits/textarea/textarea";
 import { HTTP_METHODS } from "@/cross-modules/devops/constants/alert.constant";
 import { DialogClose } from "@radix-ui/react-dialog";
-import type { FormEventHandler } from "react";
+import { useEffect, type FormEventHandler } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import type { MonitorConfigurationType, MonitorFormValues, MonitorFormMode, SourceType } from "./schema";
+import type {
+  MonitorConfigurationType,
+  MonitorFormValues,
+  MonitorFormMode,
+  SourceType,
+} from "./schema";
 
 type RepoOption = {
   itemId: string;
@@ -71,7 +76,6 @@ type MonitorFormFieldsProps = {
 
 export const MonitorFormFields = ({
   form,
-  mode,
   onSubmit,
   monitorType,
   sourceType,
@@ -90,6 +94,17 @@ export const MonitorFormFields = ({
 }: MonitorFormFieldsProps) => {
   const httpMethod = form.watch("requestConfiguration.http_methods");
   const sendAsJson = form.watch("requestConfiguration.json_switcher");
+
+  useEffect(() => {
+    if (sourceError) {
+      form.setError("sourceType", {
+        type: "manual",
+        message: sourceError,
+      });
+    } else {
+      form.clearErrors("sourceType");
+    }
+  }, [form, sourceError]);
 
   return (
     <Form {...form}>
@@ -114,11 +129,17 @@ export const MonitorFormFields = ({
                       className="flex items-center gap-4"
                       disabled={isEditMode}>
                       <div className="flex items-center gap-2">
-                        <RadioGroupItem value="request" id="monitor-type-request" />
+                        <RadioGroupItem
+                          value="request"
+                          id="monitor-type-request"
+                        />
                         <label htmlFor="monitor-type-request">Request</label>
                       </div>
                       <div className="flex items-center gap-2">
-                        <RadioGroupItem value="callback" id="monitor-type-callback" />
+                        <RadioGroupItem
+                          value="callback"
+                          id="monitor-type-callback"
+                        />
                         <label htmlFor="monitor-type-callback">Callback</label>
                       </div>
                     </RadioGroup>
@@ -128,138 +149,6 @@ export const MonitorFormFields = ({
               )}
             />
           </RenderConditionally>
-
-          <div className="mb-4 rounded-md border border-input bg-background p-4">
-            <FormField
-              control={form.control}
-              name="sourceType"
-              render={({ field }) => (
-                <FormItem className="flex flex-col gap-1">
-                  <FormLabel className="block text-sm font-medium">
-                    Tag a Service
-                  </FormLabel>
-                  <FormControl className="flex items-center gap-2">
-                    <RadioGroup
-                      value={field.value}
-                      onValueChange={(value: SourceType) => {
-                        field.onChange(value);
-                        onSourceTypeChange(value);
-                      }}
-                      className="flex flex-wrap gap-4"
-                      disabled={isEditMode}>
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="none" id="monitor-source-none" />
-                        <label htmlFor="monitor-source-none">None</label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="deployed" id="monitor-source-deployed" />
-                        <label htmlFor="monitor-source-deployed">Deployed</label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem
-                          value="my-services"
-                          id="monitor-source-my-services"
-                        />
-                        <label htmlFor="monitor-source-my-services">My services</label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <RenderConditionally condition={sourceType === "deployed"}>
-              <FormField
-                control={form.control}
-                name="selectedRepoId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="mb-2 block text-sm font-medium">
-                      Select repo
-                    </FormLabel>
-                    <FormControl>
-                      <Select
-                        value={field.value || undefined}
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          onRepoChange(value);
-                        }}
-                        disabled={isEditMode || isLoadingRepos}>
-                        <SelectTrigger>
-                          <SelectValue
-                            placeholder={
-                              isLoadingRepos ? "Loading repos..." : "Select a repo"
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {deployedRepos.map((repo) => (
-                            <SelectItem key={repo.itemId} value={repo.itemId}>
-                              {repo.repoName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </RenderConditionally>
-
-            <RenderConditionally condition={sourceType === "my-services"}>
-              <FormField
-                control={form.control}
-                name="selectedServiceId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="mb-2 block text-sm font-medium">
-                      Select service
-                    </FormLabel>
-                    <FormControl>
-                      <Select
-                        value={field.value || undefined}
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          onServiceChange(value);
-                        }}
-                        disabled={isEditMode || isLoadingServices}>
-                        <SelectTrigger>
-                          <SelectValue
-                            placeholder={
-                              isLoadingServices
-                                ? "Loading services..."
-                                : "Select a service"
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {services.map((service) => (
-                            <SelectItem
-                              key={service.serviceId}
-                              value={service.serviceId}
-                              className="break-all">
-                              {service.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </RenderConditionally>
-
-            {sourceError && <p className="mt-2 text-sm text-destructive">{sourceError}</p>}
-            {isEditMode && (
-              <p className="mt-2 text-xs text-muted-foreground">
-                Monitor source cannot be changed for existing monitors.
-              </p>
-            )}
-          </div>
 
           <div className="flex flex-col gap-4">
             <FormField
@@ -282,6 +171,149 @@ export const MonitorFormFields = ({
                 </FormItem>
               )}
             />
+
+            <div className=" rounded-md border border-input bg-background p-4 space-y-2">
+              <FormField
+                control={form.control}
+                name="sourceType"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col gap-1">
+                    <FormLabel className="block text-sm font-medium">
+                      Tag a Service
+                    </FormLabel>
+                    <FormControl className="flex items-center gap-2">
+                      <RadioGroup
+                        value={field.value}
+                        onValueChange={(value: SourceType) => {
+                          field.onChange(value);
+                          onSourceTypeChange(value);
+                        }}
+                        className="flex flex-wrap gap-4"
+                        disabled={isEditMode}>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem
+                            value="none"
+                            id="monitor-source-none"
+                          />
+                          <label htmlFor="monitor-source-none">None</label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem
+                            value="deployed"
+                            id="monitor-source-deployed"
+                          />
+                          <label htmlFor="monitor-source-deployed">
+                            Deployed
+                          </label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem
+                            value="my-services"
+                            id="monitor-source-my-services"
+                          />
+                          <label htmlFor="monitor-source-my-services">
+                            My services
+                          </label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <RenderConditionally condition={sourceType === "deployed"}>
+                <FormField
+                  control={form.control}
+                  name="selectedRepoId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="block text-sm font-medium">
+                        Select repo
+                      </FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value || undefined}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            onRepoChange(value);
+                          }}
+                          disabled={isEditMode || isLoadingRepos}>
+                          <SelectTrigger>
+                            <SelectValue
+                              placeholder={
+                                isLoadingRepos
+                                  ? "Loading repos..."
+                                  : "Select a repo"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {deployedRepos.map((repo) => (
+                              <SelectItem key={repo.itemId} value={repo.itemId}>
+                                {repo.repoName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </RenderConditionally>
+
+              <RenderConditionally condition={sourceType === "my-services"}>
+                <FormField
+                  control={form.control}
+                  name="selectedServiceId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="mb-2 block text-sm font-medium">
+                        Select service
+                      </FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value || undefined}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            onServiceChange(value);
+                          }}
+                          disabled={isEditMode || isLoadingServices}>
+                          <SelectTrigger>
+                            <SelectValue
+                              placeholder={
+                                isLoadingServices
+                                  ? "Loading services..."
+                                  : "Select a service"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {services.map((service) => (
+                              <SelectItem
+                                key={service.serviceId}
+                                value={service.serviceId}
+                                className="break-all">
+                                {service.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </RenderConditionally>
+
+              {isEditMode && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Monitor source cannot be changed for existing monitors.
+                </p>
+              )}
+            </div>
 
             <RenderConditionally condition={monitorType === "request"}>
               <FormField
@@ -353,7 +385,9 @@ export const MonitorFormFields = ({
                             max={5}
                             step={1}
                             value={[field.value]}
-                            onValueChange={(values) => field.onChange(values[0])}
+                            onValueChange={(values) =>
+                              field.onChange(values[0])
+                            }
                           />
                         </FormControl>
                         <div className="flex justify-between px-1 text-xs text-muted-foreground">
@@ -383,7 +417,9 @@ export const MonitorFormFields = ({
                             max={5}
                             step={1}
                             value={[field.value]}
-                            onValueChange={(values) => field.onChange(values[0])}
+                            onValueChange={(values) =>
+                              field.onChange(values[0])
+                            }
                           />
                         </FormControl>
                         <div className="flex justify-between px-1 text-xs text-muted-foreground">
@@ -420,11 +456,15 @@ export const MonitorFormFields = ({
                             className="flex flex-col gap-4">
                             <div className="flex gap-6">
                               {HTTP_METHODS.map((item, index) => (
-                                <FormItem className="flex items-center gap-2" key={index}>
+                                <FormItem
+                                  className="flex items-center gap-2"
+                                  key={index}>
                                   <FormControl>
                                     <RadioGroupItem value={item.value} />
                                   </FormControl>
-                                  <FormLabel className="!mt-0">{item.label}</FormLabel>
+                                  <FormLabel className="!mt-0">
+                                    {item.label}
+                                  </FormLabel>
                                 </FormItem>
                               ))}
                             </div>
@@ -520,16 +560,14 @@ export const MonitorFormFields = ({
 
             <Button
               type="submit"
-              disabled={isSubmitting || !form.formState.isValid || Boolean(isSourceBlocked)}>
+              disabled={
+                isSubmitting ||
+                !form.formState.isValid ||
+                Boolean(isSourceBlocked)
+              }>
               Save
             </Button>
           </div>
-          {sourceError && <p className="pt-2 text-sm text-destructive">{sourceError}</p>}
-          {mode === "edit" && !sourceError && (
-            <p className="pt-2 text-xs text-muted-foreground">
-              Update will keep existing source selection and monitor type.
-            </p>
-          )}
         </div>
       </form>
     </Form>
