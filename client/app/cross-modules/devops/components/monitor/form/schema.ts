@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-export type FormType = "request" | "callback";
+export type MonitorFormMode = "add" | "edit";
+export type MonitorConfigurationType = "request" | "callback";
 export type SourceType = "deployed" | "my-services" | "none";
 
 const URL_REGEX =
@@ -49,7 +50,7 @@ const requestConfigurationSchema = z
     }
   });
 
-export const monitorSchema = z
+export const monitorFormSchema = z
   .object({
     name: z
       .string()
@@ -60,7 +61,7 @@ export const monitorSchema = z
     sourceType: z.enum(["none", "deployed", "my-services"]),
     selectedRepoId: z.string().default(""),
     selectedServiceId: z.string().default(""),
-    urlMonitor: z.string().url().trim().default(""),
+    urlMonitor: z.string().trim().default(""),
     monitorSettings: monitorSettingsSchema,
     requestConfiguration: requestConfigurationSchema,
   })
@@ -110,4 +111,30 @@ export const monitorSchema = z
     }
   });
 
-export type MonitorForm = z.infer<typeof monitorSchema>;
+export type MonitorFormValues = z.infer<typeof monitorFormSchema>;
+
+export const getMonitorFormDefaultValues = (
+  monitorConfigurationType: MonitorConfigurationType = "request",
+): MonitorFormValues => ({
+  name: "",
+  monitorConfigurationType,
+  sourceType: "none",
+  selectedRepoId: "",
+  selectedServiceId: "",
+  urlMonitor: "",
+  monitorSettings: {
+    monitor_interval: 2,
+    request_timeout: 3,
+    grace_time: 3,
+    check_ssl_errors: false,
+    ssl_expiry_reminders: false,
+    domain_expiry_reminders: false,
+  },
+  requestConfiguration: {
+    http_methods: "0",
+    request_body: '{"key":"value"}',
+    json_switcher: false,
+    x_header_name: "",
+    value: "",
+  },
+});
