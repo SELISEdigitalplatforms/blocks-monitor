@@ -9,7 +9,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui-kits/accordion/accordion";
-import { Button } from "@/components/ui-kits/button/button";
 import {
   Form,
   FormControl,
@@ -19,24 +18,16 @@ import {
   FormMessage,
 } from "@/components/ui-kits/form/form";
 import { Input } from "@/components/ui-kits/input/input";
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@/components/ui-kits/radio-group/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui-kits/select/select";
-import { Slider } from "@/components/ui-kits/slider/slider";
+import { RadioGroup } from "@/components/ui-kits/radio-group/radio-group";
 import { Switch } from "@/components/ui-kits/switch/switch";
 import { Textarea } from "@/components/ui-kits/textarea/textarea";
 import { HTTP_METHODS } from "@/cross-modules/devops/constants/alert.constant";
-import { DialogClose } from "@radix-ui/react-dialog";
 import { type FormEventHandler } from "react";
 import type { UseFormReturn } from "react-hook-form";
+import { EntitySelectField } from "@/components/form-field/entity-select-field";
+import { FormActionsRow } from "@/components/form-field/form-actions-row";
+import { IntervalSliderField } from "@/components/form-field/interval-slider-field";
+import { LabeledRadioOption } from "@/components/form-field/labeled-radio-option";
 import type {
   MonitorConfigurationType,
   MonitorFormValues,
@@ -53,6 +44,34 @@ type ServiceOption = {
   serviceId: string;
   name: string;
 };
+
+const MONITOR_TYPE_OPTIONS: {
+  id: string;
+  value: MonitorConfigurationType;
+  label: string;
+}[] = [
+  { id: "monitor-type-request", value: "request", label: "Request" },
+  { id: "monitor-type-callback", value: "callback", label: "Callback" },
+];
+
+const SOURCE_TYPE_OPTIONS: { id: string; value: SourceType; label: string }[] =
+  [
+    { id: "monitor-source-none", value: "none", label: "None" },
+    { id: "monitor-source-deployed", value: "deployed", label: "Deployed" },
+    {
+      id: "monitor-source-my-services",
+      value: "my-services",
+      label: "My services",
+    },
+  ];
+
+const MONITOR_INTERVAL_TICKS = ["30s", "1min", "5min", "30min", "1h"];
+const MONITOR_INTERVAL_TOOLTIP =
+  "How frequently the system will check your endpoint for availability and performance";
+const TIMEOUT_TOOLTIP =
+  "Maximum time to wait for a response from your endpoint before considering it timed out";
+const REQUEST_JSON_TOOLTIP =
+  "Set Content-Type header to application/json for API requests";
 
 type MonitorFormFieldsProps = {
   form: UseFormReturn<MonitorFormValues>;
@@ -117,28 +136,15 @@ export const MonitorFormFields = ({
                       }}
                       className="flex items-center gap-4"
                       disabled={isEditMode}>
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem
-                          value="request"
-                          id="monitor-type-request"
+                      {MONITOR_TYPE_OPTIONS.map((option) => (
+                        <LabeledRadioOption
+                          key={option.id}
+                          id={option.id}
+                          value={option.value}
+                          label={option.label}
+                          disabled={isEditMode}
                         />
-                        <label
-                          className="cursor-pointer select-none"
-                          htmlFor="monitor-type-request">
-                          Request
-                        </label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem
-                          value="callback"
-                          id="monitor-type-callback"
-                        />
-                        <label
-                          className="cursor-pointer select-none"
-                          htmlFor="monitor-type-callback">
-                          Callback
-                        </label>
-                      </div>
+                      ))}
                     </RadioGroup>
                   </FormControl>
                   <FormMessage />
@@ -187,39 +193,15 @@ export const MonitorFormFields = ({
                         }}
                         className="flex flex-wrap gap-4"
                         disabled={isEditMode}>
-                        <div className="flex items-center gap-2">
-                          <RadioGroupItem
-                            value="none"
-                            id="monitor-source-none"
+                        {SOURCE_TYPE_OPTIONS.map((option) => (
+                          <LabeledRadioOption
+                            key={option.id}
+                            id={option.id}
+                            value={option.value}
+                            label={option.label}
+                            disabled={isEditMode}
                           />
-                          <label
-                            className="cursor-pointer select-none"
-                            htmlFor="monitor-source-none">
-                            None
-                          </label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <RadioGroupItem
-                            value="deployed"
-                            id="monitor-source-deployed"
-                          />
-                          <label
-                            className="cursor-pointer select-none"
-                            htmlFor="monitor-source-deployed">
-                            Deployed
-                          </label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <RadioGroupItem
-                            value="my-services"
-                            id="monitor-source-my-services"
-                          />
-                          <label
-                            className="cursor-pointer select-none"
-                            htmlFor="monitor-source-my-services">
-                            My services
-                          </label>
-                        </div>
+                        ))}
                       </RadioGroup>
                     </FormControl>
 
@@ -229,98 +211,38 @@ export const MonitorFormFields = ({
               />
 
               <RenderConditionally condition={sourceType === "deployed"}>
-                <FormField
+                <EntitySelectField
                   control={form.control}
                   name="selectedRepoId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="block text-sm font-medium">
-                        Select repo
-                      </FormLabel>
-                      <FormControl>
-                        <Select
-                          value={field.value || undefined}
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            onRepoChange(value);
-                          }}
-                          disabled={isEditMode || isLoadingRepos}>
-                          <SelectTrigger>
-                            <SelectValue
-                              placeholder={
-                                isLoadingRepos
-                                  ? "Loading repos..."
-                                  : "Select a repo"
-                              }
-                            />
-                          </SelectTrigger>
-                          <SelectContent className="w-[min(var(--radix-select-trigger-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)]">
-                            {deployedRepos.map((repo) => (
-                              <SelectItem
-                                key={repo.itemId}
-                                value={repo.itemId}
-                                className="items-start py-2">
-                                <span
-                                  className="block max-w-full whitespace-normal break-all leading-5"
-                                  title={repo.repoName}>
-                                  {repo.repoName}
-                                </span>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Select repo"
+                  placeholder={
+                    isLoadingRepos ? "Loading repos..." : "Select a repo"
+                  }
+                  disabled={isEditMode || isLoadingRepos}
+                  options={deployedRepos}
+                  getOptionKey={(repo) => repo.itemId}
+                  getOptionValue={(repo) => repo.itemId}
+                  getOptionLabel={(repo) => repo.repoName}
+                  onValueChange={onRepoChange}
                 />
               </RenderConditionally>
 
               <RenderConditionally condition={sourceType === "my-services"}>
-                <FormField
+                <EntitySelectField
                   control={form.control}
                   name="selectedServiceId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="mb-2 block text-sm font-medium">
-                        Select service
-                      </FormLabel>
-                      <FormControl>
-                        <Select
-                          value={field.value || undefined}
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            onServiceChange(value);
-                          }}
-                          disabled={isEditMode || isLoadingServices}>
-                          <SelectTrigger>
-                            <SelectValue
-                              placeholder={
-                                isLoadingServices
-                                  ? "Loading services..."
-                                  : "Select a service"
-                              }
-                            />
-                          </SelectTrigger>
-                          <SelectContent className="w-[min(var(--radix-select-trigger-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)]">
-                            {services.map((service) => (
-                              <SelectItem
-                                key={service.serviceId}
-                                value={service.serviceId}
-                                className="min-w-0 items-start py-2">
-                                <span
-                                  className="block max-w-full whitespace-normal break-all leading-5"
-                                  title={service.name}>
-                                  {service.name}
-                                </span>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Select service"
+                  placeholder={
+                    isLoadingServices
+                      ? "Loading services..."
+                      : "Select a service"
+                  }
+                  disabled={isEditMode || isLoadingServices}
+                  options={services}
+                  getOptionKey={(service) => service.serviceId}
+                  getOptionValue={(service) => service.serviceId}
+                  getOptionLabel={(service) => service.name}
+                  onValueChange={onServiceChange}
                 />
               </RenderConditionally>
               {sourceError && (
@@ -357,100 +279,29 @@ export const MonitorFormFields = ({
                 Monitor settings
               </AccordionTrigger>
               <AccordionContent className="flex flex-col gap-4 px-1 pt-1">
-                <FormField
+                <IntervalSliderField
                   control={form.control}
                   name="monitorSettings.monitor_interval"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-2">
-                      <FormLabel className="flex items-center gap-2">
-                        Monitor interval
-                        <InfoTooltip content="How frequently the system will check your endpoint for availability and performance" />
-                      </FormLabel>
-                      <FormControl>
-                        <Slider
-                          min={1}
-                          max={5}
-                          step={1}
-                          value={[field.value]}
-                          onValueChange={(values) => field.onChange(values[0])}
-                        />
-                      </FormControl>
-
-                      <div className="flex justify-between px-1 text-xs text-muted-foreground">
-                        <span>30s</span>
-                        <span>1min</span>
-                        <span>5min</span>
-                        <span>30min</span>
-                        <span>1h</span>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Monitor interval"
+                  tooltipContent={MONITOR_INTERVAL_TOOLTIP}
+                  tickLabels={MONITOR_INTERVAL_TICKS}
                 />
 
                 <RenderAlternatively condition={monitorType === "request"}>
-                  <FormField
+                  <IntervalSliderField
                     control={form.control}
                     name="monitorSettings.request_timeout"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col gap-2">
-                        <FormLabel className="flex items-center gap-2">
-                          Request timeout
-                          <InfoTooltip content="Maximum time to wait for a response from your endpoint before considering it timed out" />
-                        </FormLabel>
-                        <FormControl>
-                          <Slider
-                            min={1}
-                            max={5}
-                            step={1}
-                            value={[field.value]}
-                            onValueChange={(values) =>
-                              field.onChange(values[0])
-                            }
-                          />
-                        </FormControl>
-                        <div className="flex justify-between px-1 text-xs text-muted-foreground">
-                          <span>30s</span>
-                          <span>1min</span>
-                          <span>5min</span>
-                          <span>30min</span>
-                          <span>1h</span>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Request timeout"
+                    tooltipContent={TIMEOUT_TOOLTIP}
+                    tickLabels={MONITOR_INTERVAL_TICKS}
                   />
 
-                  <FormField
+                  <IntervalSliderField
                     control={form.control}
                     name="monitorSettings.grace_time"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col gap-2">
-                        <FormLabel className="flex items-center gap-2">
-                          Grace Time
-                          <InfoTooltip content="Maximum time to wait for a response from your endpoint before considering it timed out" />
-                        </FormLabel>
-                        <FormControl>
-                          <Slider
-                            min={1}
-                            max={5}
-                            step={1}
-                            value={[field.value]}
-                            onValueChange={(values) =>
-                              field.onChange(values[0])
-                            }
-                          />
-                        </FormControl>
-                        <div className="flex justify-between px-1 text-xs text-muted-foreground">
-                          <span>30s</span>
-                          <span>1min</span>
-                          <span>5min</span>
-                          <span>30min</span>
-                          <span>1h</span>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Grace Time"
+                    tooltipContent={TIMEOUT_TOOLTIP}
+                    tickLabels={MONITOR_INTERVAL_TICKS}
                   />
                 </RenderAlternatively>
               </AccordionContent>
@@ -474,20 +325,13 @@ export const MonitorFormFields = ({
                             value={field.value}
                             className="flex flex-col gap-4">
                             <div className="flex gap-6">
-                              {HTTP_METHODS.map((item, index) => (
-                                <FormItem className="flex items-center gap-2" key={index}>
-                                  <FormControl>
-                                    <RadioGroupItem
-                                      value={item.value}
-                                      id={`http-method-${item.value}`}
-                                    />
-                                  </FormControl>
-                                  <FormLabel
-                                    className="!mt-0 cursor-pointer select-none"
-                                    htmlFor={`http-method-${item.value}`}>
-                                    {item.label}
-                                  </FormLabel>
-                                </FormItem>
+                              {HTTP_METHODS.map((item) => (
+                                <LabeledRadioOption
+                                  key={`http-method-${item.value}`}
+                                  id={`http-method-${item.value}`}
+                                  value={item.value}
+                                  label={item.label}
+                                />
                               ))}
                             </div>
                           </RadioGroup>
@@ -521,7 +365,7 @@ export const MonitorFormFields = ({
                       <FormItem className="flex items-center justify-between">
                         <FormLabel className="flex items-center gap-2">
                           Send as JSON (application/json)
-                          <InfoTooltip content="Set Content-Type header to application/json for API requests" />
+                          <InfoTooltip content={REQUEST_JSON_TOOLTIP} />
                         </FormLabel>
                         <FormControl>
                           <Switch
@@ -573,23 +417,15 @@ export const MonitorFormFields = ({
             </RenderConditionally>
           </Accordion>
 
-          <div className="flex justify-end gap-2 pt-4">
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
-            </DialogClose>
-
-            <Button
-              type="submit"
-              disabled={
-                isSubmitting ||
-                !form.formState.isValid ||
-                Boolean(isSourceBlocked)
-              }>
-              Save
-            </Button>
-          </div>
+          <FormActionsRow
+            cancelLabel="Cancel"
+            saveLabel="Save"
+            isSaveDisabled={
+              isSubmitting ||
+              !form.formState.isValid ||
+              Boolean(isSourceBlocked)
+            }
+          />
         </div>
       </form>
     </Form>
