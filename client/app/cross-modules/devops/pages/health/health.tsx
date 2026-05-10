@@ -128,7 +128,7 @@ const Health = () => {
       </Card>
 
       <MonitorModal open={open} onOpenChange={setOpen} itemId={null}>
-        <AddSingleMonitorForm itemId={null} />
+        <AddSingleMonitorForm itemId={null} onSuccess={() => setOpen(false)} />
       </MonitorModal>
 
       {/* <AddSingleMonitor

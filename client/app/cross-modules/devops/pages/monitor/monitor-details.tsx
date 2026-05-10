@@ -1,38 +1,37 @@
 "use client";
+import { BackIconButton } from "@/components/buttons";
+import { Button } from "@/components/ui-kits/button/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui-kits/card/card";
-import {
-  useGetMonitorById,
-  useGetMonitorDetails,
-  useGetMonitorDownTime,
-} from "@blocks-devops/hooks/alerts";
-import { useNavigate, useParams } from "react-router-dom";
-import IncidentList from "../../components/incident/incident-list";
-import ResponseTime from "../../components/monitor/details/response-time";
-import { Button } from "@/components/ui-kits/button/button";
-import { useState } from "react";
-import AddSingleMonitor from "@/cross-modules/devops/components/monitor/add-monitor/add-monitor";
 import { Separator } from "@/components/ui-kits/separator/separator";
-import { BREADCRUMB_CUSTOM_TITLES } from "@/constants/breadcrumb-custom-title";
-import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
+import { BREADCRUMB_CUSTOM_TITLES } from "@/constants/breadcrumb-custom-title";
 import AlertAction from "@/cross-modules/devops/components/alert/alert-action";
-import { IMonitorSummary } from "@/cross-modules/devops/models/alerts.model";
-import MonitorCard from "@/cross-modules/devops/components/monitor/details/monitor-card";
 import NotificationModal from "@/cross-modules/devops/components/alert/notification-modal";
+import MonitorCard from "@/cross-modules/devops/components/monitor/details/monitor-card";
 import {
   LoadingListSkelton,
   MonitorCardSkeleton,
   ResponseSkeletonLoader,
 } from "@/cross-modules/devops/components/monitor/details/monitor-details-skeletons";
+import { IMonitorSummary } from "@/cross-modules/devops/models/alerts.model";
 import { useProjectStore } from "@/store/useProjectStore";
-import { BackIconButton } from "@/components/buttons";
-import { MonitorModal } from "../../components/monitor/modal/monitor-modal";
+import {
+  useGetMonitorById,
+  useGetMonitorDetails,
+  useGetMonitorDownTime,
+} from "@blocks-devops/hooks/alerts";
+import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import IncidentList from "../../components/incident/incident-list";
+import ResponseTime from "../../components/monitor/details/response-time";
 import { EditSingleMonitorForm } from "../../components/monitor/form/edit-monitor-form";
+import { MonitorModal } from "../../components/monitor/modal/monitor-modal";
 
 interface MonitorSummaryProps {
   data: IMonitorSummary[];
@@ -179,8 +178,6 @@ const MonitorDetails = () => {
   const { data: monitorData, isLoading: isMonitorLoading } = useGetMonitorById(
     monitorId as string,
   );
-  const repoName = monitorData?.data?.repoName;
-  const repoId = monitorData?.data?.repoId;
   const request =
     monitorData?.data?.monitorConfigurationType === 0 ? true : false;
   const interval = monitorData?.data?.intervalInSeconds as number;
@@ -309,16 +306,12 @@ const MonitorDetails = () => {
               />{" "}
             </div>
           </CardContent>
-          {/* <AddSingleMonitor
-            open={open}
-            onOpenChange={setOpen}
-            itemId={monitorId as string}
-            request={request}
-            repoId={repoId as string}
-            repoName={repoName as string}
-          /> */}
+
           <MonitorModal open={open} onOpenChange={setOpen} itemId={monitorId}>
-            <EditSingleMonitorForm itemId={monitorId} />
+            <EditSingleMonitorForm
+              itemId={monitorId}
+              onSuccess={() => setOpen(false)}
+            />
           </MonitorModal>
           <NotificationModal
             open={openNotificationSettings}
