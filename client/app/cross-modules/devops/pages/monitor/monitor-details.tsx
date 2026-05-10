@@ -31,6 +31,8 @@ import {
 } from "@/cross-modules/devops/components/monitor/details/monitor-details-skeletons";
 import { useProjectStore } from "@/store/useProjectStore";
 import { BackIconButton } from "@/components/buttons";
+import { MonitorModal } from "../../components/monitor/modal/monitor-modal";
+import { EditSingleMonitorForm } from "../../components/monitor/form/edit-monitor-form";
 
 interface MonitorSummaryProps {
   data: IMonitorSummary[];
@@ -307,14 +309,17 @@ const MonitorDetails = () => {
               />{" "}
             </div>
           </CardContent>
-          <AddSingleMonitor
+          {/* <AddSingleMonitor
             open={open}
             onOpenChange={setOpen}
             itemId={monitorId as string}
             request={request}
             repoId={repoId as string}
             repoName={repoName as string}
-          />
+          /> */}
+          <MonitorModal open={open} onOpenChange={setOpen} itemId={monitorId}>
+            <EditSingleMonitorForm itemId={monitorId} />
+          </MonitorModal>
           <NotificationModal
             open={openNotificationSettings}
             onOpenChange={setOpenNotificationSettings}

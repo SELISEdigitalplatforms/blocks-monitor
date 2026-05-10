@@ -39,14 +39,13 @@ import {
   MONITOR_SOURCE_TYPES,
 } from "@/cross-modules/devops/constants/alert.constant";
 import {
-  useAddSingleMonitor,
-  useGetMonitorListById,
-  useIsExternalServiceConfigured,
-  useSaveHealth,
+  useGetMonitorById,
+  useUpdateHealth,
+  useUpdateSingleMonitor,
 } from "@/cross-modules/devops/hooks/alerts";
 import type {
-  IAddSingleMonitorPayload,
-  ISaveHealth,
+  IUpdateHealth,
+  IUpdateSingleMonitorPayload,
 } from "@/cross-modules/devops/models/alerts.model";
 import { ErrorTransformer } from "@/cross-modules/devops/utils/error-transform";
 import { useGetAllServices } from "@/cross-modules/identifier/hooks/use-services";
@@ -55,20 +54,17 @@ import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { useProjectStore } from "@/store/useProjectStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DialogClose } from "@radix-ui/react-dialog";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import {
-  AddMonitorForm,
-  getAddMonitorDefaultValues,
-} from "../add-monitor/schema";
+import { getAddMonitorDefaultValues } from "../add-monitor/schema";
 import {
   type FormType,
   type MonitorForm,
   type SourceType,
   monitorSchema,
 } from "./schema";
-import { getMonitorFormDefaultValues } from "./util";
+import { setMonitorFormDefaultResponseValues } from "./util";
 
 const getMonitorSourceTypeFromMonitorSource = (sourceType: SourceType) => {
   if (sourceType === "deployed") return MONITOR_SOURCE_TYPES.DeployedServices;
@@ -78,16 +74,18 @@ const getMonitorSourceTypeFromMonitorSource = (sourceType: SourceType) => {
 };
 
 type Props = {
-  itemId: string | null;
+  itemId: string;
 };
 
-export function AddSingleMonitorForm({ itemId }: Props) {
+export function EditSingleMonitorForm({ itemId }: Props) {
   const navigate = useNavigate();
   const projectKey = useProjectStore().selectedProject?.tenantId || "";
   const isEditMode = !!itemId;
 
+  const { data: monitorDetails } = useGetMonitorById(itemId);
+
   const form = useForm<MonitorForm>({
-    defaultValues: getMonitorFormDefaultValues(),
+    defaultValues: setMonitorFormDefaultResponseValues(monitorDetails?.data),
     resolver: zodResolver(monitorSchema),
     mode: "onChange",
   });
@@ -127,70 +125,24 @@ export function AddSingleMonitorForm({ itemId }: Props) {
     [services, selectedServiceId],
   );
 
-  const { data: repoMonitorList } = useGetMonitorListById(
-    projectKey,
-    selectedRepoId,
-    !!selectedRepoId,
-  );
-  const { data: externalServiceConfig } =
-    useIsExternalServiceConfigured(selectedServiceId);
+  const updateRequestMutation = useUpdateSingleMonitor();
+  const updateHealthMutation = useUpdateHealth();
 
-  const repoDuplicate = useMemo(() => {
-    if (itemId || sourceType !== "deployed" || !selectedRepoId) return false;
-    const monitors = repoMonitorList?.data || [];
-    return monitors.some((monitor) => monitor.itemId !== itemId);
-  }, [sourceType, selectedRepoId, repoMonitorList, itemId]);
-
-  const externalConfiguredItemId =
-    (externalServiceConfig?.data as { itemId?: string } | null)?.itemId || "";
-
-  const serviceDuplicate =
-    !itemId &&
-    sourceType === "my-services" &&
-    !!selectedServiceId &&
-    !!externalConfiguredItemId &&
-    externalConfiguredItemId !== itemId;
-
-  const sourceError = useMemo(() => {
-    if (sourceType === "deployed" && !selectedRepoId) {
-      return isLoadingRepos ? "Loading repos..." : "Select a deployed repo.";
-    }
-    if (sourceType === "my-services" && !selectedServiceId) {
-      return isLoadingServices ? "Loading services..." : "Select a service.";
-    }
-    if (repoDuplicate)
-      return "A monitor already exists for this deployed repo.";
-    if (serviceDuplicate) return "A monitor already exists for this service.";
-    return "";
-  }, [
-    sourceType,
-    selectedRepoId,
-    selectedServiceId,
-    isLoadingRepos,
-    isLoadingServices,
-    repoDuplicate,
-    serviceDuplicate,
-  ]);
-
-  const isSourceBlocked = !!sourceError;
-
-  const addMutation = useAddSingleMonitor();
-  const saveHealthMutation = useSaveHealth();
-
-  const isSubmittingAny = addMutation.isPending || saveHealthMutation.isPending;
+  const isSubmittingAny =
+    updateRequestMutation.isPending || updateHealthMutation.isPending;
 
   const onSubmit = async (formValues: MonitorForm) => {
-    if (isSourceBlocked) return;
     try {
       if (formValues.monitorConfigurationType === "request") {
-        const payload: IAddSingleMonitorPayload = {
+        const payload: IUpdateSingleMonitorPayload = {
+          itemId,
           projectKey,
+          authorizationType: null,
           name: formValues.name,
-          repoName: selectedRepo?.repoName,
+          repoName: selectedRepo?.repoName || "",
           repoId: formValues.selectedRepoId,
           url: formValues.urlMonitor,
-          monitorConfigurationType:
-            formValues.monitorConfigurationType === "request" ? 0 : 1,
+          monitorConfigurationType: 0,
           customPayload:
             formValues.requestConfiguration.http_methods === "2"
               ? formValues.requestConfiguration.request_body
@@ -207,13 +159,13 @@ export function AddSingleMonitorForm({ itemId }: Props) {
           httpMethodType: formValues.requestConfiguration.http_methods,
           protocolType: "HTTP",
           externalServiceId: formValues.selectedServiceId,
-          externalServiceName: selectedService?.name,
+          externalServiceName: selectedService?.name || "",
           monitorSourceType: getMonitorSourceTypeFromMonitorSource(
             formValues.sourceType,
           ),
         };
 
-        const res = await addMutation.mutateAsync(payload);
+        const res = await updateRequestMutation.mutateAsync(payload);
 
         if (!res.isSuccess) {
           return showErrorToast({ errors: res.message });
@@ -222,24 +174,26 @@ export function AddSingleMonitorForm({ itemId }: Props) {
           navigate(`/health/monitor/${createdItemId}`);
         }
       } else {
-        const payload: ISaveHealth = {
-          repoName: selectedRepo?.repoName,
-          repoId: formValues.selectedRepoId,
+        const payload: IUpdateHealth = {
+          itemId,
           projectKey,
+          repoName: selectedRepo?.repoName || "",
+          repoId: formValues.selectedRepoId,
           name: formValues.name,
+          monitorConfigurationType: 1,
           intervalInSeconds:
             MONITOR_INTERVAL[formValues.monitorSettings.monitor_interval],
           gracePeriodInSeconds:
             MONITOR_INTERVAL[formValues.monitorSettings.grace_time],
           isActive: true,
           externalServiceId: formValues.selectedServiceId,
-          externalServiceName: selectedService?.name,
+          externalServiceName: selectedService?.name || "",
           monitorSourceType: getMonitorSourceTypeFromMonitorSource(
             formValues.sourceType,
           ),
         };
 
-        const res = await saveHealthMutation.mutateAsync(payload);
+        const res = await updateHealthMutation.mutateAsync(payload);
 
         if (!res.isSuccess) {
           return showErrorToast({ errors: res.message });
@@ -257,18 +211,6 @@ export function AddSingleMonitorForm({ itemId }: Props) {
       return showErrorToast({ errors: ErrorTransformer(error) });
     }
   };
-
-  useEffect(() => {
-    if (sourceError) {
-      form.setError("sourceType", {
-        type: "manual",
-        message: sourceError,
-      });
-      return;
-    }
-
-    form.clearErrors("sourceType");
-  }, [form, sourceError]);
 
   return (
     <Form {...form}>
@@ -724,11 +666,7 @@ export function AddSingleMonitorForm({ itemId }: Props) {
             <DialogClose>
               <Button
                 type="submit"
-                disabled={
-                  isSubmittingAny ||
-                  !form.formState.isValid ||
-                  Boolean(isSourceBlocked)
-                }>
+                disabled={isSubmittingAny || !form.formState.isValid}>
                 Save
               </Button>
             </DialogClose>

@@ -1,5 +1,3 @@
-import { http } from "@/lib/http-client";
-import { ALERT_ENDPOINTS } from "@blocks-devops/constants/endpoint.constant";
 import type {
   GetMonitorByIdResponse,
   GetMonitorPingLogsResponse,
@@ -14,15 +12,17 @@ import type {
   ISaveHealth,
   ISaveSingleHealthResponse,
   IUpdateHealth,
-  IUpdateMonitor,
+  IUpdateSingleMonitorPayload,
 } from "@/cross-modules/devops/models/alerts.model";
+import { http } from "@/lib/http-client";
+import { ALERT_ENDPOINTS } from "@blocks-devops/constants/endpoint.constant";
 
 class AlertsService {
   async addSingleMonitor(payload: IAddSingleMonitorPayload) {
     const url = ALERT_ENDPOINTS.SAVE_MONITOR;
     return http.post<IAlertResponse<IAddSingleMonitorResponse>>(url, payload);
   }
-  async updateSingleMonitor(payload: IUpdateMonitor) {
+  async updateSingleMonitor(payload: IUpdateSingleMonitorPayload) {
     const url = ALERT_ENDPOINTS.UPDATE_MONITOR;
     return http.post<IAlertResponse<IAddSingleMonitorResponse>>(url, payload);
   }
