@@ -1,28 +1,33 @@
 import { http } from "@/lib/http-client";
-import {
+import type {
   IGetMagicUrlByIdPayload,
   IGetMagicUrlsPayload,
   IGetMagicUrlsResponse,
   MagicUrl,
   ICreateMagicUrlPayload,
 } from "@blocks-utilities/models/magic-url.model";
-import {
+import type {
   ISaveMagicUrlConfigPayload,
   ISaveMagicUrlConfigResponse,
 } from "@blocks-utilities/models/magic-url-config.model";
-import { APIListResponse } from "@/models/api-response.model";
+import type {
+  ApiPaginatedResponse,
+  ApiResponse,
+} from "@/models/api-response.model";
 import { MAGIC_URL_ENDPOINTS } from "@blocks-utilities/constants/endpoint.constant";
 
 export class MagicUrlService {
   async getMagicUrl(payload: IGetMagicUrlByIdPayload): Promise<MagicUrl> {
     const { ItemId, projectKey } = payload;
-    const response = await http.get<APIListResponse<MagicUrl>>(
+    const response = await http.get<ApiResponse<MagicUrl>>(
       `${MAGIC_URL_ENDPOINTS.GET_LINK}?ItemId=${ItemId}&ProjectKey=${projectKey}`,
     );
     return response.data;
   }
 
-  async getMagicUrls(payload: IGetMagicUrlsPayload): Promise<IGetMagicUrlsResponse> {
+  async getMagicUrls(
+    payload: IGetMagicUrlsPayload,
+  ): Promise<IGetMagicUrlsResponse> {
     const {
       page,
       pageSize,
@@ -47,21 +52,25 @@ export class MagicUrlService {
     if (type) params.append("Type", type);
     if (expiryDateRangeStartDate)
       params.append("ExpiryDateRange.StartDate", expiryDateRangeStartDate);
-    if (expiryDateRangeEndDate) params.append("ExpiryDateRange.EndDate", expiryDateRangeEndDate);
+    if (expiryDateRangeEndDate)
+      params.append("ExpiryDateRange.EndDate", expiryDateRangeEndDate);
 
-    const response = await http.get<APIListResponse<MagicUrl[]>>(
+    const response = await http.get<ApiPaginatedResponse<MagicUrl>>(
       `${MAGIC_URL_ENDPOINTS.GET_LINKS}?${params.toString()}`,
     );
 
     return {
       data: response.data,
-      errors: response.errors ?? [],
+      errors: response.error ?? [],
       totalCount: response.totalCount ?? 0,
     };
   }
 
   async createMagicUrl(payload: ICreateMagicUrlPayload): Promise<MagicUrl> {
-    const response = await http.post<MagicUrl>(MAGIC_URL_ENDPOINTS.CREATE_LINK, payload);
+    const response = await http.post<MagicUrl>(
+      MAGIC_URL_ENDPOINTS.CREATE_LINK,
+      payload,
+    );
     return response;
   }
 
@@ -75,14 +84,19 @@ export class MagicUrlService {
     return response;
   }
 
-  async getMagicUrlConfig(projectKey: string): Promise<ISaveMagicUrlConfigResponse> {
+  async getMagicUrlConfig(
+    projectKey: string,
+  ): Promise<ISaveMagicUrlConfigResponse> {
     const response = await http.get<ISaveMagicUrlConfigResponse>(
       `${MAGIC_URL_ENDPOINTS.GET_CONFIG}?ProjectKey=${projectKey}`,
     );
     return response;
   }
 
-  async deactivateMagicLinks(payload: { linkIds: string[]; projectKey: string }): Promise<void> {
+  async deactivateMagicLinks(payload: {
+    linkIds: string[];
+    projectKey: string;
+  }): Promise<void> {
     await http.post(MAGIC_URL_ENDPOINTS.REMOVE_LINKS, payload);
   }
 }

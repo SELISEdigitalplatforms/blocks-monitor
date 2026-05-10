@@ -130,10 +130,9 @@ const UpdateMonitorDialog = ({
   const updateMutation = useUpdateSingleMonitor();
   const updateHealth = useUpdateHealth();
   const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(false);
+  const isLoading = updateMutation.isPending || updateHealth.isPending;
 
   const handleUpdate = async () => {
-    setIsLoading(true);
     try {
       if (request) {
         await updateMutation.mutateAsync({
@@ -149,14 +148,6 @@ const UpdateMonitorDialog = ({
         });
       }
 
-      await queryClient.invalidateQueries({
-        queryKey: ["health-monitor-list"],
-      });
-      await queryClient.invalidateQueries({ queryKey: ["monitor-list-by-id"] });
-      await queryClient.invalidateQueries({
-        queryKey: ["get-monitor-by-id", monitorId],
-      });
-
       toast({
         variant: "success",
         title: "Success",
@@ -166,15 +157,20 @@ const UpdateMonitorDialog = ({
       });
 
       onOpenChange(false);
-    } catch (error) {
-      console.error("Failed to update monitor:", error);
+    } catch {
       toast({
         variant: "destructive",
         title: "Failed",
         description: "Failed to update monitor status",
       });
     } finally {
-      setIsLoading(false);
+      await queryClient.invalidateQueries({
+        queryKey: ["health-monitor-list"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["monitor-list-by-id"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["get-monitor-by-id", monitorId],
+      });
     }
   };
 
@@ -236,8 +232,12 @@ const DeleteMonitorDialog = ({
       if (goBack) {
         navigate(-1);
       }
-    } catch (error) {
-      console.error("Failed to delete monitor:", error);
+    } catch {
+      toast({
+        variant: "destructive",
+        title: "Failed",
+        description: "Failed to delete monitor status",
+      });
     }
   };
 

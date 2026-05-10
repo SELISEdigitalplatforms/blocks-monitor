@@ -3,7 +3,7 @@ import type {
   IGetHealthMonitorListPayload,
   ISaveHealth,
   IUpdateHealth,
-  IUpdateMonitor,
+  IUpdateSingleMonitorPayload,
 } from "@/cross-modules/devops/models/alerts.model";
 import { alertsService } from "@blocks-devops/services/alerts.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -20,18 +20,6 @@ export const useAddSingleMonitor = () => {
       queryClient.invalidateQueries({
         queryKey: ["monitor-list-by-id", variables.projectKey],
       });
-      // If editing an existing monitor, invalidate its details/analytics
-      if (variables.itemId) {
-        queryClient.invalidateQueries({
-          queryKey: ["get-monitor-details", variables.itemId],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["get-monitor-response-id", variables.itemId],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["get-monitor-by-id", variables.itemId],
-        });
-      }
     },
   });
 };
@@ -39,7 +27,7 @@ export const useUpdateSingleMonitor = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ["update-individual-monitor"],
-    mutationFn: (payload: IUpdateMonitor) =>
+    mutationFn: (payload: Partial<IUpdateSingleMonitorPayload>) =>
       alertsService.updateSingleMonitor(payload),
     onSuccess: (variables) => {
       queryClient.invalidateQueries({
@@ -87,8 +75,15 @@ export const useGetMonitorList = (projectKey: string, repoId: string) => {
     refetchOnMount: "always",
   });
 };
-export const useGetHealthMonitorList = (payload: IGetHealthMonitorListPayload) => {
- const {projectKey, monitorSourceType, pageNumber = 0, pageSize = 10} = payload;
+export const useGetHealthMonitorList = (
+  payload: IGetHealthMonitorListPayload,
+) => {
+  const {
+    projectKey,
+    monitorSourceType,
+    pageNumber = 0,
+    pageSize = 10,
+  } = payload;
   return useQuery({
     queryKey: [
       "health-monitor-list",
@@ -275,7 +270,8 @@ export const useUpdateHealth = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ["update-health"],
-    mutationFn: (payload: IUpdateHealth) => alertsService.updateHealth(payload),
+    mutationFn: (payload: Partial<IUpdateHealth>) =>
+      alertsService.updateHealth(payload),
     onSuccess: (variables) => {
       // Invalidate ALL queries that start with these prefixes
 

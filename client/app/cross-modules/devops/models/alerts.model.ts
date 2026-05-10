@@ -1,4 +1,8 @@
-import type { BaseRequestParams, ProjectKey } from "@/models";
+import type {
+  ApiPaginatedResponse,
+  BaseRequestParams,
+  ProjectKey,
+} from "@/models";
 import { MONITOR_SOURCE_TYPES } from "../constants/alert.constant";
 
 export interface ITags {
@@ -107,45 +111,43 @@ export interface AlertTree extends Alert {
   monitorType: number;
   monitorConfigurationType: number;
   monitorSourceTypes: number;
+  externalServiceId: string | null;
+  externalServiceName: string | null;
 }
 
-export interface IAddSingleMonitorPayload {
+interface BaseMonitorPayload {
+  projectKey: ProjectKey;
+  name: string;
+  monitorConfigurationType: number;
+  monitorSourceType: MONITOR_SOURCE_TYPES;
+  intervalInSeconds: number;
+  isActive: boolean;
+}
+
+export interface IAddSingleMonitorPayload extends Partial<IUpdateSingleMonitorPayload> {}
+
+export interface IUpdateSingleMonitorPayload extends BaseMonitorPayload {
   itemId: string;
-  projectKey: string;
   repoId: string;
   repoName: string;
-  name: string;
+  externalServiceId: string;
+  externalServiceName: string;
   url: string;
-  monitorType: string;
   protocolType: string;
   httpMethodType: string;
-  authorizationType?: string;
-  intervalInSeconds: number;
+  authorizationType: string | null;
   timeoutInSeconds: number;
-  isActive: boolean;
-  expectedContent?: string;
   customHttpHeaders: string;
   customPayload: string;
-  successHttpResponseCodes?: string[];
-  regions?: string[];
-  externalServiceId?: string;
-  monitorSourceType?: MONITOR_SOURCE_TYPES;
 }
-export interface ISaveHealth {
-  isActive: boolean;
-  repoName?: string;
-  repoId?: string;
-  projectKey?: string;
-  name?: string;
-  intervalInSeconds?: number;
-  gracePeriodInSeconds?: number;
-  externalServiceId?: string;
-  monitorSourceType?: MONITOR_SOURCE_TYPES;
-}
-export interface IUpdateHealth extends ISaveHealth {
+export interface ISaveHealth extends Partial<IUpdateHealth> {}
+export interface IUpdateHealth extends BaseMonitorPayload {
   itemId: string;
-  emails?: string[];
-  repoName?: string;
+  repoName: string;
+  repoId: string;
+  externalServiceId: string;
+  externalServiceName: string;
+  gracePeriodInSeconds: number;
 }
 
 export interface IUpdateMonitor {
@@ -181,14 +183,10 @@ export interface IGetHealthMonitorListPayload extends BaseRequestParams {
   monitorSourceType: MONITOR_SOURCE_TYPES | null;
 }
 
-export interface IGetMonitorList {
-  errors: string[] | null;
-  isSuccess: boolean;
-  message: string;
-  statusCode: number;
-  data: AlertTree[];
-  totalCount: number;
-}
+export interface IGetMonitorList extends ApiPaginatedResponse<
+  AlertTree,
+  string[] | null
+> {}
 
 export interface IAddSingleMonitorResponse {
   tenantId: string;
@@ -370,8 +368,10 @@ export interface IMonitorDetails {
   organizationIds: [];
   protocolType: number;
   regions: [];
-  repoId: string;
-  repoName: string;
+  repoId: string | null;
+  repoName: string | null;
+  externalServiceId: string | null;
+  externalServiceName: string | null;
   successHttpResponseCodes: [];
   tags: [];
   tenantId: string;
@@ -380,6 +380,9 @@ export interface IMonitorDetails {
   monitorConfigurationType: number;
   gracePeriodInSeconds: number;
   monitorSourceTypes: number;
+  checkSSLErrors?: boolean;
+  sslExpiryReminders?: boolean;
+  domainExpiryReminders?: boolean;
 }
 export interface GetMonitorByIdResponse {
   data: IMonitorDetails;

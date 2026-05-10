@@ -1,36 +1,37 @@
 "use client";
+import { BackIconButton } from "@/components/buttons";
+import { Button } from "@/components/ui-kits/button/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui-kits/card/card";
+import { Separator } from "@/components/ui-kits/separator/separator";
+import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
+import { BREADCRUMB_CUSTOM_TITLES } from "@/constants/breadcrumb-custom-title";
+import AlertAction from "@/cross-modules/devops/components/alert/alert-action";
+import NotificationModal from "@/cross-modules/devops/components/alert/notification-modal";
+import MonitorCard from "@/cross-modules/devops/components/monitor/details/monitor-card";
+import {
+  LoadingListSkelton,
+  MonitorCardSkeleton,
+  ResponseSkeletonLoader,
+} from "@/cross-modules/devops/components/monitor/details/monitor-details-skeletons";
+import { IMonitorSummary } from "@/cross-modules/devops/models/alerts.model";
+import { useProjectStore } from "@/store/useProjectStore";
 import {
   useGetMonitorById,
   useGetMonitorDetails,
   useGetMonitorDownTime,
 } from "@blocks-devops/hooks/alerts";
-import { useNavigate, useParams } from "react-router-dom";
-import IncidentList from "./incident-list";
-import ResponseTime from "./response-time";
-import { Button } from "@/components/ui-kits/button/button";
-import { useState } from "react";
-import AddSingleMonitor from "@/cross-modules/devops/components/add-repo/add-monitor";
-import { Separator } from "@/components/ui-kits/separator/separator";
-import { BREADCRUMB_CUSTOM_TITLES } from "@/constants/breadcrumb-custom-title";
 import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
-import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
-import AlertAction from "@blocks-devops/components/add-repo/alert-action";
-import { IMonitorSummary } from "@/cross-modules/devops/models/alerts.model";
-import MonitorCard from "@blocks-devops/components/add-repo/monitor-card";
-import NotificationModal from "@blocks-devops/components/add-repo/notification-modal";
-import {
-  LoadingListSkelton,
-  MonitorCardSkeleton,
-  ResponseSkeletonLoader,
-} from "@blocks-devops/components/add-repo/skeleton-loader-card";
-import { useProjectStore } from "@/store/useProjectStore";
-import { BackIconButton } from "@/components/buttons";
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import IncidentList from "../../components/incident/incident-list";
+import ResponseTime from "../../components/monitor/details/response-time";
+import { EditSingleMonitorForm } from "../../components/monitor/form/edit-monitor-form";
+import { MonitorModal } from "../../components/monitor/modal/monitor-modal";
 
 interface MonitorSummaryProps {
   data: IMonitorSummary[];
@@ -177,8 +178,6 @@ const MonitorDetails = () => {
   const { data: monitorData, isLoading: isMonitorLoading } = useGetMonitorById(
     monitorId as string,
   );
-  const repoName = monitorData?.data?.repoName;
-  const repoId = monitorData?.data?.repoId;
   const request =
     monitorData?.data?.monitorConfigurationType === 0 ? true : false;
   const interval = monitorData?.data?.intervalInSeconds as number;
@@ -219,7 +218,7 @@ const MonitorDetails = () => {
             onClick={() => navigate(-1)}
             className="h-8 w-8"
           />
-          <h1 className="text-lg font-semibold md:text-2xl">
+          <h1 className="text-lg font-semibold md:text-2xl break-all max-w-[40vw]">
             {monitorData?.data?.name}
           </h1>
         </div>
@@ -256,7 +255,8 @@ const MonitorDetails = () => {
       <div className="flex flex-col gap-5">
         <MonitorCard
           onOpenChange={setOpenNotificationSettings}
-          repoName={monitorData?.data?.repoName || ""}
+          repoName={monitorData?.data?.repoName}
+          externalServiceName={monitorData?.data?.externalServiceName}
           url={monitorData?.data?.url || ""}
           request={request}
           emails={monitorData?.data?.emails || []}
@@ -306,14 +306,13 @@ const MonitorDetails = () => {
               />{" "}
             </div>
           </CardContent>
-          <AddSingleMonitor
-            open={open}
-            onOpenChange={setOpen}
-            itemId={monitorId as string}
-            request={request}
-            repoId={repoId as string}
-            repoName={repoName as string}
-          />
+
+          <MonitorModal open={open} onOpenChange={setOpen} itemId={monitorId}>
+            <EditSingleMonitorForm
+              itemId={monitorId}
+              onSuccess={() => setOpen(false)}
+            />
+          </MonitorModal>
           <NotificationModal
             open={openNotificationSettings}
             onOpenChange={setOpenNotificationSettings}

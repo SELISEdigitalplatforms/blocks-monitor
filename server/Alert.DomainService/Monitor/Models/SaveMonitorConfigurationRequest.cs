@@ -6,6 +6,7 @@
         public string? RepoId { get; set; }
         public string? RepoName { get; set; }
         public string? ExternalServiceId { get; set; }
+        public string? ExternalServiceName { get; set; }
         public string? Name { get; set; }
         public string? Url { get; set; }
 
