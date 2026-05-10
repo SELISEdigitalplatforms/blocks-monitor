@@ -83,11 +83,7 @@ namespace DomainService.Monitor.Services
                 else
                 {
                     filter = fb.Or(
-                        fb.In(m => m.MonitorSourcetypes, new[]
-                        {
-                            MonitorSourceTypes.Infrastructure,
-                            MonitorSourceTypes.BlocksServices
-                        }),
+                        fb.Eq(m => m.MonitorSourcetypes, MonitorSourceTypes.Infrastructure),
 
                         fb.And(
                             fb.In(m => m.MonitorSourcetypes, new[]
@@ -95,8 +91,6 @@ namespace DomainService.Monitor.Services
                                 MonitorSourceTypes.DeployedServices,
                                 MonitorSourceTypes.ExternalServices,
                                 MonitorSourceTypes.OtherServices,
-                                MonitorSourceTypes.        OtherServices,
-
                             }),
                             fb.Eq(m => m.TenantId, tenantId)
                         )

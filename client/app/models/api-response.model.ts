@@ -1,22 +1,24 @@
-export type APIError<T = unknown> = T & { errors: string[] };
+export type ApiError<E = unknown> = E;
 
-export type APIErrorResponse<T = unknown> = {
- error: APIError<T>;
+export type ApiErrorResponse<E> = {
+  error: ApiError<E>;
   data?: never;
   status?: number;
 };
 
-
-export interface APIResponse<T> {
- data: T;
-  isSuccess?: boolean;
-  error?: unknown;
-  status?: number;
+export interface ApiResponse<T, E = unknown> {
+  data: T;
+  isSuccess: boolean;
+  error: ApiError<E>;
+  statusCode: number;
+  message: string;
 }
 
-export interface APIListResponse<T> {
-  data: T;
+export interface ApiPaginatedResponse<T, E = unknown> extends ApiResponse<
+  T[],
+  E
+> {
   totalCount: number;
-  errors?: unknown;
-  status?: number;
+  pageNumber: number;
+  pageSize: number;
 }

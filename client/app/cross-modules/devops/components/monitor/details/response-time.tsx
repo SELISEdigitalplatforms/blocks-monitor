@@ -179,19 +179,32 @@ const ResponseTime = ({
   }, [downtimes, rangeStart, now, currentStatus]);
 
   // Custom tooltip component
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: { payload: ChartPoint }[];
+  }) => {
     if (!active || !payload || !payload.length) return null;
-    const d: ChartPoint = payload[0].payload;
+    const d: ChartPoint = payload[0]?.payload;
     return (
       <div className="rounded-md border bg-white p-3 text-sm shadow">
-        <div className="mb-1 font-medium">{new Date(d.ts).toLocaleString()}</div>
+        <div className="mb-1 font-medium">
+          {new Date(d.ts).toLocaleString()}
+        </div>
         <div
-          className={d.status === 1 ? "font-semibold text-green-600" : "font-semibold text-red-600"}
-        >
+          className={
+            d.status === 1
+              ? "font-semibold text-green-600"
+              : "font-semibold text-red-600"
+          }>
           {d.status === 1 ? "Up" : "Down"}
         </div>
         {d.duration !== undefined && (
-          <div className="mt-1 text-gray-600">Duration: {formatDuration(d.duration * 1000)}</div>
+          <div className="mt-1 text-gray-600">
+            Duration: {formatDuration(d.duration * 1000)}
+          </div>
         )}
       </div>
     );
@@ -222,14 +235,18 @@ const ResponseTime = ({
         <CardDescription className="flex flex-wrap gap-6">
           <span className="flex items-baseline gap-2">
             <span className="text-sm text-gray-600">Monitor interval</span>
-            <span className="font-semibold">{formatDuration(interval * 1000)}</span>
+            <span className="font-semibold">
+              {formatDuration(interval * 1000)}
+            </span>
           </span>
 
           <span className="flex items-baseline gap-2">
             <span className="text-sm text-gray-600">
               {request ? "Request timeout" : "Grace Period"}
             </span>
-            <span className="font-semibold">{formatDuration(timeout * 1000)}</span>
+            <span className="font-semibold">
+              {formatDuration(timeout * 1000)}
+            </span>
           </span>
         </CardDescription>
       </CardHeader>
@@ -239,17 +256,23 @@ const ResponseTime = ({
         <div className="mb-6 grid grid-cols-3 gap-4">
           <div className="rounded border border-green-200 bg-green-50 p-4">
             <div className="text-sm text-gray-600">Uptime</div>
-            <div className="text-2xl font-bold text-green-700">{metrics.uptimePercentage}%</div>
+            <div className="text-2xl font-bold text-green-700">
+              {metrics.uptimePercentage}%
+            </div>
           </div>
 
           <div className="rounded border border-red-200 bg-red-50 p-4">
             <div className="text-sm text-gray-600">Total Downtime</div>
-            <div className="text-2xl font-bold text-red-700">{metrics.totalDowntime}</div>
+            <div className="text-2xl font-bold text-red-700">
+              {metrics.totalDowntime}
+            </div>
           </div>
 
           <div className="rounded border border-blue-200 bg-blue-50 p-4">
             <div className="text-sm text-gray-600">Incidents</div>
-            <div className="text-2xl font-bold text-blue-700">{metrics.downtimeCount}</div>
+            <div className="text-2xl font-bold text-blue-700">
+              {metrics.downtimeCount}
+            </div>
           </div>
         </div>
 
@@ -263,7 +286,11 @@ const ResponseTime = ({
               </linearGradient>
             </defs>
 
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={false}
+              stroke="#e5e7eb"
+            />
 
             <XAxis
               dataKey="ts"
@@ -277,7 +304,7 @@ const ResponseTime = ({
                 })
               }
               tick={{ fontSize: 12 }}
-              axisLine={{ stroke: "#d1d5db" } as any}
+              axisLine={{ stroke: "#d1d5db" }}
             />
 
             <YAxis
@@ -286,7 +313,7 @@ const ResponseTime = ({
               tickFormatter={(v) => (v === 1 ? "Up" : "Down")}
               width={60}
               tick={{ fontSize: 12 }}
-              axisLine={{ stroke: "#d1d5db" } as any}
+              axisLine={{ stroke: "#d1d5db" }}
             />
 
             <Tooltip content={<CustomTooltip />} />
@@ -303,17 +330,6 @@ const ResponseTime = ({
             />
           </AreaChart>
         </ResponsiveContainer>
-
-        {/* Current status */}
-        {/* <div className="mt-4 flex items-center gap-2">
-          <div className={`w-3 h-3 rounded-full ${currentStatus ? "bg-green-500 animate-pulse" : "bg-red-500"}`} />
-          <div className="text-sm">
-            Current Status:{" "}
-            <span className={currentStatus ? "text-green-700 font-semibold" : "text-red-700 font-semibold"}>
-              {currentStatus ? "Operational" : "Down"}
-            </span>
-          </div>
-        </div> */}
       </CardContent>
     </Card>
   );

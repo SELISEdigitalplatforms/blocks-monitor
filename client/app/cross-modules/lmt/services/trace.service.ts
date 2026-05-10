@@ -1,5 +1,5 @@
 import { http } from "@/lib/http-client";
-import {
+import type {
   IGetTraceByTraceIdPayload,
   IGetTracesPayload,
   IGetTracesResponse,
@@ -10,13 +10,16 @@ import {
   IRequest,
   IResponse,
 } from "../models/trace.model";
-import { APIListResponse } from "@/models/api-response.model";
+import type { ApiPaginatedResponse } from "@/models/api-response.model";
 import { TRACE_ENDPOINTS } from "../constants/endpoint.constant";
 
 export class TraceService {
   async getTraces(payload: IGetTracesPayload): Promise<IGetTracesResponse> {
     try {
-      const response = await http.post<APIListResponse<Trace[]>>(TRACE_ENDPOINTS.GET_TRACES, payload);
+      const response = await http.post<ApiPaginatedResponse<Trace>>(
+        TRACE_ENDPOINTS.GET_TRACES,
+        payload,
+      );
 
       const parsedData: TraceTree[] = response.data.map((trace) => ({
         ...trace,
@@ -37,7 +40,7 @@ export class TraceService {
 
       return {
         data: parsedData,
-        errors: response.errors ?? [],
+        errors: response.error ?? [],
         totalCount: response.totalCount ?? 0,
       };
     } catch (error) {
@@ -49,9 +52,13 @@ export class TraceService {
   async getTraceByTraceId({
     traceId,
     projectKey,
-  }: IGetTraceByTraceIdPayload): Promise<APIListResponse<TraceTree>> {
+  }: IGetTraceByTraceIdPayload): Promise<{
+    data: TraceTree | null;
+    error: unknown;
+    totalCount: number;
+  }> {
     try {
-      const response = await http.get<APIListResponse<Trace[]>>(
+      const response = await http.get<ApiPaginatedResponse<Trace>>(
         `${TRACE_ENDPOINTS.GET_TRACE}?TraceId=${traceId}&ProjectKey=${projectKey}`,
       );
 
@@ -75,7 +82,8 @@ export class TraceService {
             logs: [],
             entryPoint: {
               method: item.operationName.split(" ")[0],
-              actionName: item.operationName.split(" ")[1] || item.operationName,
+              actionName:
+                item.operationName.split(" ")[1] || item.operationName,
             },
           };
           if (!item.parentId) {
@@ -104,12 +112,13 @@ export class TraceService {
       if (parsedData) {
         parsedData.calculatedStartTime = time.start;
         parsedData.calculatedEndTime = time.end;
-        parsedData.calculatedDuration = Number(new Date(time.end)) - Number(new Date(time.start));
+        parsedData.calculatedDuration =
+          Number(new Date(time.end)) - Number(new Date(time.start));
       }
 
       return {
-        data: parsedData as TraceTree,
-        errors: [],
+        data: parsedData,
+        error: [],
         totalCount: 0,
       };
     } catch (error) {

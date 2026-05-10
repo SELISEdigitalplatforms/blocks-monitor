@@ -96,6 +96,7 @@ namespace DomainService.Monitor.Services
             }
             return new PaginatedResponse()
             {
+                StatusCode = HttpStatusCode.OK,
                 IsSuccess = true,
                 Message = "Success",
                 Data = data,
@@ -154,8 +155,7 @@ namespace DomainService.Monitor.Services
                     if (parsedEnum != MonitorSourceTypes.ExternalServices &&
                         parsedEnum != MonitorSourceTypes.BlocksServices &&
                         parsedEnum != MonitorSourceTypes.DeployedServices &&
-                        parsedEnum != MonitorSourceTypes.OtherServices &&
-                        parsedEnum != MonitorSourceTypes.        OtherServices
+                        parsedEnum != MonitorSourceTypes.OtherServices
 )
                     {
                         return new BaseApiResponse
@@ -301,6 +301,8 @@ namespace DomainService.Monitor.Services
             if (!string.IsNullOrEmpty(request.Url)) monitorConfiguration.Url = request.Url;
             if (!string.IsNullOrEmpty(request.RepoId)) monitorConfiguration.RepoId = request.RepoId;
             if (!string.IsNullOrEmpty(request.RepoName)) monitorConfiguration.RepoName = request.RepoName;
+            if (!string.IsNullOrEmpty(request.ExternalServiceName)) monitorConfiguration.ExternalServiceName = request.ExternalServiceName;
+
 
             if (!string.IsNullOrEmpty(request.MonitorType))
                 monitorConfiguration.MonitorType = Enum.Parse<MonitorTypes>(request.MonitorType, true);

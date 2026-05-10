@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui-kits/button/button";
 import { Card, CardContent } from "@/components/ui-kits/card/card";
 import { Pagination } from "@/components/ui-kits/pagination/pagination";
@@ -16,11 +17,12 @@ import {
   HEALTH_TABS,
 } from "@blocks-devops/constants/health.constant";
 import { useGetHealthMonitorList } from "@blocks-devops/hooks/alerts";
-import { AlertsList } from "@blocks-devops/pages/alert/alerts-list";
+import { AlertsList } from "@blocks-devops/components/alert/alerts-list";
 import { Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import AddSingleMonitor from "../../components/add-repo/add-monitor";
-import { useAlertFilterQueryParams } from "../alert/alerts-filter-toolbar";
+import { useAlertFilterQueryParams } from "@blocks-devops/components/alert/alerts-filter-toolbar";
+import { MonitorModal } from "@blocks-devops/components/monitor/modal/monitor-modal";
+import { AddSingleMonitorForm } from "@blocks-devops/components/monitor/form/add-monitor-form";
 
 const Health = () => {
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
@@ -55,18 +57,20 @@ const Health = () => {
     pageSize: queryParams.pageSize,
   });
 
+  /* eslint-disable no-console */
   const pingHealthEndpoint = () => {
+    // allow fetch and console statements in this helper
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     fetch("https://dev-os.blocksdevelopers.com/ping")
       .then((res) => res.json())
       .then((response) => console.log(response))
       .catch((err) => console.error(err));
   };
+  /* eslint-enable no-console */
 
   useEffect(() => {
     pingHealthEndpoint();
   }, []);
-
-
 
   return (
     <main>
@@ -138,14 +142,9 @@ const Health = () => {
         )}
       </Card>
 
-      <AddSingleMonitor
-        open={open}
-        onOpenChange={setOpen}
-        itemId={""}
-        request={true}
-        repoId={""}
-        repoName={""}
-      />
+      <MonitorModal open={open} onOpenChange={setOpen} itemId={null}>
+        <AddSingleMonitorForm itemId={null} onSuccess={() => setOpen(false)} />
+      </MonitorModal>
     </main>
   );
 };

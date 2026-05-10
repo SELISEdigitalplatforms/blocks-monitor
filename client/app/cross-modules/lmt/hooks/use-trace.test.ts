@@ -7,7 +7,7 @@ import {
   mockGetTracesPayload,
   mockGetTraceByIdPayload,
 } from "../test-utils/__mocks__";
-import type { APIListResponse } from "@/models/api-response";
+import type { ApiPaginatedResponse } from "@/models/api-response";
 import type { TraceTree } from "../models/trace.model";
 import { lmtService } from "../services/lmt.service";
 import { useGetTraces, useGetTraceById } from "./use-trace";
@@ -32,23 +32,36 @@ describe("use-trace hooks", () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(result.current.data).toEqual(mockResponse);
-      expect(lmtService.trace.getTraces).toHaveBeenCalledWith(mockGetTracesPayload);
+      expect(lmtService.trace.getTraces).toHaveBeenCalledWith(
+        mockGetTracesPayload,
+      );
     });
   });
 
   // ─── useGetTraceById ──────────────────────────────────────────────────────
   describe("useGetTraceById", () => {
     it("should fetch a trace by ID successfully", async () => {
-      const mockResponse = { data: {} as TraceTree, errors: [], totalCount: 0 } as APIListResponse<TraceTree>;
-      vi.mocked(lmtService.trace.getTraceByTraceId).mockResolvedValue(mockResponse);
+      const mockResponse = {
+        data: {} as TraceTree,
+        errors: [],
+        totalCount: 0,
+      } as ApiPaginatedResponse<TraceTree>;
+      vi.mocked(lmtService.trace.getTraceByTraceId).mockResolvedValue(
+        mockResponse,
+      );
 
-      const { result } = renderHook(() => useGetTraceById(mockGetTraceByIdPayload), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHook(
+        () => useGetTraceById(mockGetTraceByIdPayload),
+        {
+          wrapper: createWrapper(),
+        },
+      );
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(result.current.data).toEqual(mockResponse);
-      expect(lmtService.trace.getTraceByTraceId).toHaveBeenCalledWith(mockGetTraceByIdPayload);
+      expect(lmtService.trace.getTraceByTraceId).toHaveBeenCalledWith(
+        mockGetTraceByIdPayload,
+      );
     });
   });
 });
