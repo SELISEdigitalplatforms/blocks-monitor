@@ -18,7 +18,7 @@ import {
 import { useGetHealthMonitorList } from "@blocks-devops/hooks/alerts";
 import { AlertsList } from "@blocks-devops/pages/alert/alerts-list";
 import { Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AddSingleMonitor from "../../components/add-repo/add-monitor";
 import { useAlertFilterQueryParams } from "../alert/alerts-filter-toolbar";
 
@@ -54,6 +54,19 @@ const Health = () => {
     pageNumber: queryParams.page,
     pageSize: queryParams.pageSize,
   });
+
+  const pingHealthEndpoint = () => {
+    fetch("https://dev-os.blocksdevelopers.com/ping")
+      .then((res) => res.json())
+      .then((response) => console.log(response))
+      .catch((err) => console.error(err));
+  };
+
+  useEffect(() => {
+    pingHealthEndpoint();
+  }, []);
+
+
 
   return (
     <main>
