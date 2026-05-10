@@ -118,7 +118,7 @@ export interface AlertTree extends Alert {
 interface BaseMonitorPayload {
   projectKey: ProjectKey;
   name: string;
-  monitorType: string;
+  monitorConfigurationType: number;
   monitorSourceType: MONITOR_SOURCE_TYPES;
   intervalInSeconds: number;
   isActive: boolean;
@@ -127,6 +127,7 @@ interface BaseMonitorPayload {
 export interface IAddSingleMonitorPayload extends Partial<IUpdateSingleMonitorPayload> {}
 
 export interface IUpdateSingleMonitorPayload extends BaseMonitorPayload {
+  itemId: string;
   repoId: string;
   repoName: string;
   externalServiceId: string;
@@ -134,13 +135,14 @@ export interface IUpdateSingleMonitorPayload extends BaseMonitorPayload {
   url: string;
   protocolType: string;
   httpMethodType: string;
-  authorizationType: string;
+  authorizationType: string | null;
   timeoutInSeconds: number;
   customHttpHeaders: string;
   customPayload: string;
 }
 export interface ISaveHealth extends Partial<IUpdateHealth> {}
 export interface IUpdateHealth extends BaseMonitorPayload {
+  itemId: string;
   repoName: string;
   repoId: string;
   externalServiceId: string;
@@ -378,6 +380,9 @@ export interface IMonitorDetails {
   monitorConfigurationType: number;
   gracePeriodInSeconds: number;
   monitorSourceTypes: number;
+  checkSSLErrors?: boolean;
+  sslExpiryReminders?: boolean;
+  domainExpiryReminders?: boolean;
 }
 export interface GetMonitorByIdResponse {
   data: IMonitorDetails;

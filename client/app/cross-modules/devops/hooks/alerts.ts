@@ -3,7 +3,7 @@ import type {
   IGetHealthMonitorListPayload,
   ISaveHealth,
   IUpdateHealth,
-  IUpdateMonitor,
+  IUpdateSingleMonitorPayload,
 } from "@/cross-modules/devops/models/alerts.model";
 import { alertsService } from "@blocks-devops/services/alerts.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -27,7 +27,7 @@ export const useUpdateSingleMonitor = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ["update-individual-monitor"],
-    mutationFn: (payload: IUpdateMonitor) =>
+    mutationFn: (payload: IUpdateSingleMonitorPayload) =>
       alertsService.updateSingleMonitor(payload),
     onSuccess: (variables) => {
       queryClient.invalidateQueries({
