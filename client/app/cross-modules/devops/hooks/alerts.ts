@@ -27,7 +27,7 @@ export const useUpdateSingleMonitor = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ["update-individual-monitor"],
-    mutationFn: (payload: IUpdateSingleMonitorPayload) =>
+    mutationFn: (payload: Partial<IUpdateSingleMonitorPayload>) =>
       alertsService.updateSingleMonitor(payload),
     onSuccess: (variables) => {
       queryClient.invalidateQueries({
@@ -270,7 +270,8 @@ export const useUpdateHealth = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ["update-health"],
-    mutationFn: (payload: IUpdateHealth) => alertsService.updateHealth(payload),
+    mutationFn: (payload: Partial<IUpdateHealth>) =>
+      alertsService.updateHealth(payload),
     onSuccess: (variables) => {
       // Invalidate ALL queries that start with these prefixes
 

@@ -22,7 +22,7 @@ class AlertsService {
     const url = ALERT_ENDPOINTS.SAVE_MONITOR;
     return http.post<IAlertResponse<IAddSingleMonitorResponse>>(url, payload);
   }
-  async updateSingleMonitor(payload: IUpdateSingleMonitorPayload) {
+  async updateSingleMonitor(payload: Partial<IUpdateSingleMonitorPayload>) {
     const url = ALERT_ENDPOINTS.UPDATE_MONITOR;
     return http.post<IAlertResponse<IAddSingleMonitorResponse>>(url, payload);
   }
@@ -100,7 +100,7 @@ class AlertsService {
     const url = ALERT_ENDPOINTS.SAVE_HEALTH;
     return http.post<ISaveSingleHealthResponse>(url, payload);
   }
-  async updateHealth(payload: IUpdateHealth) {
+  async updateHealth(payload: Partial<IUpdateHealth>) {
     const url = ALERT_ENDPOINTS.UPDATE_HEALTH;
     return http.post<ISaveSingleHealthResponse>(url, payload);
   }
