@@ -35,7 +35,7 @@ import { Switch } from "@/components/ui-kits/switch/switch";
 import { Textarea } from "@/components/ui-kits/textarea/textarea";
 import { HTTP_METHODS } from "@/cross-modules/devops/constants/alert.constant";
 import { DialogClose } from "@radix-ui/react-dialog";
-import { useEffect, type FormEventHandler } from "react";
+import { type FormEventHandler } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type {
   MonitorConfigurationType,
@@ -95,17 +95,6 @@ export const MonitorFormFields = ({
   const httpMethod = form.watch("requestConfiguration.http_methods");
   const sendAsJson = form.watch("requestConfiguration.json_switcher");
 
-  useEffect(() => {
-    if (sourceError) {
-      form.setError("sourceType", {
-        type: "manual",
-        message: sourceError,
-      });
-    } else {
-      form.clearErrors("sourceType");
-    }
-  }, [form, sourceError]);
-
   return (
     <Form {...form}>
       <form onSubmit={onSubmit}>
@@ -133,14 +122,22 @@ export const MonitorFormFields = ({
                           value="request"
                           id="monitor-type-request"
                         />
-                        <label htmlFor="monitor-type-request">Request</label>
+                        <label
+                          className="cursor-pointer select-none"
+                          htmlFor="monitor-type-request">
+                          Request
+                        </label>
                       </div>
                       <div className="flex items-center gap-2">
                         <RadioGroupItem
                           value="callback"
                           id="monitor-type-callback"
                         />
-                        <label htmlFor="monitor-type-callback">Callback</label>
+                        <label
+                          className="cursor-pointer select-none"
+                          htmlFor="monitor-type-callback">
+                          Callback
+                        </label>
                       </div>
                     </RadioGroup>
                   </FormControl>
@@ -172,7 +169,7 @@ export const MonitorFormFields = ({
               )}
             />
 
-            <div className=" rounded-md border border-input bg-background p-4 space-y-2">
+            <div className=" rounded-md border border-input bg-background px-4 py-3 space-y-3">
               <FormField
                 control={form.control}
                 name="sourceType"
@@ -195,14 +192,20 @@ export const MonitorFormFields = ({
                             value="none"
                             id="monitor-source-none"
                           />
-                          <label htmlFor="monitor-source-none">None</label>
+                          <label
+                            className="cursor-pointer select-none"
+                            htmlFor="monitor-source-none">
+                            None
+                          </label>
                         </div>
                         <div className="flex items-center gap-2">
                           <RadioGroupItem
                             value="deployed"
                             id="monitor-source-deployed"
                           />
-                          <label htmlFor="monitor-source-deployed">
+                          <label
+                            className="cursor-pointer select-none"
+                            htmlFor="monitor-source-deployed">
                             Deployed
                           </label>
                         </div>
@@ -211,7 +214,9 @@ export const MonitorFormFields = ({
                             value="my-services"
                             id="monitor-source-my-services"
                           />
-                          <label htmlFor="monitor-source-my-services">
+                          <label
+                            className="cursor-pointer select-none"
+                            htmlFor="monitor-source-my-services">
                             My services
                           </label>
                         </div>
@@ -249,10 +254,17 @@ export const MonitorFormFields = ({
                               }
                             />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="w-[min(var(--radix-select-trigger-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)]">
                             {deployedRepos.map((repo) => (
-                              <SelectItem key={repo.itemId} value={repo.itemId}>
-                                {repo.repoName}
+                              <SelectItem
+                                key={repo.itemId}
+                                value={repo.itemId}
+                                className="items-start py-2">
+                                <span
+                                  className="block max-w-full whitespace-normal break-all leading-5"
+                                  title={repo.repoName}>
+                                  {repo.repoName}
+                                </span>
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -290,13 +302,17 @@ export const MonitorFormFields = ({
                               }
                             />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="w-[min(var(--radix-select-trigger-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)]">
                             {services.map((service) => (
                               <SelectItem
                                 key={service.serviceId}
                                 value={service.serviceId}
-                                className="break-all">
-                                {service.name}
+                                className="min-w-0 items-start py-2">
+                                <span
+                                  className="block max-w-full whitespace-normal break-all leading-5"
+                                  title={service.name}>
+                                  {service.name}
+                                </span>
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -307,6 +323,9 @@ export const MonitorFormFields = ({
                   )}
                 />
               </RenderConditionally>
+              {sourceError && (
+                <p className="text-sm text-destructive">{sourceError}</p>
+              )}
 
               {isEditMode && (
                 <p className="mt-2 text-xs text-muted-foreground">
@@ -337,7 +356,7 @@ export const MonitorFormFields = ({
               <AccordionTrigger className="flex-row-reverse justify-end gap-4 hover:no-underline">
                 Monitor settings
               </AccordionTrigger>
-              <AccordionContent className="flex flex-col gap-4">
+              <AccordionContent className="flex flex-col gap-4 px-1 pt-1">
                 <FormField
                   control={form.control}
                   name="monitorSettings.monitor_interval"
@@ -442,7 +461,7 @@ export const MonitorFormFields = ({
                 <AccordionTrigger className="flex-row-reverse justify-end gap-4 hover:no-underline">
                   Request Configuration
                 </AccordionTrigger>
-                <AccordionContent className="flex flex-col gap-4">
+                <AccordionContent className="flex flex-col gap-4 px-1 pt-1">
                   <FormField
                     control={form.control}
                     name="requestConfiguration.http_methods"
@@ -456,13 +475,16 @@ export const MonitorFormFields = ({
                             className="flex flex-col gap-4">
                             <div className="flex gap-6">
                               {HTTP_METHODS.map((item, index) => (
-                                <FormItem
-                                  className="flex items-center gap-2"
-                                  key={index}>
+                                <FormItem className="flex items-center gap-2" key={index}>
                                   <FormControl>
-                                    <RadioGroupItem value={item.value} />
+                                    <RadioGroupItem
+                                      value={item.value}
+                                      id={`http-method-${item.value}`}
+                                    />
                                   </FormControl>
-                                  <FormLabel className="!mt-0">
+                                  <FormLabel
+                                    className="!mt-0 cursor-pointer select-none"
+                                    htmlFor={`http-method-${item.value}`}>
                                     {item.label}
                                   </FormLabel>
                                 </FormItem>
