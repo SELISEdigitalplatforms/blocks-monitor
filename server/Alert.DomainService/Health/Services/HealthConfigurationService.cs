@@ -47,6 +47,7 @@ namespace DomainService.Health.Services
 
                     if (parsedEnum != MonitorSourceTypes.ExternalServices &&
                         parsedEnum != MonitorSourceTypes.BlocksServices &&
+                        parsedEnum != MonitorSourceTypes.DeployedServices &&
                         parsedEnum != MonitorSourceTypes.OtherServices
 )
                     {
