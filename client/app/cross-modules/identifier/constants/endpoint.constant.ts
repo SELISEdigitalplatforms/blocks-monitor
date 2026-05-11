@@ -100,6 +100,6 @@ const buildDeploymentEndpoint = (path: string): string => {
 };
 
 export const CLOUD_BUILD_ENDPOINTS = {
-  REPOS_LIST: "https://dev-deployment.blocksdevelopers.com/api/build/repos-list",
-  REPO_UPDATE: "https://dev-deployment.blocksdevelopers.com/api/build/repo-update",
+  REPOS_LIST: "https://dev-logic.blocksdevelopers.com/api/deployment/GetReposList",
+  REPO_UPDATE: "https://dev-logic.blocksdevelopers.com/api/deployment/repo-update",
 } as const;
