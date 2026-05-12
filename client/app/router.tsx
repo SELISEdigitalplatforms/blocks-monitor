@@ -16,7 +16,6 @@ import HealthPage from "./routes/dashboard/health";
 import HealthIncidentsPage from "./routes/dashboard/health-incidents";
 import HealthMonitorPage from "./routes/dashboard/health-monitor";
 import ProfilePage from "./routes/dashboard/profile";
-import { ConsoleLayout } from "./layouts/console-layout";
 
 // Console pages
 
@@ -43,11 +42,6 @@ export const router = createBrowserRouter([
       },
       { path: "/profile", element: <ProfilePage /> },
     ],
-  },
-
-  {
-    element: <ConsoleLayout />,
-    children: [{ path: "/profile", element: <ProfilePage /> }],
   },
 
   // ── Root redirect: authenticated users go to health ──
