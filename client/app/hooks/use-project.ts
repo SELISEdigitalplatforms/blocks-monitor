@@ -76,11 +76,11 @@ export const useGetEnvRepositories = (
   });
 };
 
-export const useUpdateRepositories = () => {
+export const useUpdateRepositoryDomain = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ["env-repositories", "update"],
-    mutationFn: crossProjectService.repoUpdate,
+    mutationFn: crossProjectService.repoDomainUpdate,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["env-repositories"] });
     },

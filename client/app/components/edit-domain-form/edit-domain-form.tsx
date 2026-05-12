@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useUpdateRepositories } from "@/hooks/use-project";
+import { useUpdateRepositoryDomain } from "@/hooks/use-project";
 import { useProjectStore } from "@/store/useProjectStore";
 import {
   Form,
@@ -26,7 +26,11 @@ type EditDomainFormProps = {
 };
 
 const editDomainFormDefaultValue = {
-  domains: [] as { itemId: string; customDeploymentUrl: string; repoUrl: string }[],
+  domains: [] as {
+    itemId: string;
+    customDeploymentUrl: string;
+    repoUrl: string;
+  }[],
 };
 
 export const EditDomainForm = ({
@@ -34,7 +38,7 @@ export const EditDomainForm = ({
   repositories,
   onAfterSubmit,
 }: EditDomainFormProps) => {
-  const { mutateAsync, isPending } = useUpdateRepositories();
+  const { mutateAsync, isPending } = useUpdateRepositoryDomain();
   const tenantId = useProjectStore().selectedProject?.tenantId || "";
   const environment = useProjectStore().selectedProject?.environment || "dev";
   const form = useForm({
@@ -56,7 +60,9 @@ export const EditDomainForm = ({
     return <> </>;
   }
   const MAIN_DOMAIN = getDomain(customDomain || "");
-  const onSubmitHandler = async (values: z.infer<typeof editDomainFormSchema>) => {
+  const onSubmitHandler = async (
+    values: z.infer<typeof editDomainFormSchema>,
+  ) => {
     try {
       const repoWithDomains = values.domains.map((domain) => ({
         repoId: domain.itemId,
@@ -77,26 +83,32 @@ export const EditDomainForm = ({
       }
     } catch (error) {
       if (error && typeof error === "object" && "errors" in error) {
-        showErrorToast({ errors: (error as any).errors });
+        showErrorToast({ errors: error?.errors });
       }
     }
   };
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmitHandler)} className="flex flex-col gap-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmitHandler)}
+        className="flex flex-col gap-4">
         {repositories.map((repository, index) => (
           <div key={repository.itemId}>
             <FormField
               control={form.control}
               name={`domains.${index}.itemId`}
-              render={({ field }) => <input type="hidden" {...field} value={repository.itemId} />}
+              render={({ field }) => (
+                <input type="hidden" {...field} value={repository.itemId} />
+              )}
             />
             <FormField
               control={form.control}
               name={`domains.${index}.customDeploymentUrl`}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-3">{repository.repoName}</FormLabel>
+                  <FormLabel className="flex items-center gap-3">
+                    {repository.repoName}
+                  </FormLabel>
                   <FormControl>
                     <div className="flex items-center rounded-md border border-input bg-background px-3 py-2">
                       <Input
@@ -104,7 +116,9 @@ export const EditDomainForm = ({
                         placeholder="Custom sub domain"
                         className="h-auto border-0 bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                       />
-                      <span className="ml-1 text-muted-foreground">.{MAIN_DOMAIN}</span>
+                      <span className="ml-1 text-muted-foreground">
+                        .{MAIN_DOMAIN}
+                      </span>
                     </div>
                   </FormControl>
                   <FormMessage />
