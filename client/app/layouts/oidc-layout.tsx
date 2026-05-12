@@ -1,8 +1,15 @@
-import { Outlet, useLocation, useSearchParams } from "react-router-dom";
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import LoadingSpinner from "@/components/loader-spinner/loader-spinner";
 import { Logo } from "@/components/logo";
-import { Loader } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import { extractOIDCParams } from "@blocks-idp/authentication/utils/oidc-utils";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { Outlet, useLocation, useSearchParams } from "react-router-dom";
 
 type OIDCContextType = {
   logoUrl?: string;
@@ -58,8 +65,8 @@ function OIDCProvider({ children }: { children: ReactNode }) {
       if (storedStr) {
         stored = JSON.parse(storedStr);
       }
-    } catch (e) {
-      console.error("Failed to parse stored params:", e);
+    } catch {
+      toast({ description: "Failed to complete OIDC", variant: "destructive" });
     }
 
     const mergedParams: OIDCContextType = {
@@ -89,22 +96,17 @@ function OIDCProvider({ children }: { children: ReactNode }) {
   return <OIDCContext.Provider value={params}>{children}</OIDCContext.Provider>;
 }
 
-function OidcLayoutContent({ children }: { children: ReactNode }) {
+function OidcLayoutContent() {
   const { logoUrl, themeColor, isLoading } = useOIDCContext();
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader className="h-12 w-12 animate-spin text-gray-500" />
-      </div>
-    );
+    return <LoadingSpinner variant="overlay" label="Loading..." />;
   }
 
   return (
     <div
       className="flex min-h-screen flex-col items-center py-[24px] lg:py-[64px] xl:px-[154px]"
-      style={{ "--theme-color": themeColor } as React.CSSProperties}
-    >
+      style={{ "--theme-color": themeColor } as React.CSSProperties}>
       <div className="flex w-full items-center justify-center">
         <Logo
           src={logoUrl || "/Logo.svg"}
@@ -126,9 +128,7 @@ function OidcLayoutContent({ children }: { children: ReactNode }) {
 export function OidcLayout() {
   return (
     <OIDCProvider>
-      <OidcLayoutContent>
-        <Outlet />
-      </OidcLayoutContent>
+      <OidcLayoutContent />
     </OIDCProvider>
   );
 }
