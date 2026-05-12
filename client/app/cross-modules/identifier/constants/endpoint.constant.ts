@@ -1,5 +1,4 @@
 import { API_BASES } from "@/constants/endpoint.constant";
-import { getRuntimeEnv } from "@/lib/runtime-env";
 
 // ─── People endpoints ─────────────────────────────────────────────────────────
 
@@ -74,32 +73,9 @@ export const SERVICE_REGISTRY_ENDPOINTS = {
 
 // ─── Cloud Build endpoints ────────────────────────────────────────────────────
 
-const BUILD_SUBPATH = "build";
-
-
-
-const rawDeploymentBase = getRuntimeEnv("BLOCKS_DEPLOYMENT_APP_URL");
-const deploymentBase = rawDeploymentBase.replace(/\/+$/, "");
-
-
-let didWarnMissingDeploymentBase = false;
-
-const buildDeploymentEndpoint = (path: string): string => {
-  const cleanedPath = path.replace(/^\/+/, "");
-  if (!deploymentBase) {
-    if (!didWarnMissingDeploymentBase) {
-      console.warn(
-        "BLOCKS_DEPLOYMENT_APP_URL is missing; deployment endpoints will use the current origin.",
-      );
-      didWarnMissingDeploymentBase = true;
-    }
-    return `/api/${cleanedPath}`;
-  }
-
-  return `${deploymentBase}/api/${cleanedPath}`;
-};
-
 export const CLOUD_BUILD_ENDPOINTS = {
-  REPOS_LIST: "https://dev-logic.blocksdevelopers.com/api/deployment/GetReposList",
-  REPO_UPDATE: "https://dev-logic.blocksdevelopers.com/api/deployment/repo-update",
+  REPOS_LIST:
+    "https://dev-logic.blocksdevelopers.com/api/deployment/GetReposList",
+  REPO_UPDATE:
+    "https://dev-logic.blocksdevelopers.com/api/deployment/repo-update",
 } as const;

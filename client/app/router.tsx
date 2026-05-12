@@ -4,7 +4,7 @@ import { DashboardLayout } from "./layouts/dashboard-layout";
 import { OidcLayout } from "./layouts/oidc-layout";
 
 // Auth routes (public, with auth layout)
-import LoginSimplePage from "./routes/auth/login-simple";
+import LoginPage from "./routes/auth/login";
 
 // Public routes (with public guard only)
 
@@ -16,12 +16,13 @@ import HealthPage from "./routes/dashboard/health";
 import HealthIncidentsPage from "./routes/dashboard/health-incidents";
 import HealthMonitorPage from "./routes/dashboard/health-monitor";
 import ProfilePage from "./routes/dashboard/profile";
+import { ConsoleLayout } from "./layouts/console-layout";
 
 // Console pages
 
 export const router = createBrowserRouter([
   // ── Simple login (no guards, no API calls) ──
-  { path: "/login", element: <LoginSimplePage /> },
+  { path: "/login", element: <LoginPage /> },
 
   // ── OIDC layout (un-guarded, themed) ──
   {
@@ -42,6 +43,11 @@ export const router = createBrowserRouter([
       },
       { path: "/profile", element: <ProfilePage /> },
     ],
+  },
+
+  {
+    element: <ConsoleLayout />,
+    children: [{ path: "/profile", element: <ProfilePage /> }],
   },
 
   // ── Root redirect: authenticated users go to health ──
