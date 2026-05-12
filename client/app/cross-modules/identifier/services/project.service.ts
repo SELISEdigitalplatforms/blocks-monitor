@@ -77,7 +77,7 @@ export class ProjectService {
     return http.get(url, undefined, { absoluteUrl: true });
   }
 
-  repoUpdate(payload: {
+  repoDomainUpdate(payload: {
     projectKey: string;
     projectEnv: string;
     repoWithDomains: {
@@ -89,9 +89,14 @@ export class ProjectService {
     errors: unknown | null;
     isSuccess: boolean;
   }> {
-    return http.post(CLOUD_BUILD_ENDPOINTS.REPO_UPDATE, payload, undefined, {
-      absoluteUrl: true,
-    });
+    return http.post(
+      CLOUD_BUILD_ENDPOINTS.REPO_DOMAIN_UPDATE,
+      payload,
+      undefined,
+      {
+        absoluteUrl: true,
+      },
+    );
   }
 
   getProject(payload: IGetProjectPayload): Promise<IGetProjectResponse> {
@@ -210,8 +215,7 @@ export class ProjectService {
       }
 
       return { isValid: true, data: json };
-    } catch (error) {
-      console.error("JWKS URL Validation Error:", error);
+    } catch {
       return {
         isValid: false,
         error: "Invalid, provide a valid jwks URL",

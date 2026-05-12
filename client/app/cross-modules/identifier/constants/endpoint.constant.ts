@@ -76,6 +76,6 @@ export const SERVICE_REGISTRY_ENDPOINTS = {
 export const CLOUD_BUILD_ENDPOINTS = {
   REPOS_LIST:
     "https://dev-logic.blocksdevelopers.com/api/deployment/GetReposList",
-  REPO_UPDATE:
+  REPO_DOMAIN_UPDATE:
     "https://dev-logic.blocksdevelopers.com/api/deployment/repo-update",
 } as const;
