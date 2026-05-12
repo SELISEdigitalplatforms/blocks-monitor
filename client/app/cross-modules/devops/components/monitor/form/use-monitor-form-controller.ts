@@ -115,7 +115,6 @@ export const useMonitorFormController = ({
   const { data: repoMonitorList } = useGetMonitorListById(
     projectKey,
     selectedRepoId,
-    Boolean(selectedRepoId),
   );
 
   const { data: externalServiceConfig } =
