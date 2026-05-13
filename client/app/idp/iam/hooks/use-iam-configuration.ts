@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { configurationService } from "@blocks-idp/iam/services/configuration.service";
 
 export const useGetIamConfiguration = () => {

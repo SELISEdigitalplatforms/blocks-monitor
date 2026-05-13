@@ -11,7 +11,7 @@ import { lmtService } from "../services/lmt.service";
 import { useGetLogs, useGetLiveLogs } from "./use-log";
 
 vi.mock("@blocks-lmt/services/lmt.service", () => mockLmtServiceFactory());
-vi.mock("@/store/useProjectStore", () => mockProjectStoreFactory());
+vi.mock("@/store/project.store.ts", () => mockProjectStoreFactory());
 
 describe("use-log hooks", () => {
   beforeEach(() => {

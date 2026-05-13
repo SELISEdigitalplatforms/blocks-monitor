@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui-kits/card/card";
 import { OrganizationUsersTable } from "./organization-users-table";
 import { Pagination } from "@/components/ui-kits/pagination/pagination";
 import { useGetUsers } from "@blocks-idp/iam/hooks/use-user";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import {
   OrganizationUsersFilterToolbar,
   useOrganizationUsersFilterQueryParams,
@@ -13,8 +13,11 @@ interface OrganizationUsersProps {
   organizationId: string;
 }
 
-export const OrganizationUsers = ({ organizationId }: OrganizationUsersProps) => {
-  const { queryParams, setQueryParams } = useOrganizationUsersFilterQueryParams();
+export const OrganizationUsers = ({
+  organizationId,
+}: OrganizationUsersProps) => {
+  const { queryParams, setQueryParams } =
+    useOrganizationUsersFilterQueryParams();
   const { sortQueryParams } = useOrganizationUsersSortQueryParams();
   const tenantId = useProjectStore().selectedProject?.tenantId || "";
 
@@ -43,7 +46,10 @@ export const OrganizationUsers = ({ organizationId }: OrganizationUsersProps) =>
       </CardHeader>
 
       <CardContent>
-        <OrganizationUsersTable users={data?.data || []} isLoading={isUserLoading} />
+        <OrganizationUsersTable
+          users={data?.data || []}
+          isLoading={isUserLoading}
+        />
         {!isUserLoading && data && data.totalCount > queryParams.pageSize && (
           <div className="mt-5 flex items-center md:justify-end">
             <Pagination

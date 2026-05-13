@@ -24,7 +24,7 @@ import {
 } from "@/components/ui-kits/form/form";
 import { useAddUser } from "@blocks-idp/iam/hooks/use-user";
 import { z } from "zod";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { useState } from "react";
 import { isErrorWithErrors } from "@/lib/error";
 import { PrimaryButton } from "@/components/action-buttons/primary-button";
@@ -50,7 +50,9 @@ export const InviteUser = () => {
     formState: { isDirty },
   } = form;
 
-  const onSubmitHandler = async (values: z.infer<typeof inviteUserFormSchema>) => {
+  const onSubmitHandler = async (
+    values: z.infer<typeof inviteUserFormSchema>,
+  ) => {
     try {
       const res = await mutateAsync({
         ...values,
@@ -134,7 +136,9 @@ export const InviteUser = () => {
                   Cancel
                 </Button>
               </DialogClose>
-              <Button disabled={isPending || !isDirty}>{isPending ? "Sending..." : "Send"}</Button>
+              <Button disabled={isPending || !isDirty}>
+                {isPending ? "Sending..." : "Send"}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

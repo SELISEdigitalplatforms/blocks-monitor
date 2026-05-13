@@ -8,12 +8,15 @@ import {
   mockSaveIamConfigPayload,
 } from "../../test-utils/__mocks__";
 import { configurationService } from "@blocks-idp/iam/services/configuration.service";
-import { useGetIamConfiguration, useSaveIamConfiguration } from "./use-iam-configuration";
+import {
+  useGetIamConfiguration,
+  useSaveIamConfiguration,
+} from "./use-iam-configuration";
 
 vi.mock("@blocks-idp/iam/services/configuration.service", () =>
   mockIamConfigurationServiceFactory(),
 );
-vi.mock("@/store/useProjectStore", () => mockProjectStoreFactory());
+vi.mock("@/store/project.store.ts", () => mockProjectStoreFactory());
 
 describe("use-iam-configuration hooks", () => {
   beforeEach(() => {
@@ -23,7 +26,9 @@ describe("use-iam-configuration hooks", () => {
   describe("useGetIamConfiguration", () => {
     it("should fetch IAM configuration successfully", async () => {
       const mockResponse = { data: mockIamConfiguration, errors: null };
-      vi.mocked(configurationService.getIamConfiguration).mockResolvedValue(mockResponse);
+      vi.mocked(configurationService.getIamConfiguration).mockResolvedValue(
+        mockResponse,
+      );
 
       const { result } = renderHook(() => useGetIamConfiguration(), {
         wrapper: createWrapper(),
@@ -37,7 +42,9 @@ describe("use-iam-configuration hooks", () => {
 
   describe("useSaveIamConfiguration", () => {
     it("should save IAM configuration successfully", async () => {
-      vi.mocked(configurationService.saveIamConfiguration).mockResolvedValue(undefined as never);
+      vi.mocked(configurationService.saveIamConfiguration).mockResolvedValue(
+        undefined as never,
+      );
 
       const { result } = renderHook(() => useSaveIamConfiguration(), {
         wrapper: createWrapper(),

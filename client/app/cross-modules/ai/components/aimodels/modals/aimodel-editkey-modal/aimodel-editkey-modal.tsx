@@ -21,12 +21,18 @@ import { Pen } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getProviderDisplayName, ServicePlatform } from "@blocks-ai/utils/aimodel-provider.utils";
+import {
+  getProviderDisplayName,
+  ServicePlatform,
+} from "@blocks-ai/utils/aimodel-provider.utils";
 import { resolveModelConfig } from "@blocks-ai/utils/aimodel-form.utils";
-import { IModelInfo, IUpdateModelPayload } from "@blocks-ai/types/aimodel.service.type";
+import {
+  IModelInfo,
+  IUpdateModelPayload,
+} from "@blocks-ai/types/aimodel.service.type";
 import { useUpdateModel } from "@blocks-ai/hooks/use-aimodel";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 
 interface ModelEditKeyModalProps {
   modelOptions: { model: string; goodName: string }[];
@@ -67,7 +73,8 @@ export const ModelEditKeyModal = ({
   );
 
   const schema = useMemo(
-    () => (baseSchema as z.AnyZodObject).extend({ apiKey: z.string().optional() }),
+    () =>
+      (baseSchema as z.AnyZodObject).extend({ apiKey: z.string().optional() }),
     [baseSchema],
   );
 
@@ -75,10 +82,12 @@ export const ModelEditKeyModal = ({
     const defaults = defaultValues as DefaultValuesWithKnownKeys;
     return {
       ...defaultValues,
-      model: model.ModelName ?? modelOptions[0]?.model ?? defaults.model ?? "--",
+      model:
+        model.ModelName ?? modelOptions[0]?.model ?? defaults.model ?? "--",
       url: model.BaseUrl ?? defaults.url ?? "",
       apiKey: model.ApiKey,
-      organizationId: model.OpenAiOrganizationId ?? defaults.organizationId ?? "",
+      organizationId:
+        model.OpenAiOrganizationId ?? defaults.organizationId ?? "",
       projectId: model.OpenAiProjectId ?? defaults.projectId ?? "",
       deploymentName: model.DeploymentName ?? defaults.deploymentName ?? "",
     };
@@ -107,22 +116,28 @@ export const ModelEditKeyModal = ({
         project_key,
         display_name: model.DisplayName,
         base_url: data.url ?? model.BaseUrl ?? "",
-        openai_organization_id: data.organizationId ?? model.OpenAiOrganizationId,
+        openai_organization_id:
+          data.organizationId ?? model.OpenAiOrganizationId,
         openai_project_id: data.projectId ?? model.OpenAiProjectId,
-        deployment_name: data.deploymentName ?? model.DeploymentName ?? undefined,
+        deployment_name:
+          data.deploymentName ?? model.DeploymentName ?? undefined,
         is_active: model.IsActive,
         api_version: model.ApiVersion,
         model_name: model.ModelName ?? "",
       };
 
-      if (trimmedApiKey && trimmedApiKey !== originalApiKey) payload.api_key = trimmedApiKey;
+      if (trimmedApiKey && trimmedApiKey !== originalApiKey)
+        payload.api_key = trimmedApiKey;
 
       const res = await mutateAsync({ modelId: model._id, payload });
-      if (res.is_success) showSuccessToast({ description: "Model updated successfully." });
+      if (res.is_success)
+        showSuccessToast({ description: "Model updated successfully." });
       else showErrorToast({ errors: res.detail });
       setEditKeyModalOpen(false);
     } catch (err) {
-      showErrorToast({ errors: err instanceof Error ? err.message : String(err) });
+      showErrorToast({
+        errors: err instanceof Error ? err.message : String(err),
+      });
     }
   };
 
@@ -139,14 +154,14 @@ export const ModelEditKeyModal = ({
       onOpenChange={(open) => {
         setEditKeyModalOpen(open);
         if (!open) form.reset(initialValues);
-      }}
-    >
+      }}>
       <DialogContent
         className="w-[calc(100%-2rem)] p-6 sm:mx-0 sm:w-[500px]"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
+        onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Update {getProviderDisplayName(model.Provider)} Key</DialogTitle>
+          <DialogTitle>
+            Update {getProviderDisplayName(model.Provider)} Key
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmitHandler)}>
@@ -159,7 +174,11 @@ export const ModelEditKeyModal = ({
                   <div className="flex cursor-not-allowed items-center justify-between rounded-md border bg-muted px-3 py-2 text-sm font-normal text-foreground/80">
                     <span>{selectedGoodName}</span>
                   </div>
-                  <input type="hidden" {...form.register("model")} value={selectedModel} />
+                  <input
+                    type="hidden"
+                    {...form.register("model")}
+                    value={selectedModel}
+                  />
                 </div>
               )}
               {fields.includes("url") && (
@@ -168,14 +187,17 @@ export const ModelEditKeyModal = ({
                   name="url"
                   render={({ field }) => (
                     <FormItem className="w-full">
-                      <FormLabel>URL <span className="text-red-500">*</span></FormLabel>
+                      <FormLabel>
+                        URL <span className="text-red-500">*</span>
+                      </FormLabel>
                       <FormControl className="w-full">
                         <Input
                           className="flex w-full"
                           placeholder="Enter URL"
                           {...field}
                           disabled={
-                            model.ServicePlatform === ServicePlatform.OFFICIAL_API ||
+                            model.ServicePlatform ===
+                              ServicePlatform.OFFICIAL_API ||
                             model.Provider?.toLowerCase() === "openrouter"
                           }
                         />
@@ -187,7 +209,9 @@ export const ModelEditKeyModal = ({
               )}
               {fields.includes("deploymentName") && (
                 <FormItem>
-                  <FormLabel>Deployment Name <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel>
+                    Deployment Name <span className="text-red-500">*</span>
+                  </FormLabel>
                   <Input value={selectedModel} disabled />
                 </FormItem>
               )}
@@ -207,9 +231,14 @@ export const ModelEditKeyModal = ({
                                 ? ((field.value as string) ?? "")
                                 : maskKey((field.value as string) ?? "")
                             }
-                            onChange={(e) => { if (apiKeyEditable) field.onChange(e.target.value); }}
+                            onChange={(e) => {
+                              if (apiKeyEditable)
+                                field.onChange(e.target.value);
+                            }}
                             disabled={!apiKeyEditable}
-                            placeholder={apiKeyEditable ? "Enter new API key" : ""}
+                            placeholder={
+                              apiKeyEditable ? "Enter new API key" : ""
+                            }
                             className="inline-block w-full truncate border-none shadow-none focus-visible:ring-0"
                           />
                         </FormControl>
@@ -218,8 +247,10 @@ export const ModelEditKeyModal = ({
                             type="button"
                             variant="ghost"
                             className="h-fit w-fit p-1"
-                            onClick={() => { field.onChange(""); setApiKeyEditable(true); }}
-                          >
+                            onClick={() => {
+                              field.onChange("");
+                              setApiKeyEditable(true);
+                            }}>
                             <Pen className="h-4 w-4 text-foreground/60" />
                           </Button>
                         )}
@@ -262,9 +293,13 @@ export const ModelEditKeyModal = ({
             </div>
             <DialogFooter className="mt-6">
               <DialogClose asChild>
-                <Button variant="secondary" disabled={isPending}>Cancel</Button>
+                <Button variant="secondary" disabled={isPending}>
+                  Cancel
+                </Button>
               </DialogClose>
-              <Button disabled={!form.formState.isValid || isPending} type="submit">
+              <Button
+                disabled={!form.formState.isValid || isPending}
+                type="submit">
                 {isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>

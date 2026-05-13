@@ -13,14 +13,18 @@ import { Input } from "@/components/ui-kits/input/input";
 import { Label } from "@/components/ui-kits/label/label";
 import { Switch } from "@/components/ui-kits/switch/switch";
 import { Calendar } from "@/components/ui-kits/calendar/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui-kits/popover/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui-kits/popover/popover";
 import { CalendarIcon } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { MagicUrl } from "@blocks-utilities/models/magic-url.model";
 import { useCreateMagicUrl } from "@blocks-utilities/hooks/use-magic-url";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { toast } from "@/hooks/use-toast";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAuthStore } from "@/store/auth.store.ts";
 import {
   Select,
   SelectContent,
@@ -44,7 +48,12 @@ interface MagicUrlDialogProps {
   initialData?: MagicUrl;
 }
 
-export function MagicUrlDialog({ open, onOpenChange, trigger, initialData }: MagicUrlDialogProps) {
+export function MagicUrlDialog({
+  open,
+  onOpenChange,
+  trigger,
+  initialData,
+}: MagicUrlDialogProps) {
   const tenantId = useProjectStore()?.selectedProject?.tenantId || "";
   const { user } = useAuthStore();
   const userId = user?.itemId || "";
@@ -66,7 +75,8 @@ export function MagicUrlDialog({ open, onOpenChange, trigger, initialData }: Mag
   const [requestMethod, setRequestMethod] = useState<string>("GET");
   const [requestPayload, setRequestPayload] = useState("");
   const [requestHeaders, setRequestHeaders] = useState("");
-  const [requestEncodedQueryString, setRequestEncodedQueryString] = useState("");
+  const [requestEncodedQueryString, setRequestEncodedQueryString] =
+    useState("");
   const [clientCredential, setClientCredential] = useState("");
   const [linkBasedActionConfigId, setLinkBasedActionConfigId] = useState("");
   const [cache, setCache] = useState(false);
@@ -112,9 +122,13 @@ export function MagicUrlDialog({ open, onOpenChange, trigger, initialData }: Mag
         setLinkBasedActionConfigId(initialData.linkBasedActionConfigId || "");
         setCache(initialData.persistent || false);
         setUsageLimit(initialData.usageLimit > 0);
-        setUsageLimitValue(initialData.usageLimit > 0 ? initialData.usageLimit.toString() : "");
+        setUsageLimitValue(
+          initialData.usageLimit > 0 ? initialData.usageLimit.toString() : "",
+        );
         setAutoExpiry(!!initialData.expiryLifeSpan || !!initialData.expiryDate);
-        setExpiryDate(initialData.expiryDate ? new Date(initialData.expiryDate) : undefined);
+        setExpiryDate(
+          initialData.expiryDate ? new Date(initialData.expiryDate) : undefined,
+        );
       } else {
         resetForm();
       }
@@ -158,14 +172,21 @@ export function MagicUrlDialog({ open, onOpenChange, trigger, initialData }: Mag
 
     createMagicUrl(payload, {
       onSuccess: () => {
-        toast({ variant: "success", title: "Success", description: "Magic URL created successfully" });
+        toast({
+          variant: "success",
+          title: "Success",
+          description: "Magic URL created successfully",
+        });
         handleCancel();
       },
       onError: (error) => {
         toast({
           variant: "destructive",
           title: "Error",
-          description: error instanceof Error ? error.message : "Failed to create Magic URL",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Failed to create Magic URL",
         });
       },
     });
@@ -182,7 +203,9 @@ export function MagicUrlDialog({ open, onOpenChange, trigger, initialData }: Mag
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Magic URL</DialogTitle>
-          <DialogDescription>Create a new Magic URL with custom configurations.</DialogDescription>
+          <DialogDescription>
+            Create a new Magic URL with custom configurations.
+          </DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh] pr-6">
@@ -201,7 +224,9 @@ export function MagicUrlDialog({ open, onOpenChange, trigger, initialData }: Mag
                   }}
                 />
                 <div className="min-h-[1.25rem]">
-                  {errors.uri && <p className="text-xs text-error">{errors.uri.message}</p>}
+                  {errors.uri && (
+                    <p className="text-xs text-error">{errors.uri.message}</p>
+                  )}
                 </div>
               </div>
               <div className="grid gap-2">
@@ -217,12 +242,17 @@ export function MagicUrlDialog({ open, onOpenChange, trigger, initialData }: Mag
                   }}
                 />
                 <div className="min-h-[1.25rem]">
-                  {errors.name && <p className="text-xs text-error">{errors.name.message}</p>}
+                  {errors.name && (
+                    <p className="text-xs text-error">{errors.name.message}</p>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className={type === "1" ? "grid gap-2" : "grid grid-cols-2 gap-4"}>
+            <div
+              className={
+                type === "1" ? "grid gap-2" : "grid grid-cols-2 gap-4"
+              }>
               <div className="grid gap-2">
                 <Label>Type</Label>
                 <Select value={type} onValueChange={setType}>
@@ -238,7 +268,9 @@ export function MagicUrlDialog({ open, onOpenChange, trigger, initialData }: Mag
               {type !== "1" && (
                 <div className="grid gap-2">
                   <Label>Request Method</Label>
-                  <Select value={requestMethod} onValueChange={setRequestMethod}>
+                  <Select
+                    value={requestMethod}
+                    onValueChange={setRequestMethod}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select method" />
                     </SelectTrigger>
@@ -276,14 +308,19 @@ export function MagicUrlDialog({ open, onOpenChange, trigger, initialData }: Mag
               </>
             )}
 
-            <div className={type === "1" ? "grid gap-2" : "grid grid-cols-2 gap-4"}>
+            <div
+              className={
+                type === "1" ? "grid gap-2" : "grid grid-cols-2 gap-4"
+              }>
               {type !== "1" && (
                 <div className="grid gap-2">
                   <Label htmlFor="encodedQuery">Encoded Query String</Label>
                   <Input
                     id="encodedQuery"
                     value={requestEncodedQueryString}
-                    onChange={(e) => setRequestEncodedQueryString(e.target.value)}
+                    onChange={(e) =>
+                      setRequestEncodedQueryString(e.target.value)
+                    }
                   />
                 </div>
               )}
@@ -304,7 +341,11 @@ export function MagicUrlDialog({ open, onOpenChange, trigger, initialData }: Mag
                   <Label htmlFor="usage-limit" className="font-medium">
                     Set Usage Limit
                   </Label>
-                  <Switch id="usage-limit" checked={usageLimit} onCheckedChange={setUsageLimit} />
+                  <Switch
+                    id="usage-limit"
+                    checked={usageLimit}
+                    onCheckedChange={setUsageLimit}
+                  />
                 </div>
                 {usageLimit && (
                   <Input
@@ -322,19 +363,26 @@ export function MagicUrlDialog({ open, onOpenChange, trigger, initialData }: Mag
                   <Label htmlFor="auto-expiry" className="font-medium">
                     Set Auto Expiry Date
                   </Label>
-                  <Switch id="auto-expiry" checked={autoExpiry} onCheckedChange={setAutoExpiry} />
+                  <Switch
+                    id="auto-expiry"
+                    checked={autoExpiry}
+                    onCheckedChange={setAutoExpiry}
+                  />
                 </div>
                 {autoExpiry && (
-                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                  <Popover
+                    open={isCalendarOpen}
+                    onOpenChange={setIsCalendarOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className="justify-start text-left font-normal"
                         type="button"
-                        onClick={() => setIsCalendarOpen(true)}
-                      >
+                        onClick={() => setIsCalendarOpen(true)}>
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {expiryDate ? formatDate(expiryDate, true) : "Pick a date"}
+                        {expiryDate
+                          ? formatDate(expiryDate, true)
+                          : "Pick a date"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">

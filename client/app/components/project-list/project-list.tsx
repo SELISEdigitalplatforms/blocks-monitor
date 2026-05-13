@@ -11,7 +11,7 @@ import {
 } from "@/components/ui-kits/dropdown-menu/dropdown-menu";
 import { useGetProject, useGetProjects } from "@/hooks/use-project";
 import { IProject } from "@/models/project.model";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 
 const redirectPaths: Record<string, string> = {
   "/health/monitor/*": "/health",

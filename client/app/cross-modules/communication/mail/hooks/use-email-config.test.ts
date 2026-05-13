@@ -10,11 +10,17 @@ import {
   mockSuccessResponse,
 } from "../../test-utils/__mocks__";
 import { emailService } from "@blocks-communication/mail/services/email.services";
-import { useGetEmailConfigs, useSaveEmailConfig, useDeleteEmailConfig } from "./use-email-config";
+import {
+  useGetEmailConfigs,
+  useSaveEmailConfig,
+  useDeleteEmailConfig,
+} from "./use-email-config";
 import { TEST_TENANT_ID } from "@/test-utils/__mocks__/data.mock";
 
-vi.mock("@blocks-communication/mail/services/email.services", () => mockEmailServiceFactory());
-vi.mock("@/store/useProjectStore", () => mockProjectStoreFactory());
+vi.mock("@blocks-communication/mail/services/email.services", () =>
+  mockEmailServiceFactory(),
+);
+vi.mock("@/store/project.store.ts", () => mockProjectStoreFactory());
 
 describe("Email Config Hooks", () => {
   beforeEach(() => {
@@ -23,7 +29,9 @@ describe("Email Config Hooks", () => {
 
   describe("useGetEmailConfigs", () => {
     it("should fetch email configs successfully", async () => {
-      vi.mocked(emailService.fetchEmailConfigs).mockResolvedValue(mockEmailConfigList);
+      vi.mocked(emailService.fetchEmailConfigs).mockResolvedValue(
+        mockEmailConfigList,
+      );
 
       const { result } = renderHook(() => useGetEmailConfigs(0, 10), {
         wrapper: createWrapper(),
@@ -34,7 +42,11 @@ describe("Email Config Hooks", () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       expect(result.current.data).toEqual(mockEmailConfigList);
-      expect(emailService.fetchEmailConfigs).toHaveBeenCalledWith(TEST_TENANT_ID, 0, 10);
+      expect(emailService.fetchEmailConfigs).toHaveBeenCalledWith(
+        TEST_TENANT_ID,
+        0,
+        10,
+      );
     });
 
     it("should handle errors", async () => {
@@ -52,7 +64,9 @@ describe("Email Config Hooks", () => {
     });
 
     it("should use correct query key for caching", async () => {
-      vi.mocked(emailService.fetchEmailConfigs).mockResolvedValue(mockEmailConfigList);
+      vi.mocked(emailService.fetchEmailConfigs).mockResolvedValue(
+        mockEmailConfigList,
+      );
 
       const { result } = renderHook(() => useGetEmailConfigs(2, 20), {
         wrapper: createWrapper(),
@@ -60,11 +74,15 @@ describe("Email Config Hooks", () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(emailService.fetchEmailConfigs).toHaveBeenCalledWith(TEST_TENANT_ID, 2, 20);
+      expect(emailService.fetchEmailConfigs).toHaveBeenCalledWith(
+        TEST_TENANT_ID,
+        2,
+        20,
+      );
     });
 
     it("should handle empty tenantId", async () => {
-      const { useProjectStore } = await import("@/store/useProjectStore");
+      const { useProjectStore } = await import("@/store/project.store.ts");
       vi.mocked(useProjectStore).mockReturnValueOnce({
         selectedProject: { tenantId: "" },
       });
@@ -81,7 +99,9 @@ describe("Email Config Hooks", () => {
     });
 
     it("should handle different page sizes", async () => {
-      vi.mocked(emailService.fetchEmailConfigs).mockResolvedValue(mockEmailConfigList);
+      vi.mocked(emailService.fetchEmailConfigs).mockResolvedValue(
+        mockEmailConfigList,
+      );
 
       const { result } = renderHook(() => useGetEmailConfigs(0, 50), {
         wrapper: createWrapper(),
@@ -89,13 +109,19 @@ describe("Email Config Hooks", () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(emailService.fetchEmailConfigs).toHaveBeenCalledWith(TEST_TENANT_ID, 0, 50);
+      expect(emailService.fetchEmailConfigs).toHaveBeenCalledWith(
+        TEST_TENANT_ID,
+        0,
+        50,
+      );
     });
   });
 
   describe("useSaveEmailConfig", () => {
     it("should save email config successfully", async () => {
-      vi.mocked(emailService.saveMailConfig).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(emailService.saveMailConfig).mockResolvedValue(
+        mockSuccessResponse,
+      );
 
       const { result } = renderHook(() => useSaveEmailConfig(), {
         wrapper: createWrapper(),
@@ -105,25 +131,36 @@ describe("Email Config Hooks", () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(emailService.saveMailConfig).toHaveBeenCalledWith(mockSaveConfigPayload);
+      expect(emailService.saveMailConfig).toHaveBeenCalledWith(
+        mockSaveConfigPayload,
+      );
       expect(result.current.data).toEqual(mockSuccessResponse);
     });
 
     it("should invalidate email-configs query on success", async () => {
-      vi.mocked(emailService.saveMailConfig).mockResolvedValue(mockSuccessResponse);
-      vi.mocked(emailService.fetchEmailConfigs).mockResolvedValue(mockEmailConfigList);
+      vi.mocked(emailService.saveMailConfig).mockResolvedValue(
+        mockSuccessResponse,
+      );
+      vi.mocked(emailService.fetchEmailConfigs).mockResolvedValue(
+        mockEmailConfigList,
+      );
 
       const wrapper = createWrapper();
 
       // First, load email configs
-      const { result: configsResult } = renderHook(() => useGetEmailConfigs(0, 10), {
-        wrapper,
-      });
+      const { result: configsResult } = renderHook(
+        () => useGetEmailConfigs(0, 10),
+        {
+          wrapper,
+        },
+      );
 
       await waitFor(() => expect(configsResult.current.isSuccess).toBe(true));
 
       // Then save a new config
-      const { result: saveResult } = renderHook(() => useSaveEmailConfig(), { wrapper });
+      const { result: saveResult } = renderHook(() => useSaveEmailConfig(), {
+        wrapper,
+      });
 
       saveResult.current.mutate(mockSaveConfigPayload);
 
@@ -136,7 +173,9 @@ describe("Email Config Hooks", () => {
     });
 
     it("should handle save errors", async () => {
-      vi.mocked(emailService.saveMailConfig).mockRejectedValue(new Error("Failed to save config"));
+      vi.mocked(emailService.saveMailConfig).mockRejectedValue(
+        new Error("Failed to save config"),
+      );
 
       const { result } = renderHook(() => useSaveEmailConfig(), {
         wrapper: createWrapper(),
@@ -152,7 +191,9 @@ describe("Email Config Hooks", () => {
     });
 
     it("should use correct mutation key", async () => {
-      vi.mocked(emailService.saveMailConfig).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(emailService.saveMailConfig).mockResolvedValue(
+        mockSuccessResponse,
+      );
 
       const { result } = renderHook(() => useSaveEmailConfig(), {
         wrapper: createWrapper(),
@@ -165,7 +206,9 @@ describe("Email Config Hooks", () => {
 
   describe("useDeleteEmailConfig", () => {
     it("should delete email config successfully", async () => {
-      vi.mocked(emailService.deleteMailConfig).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(emailService.deleteMailConfig).mockResolvedValue(
+        mockSuccessResponse,
+      );
 
       const { result } = renderHook(() => useDeleteEmailConfig(), {
         wrapper: createWrapper(),
@@ -175,25 +218,37 @@ describe("Email Config Hooks", () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(emailService.deleteMailConfig).toHaveBeenCalledWith(mockDeleteConfigPayload);
+      expect(emailService.deleteMailConfig).toHaveBeenCalledWith(
+        mockDeleteConfigPayload,
+      );
       expect(result.current.data).toEqual(mockSuccessResponse);
     });
 
     it("should invalidate email-configs query on success", async () => {
-      vi.mocked(emailService.deleteMailConfig).mockResolvedValue(mockSuccessResponse);
-      vi.mocked(emailService.fetchEmailConfigs).mockResolvedValue(mockEmailConfigList);
+      vi.mocked(emailService.deleteMailConfig).mockResolvedValue(
+        mockSuccessResponse,
+      );
+      vi.mocked(emailService.fetchEmailConfigs).mockResolvedValue(
+        mockEmailConfigList,
+      );
 
       const wrapper = createWrapper();
 
       // First, load email configs
-      const { result: configsResult } = renderHook(() => useGetEmailConfigs(0, 10), {
-        wrapper,
-      });
+      const { result: configsResult } = renderHook(
+        () => useGetEmailConfigs(0, 10),
+        {
+          wrapper,
+        },
+      );
 
       await waitFor(() => expect(configsResult.current.isSuccess).toBe(true));
 
       // Then delete a config
-      const { result: deleteResult } = renderHook(() => useDeleteEmailConfig(), { wrapper });
+      const { result: deleteResult } = renderHook(
+        () => useDeleteEmailConfig(),
+        { wrapper },
+      );
 
       deleteResult.current.mutate(mockDeleteConfigPayload);
 
@@ -224,7 +279,9 @@ describe("Email Config Hooks", () => {
     });
 
     it("should use correct mutation key", async () => {
-      vi.mocked(emailService.deleteMailConfig).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(emailService.deleteMailConfig).mockResolvedValue(
+        mockSuccessResponse,
+      );
 
       const { result } = renderHook(() => useDeleteEmailConfig(), {
         wrapper: createWrapper(),

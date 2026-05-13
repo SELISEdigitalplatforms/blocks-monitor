@@ -14,8 +14,10 @@ import { useGetEmailUsage, useGetEmailUsageById } from "./use-email-usage";
 import { act } from "react";
 import { TEST_TENANT_ID } from "@/test-utils/__mocks__/data.mock";
 
-vi.mock("@blocks-communication/mail/services/email.services", () => mockEmailServiceFactory());
-vi.mock("@/store/useProjectStore", () => mockProjectStoreFactory());
+vi.mock("@blocks-communication/mail/services/email.services", () =>
+  mockEmailServiceFactory(),
+);
+vi.mock("@/store/project.store.ts", () => mockProjectStoreFactory());
 
 describe("Email Usage Hooks", () => {
   beforeEach(() => {
@@ -29,11 +31,21 @@ describe("Email Usage Hooks", () => {
 
   describe("useGetEmailUsage", () => {
     it("should fetch email usage successfully with all filters", async () => {
-      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(mockEmailUsageResponse);
+      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(
+        mockEmailUsageResponse,
+      );
 
       const { result } = renderHook(
         () =>
-          useGetEmailUsage(0, 10, false, "test search", "Delivered", "2024-01-01", "2024-01-31"),
+          useGetEmailUsage(
+            0,
+            10,
+            false,
+            "test search",
+            "Delivered",
+            "2024-01-01",
+            "2024-01-31",
+          ),
         { wrapper: createWrapper() },
       );
 
@@ -58,7 +70,9 @@ describe("Email Usage Hooks", () => {
     });
 
     it("should fetch inbound emails", async () => {
-      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(mockEmailUsageResponse);
+      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(
+        mockEmailUsageResponse,
+      );
 
       const { result } = renderHook(() => useGetEmailUsage(0, 10, true), {
         wrapper: createWrapper(),
@@ -79,10 +93,21 @@ describe("Email Usage Hooks", () => {
     });
 
     it("should use correct query key with all parameters", async () => {
-      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(mockEmailUsageResponse);
+      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(
+        mockEmailUsageResponse,
+      );
 
       const { result } = renderHook(
-        () => useGetEmailUsage(2, 20, false, "test", "Sent", "2024-01-01", "2024-01-31"),
+        () =>
+          useGetEmailUsage(
+            2,
+            20,
+            false,
+            "test",
+            "Sent",
+            "2024-01-01",
+            "2024-01-31",
+          ),
         { wrapper: createWrapper() },
       );
 
@@ -103,7 +128,9 @@ describe("Email Usage Hooks", () => {
 
     it("should auto-refetch every 20 seconds", async () => {
       vi.useFakeTimers({ shouldAdvanceTime: true });
-      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(mockEmailUsageResponse);
+      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(
+        mockEmailUsageResponse,
+      );
 
       const { result } = renderHook(() => useGetEmailUsage(0, 10, false), {
         wrapper: createWrapper(),
@@ -114,17 +141,21 @@ describe("Email Usage Hooks", () => {
       expect(emailService.getMailBoxMails).toHaveBeenCalledTimes(1);
 
       // Advance fake timers to trigger react-query's refetchInterval
-      await act(() => vi.advanceTimersByTimeAsync(EMAIL_USAGE_REFETCH_INTERVAL));
+      await act(() =>
+        vi.advanceTimersByTimeAsync(EMAIL_USAGE_REFETCH_INTERVAL),
+      );
       expect(emailService.getMailBoxMails).toHaveBeenCalledTimes(2);
     });
 
     it("should be disabled when tenantId is empty", async () => {
-      const { useProjectStore } = await import("@/store/useProjectStore");
+      const { useProjectStore } = await import("@/store/project.store.ts");
       vi.mocked(useProjectStore).mockReturnValueOnce({
         selectedProject: { tenantId: "" },
       });
 
-      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(mockEmailUsageResponse);
+      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(
+        mockEmailUsageResponse,
+      );
 
       const { result } = renderHook(() => useGetEmailUsage(0, 10, false), {
         wrapper: createWrapper(),
@@ -136,12 +167,14 @@ describe("Email Usage Hooks", () => {
     });
 
     it("should return empty data when tenantId is empty but query runs", async () => {
-      const { useProjectStore } = await import("@/store/useProjectStore");
+      const { useProjectStore } = await import("@/store/project.store.ts");
       vi.mocked(useProjectStore).mockReturnValueOnce({
         selectedProject: { tenantId: "" },
       });
 
-      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(mockEmailUsageResponse);
+      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(
+        mockEmailUsageResponse,
+      );
 
       const { result } = renderHook(() => useGetEmailUsage(0, 10, false), {
         wrapper: createWrapper(),
@@ -166,7 +199,9 @@ describe("Email Usage Hooks", () => {
     });
 
     it("should handle optional filters being undefined", async () => {
-      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(mockEmailUsageResponse);
+      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(
+        mockEmailUsageResponse,
+      );
 
       const { result } = renderHook(() => useGetEmailUsage(0, 10, false), {
         wrapper: createWrapper(),
@@ -187,7 +222,9 @@ describe("Email Usage Hooks", () => {
     });
 
     it("should transform response data correctly", async () => {
-      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(mockEmailUsageResponse);
+      vi.mocked(emailService.getMailBoxMails).mockResolvedValue(
+        mockEmailUsageResponse,
+      );
 
       const { result } = renderHook(() => useGetEmailUsage(0, 10, false), {
         wrapper: createWrapper(),
@@ -205,7 +242,9 @@ describe("Email Usage Hooks", () => {
 
   describe("useGetEmailUsageById", () => {
     it("should fetch single email by ID successfully", async () => {
-      vi.mocked(emailService.getMailBoxMail).mockResolvedValue(mockGetMailBoxMailResponse);
+      vi.mocked(emailService.getMailBoxMail).mockResolvedValue(
+        mockGetMailBoxMailResponse,
+      );
 
       const { result } = renderHook(() => useGetEmailUsageById("msg-123"), {
         wrapper: createWrapper(),
@@ -216,11 +255,16 @@ describe("Email Usage Hooks", () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       expect(result.current.data).toEqual(mockGetMailBoxMailResponse.mail);
-      expect(emailService.getMailBoxMail).toHaveBeenCalledWith(TEST_TENANT_ID, "msg-123");
+      expect(emailService.getMailBoxMail).toHaveBeenCalledWith(
+        TEST_TENANT_ID,
+        "msg-123",
+      );
     });
 
     it("should use correct query key for caching", async () => {
-      vi.mocked(emailService.getMailBoxMail).mockResolvedValue(mockGetMailBoxMailResponse);
+      vi.mocked(emailService.getMailBoxMail).mockResolvedValue(
+        mockGetMailBoxMailResponse,
+      );
 
       const { result } = renderHook(() => useGetEmailUsageById("msg-456"), {
         wrapper: createWrapper(),
@@ -228,16 +272,21 @@ describe("Email Usage Hooks", () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(emailService.getMailBoxMail).toHaveBeenCalledWith(TEST_TENANT_ID, "msg-456");
+      expect(emailService.getMailBoxMail).toHaveBeenCalledWith(
+        TEST_TENANT_ID,
+        "msg-456",
+      );
     });
 
     it("should be disabled when tenantId is empty", async () => {
-      const { useProjectStore } = await import("@/store/useProjectStore");
+      const { useProjectStore } = await import("@/store/project.store.ts");
       vi.mocked(useProjectStore).mockReturnValueOnce({
         selectedProject: { tenantId: "" },
       });
 
-      vi.mocked(emailService.getMailBoxMail).mockResolvedValue(mockGetMailBoxMailResponse);
+      vi.mocked(emailService.getMailBoxMail).mockResolvedValue(
+        mockGetMailBoxMailResponse,
+      );
 
       const { result } = renderHook(() => useGetEmailUsageById("msg-123"), {
         wrapper: createWrapper(),
@@ -249,7 +298,9 @@ describe("Email Usage Hooks", () => {
     });
 
     it("should be disabled when id is empty", async () => {
-      vi.mocked(emailService.getMailBoxMail).mockResolvedValue(mockGetMailBoxMailResponse);
+      vi.mocked(emailService.getMailBoxMail).mockResolvedValue(
+        mockGetMailBoxMailResponse,
+      );
 
       const { result } = renderHook(() => useGetEmailUsageById(""), {
         wrapper: createWrapper(),
@@ -261,12 +312,14 @@ describe("Email Usage Hooks", () => {
     });
 
     it("should return null when tenantId is empty but query runs", async () => {
-      const { useProjectStore } = await import("@/store/useProjectStore");
+      const { useProjectStore } = await import("@/store/project.store.ts");
       vi.mocked(useProjectStore).mockReturnValueOnce({
         selectedProject: { tenantId: "" },
       });
 
-      vi.mocked(emailService.getMailBoxMail).mockResolvedValue(mockGetMailBoxMailResponse);
+      vi.mocked(emailService.getMailBoxMail).mockResolvedValue(
+        mockGetMailBoxMailResponse,
+      );
 
       const { result } = renderHook(() => useGetEmailUsageById("msg-123"), {
         wrapper: createWrapper(),
@@ -277,7 +330,9 @@ describe("Email Usage Hooks", () => {
     });
 
     it("should handle API errors", async () => {
-      vi.mocked(emailService.getMailBoxMail).mockRejectedValue(new Error("Email not found"));
+      vi.mocked(emailService.getMailBoxMail).mockRejectedValue(
+        new Error("Email not found"),
+      );
 
       const { result } = renderHook(() => useGetEmailUsageById("invalid-id"), {
         wrapper: createWrapper(),
@@ -289,7 +344,9 @@ describe("Email Usage Hooks", () => {
     });
 
     it("should extract mail from response correctly", async () => {
-      vi.mocked(emailService.getMailBoxMail).mockResolvedValue(mockGetMailBoxMailResponse);
+      vi.mocked(emailService.getMailBoxMail).mockResolvedValue(
+        mockGetMailBoxMailResponse,
+      );
 
       const { result } = renderHook(() => useGetEmailUsageById("msg-123"), {
         wrapper: createWrapper(),

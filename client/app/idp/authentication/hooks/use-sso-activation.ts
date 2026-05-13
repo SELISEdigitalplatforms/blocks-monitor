@@ -1,6 +1,6 @@
 import { showErrorToast } from "@/hooks/use-toast";
 import { isErrorWithErrors } from "@/lib/error";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAuthStore } from "@/store/auth.store.ts";
 import { useSigninBySSO } from "@blocks-idp/authentication/hooks/use-auth";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useRef } from "react";
@@ -32,7 +32,8 @@ function handleSsoError(error: unknown): void {
   const errorStr = JSON.stringify(error);
   if (errorStr.includes("user_not_found")) {
     const errorObj = error as any;
-    const description = errorObj?.error?.description || errorObj?.description || "";
+    const description =
+      errorObj?.error?.description || errorObj?.description || "";
     const firstWord = description.split(" ")[0];
     const emailTarget = firstWord.includes("@") ? firstWord : "";
     const msg = `There is no account with this email${emailTarget ? ` (${emailTarget})` : ""}.`;
@@ -54,7 +55,9 @@ function getSsoActivationPath(url: string): string | null {
   const username = params.get("username");
   const ssoCode = params.get("code");
 
-  return username && ssoCode ? `/sso-activate?username=${username}&code=${ssoCode}` : null;
+  return username && ssoCode
+    ? `/sso-activate?username=${username}&code=${ssoCode}`
+    : null;
 }
 
 /**
@@ -84,12 +87,20 @@ export function useSsoActivation() {
 
     async function activate() {
       try {
-        const res = await mutateAsync({ code: code as string, state: state as string });
+        const res = await mutateAsync({
+          code: code as string,
+          state: state as string,
+        });
 
-        const activationPath = res.sso_user_redirect_url ? getSsoActivationPath(res.sso_user_redirect_url) : null;
+        const activationPath = res.sso_user_redirect_url
+          ? getSsoActivationPath(res.sso_user_redirect_url)
+          : null;
         if (activationPath) return navigate(activationPath);
 
-        if (res.enable_mfa) return navigate(`/mfa-check?mfa_id=${res.mfaId}&mfa_type=${res.mfaType}`);
+        if (res.enable_mfa)
+          return navigate(
+            `/mfa-check?mfa_id=${res.mfaId}&mfa_type=${res.mfaType}`,
+          );
 
         setAuthenticated();
         navigate("/console");

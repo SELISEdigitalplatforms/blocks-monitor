@@ -14,8 +14,15 @@ import {
   DialogTrigger,
 } from "@/components/ui-kits/dialog/dialog";
 import { Pagination } from "@/components/ui-kits/pagination/pagination";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui-kits/table/table";
-import { useProjectStore } from "@/store/useProjectStore";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui-kits/table/table";
+import { useProjectStore } from "@/store/project.store.ts";
 import { useGetPermissions } from "@blocks-idp/iam/hooks/use-permission";
 import { IPermission, RESOURCE_TYPE } from "@blocks-idp/iam/models/permission";
 import { useMemo, useState } from "react";
@@ -25,10 +32,15 @@ type AddDependentPermissionProps = {
   onAdd: (data: IPermission[]) => void;
 };
 
-export const AddDependentPermission = ({ onAdd, permissionsResource }: AddDependentPermissionProps) => {
+export const AddDependentPermission = ({
+  onAdd,
+  permissionsResource,
+}: AddDependentPermissionProps) => {
   const tenantId = useProjectStore().selectedProject?.tenantId || "";
   const [open, setOpen] = useState<boolean>(false);
-  const [selectedPermisson, setSelectedPermissions] = useState<IPermission[]>([]);
+  const [selectedPermisson, setSelectedPermissions] = useState<IPermission[]>(
+    [],
+  );
   const [filter, setFilter] = useState({
     page: 0,
     pageSize: 5,
@@ -48,11 +60,16 @@ export const AddDependentPermission = ({ onAdd, permissionsResource }: AddDepend
     setOpen(false);
   };
 
-  const onCheckedChangeHandler = (checked: boolean, permission: IPermission) => {
+  const onCheckedChangeHandler = (
+    checked: boolean,
+    permission: IPermission,
+  ) => {
     if (checked) {
       return setSelectedPermissions((prev) => [...prev, permission]);
     }
-    setSelectedPermissions((prev) => prev.filter((item) => item.resource !== permission.resource));
+    setSelectedPermissions((prev) =>
+      prev.filter((item) => item.resource !== permission.resource),
+    );
   };
 
   const resetFilter = () => {
@@ -77,8 +94,7 @@ export const AddDependentPermission = ({ onAdd, permissionsResource }: AddDepend
       onOpenChange={(v) => {
         if (!v) resetFilter();
         setOpen(v);
-      }}
-    >
+      }}>
       <DialogTrigger asChild>
         <Button
           size="sm"
@@ -86,8 +102,7 @@ export const AddDependentPermission = ({ onAdd, permissionsResource }: AddDepend
           onClick={(e) => {
             e.stopPropagation();
           }}
-          className="h-[34px]"
-        >
+          className="h-[34px]">
           Add
         </Button>
       </DialogTrigger>
@@ -99,7 +114,9 @@ export const AddDependentPermission = ({ onAdd, permissionsResource }: AddDepend
         <div>
           <FilterControls.SearchInput
             placeholder="Search by permission name"
-            onChange={(search) => setFilter((prev) => ({ ...prev, search, page: 0 }))}
+            onChange={(search) =>
+              setFilter((prev) => ({ ...prev, search, page: 0 }))
+            }
             value={filter.search}
             className="h-fit w-full py-3"
           />
@@ -125,7 +142,11 @@ export const AddDependentPermission = ({ onAdd, permissionsResource }: AddDepend
                         }
                         disabled={permissionsResource.includes(item.resource)}
                         onCheckedChange={(checked) => {
-                          if (permissionsResource.length + selectedPermisson.length < 5)
+                          if (
+                            permissionsResource.length +
+                              selectedPermisson.length <
+                            5
+                          )
                             onCheckedChangeHandler(checked as boolean, item);
                         }}
                       />
@@ -136,7 +157,11 @@ export const AddDependentPermission = ({ onAdd, permissionsResource }: AddDepend
                       </Badge>
                     </TableCell>
                     <TableCell className="w-[100px]">
-                      {RESOURCE_TYPE.find((resoruce) => resoruce.value === item.type.toString())?.label}
+                      {
+                        RESOURCE_TYPE.find(
+                          (resoruce) => resoruce.value === item.type.toString(),
+                        )?.label
+                      }
                     </TableCell>
                   </TableRow>
                 ))}

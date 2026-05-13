@@ -1,6 +1,6 @@
 import { http } from "@/lib/http-client";
 import { getRuntimeEnv } from "@/lib/runtime-env";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAuthStore } from "@/store/auth.store.ts";
 import {
   ISigninByEmailPayload,
   ISigninByEmailResponse,
@@ -13,7 +13,9 @@ import { AUTH_ENDPOINTS } from "../constants/endpoint.constant";
 import { PEOPLE_ENDPOINTS } from "@blocks-identifier/constants/endpoint.constant";
 
 export class AuthService {
-  signinByEmail(payload: ISigninByEmailPayload): Promise<ISigninByEmailResponse> {
+  signinByEmail(
+    payload: ISigninByEmailPayload,
+  ): Promise<ISigninByEmailResponse> {
     const body = new URLSearchParams();
     body.append("grant_type", "password");
     body.append("username", payload.username);
@@ -54,16 +56,17 @@ export class AuthService {
       body,
       {
         "Content-Type": "application/x-www-form-urlencoded",
-        "Authorization": "Basic c2VsaXNlYmxvY2tzOkJsMDNrc0B1JFU3VjEwUw=="
+        Authorization: "Basic c2VsaXNlYmxvY2tzOkJsMDNrc0B1JFU3VjEwUw==",
       },
       {
         absoluteUrl: true,
-
       },
     );
   }
 
-  signupByEmail(payload: ISignupByEmailPayload): Promise<ISignupByEmailResponse> {
+  signupByEmail(
+    payload: ISignupByEmailPayload,
+  ): Promise<ISignupByEmailResponse> {
     return http.post(PEOPLE_ENDPOINTS.SIGNUP, payload);
   }
 
@@ -73,8 +76,12 @@ export class AuthService {
 
   logout() {
     // For localhost, send actual refresh token; for remote, send empty (uses cookie)
-    const isLocalhost = getRuntimeEnv("BLOCKS_API_BASE_URL")?.includes("localhost");
-    const refreshToken = isLocalhost ? (useAuthStore.getState().refreshToken || "") : "";
+    const isLocalhost = getRuntimeEnv("BLOCKS_API_BASE_URL")?.includes(
+      "localhost",
+    );
+    const refreshToken = isLocalhost
+      ? useAuthStore.getState().refreshToken || ""
+      : "";
     return http.post(AUTH_ENDPOINTS.LOGOUT, { refreshToken });
   }
 }

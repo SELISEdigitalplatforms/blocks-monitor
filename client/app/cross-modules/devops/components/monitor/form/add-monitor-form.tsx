@@ -1,4 +1,4 @@
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { MonitorFormFields } from "./monitor-form-fields";
 import { useMonitorFormController } from "./use-monitor-form-controller";
 

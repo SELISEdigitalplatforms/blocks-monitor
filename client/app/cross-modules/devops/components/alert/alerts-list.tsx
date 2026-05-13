@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui-kits/table/table";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import AlertAction from "@/cross-modules/devops/components/alert/alert-action";
 import ProgressBar from "@/cross-modules/devops/components/alert/progress-bar";
 import { AlertTree } from "@/cross-modules/devops/models/alerts.model";

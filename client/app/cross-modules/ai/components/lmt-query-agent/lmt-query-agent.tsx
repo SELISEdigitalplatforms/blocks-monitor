@@ -1,8 +1,14 @@
-import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Bot, X } from "lucide-react";
 import { Button } from "@/components/ui-kits/button/button";
 import { Card } from "@/components/ui-kits/card/card";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { useLMTQueryAgentSSE } from "@blocks-ai/hooks/use-agent";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,7 +50,9 @@ export const LMTQueryAgent: React.FC<LMTQueryAgentProps> = ({
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [conversations, setConversations] = useState<ConversationMessage[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [currentEvent, setCurrentEvent] = useState<{ message: string } | null>(null);
+  const [currentEvent, setCurrentEvent] = useState<{ message: string } | null>(
+    null,
+  );
 
   const containerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -74,7 +82,8 @@ export const LMTQueryAgent: React.FC<LMTQueryAgentProps> = ({
 
   const handleStreamEvent = useCallback(
     (eventType: string, eventData: Record<string, unknown>) => {
-      if (eventType === "start" && eventData.session_id) setSession(eventData.session_id as string);
+      if (eventType === "start" && eventData.session_id)
+        setSession(eventData.session_id as string);
 
       handleAgentEvent(
         { type: eventType, ...eventData },
@@ -83,7 +92,11 @@ export const LMTQueryAgent: React.FC<LMTQueryAgentProps> = ({
           clearStatus: () => setCurrentEvent(null),
           renderAnswer: (event) => {
             setSuggestions((event.next_step_questions as string[]) || []);
-            addMessage("bot", (event.result as string) || "", getTimestampOrNow(event.timestamp));
+            addMessage(
+              "bot",
+              (event.result as string) || "",
+              getTimestampOrNow(event.timestamp),
+            );
           },
           showError: (error) => {
             addMessage(
@@ -172,7 +185,9 @@ export const LMTQueryAgent: React.FC<LMTQueryAgentProps> = ({
           <div className="rounded-sm bg-blocks-primary-25 px-1 py-0.5">
             <Bot className="aspect-square w-5" aria-hidden="true" />
           </div>
-          <h1 className="text-lg font-semibold text-high-emphasis">{agentName}</h1>
+          <h1 className="text-lg font-semibold text-high-emphasis">
+            {agentName}
+          </h1>
         </div>
         {onClose && (
           <Button
@@ -180,8 +195,7 @@ export const LMTQueryAgent: React.FC<LMTQueryAgentProps> = ({
             size="icon"
             variant="ghost"
             onClick={onClose}
-            className="rounded-full hover:bg-muted/50"
-          >
+            className="rounded-full hover:bg-muted/50">
             <X className="h-4 w-4" />
           </Button>
         )}
@@ -190,8 +204,12 @@ export const LMTQueryAgent: React.FC<LMTQueryAgentProps> = ({
       <div
         ref={containerRef}
         className="flex min-h-0 w-full flex-1 flex-col gap-8 overflow-y-auto border-l border-r px-6 py-2 pb-1.5 text-base font-normal"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
-      >
+        style={
+          {
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          } as React.CSSProperties
+        }>
         {conversations.length === 0 && (
           <EmptyConversations
             queries={questions}
@@ -208,7 +226,9 @@ export const LMTQueryAgent: React.FC<LMTQueryAgentProps> = ({
                 suggestions.length > 0 && (
                   <ChatItemSuggestions
                     suggestions={suggestions}
-                    onSelect={(suggestion) => handleSubmit({ query: suggestion })}
+                    onSelect={(suggestion) =>
+                      handleSubmit({ query: suggestion })
+                    }
                   />
                 )}
             </Fragment>

@@ -23,7 +23,7 @@ import {
 } from "@/components/ui-kits/form/form";
 import { useAddUser } from "@blocks-idp/iam/hooks/use-user";
 import { z } from "zod";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { useState } from "react";
 import { isErrorWithErrors } from "@/lib/error";
 import { PrimaryButton } from "@/components/action-buttons/primary-button";
@@ -52,7 +52,9 @@ interface InviteOrganizationUserProps {
   organizationId: string;
 }
 
-export const InviteOrganizationUser = ({ organizationId }: InviteOrganizationUserProps) => {
+export const InviteOrganizationUser = ({
+  organizationId,
+}: InviteOrganizationUserProps) => {
   const { isPending, mutateAsync } = useAddUser();
   const tenantId = useProjectStore().selectedProject?.tenantId || "";
   const [open, setOpen] = useState(false);
@@ -62,7 +64,9 @@ export const InviteOrganizationUser = ({ organizationId }: InviteOrganizationUse
     resolver: zodResolver(inviteOrganizationUserFormSchema),
   });
 
-  const onSubmitHandler = async (values: z.infer<typeof inviteOrganizationUserFormSchema>) => {
+  const onSubmitHandler = async (
+    values: z.infer<typeof inviteOrganizationUserFormSchema>,
+  ) => {
     try {
       const res = await mutateAsync({
         ...values,
@@ -147,7 +151,9 @@ export const InviteOrganizationUser = ({ organizationId }: InviteOrganizationUse
                   Cancel
                 </Button>
               </DialogClose>
-              <Button disabled={isPending}>{isPending ? "Sending..." : "Send"}</Button>
+              <Button disabled={isPending}>
+                {isPending ? "Sending..." : "Send"}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

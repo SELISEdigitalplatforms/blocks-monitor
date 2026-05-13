@@ -9,7 +9,7 @@ import {
 } from "@/components/ui-kits/dialog/dialog";
 import React from "react";
 import { toast } from "@/hooks/use-toast";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { useDeleteEmailConfig } from "../../../../hooks/use-email-config";
 
 interface DeleteEmailConfigProps {
@@ -17,13 +17,19 @@ interface DeleteEmailConfigProps {
   onClose: () => void;
 }
 
-const DeleteEmailConfig: React.FC<DeleteEmailConfigProps> = ({ configId, onClose }) => {
+const DeleteEmailConfig: React.FC<DeleteEmailConfigProps> = ({
+  configId,
+  onClose,
+}) => {
   const { isPending, mutateAsync } = useDeleteEmailConfig();
   const tenantId = useProjectStore()?.selectedProject?.tenantId || "";
 
   const deleteConfig = async () => {
     try {
-      const res = await mutateAsync({ configurationId: configId, projectKey: tenantId });
+      const res = await mutateAsync({
+        configurationId: configId,
+        projectKey: tenantId,
+      });
 
       if (res?.isSuccess) {
         toast({
@@ -64,7 +70,11 @@ const DeleteEmailConfig: React.FC<DeleteEmailConfigProps> = ({ configId, onClose
             Cancel
           </Button>
         </DialogTrigger>
-        <Button size="default" className="bg-error" onClick={deleteConfig} disabled={isPending}>
+        <Button
+          size="default"
+          className="bg-error"
+          onClick={deleteConfig}
+          disabled={isPending}>
           Delete Configuration
         </Button>
       </DialogFooter>

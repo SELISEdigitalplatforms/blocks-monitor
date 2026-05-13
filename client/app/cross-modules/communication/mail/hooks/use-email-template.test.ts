@@ -1,7 +1,10 @@
 import { createWrapper } from "@/test-utils/test-providers/query-client";
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { mockProjectStoreFactory, mockToastFactory } from "@/test-utils/__mocks__";
+import {
+  mockProjectStoreFactory,
+  mockToastFactory,
+} from "@/test-utils/__mocks__";
 import {
   mockCloneTemplatePayload,
   mockDeleteTemplatePayload,
@@ -25,8 +28,10 @@ import {
 } from "./use-email-template";
 import { TEST_TENANT_ID } from "@/test-utils/__mocks__/data.mock";
 
-vi.mock("@blocks-communication/mail/services/email.services", () => mockEmailServiceFactory());
-vi.mock("@/store/useProjectStore", () => mockProjectStoreFactory());
+vi.mock("@blocks-communication/mail/services/email.services", () =>
+  mockEmailServiceFactory(),
+);
+vi.mock("@/store/project.store.ts", () => mockProjectStoreFactory());
 vi.mock("@/hooks/use-toast", () => mockToastFactory());
 
 describe("Email Template Hooks", () => {
@@ -36,7 +41,9 @@ describe("Email Template Hooks", () => {
 
   describe("useSendTestMail", () => {
     it("should send test email successfully", async () => {
-      vi.mocked(emailService.sendTestMail).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(emailService.sendTestMail).mockResolvedValue(
+        mockSuccessResponse,
+      );
 
       const { result } = renderHook(() => useSendTestMail(), {
         wrapper: createWrapper(),
@@ -46,7 +53,9 @@ describe("Email Template Hooks", () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(emailService.sendTestMail).toHaveBeenCalledWith(mockSendTestMailPayload);
+      expect(emailService.sendTestMail).toHaveBeenCalledWith(
+        mockSendTestMailPayload,
+      );
       expect(result.current.data).toEqual(mockSuccessResponse);
     });
 
@@ -69,7 +78,9 @@ describe("Email Template Hooks", () => {
     });
 
     it("should use correct mutation key", async () => {
-      vi.mocked(emailService.sendTestMail).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(emailService.sendTestMail).mockResolvedValue(
+        mockSuccessResponse,
+      );
 
       const { result } = renderHook(() => useSendTestMail(), {
         wrapper: createWrapper(),
@@ -82,7 +93,9 @@ describe("Email Template Hooks", () => {
 
   describe("useCloneTemplate", () => {
     it("should clone template successfully", async () => {
-      vi.mocked(emailService.cloneMailTemplate).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(emailService.cloneMailTemplate).mockResolvedValue(
+        mockSuccessResponse,
+      );
 
       const { result } = renderHook(() => useCloneTemplate(), {
         wrapper: createWrapper(),
@@ -92,13 +105,19 @@ describe("Email Template Hooks", () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(emailService.cloneMailTemplate).toHaveBeenCalledWith(mockCloneTemplatePayload);
+      expect(emailService.cloneMailTemplate).toHaveBeenCalledWith(
+        mockCloneTemplatePayload,
+      );
       expect(result.current.data).toEqual(mockSuccessResponse);
     });
 
     it("should invalidate email-templates query on success", async () => {
-      vi.mocked(emailService.cloneMailTemplate).mockResolvedValue(mockSuccessResponse);
-      vi.mocked(emailService.fetchEmailTemplates).mockResolvedValue(mockEmailTemplatesResponse);
+      vi.mocked(emailService.cloneMailTemplate).mockResolvedValue(
+        mockSuccessResponse,
+      );
+      vi.mocked(emailService.fetchEmailTemplates).mockResolvedValue(
+        mockEmailTemplatesResponse,
+      );
 
       const wrapper = createWrapper();
 
@@ -111,7 +130,9 @@ describe("Email Template Hooks", () => {
       await waitFor(() => expect(templatesResult.current.isSuccess).toBe(true));
 
       // Then clone a template
-      const { result: cloneResult } = renderHook(() => useCloneTemplate(), { wrapper });
+      const { result: cloneResult } = renderHook(() => useCloneTemplate(), {
+        wrapper,
+      });
 
       cloneResult.current.mutate(mockCloneTemplatePayload);
 
@@ -144,7 +165,9 @@ describe("Email Template Hooks", () => {
 
   describe("useDeleteEmailTemplate", () => {
     it("should delete template successfully", async () => {
-      vi.mocked(emailService.deleteMailTemplate).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(emailService.deleteMailTemplate).mockResolvedValue(
+        mockSuccessResponse,
+      );
 
       const { result } = renderHook(() => useDeleteEmailTemplate(), {
         wrapper: createWrapper(),
@@ -154,13 +177,19 @@ describe("Email Template Hooks", () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(emailService.deleteMailTemplate).toHaveBeenCalledWith(mockDeleteTemplatePayload);
+      expect(emailService.deleteMailTemplate).toHaveBeenCalledWith(
+        mockDeleteTemplatePayload,
+      );
       expect(result.current.data).toEqual(mockSuccessResponse);
     });
 
     it("should invalidate email-templates query on success", async () => {
-      vi.mocked(emailService.deleteMailTemplate).mockResolvedValue(mockSuccessResponse);
-      vi.mocked(emailService.fetchEmailTemplates).mockResolvedValue(mockEmailTemplatesResponse);
+      vi.mocked(emailService.deleteMailTemplate).mockResolvedValue(
+        mockSuccessResponse,
+      );
+      vi.mocked(emailService.fetchEmailTemplates).mockResolvedValue(
+        mockEmailTemplatesResponse,
+      );
 
       const wrapper = createWrapper();
 
@@ -173,7 +202,10 @@ describe("Email Template Hooks", () => {
       await waitFor(() => expect(templatesResult.current.isSuccess).toBe(true));
 
       // Then delete a template
-      const { result: deleteResult } = renderHook(() => useDeleteEmailTemplate(), { wrapper });
+      const { result: deleteResult } = renderHook(
+        () => useDeleteEmailTemplate(),
+        { wrapper },
+      );
 
       deleteResult.current.mutate(mockDeleteTemplatePayload);
 
@@ -206,10 +238,21 @@ describe("Email Template Hooks", () => {
 
   describe("useGetEmailTemplates", () => {
     it("should fetch email templates successfully with all filters", async () => {
-      vi.mocked(emailService.fetchEmailTemplates).mockResolvedValue(mockEmailTemplatesResponse);
+      vi.mocked(emailService.fetchEmailTemplates).mockResolvedValue(
+        mockEmailTemplatesResponse,
+      );
 
       const { result } = renderHook(
-        () => useGetEmailTemplates(0, 10, "welcome", "Name", false, "en", "config-1"),
+        () =>
+          useGetEmailTemplates(
+            0,
+            10,
+            "welcome",
+            "Name",
+            false,
+            "en",
+            "config-1",
+          ),
         { wrapper: createWrapper() },
       );
 
@@ -231,10 +274,21 @@ describe("Email Template Hooks", () => {
     });
 
     it("should use correct query key for caching with all params", async () => {
-      vi.mocked(emailService.fetchEmailTemplates).mockResolvedValue(mockEmailTemplatesResponse);
+      vi.mocked(emailService.fetchEmailTemplates).mockResolvedValue(
+        mockEmailTemplatesResponse,
+      );
 
       const { result } = renderHook(
-        () => useGetEmailTemplates(2, 20, "test", "CreatedDate", true, "fr", "config-2"),
+        () =>
+          useGetEmailTemplates(
+            2,
+            20,
+            "test",
+            "CreatedDate",
+            true,
+            "fr",
+            "config-2",
+          ),
         { wrapper: createWrapper() },
       );
 
@@ -253,11 +307,16 @@ describe("Email Template Hooks", () => {
     });
 
     it("should handle empty filters", async () => {
-      vi.mocked(emailService.fetchEmailTemplates).mockResolvedValue(mockEmailTemplatesResponse);
+      vi.mocked(emailService.fetchEmailTemplates).mockResolvedValue(
+        mockEmailTemplatesResponse,
+      );
 
-      const { result } = renderHook(() => useGetEmailTemplates(0, 10, "", "Name", false, "", ""), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHook(
+        () => useGetEmailTemplates(0, 10, "", "Name", false, "", ""),
+        {
+          wrapper: createWrapper(),
+        },
+      );
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
@@ -274,7 +333,9 @@ describe("Email Template Hooks", () => {
     });
 
     it("should have staleTime of 0", async () => {
-      vi.mocked(emailService.fetchEmailTemplates).mockResolvedValue(mockEmailTemplatesResponse);
+      vi.mocked(emailService.fetchEmailTemplates).mockResolvedValue(
+        mockEmailTemplatesResponse,
+      );
 
       const { result } = renderHook(
         () => useGetEmailTemplates(0, 10, "", "Name", false, "en", ""),
@@ -305,7 +366,9 @@ describe("Email Template Hooks", () => {
 
   describe("useGetEmailTemplate", () => {
     it("should fetch single email template successfully", async () => {
-      vi.mocked(emailService.fetchEmailTemplate).mockResolvedValue(mockEmailTemplate);
+      vi.mocked(emailService.fetchEmailTemplate).mockResolvedValue(
+        mockEmailTemplate,
+      );
 
       const { result } = renderHook(() => useGetEmailTemplate("template-1"), {
         wrapper: createWrapper(),
@@ -316,11 +379,16 @@ describe("Email Template Hooks", () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       expect(result.current.data).toEqual(mockEmailTemplate);
-      expect(emailService.fetchEmailTemplate).toHaveBeenCalledWith(TEST_TENANT_ID, "template-1");
+      expect(emailService.fetchEmailTemplate).toHaveBeenCalledWith(
+        TEST_TENANT_ID,
+        "template-1",
+      );
     });
 
     it("should use correct query key for caching", async () => {
-      vi.mocked(emailService.fetchEmailTemplate).mockResolvedValue(mockEmailTemplate);
+      vi.mocked(emailService.fetchEmailTemplate).mockResolvedValue(
+        mockEmailTemplate,
+      );
 
       const { result } = renderHook(() => useGetEmailTemplate("template-2"), {
         wrapper: createWrapper(),
@@ -328,11 +396,16 @@ describe("Email Template Hooks", () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(emailService.fetchEmailTemplate).toHaveBeenCalledWith(TEST_TENANT_ID, "template-2");
+      expect(emailService.fetchEmailTemplate).toHaveBeenCalledWith(
+        TEST_TENANT_ID,
+        "template-2",
+      );
     });
 
     it("should have staleTime of 0", async () => {
-      vi.mocked(emailService.fetchEmailTemplate).mockResolvedValue(mockEmailTemplate);
+      vi.mocked(emailService.fetchEmailTemplate).mockResolvedValue(
+        mockEmailTemplate,
+      );
 
       const { result } = renderHook(() => useGetEmailTemplate("template-1"), {
         wrapper: createWrapper(),
@@ -345,7 +418,9 @@ describe("Email Template Hooks", () => {
     });
 
     it("should handle errors", async () => {
-      vi.mocked(emailService.fetchEmailTemplate).mockRejectedValue(new Error("Template not found"));
+      vi.mocked(emailService.fetchEmailTemplate).mockRejectedValue(
+        new Error("Template not found"),
+      );
 
       const { result } = renderHook(() => useGetEmailTemplate("invalid-id"), {
         wrapper: createWrapper(),
@@ -371,9 +446,11 @@ describe("Email Template Hooks", () => {
       expect(result.current.isPending).toBe(false);
 
       let response;
-      const savePromise = result.current.saveEmailTemplate(mockEmailTemplate).then((res) => {
-        response = res;
-      });
+      const savePromise = result.current
+        .saveEmailTemplate(mockEmailTemplate)
+        .then((res) => {
+          response = res;
+        });
 
       // isPending should be true during save
       await waitFor(() => expect(result.current.isPending).toBe(true));
@@ -391,7 +468,9 @@ describe("Email Template Hooks", () => {
     });
 
     it("should handle save with empty itemId", async () => {
-      vi.mocked(emailService.saveMailTemplate).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(emailService.saveMailTemplate).mockResolvedValue(
+        mockSuccessResponse,
+      );
 
       const { result } = renderHook(() => useSaveEmailTemplate(), {
         wrapper: createWrapper(),
@@ -415,16 +494,18 @@ describe("Email Template Hooks", () => {
         wrapper: createWrapper(),
       });
 
-      await expect(result.current.saveEmailTemplate(mockEmailTemplate)).rejects.toThrow(
-        "Failed to save template",
-      );
+      await expect(
+        result.current.saveEmailTemplate(mockEmailTemplate),
+      ).rejects.toThrow("Failed to save template");
 
       // isPending should be false after error
       await waitFor(() => expect(result.current.isPending).toBe(false));
     });
 
     it("should include projectKey from tenantId", async () => {
-      vi.mocked(emailService.saveMailTemplate).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(emailService.saveMailTemplate).mockResolvedValue(
+        mockSuccessResponse,
+      );
 
       const { result } = renderHook(() => useSaveEmailTemplate(), {
         wrapper: createWrapper(),
@@ -432,14 +513,17 @@ describe("Email Template Hooks", () => {
 
       await result.current.saveEmailTemplate(mockEmailTemplate);
 
-      const callArgs = vi.mocked(emailService.saveMailTemplate).mock.calls[0][0];
+      const callArgs = vi.mocked(emailService.saveMailTemplate).mock
+        .calls[0][0];
       expect(callArgs.projectKey).toBe(TEST_TENANT_ID);
     });
   });
 
   describe("useSaveMailTemplate", () => {
     it("should save mail template successfully", async () => {
-      vi.mocked(emailService.saveMailTemplate).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(emailService.saveMailTemplate).mockResolvedValue(
+        mockSuccessResponse,
+      );
 
       const { result } = renderHook(() => useSaveMailTemplate(), {
         wrapper: createWrapper(),
@@ -449,14 +533,22 @@ describe("Email Template Hooks", () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(emailService.saveMailTemplate).toHaveBeenCalledWith(mockSaveTemplatePayload);
+      expect(emailService.saveMailTemplate).toHaveBeenCalledWith(
+        mockSaveTemplatePayload,
+      );
       expect(result.current.data).toEqual(mockSuccessResponse);
     });
 
     it("should invalidate both email-templates and email-template queries on success", async () => {
-      vi.mocked(emailService.saveMailTemplate).mockResolvedValue(mockSuccessResponse);
-      vi.mocked(emailService.fetchEmailTemplates).mockResolvedValue(mockEmailTemplatesResponse);
-      vi.mocked(emailService.fetchEmailTemplate).mockResolvedValue(mockEmailTemplate);
+      vi.mocked(emailService.saveMailTemplate).mockResolvedValue(
+        mockSuccessResponse,
+      );
+      vi.mocked(emailService.fetchEmailTemplates).mockResolvedValue(
+        mockEmailTemplatesResponse,
+      );
+      vi.mocked(emailService.fetchEmailTemplate).mockResolvedValue(
+        mockEmailTemplate,
+      );
 
       const wrapper = createWrapper();
 
@@ -465,15 +557,20 @@ describe("Email Template Hooks", () => {
         () => useGetEmailTemplates(0, 10, "", "Name", false, "en", ""),
         { wrapper },
       );
-      const { result: templateResult } = renderHook(() => useGetEmailTemplate("template-1"), {
-        wrapper,
-      });
+      const { result: templateResult } = renderHook(
+        () => useGetEmailTemplate("template-1"),
+        {
+          wrapper,
+        },
+      );
 
       await waitFor(() => expect(templatesResult.current.isSuccess).toBe(true));
       await waitFor(() => expect(templateResult.current.isSuccess).toBe(true));
 
       // Then save a template
-      const { result: saveResult } = renderHook(() => useSaveMailTemplate(), { wrapper });
+      const { result: saveResult } = renderHook(() => useSaveMailTemplate(), {
+        wrapper,
+      });
 
       saveResult.current.mutate(mockSaveTemplatePayload);
 
@@ -505,7 +602,9 @@ describe("Email Template Hooks", () => {
     });
 
     it("should use correct mutation key", async () => {
-      vi.mocked(emailService.saveMailTemplate).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(emailService.saveMailTemplate).mockResolvedValue(
+        mockSuccessResponse,
+      );
 
       const { result } = renderHook(() => useSaveMailTemplate(), {
         wrapper: createWrapper(),

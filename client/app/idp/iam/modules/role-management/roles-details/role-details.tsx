@@ -1,14 +1,15 @@
-
-
 import { useMemo } from "react";
 import { BREADCRUMB_CUSTOM_TITLES } from "@/constants/breadcrumb-custom-title";
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
 import PageBreadcrumb from "@/components/breadcrumb/breadcrumb";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { useSetRoles } from "@blocks-idp/iam/hooks/use-roles";
 import { Button } from "@/components/ui-kits/button/button";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
-import { IPermission, PermissionSeverityLevel } from "@blocks-idp/iam/models/permission";
+import {
+  IPermission,
+  PermissionSeverityLevel,
+} from "@blocks-idp/iam/models/permission";
 import { RoleDetailsProvider, useRoleDetailsStore } from "./role-details-state";
 import { PermissionSeverity } from "@blocks-idp/iam/components/permission-severity/permission-severity";
 import { useQueryClient } from "@tanstack/react-query";
@@ -27,7 +28,8 @@ export function RoleDetailsContainer() {
   const { isPending, mutateAsync } = useSetRoles(role?.slug);
 
   BREADCRUMB_CUSTOM_TITLES["/services/iam/role-detail"] = "Roles";
-  BREADCRUMB_CUSTOM_TITLES["/services/iam/role-detail/" + role?.itemId] = role?.name || "";
+  BREADCRUMB_CUSTOM_TITLES["/services/iam/role-detail/" + role?.itemId] =
+    role?.name || "";
 
   const onSaveClick = async () => {
     const changedPermissions = Array.from(permissionMap.values()).reduce(
@@ -45,7 +47,10 @@ export function RoleDetailsContainer() {
       },
       { added: [] as string[], removed: [] as string[] },
     );
-    if (!role?.slug || (!changedPermissions.added.length && !changedPermissions.removed.length))
+    if (
+      !role?.slug ||
+      (!changedPermissions.added.length && !changedPermissions.removed.length)
+    )
       return null;
     try {
       await mutateAsync({
@@ -54,7 +59,9 @@ export function RoleDetailsContainer() {
         projectKey: tenantId,
         slug: role.slug,
       });
-      showSuccessToast({ description: "Role permissions updated successfully" });
+      showSuccessToast({
+        description: "Role permissions updated successfully",
+      });
       queryClient.invalidateQueries({ queryKey: ["permissions"] });
     } catch (error) {
       if (error && typeof error === "object" && "errors" in error) {
@@ -110,17 +117,25 @@ export function RoleDetailsContainer() {
             )}
             {isEditMode && (
               <>
-                <Button variant="outline" disabled={isPending} onClick={() => discardChanges()}>
+                <Button
+                  variant="outline"
+                  disabled={isPending}
+                  onClick={() => discardChanges()}>
                   <span>Discard</span>
                 </Button>
-                <Button disabled={isPending || !isInitialized} onClick={onSaveClick}>
+                <Button
+                  disabled={isPending || !isInitialized}
+                  onClick={onSaveClick}>
                   <span>Save Changes</span>
                 </Button>
               </>
             )}
           </div>
         </div>
-        <PermissionSeverity data={permissionSeverityData} isLoading={!isInitialized} />
+        <PermissionSeverity
+          data={permissionSeverityData}
+          isLoading={!isInitialized}
+        />
         <PermissionsSelectionPanel />
       </div>
     </div>

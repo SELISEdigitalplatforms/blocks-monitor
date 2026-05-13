@@ -1,5 +1,8 @@
 import React, { useMemo } from "react";
-import { ScrollArea, ScrollBar } from "@/components/ui-kits/scroll-area/scroll-area";
+import {
+  ScrollArea,
+  ScrollBar,
+} from "@/components/ui-kits/scroll-area/scroll-area";
 import {
   Table,
   TableBody,
@@ -8,7 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui-kits/table/table";
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
 import { formatDate, parseDateString } from "@/lib/utils";
 import { MagicUrl } from "@blocks-utilities/models/magic-url.model";
@@ -25,7 +33,7 @@ import { EllipsisVertical, CircleSlash, Eye, ExternalLink } from "lucide-react";
 import { MagicUrlStatusBadge } from "./magic-url-status-badge";
 import { useNavigate } from "react-router-dom";
 import { CopyToClipboardButton } from "@/components/copy-to-clipboard-button";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { useDeactivateMagicUrl } from "@blocks-utilities/hooks/use-deactivate-magic-url";
 import ConfirmationModal from "@/components/confirmation-modal/confirmation-modal";
 import { Dialog } from "@/components/ui-kits/dialog/dialog";
@@ -48,8 +56,11 @@ export function MagicUrlsList({ data, isLoading }: MagicUrlsListProps) {
   const navigate = useNavigate();
   const tenantId = useProjectStore()?.selectedProject?.tenantId || "";
   const { deactivateMagicUrl, isRemoving } = useDeactivateMagicUrl();
-  const [itemToDeactivate, setItemToDeactivate] = React.useState<string | null>(null);
-  const [isDeactivateModalOpen, setIsDeactivateModalOpen] = React.useState(false);
+  const [itemToDeactivate, setItemToDeactivate] = React.useState<string | null>(
+    null,
+  );
+  const [isDeactivateModalOpen, setIsDeactivateModalOpen] =
+    React.useState(false);
 
   const handleDeactivate = (id: string) => {
     setItemToDeactivate(id);
@@ -83,13 +94,16 @@ export function MagicUrlsList({ data, isLoading }: MagicUrlsListProps) {
         ),
         cell: ({ row }) => (
           <div className="ml-2 flex flex-col sm:ml-0">
-            <CopyToClipboardButton textToCopy={row.original.shortUri} isHoverable>
-              <span className="truncate font-medium">{row.original.shortUri}</span>
+            <CopyToClipboardButton
+              textToCopy={row.original.shortUri}
+              isHoverable>
+              <span className="truncate font-medium">
+                {row.original.shortUri}
+              </span>
             </CopyToClipboardButton>
             <span
               className="w-[420px] truncate text-xs text-muted-foreground"
-              title={row.original.uri}
-            >
+              title={row.original.uri}>
               {row.original.uri}
             </span>
           </div>
@@ -133,7 +147,11 @@ export function MagicUrlsList({ data, isLoading }: MagicUrlsListProps) {
           if (!dateStr) return <div className="ml-2 w-[180px] sm:ml-0">-</div>;
           const dateValue = parseDateString(dateStr);
           const formattedDate = formatDate(dateValue);
-          return <div className="ml-2 w-[180px] lowercase sm:ml-0">{formattedDate}</div>;
+          return (
+            <div className="ml-2 w-[180px] lowercase sm:ml-0">
+              {formattedDate}
+            </div>
+          );
         },
       },
       {
@@ -150,7 +168,9 @@ export function MagicUrlsList({ data, isLoading }: MagicUrlsListProps) {
         header: "Request Method",
         cell: ({ row }) => (
           <div className="ml-2 flex w-[120px] items-center sm:ml-0">
-            <span className="uppercase">{row.getValue("requestMethod") || "-"}</span>
+            <span className="uppercase">
+              {row.getValue("requestMethod") || "-"}
+            </span>
           </div>
         ),
       },
@@ -158,7 +178,9 @@ export function MagicUrlsList({ data, isLoading }: MagicUrlsListProps) {
         accessorKey: "clientCredential",
         header: "Client Credential",
         cell: ({ row }) => (
-          <div className="max-w-[150px] truncate" title={row.getValue("clientCredential")}>
+          <div
+            className="max-w-[150px] truncate"
+            title={row.getValue("clientCredential")}>
             {row.getValue("clientCredential") || "-"}
           </div>
         ),
@@ -170,15 +192,17 @@ export function MagicUrlsList({ data, isLoading }: MagicUrlsListProps) {
           <div onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-5 w-5 p-0" disabled={isRemoving}>
+                <Button
+                  variant="ghost"
+                  className="h-5 w-5 p-0"
+                  disabled={isRemoving}>
                   <EllipsisVertical width={20} height={20} />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
                   className="cursor-pointer"
-                  onClick={() => handleViewDetails(row.original.itemId)}
-                >
+                  onClick={() => handleViewDetails(row.original.itemId)}>
                   <Eye className="mr-2 h-4 w-4" />
                   <span>View Details</span>
                 </DropdownMenuItem>
@@ -187,8 +211,7 @@ export function MagicUrlsList({ data, isLoading }: MagicUrlsListProps) {
                   onClick={(e) => {
                     e.stopPropagation();
                     window.open(row.original.shortUri, "_blank");
-                  }}
-                >
+                  }}>
                   <ExternalLink className="mr-2 h-4 w-4" />
                   <span>Go to Link</span>
                 </DropdownMenuItem>
@@ -198,8 +221,7 @@ export function MagicUrlsList({ data, isLoading }: MagicUrlsListProps) {
                     e.stopPropagation();
                     handleDeactivate(row.original.itemId);
                   }}
-                  disabled={isRemoving}
-                >
+                  disabled={isRemoving}>
                   <CircleSlash className="mr-2 h-4 w-4" />
                   <span>{isRemoving ? "Removing..." : "Deactivate"}</span>
                 </DropdownMenuItem>
@@ -226,12 +248,19 @@ export function MagicUrlsList({ data, isLoading }: MagicUrlsListProps) {
         <Table className="text-sm">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="px-4 py-2 hover:bg-transparent">
+              <TableRow
+                key={headerGroup.id}
+                className="px-4 py-2 hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="font-bold text-medium-emphasis">
+                  <TableHead
+                    key={header.id}
+                    className="font-bold text-medium-emphasis">
                     {header.isPlaceholder
                       ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -245,11 +274,13 @@ export function MagicUrlsList({ data, isLoading }: MagicUrlsListProps) {
                   data-state={row.getIsSelected() && "selected"}
                   className="cursor-pointer text-medium-emphasis"
                   isHoverable
-                  onClick={() => handleViewDetails(row.original.itemId)}
-                >
+                  onClick={() => handleViewDetails(row.original.itemId)}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -258,8 +289,7 @@ export function MagicUrlsList({ data, isLoading }: MagicUrlsListProps) {
               <TableRow>
                 <TableCell
                   colSpan={table.getAllColumns().length}
-                  className="h-24 text-center text-muted-foreground"
-                >
+                  className="h-24 text-center text-muted-foreground">
                   No results.
                 </TableCell>
               </TableRow>
@@ -268,13 +298,16 @@ export function MagicUrlsList({ data, isLoading }: MagicUrlsListProps) {
         </Table>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
-      <Dialog open={isDeactivateModalOpen} onOpenChange={setIsDeactivateModalOpen}>
+      <Dialog
+        open={isDeactivateModalOpen}
+        onOpenChange={setIsDeactivateModalOpen}>
         <ConfirmationModal
           onCancel={() => setIsDeactivateModalOpen(false)}
           onConfirm={confirmDeactivate}
           data={{
             dialogTitle: "Deactivate Magic URL",
-            dialogSubtitle: "Are you sure you want to deactivate this Magic URL? This action cannot be undone.",
+            dialogSubtitle:
+              "Are you sure you want to deactivate this Magic URL? This action cannot be undone.",
             confirmButton: "Deactivate",
             cancelButton: "Cancel",
           }}

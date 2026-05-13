@@ -2,10 +2,13 @@ import { ServiceCard } from "@blocks-identifier/components/service-card/service-
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
 import { Card, CardContent } from "@/components/ui-kits/card/card";
 import { useGetAllServices } from "@blocks-identifier/hooks/use-services";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { Pagination } from "@/components/ui-kits/pagination/pagination";
 import { parseAsInteger, useQueryStates } from "nuqs";
-import { Accordion, AccordionItem } from "@/components/ui-kits/accordion/accordion";
+import {
+  Accordion,
+  AccordionItem,
+} from "@/components/ui-kits/accordion/accordion";
 
 const ServiceListSkeleton = () => (
   <div className="grid gap-4">
@@ -61,8 +64,7 @@ export const ServiceList = () => {
           <AccordionItem
             value={service.itemId}
             key={service.itemId}
-            className="rounded-sm border bg-background"
-          >
+            className="rounded-sm border bg-background">
             <ServiceCard
               key={service.itemId}
               service={{

@@ -1,4 +1,3 @@
-
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui-kits/tabs/tabs";
 import { LogMenu } from "@blocks-lmt/components";
 import { TabsContent } from "@radix-ui/react-tabs";
@@ -11,24 +10,41 @@ import { Button } from "@/components/ui-kits/button/button";
 import { AuthenticationTabs } from "@blocks-idp/authentication/constants/authentication.constant";
 // import { ClientCredentials } from "@blocks-idp/authentication/components/client-credentials";
 // import { CreateClientCredential } from "@blocks-idp/authentication/components/create-client-credential";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui-kits/select/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui-kits/select/select";
 import { Permissions } from "@blocks-idp/iam/modules/permission-management";
 import { AddRole, Roles } from "@blocks-idp/iam/modules/role-management";
 import { PrimaryButton } from "@/components/action-buttons/primary-button";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { CirclePlus, Settings, X } from "lucide-react";
-import { EmailServiceTable, EmailConfiguration, EmailCommunicationDetails } from "@blocks-communication/mail";
+import {
+  EmailServiceTable,
+  EmailConfiguration,
+  EmailCommunicationDetails,
+} from "@blocks-communication/mail";
 import { useState, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui-kits/dialog/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui-kits/dialog/dialog";
 import { Sheet, SheetContent } from "@/components/ui-kits/sheet/sheet";
-import StepperProvider, { useStepper } from "@/components/stepper/stepper-provider";
+import StepperProvider, {
+  useStepper,
+} from "@/components/stepper/stepper-provider";
 import StepVerticalTrackBar from "@/components/stepper/vertical-track-bar";
 import StepHorizontalTrackBar from "@/components/stepper/horizontal-track-bar";
 import BasicInformation from "@blocks-communication/mail/components/email-service/basic-information/basic-information";
 import BeePluginStarter from "@blocks-communication/mail/components/bee-plugin-starter/bee-plugin-starter";
 import { useSaveMailTemplate } from "@blocks-communication/mail/hooks/use-email-template";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { IEmailTemplate } from "@blocks-communication/mail/models/email";
 import { blankTemplate } from "@blocks-communication/mail/constants/email-template";
 
@@ -42,9 +58,14 @@ interface NewCommunicationContentProps {
   onCreated: (id: string) => void;
 }
 
-function NewCommunicationContent({ onClose, onCreated }: NewCommunicationContentProps) {
+function NewCommunicationContent({
+  onClose,
+  onCreated,
+}: NewCommunicationContentProps) {
   const { currentStep, nextStep } = useStepper();
-  const [templateData, setTemplateData] = useState<IEmailTemplate>({ itemId: "" });
+  const [templateData, setTemplateData] = useState<IEmailTemplate>({
+    itemId: "",
+  });
   const [isFormValid, setIsFormValid] = useState(false);
   const { isPending, mutateAsync: saveTemplate } = useSaveMailTemplate();
   const ref = useRef<{ submit: () => void; isValid: boolean }>(null);
@@ -63,7 +84,10 @@ function NewCommunicationContent({ onClose, onCreated }: NewCommunicationContent
     }
   };
 
-  const handleBeePluginData = async (data: { htmlFile: string; jsonFile: string }) => {
+  const handleBeePluginData = async (data: {
+    htmlFile: string;
+    jsonFile: string;
+  }) => {
     try {
       const res = await saveTemplate({
         itemId: templateData?.itemId || "",
@@ -85,12 +109,18 @@ function NewCommunicationContent({ onClose, onCreated }: NewCommunicationContent
       <div className="hidden min-h-full w-64 flex-shrink-0 flex-col gap-5 border-r bg-background p-5 pt-10 md:flex">
         <div className="mx-2 my-3">
           <div className="flex items-center gap-2">
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={onClose}>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={onClose}>
               <X className="h-6 w-6" />
             </Button>
             <p className="text-lg font-semibold">New Template</p>
           </div>
-          <p className="mb-7 mt-2 text-sm font-normal text-medium-emphasis">Create a new template</p>
+          <p className="mb-7 mt-2 text-sm font-normal text-medium-emphasis">
+            Create a new template
+          </p>
         </div>
         <StepVerticalTrackBar />
       </div>
@@ -100,12 +130,18 @@ function NewCommunicationContent({ onClose, onCreated }: NewCommunicationContent
         {/* Mobile header */}
         <div className="mb-4 flex flex-col items-center justify-center md:hidden">
           <div className="flex items-center gap-2">
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={onClose}>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={onClose}>
               <X className="h-6 w-6" />
             </Button>
             <p className="text-lg font-semibold">New Template</p>
           </div>
-          <p className="mt-2 text-sm text-medium-emphasis">Create a new template</p>
+          <p className="mt-2 text-sm text-medium-emphasis">
+            Create a new template
+          </p>
           <div className="mt-4 w-full">
             <StepHorizontalTrackBar />
           </div>
@@ -125,15 +161,23 @@ function NewCommunicationContent({ onClose, onCreated }: NewCommunicationContent
             <div className="mb-5 flex items-center justify-between">
               <h3 className="text-2xl font-semibold">Template</h3>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => beeRef?.current?.preview()}>
+                <Button
+                  variant="outline"
+                  onClick={() => beeRef?.current?.preview()}>
                   Preview
                 </Button>
-                <Button disabled={isPending} onClick={() => beeRef?.current?.submit()}>
+                <Button
+                  disabled={isPending}
+                  onClick={() => beeRef?.current?.submit()}>
                   Save
                 </Button>
               </div>
             </div>
-            <BeePluginStarter ref={beeRef} onBeeSave={handleBeePluginData} jsonFile={blankTemplate} />
+            <BeePluginStarter
+              ref={beeRef}
+              onBeeSave={handleBeePluginData}
+              jsonFile={blankTemplate}
+            />
           </div>
         )}
 
@@ -142,8 +186,7 @@ function NewCommunicationContent({ onClose, onCreated }: NewCommunicationContent
             <Button
               size="lg"
               onClick={() => ref?.current?.submit()}
-              disabled={isPending || !isFormValid}
-            >
+              disabled={isPending || !isFormValid}>
               Save & Continue
             </Button>
           </div>
@@ -154,11 +197,15 @@ function NewCommunicationContent({ onClose, onCreated }: NewCommunicationContent
 }
 
 export const AuthenticationConfig = () => {
-  const [selectedTab, setSelectedTab] = useQueryState("tab", { defaultValue: "general" });
+  const [selectedTab, setSelectedTab] = useQueryState("tab", {
+    defaultValue: "general",
+  });
   const navigate = useNavigate();
   const [configureOpen, setConfigureOpen] = useState(false);
   const [addTemplateOpen, setAddTemplateOpen] = useState(false);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
+    null,
+  );
 
   const handleTemplateCreated = (id: string) => {
     setAddTemplateOpen(false);
@@ -168,9 +215,10 @@ export const AuthenticationConfig = () => {
     <div>
       <div className="mb-[18px] flex items-center justify-between md:mb-[24px]">
         <h1 className="text-lg font-semibold md:text-2xl">IDP</h1>
-    
       </div>
-      <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value)}>
+      <Tabs
+        value={selectedTab}
+        onValueChange={(value) => setSelectedTab(value)}>
         <div className="mb-4 flex items-start justify-between gap-4">
           <>
             <div className="hidden w-full overflow-x-auto sm:block [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -183,7 +231,9 @@ export const AuthenticationConfig = () => {
               </TabsList>
             </div>
             <div className="sm:hidden">
-              <Select value={selectedTab} onValueChange={(value) => setSelectedTab(value)}>
+              <Select
+                value={selectedTab}
+                onValueChange={(value) => setSelectedTab(value)}>
                 <SelectTrigger className="w-32 gap-2">
                   <SelectValue />
                 </SelectTrigger>
@@ -212,8 +262,7 @@ export const AuthenticationConfig = () => {
                   variant="outline"
                   size="default"
                   className="gap-1 text-sm font-medium"
-                  onClick={() => setConfigureOpen(true)}
-                >
+                  onClick={() => setConfigureOpen(true)}>
                   <Settings className="h-5 w-5" />
                   <span className="sr-only sm:not-sr-only">Configure</span>
                 </Button>
@@ -221,8 +270,7 @@ export const AuthenticationConfig = () => {
                   size="default"
                   variant="default"
                   className="bg-primary text-primary-foreground shadow-none"
-                  onClick={() => setAddTemplateOpen(true)}
-                >
+                  onClick={() => setAddTemplateOpen(true)}>
                   <CirclePlus className="h-5 w-5 lg:mr-2" />
                   <span className="sr-only lg:not-sr-only">Add Template</span>
                 </Button>
@@ -238,13 +286,17 @@ export const AuthenticationConfig = () => {
         <TabsContent value="signin-flow">
           <div className="rounded-lg border border-border bg-card p-6">
             <h3 className="text-lg font-semibold">Signin flow</h3>
-            <p className="text-muted-foreground mt-2">Configure your signin flow settings</p>
+            <p className="text-muted-foreground mt-2">
+              Configure your signin flow settings
+            </p>
           </div>
         </TabsContent>
         <TabsContent value="signup-flow">
           <div className="rounded-lg border border-border bg-card p-6">
             <h3 className="text-lg font-semibold">Signup flow</h3>
-            <p className="text-muted-foreground mt-2">Configure your signup flow settings</p>
+            <p className="text-muted-foreground mt-2">
+              Configure your signup flow settings
+            </p>
           </div>
         </TabsContent>
         <TabsContent value="email-template">
@@ -254,13 +306,17 @@ export const AuthenticationConfig = () => {
               onBack={() => setSelectedTemplateId(null)}
             />
           ) : (
-            <EmailServiceTable onRowClick={(id) => setSelectedTemplateId(String(id))} />
+            <EmailServiceTable
+              onRowClick={(id) => setSelectedTemplateId(String(id))}
+            />
           )}
         </TabsContent>
         <TabsContent value="oidc-template">
           <div className="rounded-lg border border-border bg-card p-6">
             <h3 className="text-lg font-semibold">OIDC template</h3>
-            <p className="text-muted-foreground mt-2">Configure your OIDC template settings</p>
+            <p className="text-muted-foreground mt-2">
+              Configure your OIDC template settings
+            </p>
           </div>
         </TabsContent>
         <TabsContent value="roles">
@@ -286,7 +342,10 @@ export const AuthenticationConfig = () => {
 
       {/* New template sheet */}
       <Sheet open={addTemplateOpen} onOpenChange={setAddTemplateOpen}>
-        <SheetContent side="right" className="flex h-full w-full max-w-full flex-col overflow-hidden p-0 sm:max-w-full" hideClose>
+        <SheetContent
+          side="right"
+          className="flex h-full w-full max-w-full flex-col overflow-hidden p-0 sm:max-w-full"
+          hideClose>
           <StepperProvider steps={NEW_COMMUNICATION_STEPS}>
             <NewCommunicationContent
               onClose={() => setAddTemplateOpen(false)}

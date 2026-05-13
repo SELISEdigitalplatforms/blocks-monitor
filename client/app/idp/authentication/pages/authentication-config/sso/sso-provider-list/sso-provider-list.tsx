@@ -1,4 +1,4 @@
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import {
   SSOProviderCard,
   SSOProviderCardSkelton,

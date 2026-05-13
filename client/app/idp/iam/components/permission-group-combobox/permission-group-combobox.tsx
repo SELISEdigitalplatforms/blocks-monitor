@@ -1,7 +1,16 @@
 import { Button } from "@/components/ui-kits/button/button";
-import { Command, CommandInput, CommandItem, CommandList } from "@/components/ui-kits/command/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui-kits/popover/popover";
-import { useProjectStore } from "@/store/useProjectStore";
+import {
+  Command,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui-kits/command/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui-kits/popover/popover";
+import { useProjectStore } from "@/store/project.store.ts";
 import { useGetResourceGroup } from "@blocks-idp/iam/hooks/use-permission";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -12,9 +21,15 @@ type PermissionGroupComboboxProps = {
   disabled?: boolean;
 };
 
-export function PermissionGroupCombobox({ value, onChange, disabled }: PermissionGroupComboboxProps) {
+export function PermissionGroupCombobox({
+  value,
+  onChange,
+  disabled,
+}: PermissionGroupComboboxProps) {
   const tenantId = useProjectStore().selectedProject?.tenantId || "";
-  const { data: resourceGroupData } = useGetResourceGroup({ projectKey: tenantId });
+  const { data: resourceGroupData } = useGetResourceGroup({
+    projectKey: tenantId,
+  });
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
 
@@ -27,7 +42,9 @@ export function PermissionGroupCombobox({ value, onChange, disabled }: Permissio
     const data = resourceGroupData?.map((item) => item.resourceGroup) || [];
     if (!data) return [];
     if (!inputValue) return data;
-    return data.filter((item) => item.toLowerCase().includes(inputValue.toLowerCase().trim()));
+    return data.filter((item) =>
+      item.toLowerCase().includes(inputValue.toLowerCase().trim()),
+    );
   }, [resourceGroupData, inputValue]);
 
   return (
@@ -56,15 +73,17 @@ export function PermissionGroupCombobox({ value, onChange, disabled }: Permissio
               variant="ghost"
               onClick={() => {
                 handleSelect(inputValue);
-              }}
-            >
+              }}>
               <Plus className="aspect-square w-4" />
             </Button>
           </div>
           <CommandList>
             {filtered.length > 0 &&
               filtered.map((opt) => (
-                <CommandItem key={opt} value={opt} onSelect={() => handleSelect(opt)}>
+                <CommandItem
+                  key={opt}
+                  value={opt}
+                  onSelect={() => handleSelect(opt)}>
                   {opt}
                 </CommandItem>
               ))}
