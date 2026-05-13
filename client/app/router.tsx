@@ -4,7 +4,7 @@ import { DashboardLayout } from "./layouts/dashboard-layout";
 import { OidcLayout } from "./layouts/oidc-layout";
 
 // Auth routes (public, with auth layout)
-import LoginSimplePage from "./routes/auth/login-simple";
+import LoginPage from "./routes/auth/login";
 
 // Public routes (with public guard only)
 
@@ -16,19 +16,26 @@ import HealthPage from "./routes/dashboard/health";
 import HealthIncidentsPage from "./routes/dashboard/health-incidents";
 import HealthMonitorPage from "./routes/dashboard/health-monitor";
 import ProfilePage from "./routes/dashboard/profile";
+import CallbackPage from "./routes/callback/callback";
 
 // Console pages
 
 export const router = createBrowserRouter([
   // ── Simple login (no guards, no API calls) ──
-  { path: "/login", element: <LoginSimplePage /> },
+  {
+    path: "/login",
+    children: [
+      { index: true, element: <LoginPage /> },
+      { path: "callback", element: <CallbackPage /> },
+    ],
+  },
 
   // ── OIDC layout (un-guarded, themed) ──
-  {
-    path: "/oidc",
-    element: <OidcLayout />,
-    children: [{ index: true, element: <OidcIndexPage /> }],
-  },
+  // {
+  //   path: "/oidc",
+  //   element: <OidcLayout />,
+  //   children: [{ index: true, element: <OidcIndexPage /> }],
+  // },
 
   // ── Dashboard layout (protected routes) ──
   {

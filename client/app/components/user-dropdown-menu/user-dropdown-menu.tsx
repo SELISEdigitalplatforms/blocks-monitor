@@ -10,12 +10,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui-kits/dropdown-menu/dropdown-menu";
-import { useGetUser } from "@/idp/iam/hooks/use-user";
+import { useGetUser } from "@blocks-idp/iam/hooks/use-user";
 
 function UserDropdownMenuLogo() {
   const { data } = useGetUser({ enabled: true });
-  const userData = data?.data || { firstName: "", lastName: "", profileImageUrl: "" };
-  const initials = `${userData.firstName?.[0] || ""}${userData.lastName?.[0] || ""}`.toUpperCase();
+  const userData = data?.data || {
+    firstName: "",
+    lastName: "",
+    profileImageUrl: "",
+  };
+  const initials =
+    `${userData.firstName?.[0] || ""}${userData.lastName?.[0] || ""}`.toUpperCase();
 
   if (userData.profileImageUrl) {
     return (
@@ -41,8 +46,7 @@ export function UserDropdownMenu() {
         <Button
           variant="ghost"
           size="icon"
-          className="relative z-50 h-9 w-9 overflow-hidden rounded-full border border-transparent bg-[hsl(var(--avatar-surface-default))] p-0 text-base font-normal text-[hsl(var(--avatar-text-high-emphasis))] transition-all hover:border-input hover:bg-accent/40 hover:text-[hsl(var(--avatar-text-high-emphasis))] hover:shadow-sm"
-        >
+          className="relative z-50 h-9 w-9 overflow-hidden rounded-full border border-transparent bg-[hsl(var(--avatar-surface-default))] p-0 text-base font-normal text-[hsl(var(--avatar-text-high-emphasis))] transition-all hover:border-input hover:bg-accent/40 hover:text-[hsl(var(--avatar-text-high-emphasis))] hover:shadow-sm">
           <UserDropdownMenuLogo />
         </Button>
       </DropdownMenuTrigger>
