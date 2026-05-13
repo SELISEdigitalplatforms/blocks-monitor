@@ -16,7 +16,7 @@ import { useAppState } from "./public-guard";
 export function ProtectedGuard({ children }: { children: React.ReactNode }) {
   const { isMounted } = useAppState();
   const { data: user } = useGetUser();
-  const { data: _projects } = useGetProjects();
+  const { data: _projects } = useGetProjects({ enabled: !!user });
   const { setUser } = useAuthStore();
   const navigate = useNavigate();
 
