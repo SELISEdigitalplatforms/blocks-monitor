@@ -1,8 +1,7 @@
-import { useProjectStore } from "@/store/project.store.ts";
+import { useProjectStore } from "@/store/project.store";
 import { getRuntimeEnv } from "@/lib/runtime-env";
 import { getQueryClient } from "@/providers/query-provider";
-import { useAuthStore } from "@/store/auth.store.ts";
-import { AUTH_OIDC_ENDPOINTS } from "@/idp/authentication/constants/endpoint.constant";
+import { useAuthStore } from "@/store/auth.store";
 
 class HttpError extends Error {
   status: number;
@@ -56,6 +55,12 @@ class HttpClient {
     private BLOCKS_KEY: string,
   ) {}
 
+  private isLocalhost(): boolean {
+    return (
+      this.baseURL.includes("localhost") || this.baseURL.includes("127.0.0.1")
+    );
+  }
+
   private normalizeHeaders(
     headers?: HeadersInit,
     skipBlocksKey?: boolean,
@@ -65,6 +70,14 @@ class HttpClient {
       "Content-Type": "application/json",
       ...(!skipBlocksKey && { "X-Blocks-Key": this.BLOCKS_KEY }),
     });
+
+    // Add Authorization Bearer token for localhost
+    if (this.isLocalhost()) {
+      const accessToken = useAuthStore.getState().accessToken;
+      if (accessToken) {
+        normalizedHeaders.set("Authorization", `Bearer ${accessToken}`);
+      }
+    }
 
     if (headers) {
       if (headers instanceof Headers) {
@@ -83,30 +96,44 @@ class HttpClient {
 
   private async refreshAccessToken() {
     if (isRefreshing) return;
-
+    isRefreshing = true;
     try {
-      isRefreshing = true;
-
+      const isLocalhost = this.isLocalhost();
+      const authStore = useAuthStore.getState();
       const formData = new URLSearchParams();
       formData.append("grant_type", "refresh_token");
-      formData.append("refresh_token", '""');
-      formData.append(
-        "client_id",
-        getRuntimeEnv("BLOCKS_OIDC_CLIENT_ID") || "",
-      );
 
-      const url = `${AUTH_OIDC_ENDPOINTS.OIDC_TOKEN}?tenant_id=${this.BLOCKS_KEY}`;
+      // For localhost, use stored refresh token; for remote, use empty string (cookie-based)
+      const refreshToken = isLocalhost ? authStore.refreshToken || '""' : '""';
+      formData.append("refresh_token", refreshToken);
+
+      const url = `${this.baseURL}/api/Authentication/Token`;
+
       const response = await fetch(url, {
         method: "POST",
         body: formData,
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           "X-Blocks-Key": this.BLOCKS_KEY,
+          ...(isLocalhost &&
+            authStore.accessToken && {
+              Authorization: `Bearer ${authStore.accessToken}`,
+            }),
         },
-        credentials: "include",
+        credentials: isLocalhost ? "same-origin" : "include",
       });
 
-      if (!response.ok) throw new Error("Failed to refresh token");
+      if (!response.ok) {
+        throw new Error("Failed to refresh token");
+      }
+
+      // For localhost, save the new tokens
+      if (isLocalhost) {
+        const data = await response.json();
+        if (data.access_token && data.refresh_token) {
+          authStore.setTokens(data.access_token, data.refresh_token);
+        }
+      }
 
       while (requestQueue.length > 0) {
         const { url, requestOption, resolve, reject } = requestQueue.shift()!;
@@ -118,7 +145,7 @@ class HttpClient {
       useProjectStore.getState().reset();
       queryClient.cancelQueries();
       queryClient.clear();
-      window.location.href = `/login`;
+      window.location.href = "/login";
     } finally {
       isRefreshing = false;
       requestQueue = [];
@@ -140,11 +167,16 @@ class HttpClient {
     } = requestOption;
     const fullUrl = absoluteUrl ? url : `${this.baseURL}${url}`;
     const normalizedHeaders = this.normalizeHeaders(headers, skipBlocksKey);
-
+    // Use same-origin for localhost (token in header), include for remote (cookie-based)
+    const credentialsMode = this.isLocalhost()
+      ? "same-origin"
+      : withCredentials
+        ? "include"
+        : "same-origin";
     const config: RequestInit = {
       method,
       headers: normalizedHeaders,
-      credentials: "include",
+      credentials: credentialsMode,
     };
 
     if (body) {
@@ -276,11 +308,17 @@ class HttpClient {
 
     const fullUrl = absoluteUrl ? url : `${this.baseURL}${url}`;
     const normalizedHeaders = this.normalizeHeaders(headers, skipBlocksKey);
+    // Use same-origin for localhost (token in header), include for remote (cookie-based)
+    const credentialsMode = this.isLocalhost()
+      ? "same-origin"
+      : withCredentials
+        ? "include"
+        : "same-origin";
 
     const response = await fetch(fullUrl, {
       method: "POST",
       headers: normalizedHeaders,
-      credentials: "include",
+      credentials: credentialsMode,
       body: JSON.stringify(body),
     });
 
@@ -298,10 +336,24 @@ class HttpClient {
     return response.body;
   }
 }
-
 export const http = new HttpClient(
   getRuntimeEnv("BLOCKS_API_BASE_URL") || "",
   getRuntimeEnv("BLOCKS_X_BLOCKS_KEY") || "",
 );
+
+export const serviceInstances = {
+  observabilityService: new HttpClient(
+    getRuntimeEnv("BLOCKS_API_BASE_URL") || "",
+    getRuntimeEnv("BLOCKS_X_BLOCKS_KEY") || "",
+  ),
+  logicService: new HttpClient(
+    getRuntimeEnv("BLOCKS_LOGIC_APP_URL") || "",
+    getRuntimeEnv("BLOCKS_X_BLOCKS_KEY") || "",
+  ),
+  idpService: new HttpClient(
+    getRuntimeEnv("BLOCKS_IDP_APP_URL") || "",
+    getRuntimeEnv("BLOCKS_X_BLOCKS_KEY") || "",
+  ),
+};
 
 export { HttpClient, HttpError };

@@ -1,4 +1,4 @@
-import MonitorDetails from "@/cross-modules/devops/pages/monitor/monitor-details";
+import MonitorDetails from "@blocks-observability/pages/monitor/monitor-details";
 
 export default function HealthMonitorPage() {
   return <MonitorDetails />;

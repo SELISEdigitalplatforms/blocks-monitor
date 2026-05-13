@@ -1,5 +1,5 @@
 import LoadingSpinner from "@/components/loader-spinner/loader-spinner";
-import { githubInfoService } from "@/cross-modules/devops/services/github-info.service";
+import { githubInfoService } from "@blocks-observability/services/github-info.service";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";

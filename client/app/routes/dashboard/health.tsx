@@ -1,4 +1,4 @@
-import Health from "@blocks-devops/pages/health/health";
+import Health from "@blocks-observability/pages/health/health";
 
 export default function HealthPage() {
   return <Health />;
