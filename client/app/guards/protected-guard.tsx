@@ -1,29 +1,31 @@
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useGetProjects } from "@/cross-modules/identifier/hooks/use-project";
+import { getRuntimeEnv } from "@/lib/runtime-env";
 import { useAuthStore } from "@/store/auth.store.ts";
+import { useImpersonateStore } from "@/store/impersonate.store";
+import { useProjectStore } from "@/store/project.store.ts";
 import {
   useStartImpersonation,
   useStopImpersonation,
 } from "@blocks-identifier/hooks/use-impersonation";
-import { useAppState } from "./public-guard";
-import { useGetUser } from "@blocks-idp/iam/hooks/use-user";
-import { useImpersonateStore } from "@/store/impersonate.store";
-import { useProjectStore } from "@/store/project.store.ts";
 import { ImpersonationRequest } from "@blocks-identifier/services/impersonation.service";
-import { getRuntimeEnv } from "@/lib/runtime-env";
+import { useGetUser } from "@blocks-idp/iam/hooks/use-user";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAppState } from "./public-guard";
 
 export function ProtectedGuard({ children }: { children: React.ReactNode }) {
   const { isMounted } = useAppState();
-  const { data } = useGetUser();
+  const { data: user } = useGetUser();
+  const { data: _projects } = useGetProjects();
   const { setUser } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!isMounted) return;
-    if (!data) return navigate(`/login`, { replace: true });
-    setUser(data.data);
-  }, [data, navigate, setUser]);
-  if (!isMounted || !data) return null;
+    if (!user) return navigate(`/login`, { replace: true });
+    setUser(user.data);
+  }, [user, navigate, setUser]);
+  if (!isMounted || !user) return null;
   return <>{children}</>;
 }
 
