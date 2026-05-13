@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ModeToggle } from "@/components/mode-toggle/mode-toggle";
-import { API_BASES } from "@/constants/endpoint.constant";
 import { showErrorToast } from "@/hooks/use-toast";
 
 const pillars = [
@@ -207,7 +206,7 @@ export default function LoginPage() {
       setIsStarting(true);
 
       const blocksKey = getRuntimeEnv("BLOCKS_X_BLOCKS_KEY");
-      const initiateUrl = `${API_BASES.IDP}/idp/initiate?x-blocks-key=${blocksKey}`;
+      const initiateUrl = `${import.meta.env.BLOCKS_IDP_APP_URL}/api/idp/initiate?x-blocks-key=${blocksKey}`;
       const headers: Record<string, string> = {};
       if (blocksKey) headers["X-Blocks-Key"] = blocksKey;
 

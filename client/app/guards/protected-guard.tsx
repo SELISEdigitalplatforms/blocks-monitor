@@ -4,12 +4,12 @@ import { useAuthStore } from "@/store/auth.store.ts";
 import {
   useStartImpersonation,
   useStopImpersonation,
-} from "@/hooks/use-impersonation";
+} from "@blocks-identifier/hooks/use-impersonation";
 import { useAppState } from "./public-guard";
-import { useGetUser } from "@/idp/iam/hooks/use-user";
+import { useGetUser } from "@blocks-idp/iam/hooks/use-user";
 import { useImpersonateStore } from "@/store/impersonate.store";
 import { useProjectStore } from "@/store/project.store.ts";
-import { ImpersonationRequest } from "@/services/impersonation.service";
+import { ImpersonationRequest } from "@blocks-identifier/services/impersonation.service";
 import { getRuntimeEnv } from "@/lib/runtime-env";
 
 export function ProtectedGuard({ children }: { children: React.ReactNode }) {
