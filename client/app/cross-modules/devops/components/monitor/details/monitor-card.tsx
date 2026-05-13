@@ -70,7 +70,7 @@ const MonitorCard = ({
         {/* URL to monitor */}
         <div>
           <div className="mb-1 text-xs font-medium text-foreground">
-            URL to monitor
+            {request ? "URL to monitor" : "Callback URL"}
           </div>
           <a
             href={url}
