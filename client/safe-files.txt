@@ -156,6 +156,7 @@ client/app/routes/dashboard/health-monitor.tsx
 client/app/routes/dashboard/health.tsx
 client/app/routes/dashboard/profile.tsx
 client/app/routes/oidc/index.tsx
+client/app/routes/callback/callback.tsx
 client/app/store/auth.store.ts
 client/app/store/project.store.ts
 client/app/store/user.store.ts
