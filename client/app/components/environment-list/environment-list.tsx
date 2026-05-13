@@ -9,7 +9,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui-kits/dropdown-menu/dropdown-menu";
-import { useGetProject, useGetProjects } from "@blocks-identifier/hooks/use-project";
+import {
+  useGetProject,
+  useGetProjects,
+} from "@blocks-identifier/hooks/use-project";
 import { IProject } from "@blocks-identifier/models/project.model";
 import { useProjectStore } from "@/store/project.store.ts";
 
@@ -26,7 +29,7 @@ const wildcardToRegex = (pattern: string) => {
 export function EnvironmentList() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { data: projectGroups = [], isLoading } = useGetProjects();
+  const { data: projectGroups = [], isLoading } = useGetProjects({});
   const { selectedProject, setSelectedProject } = useProjectStore();
   const { data: projectData } = useGetProject({
     projectId: selectedProject?.itemId || "",

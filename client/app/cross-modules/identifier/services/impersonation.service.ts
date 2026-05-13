@@ -1,6 +1,7 @@
 import { http } from "@/lib/http-client";
 
-const IMPERSONATION_BASE = "/api/Authentication";
+const IMPERSONATION_BASE =
+  "https://dev-idp.blocksdevelopers.com/api/Authentication";
 
 export interface ImpersonationRequest {
   targetTenantId: string;
