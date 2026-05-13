@@ -1,23 +1,23 @@
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui-kits/button/button";
 import { Logo } from "@/components/logo";
+import { ModeToggle } from "@/components/mode-toggle/mode-toggle";
+import { Button } from "@/components/ui-kits/button/button";
+import { showErrorToast } from "@/hooks/use-toast";
 import { getRuntimeEnv } from "@/lib/runtime-env";
+import { motion } from "framer-motion";
 import {
-  ShieldCheck,
-  Users,
-  KeyRound,
-  Puzzle,
-  BookOpenText,
-  BrainCircuit,
   Activity,
   ArrowRight,
-  MoveRight,
+  BookOpenText,
+  BrainCircuit,
   Github,
+  KeyRound,
+  MoveRight,
+  Puzzle,
+  ShieldCheck,
+  Users,
 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ModeToggle } from "@/components/mode-toggle/mode-toggle";
-import { showErrorToast } from "@/hooks/use-toast";
 
 const pillars = [
   {
@@ -209,7 +209,10 @@ export default function LoginPage() {
       const baseUrl =
         getRuntimeEnv("BLOCKS_IDP_APP_URL") ||
         "https://dev-idp.blocksdevelopers.com";
-      const initiateUrl = `${baseUrl}/api/idp/initiate?x-blocks-key=${blocksKey}`;
+      const clientId =
+        getRuntimeEnv("BLOCKS_OIDC_CLIENT_ID") ||
+        "1bd234da-1fa1-4264-982e-3debb1078be5";
+      const initiateUrl = `${baseUrl}/api/idp/initiate?x-blocks-key=${blocksKey}&clientId=${clientId}`;
       const headers: Record<string, string> = {};
       if (blocksKey) headers["X-Blocks-Key"] = blocksKey;
 
