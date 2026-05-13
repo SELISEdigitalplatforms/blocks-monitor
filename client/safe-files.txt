@@ -120,6 +120,13 @@ client/app/hooks/use-popover-width.ts
 client/app/hooks/use-project.ts
 client/app/hooks/use-theme.ts
 client/app/hooks/use-toast.tsx
+client/app/hooks/use-boolean.ts
+client/app/hooks/use-copy-to-clipboard.ts
+client/app/hooks/use-debounce.ts
+client/app/hooks/use-impersonation.ts
+client/app/hooks/use-is-mobile.ts
+client/app/hooks/use-path-segments.ts
+client/app/hooks/use-project.ts
 client/app/idp/authentication/hooks/use-auth.ts
 client/app/idp/authentication/pages/login/schema.ts
 client/app/idp/authentication/pages/oidc/oidc-signin-form.tsx
@@ -149,8 +156,10 @@ client/app/routes/dashboard/health-monitor.tsx
 client/app/routes/dashboard/health.tsx
 client/app/routes/dashboard/profile.tsx
 client/app/routes/oidc/index.tsx
-client/app/store/useAuthStore.ts
-client/app/store/useProjectStore.ts
+client/app/store/auth.store.ts
+client/app/store/project.store.ts
+client/app/store/user.store.ts
+client/app/store/impersonate.store.ts
 client/app/styles/globals.css
 
 CANDIDATE_FILES
