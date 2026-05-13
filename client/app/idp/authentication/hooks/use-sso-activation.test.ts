@@ -12,8 +12,8 @@ vi.mock("react-router-dom", () => ({
 }));
 
 const mockSetAuthenticated = vi.fn();
-vi.mock("@/store/useAuthStore", () => ({
-  useAuthStore: vi.fn(() => ({ setAuthenticated: mockSetAuthenticated })),
+vi.mock("@/store/auth.store.ts", () => ({
+  auth.store.ts: vi.fn(() => ({ setAuthenticated: mockSetAuthenticated })),
 }));
 
 const mockMutateAsync = vi.fn();

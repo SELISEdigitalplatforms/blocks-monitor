@@ -1,12 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { notificationService } from "../services/notification.service";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 
-export const useGetNotificationConfigs = (page: number = 0, pageSize: number = 10) => {
+export const useGetNotificationConfigs = (
+  page: number = 0,
+  pageSize: number = 10,
+) => {
   const tenantId = useProjectStore()?.selectedProject?.tenantId || "";
   return useQuery({
     queryKey: ["notificationConfigs", page, pageSize, tenantId],
-    queryFn: () => notificationService.getNotificationConfigs(page, pageSize, tenantId),
+    queryFn: () =>
+      notificationService.getNotificationConfigs(page, pageSize, tenantId),
     enabled: !!tenantId,
   });
 };

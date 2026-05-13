@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { ExternalLink, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui-kits/button/button";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
 import { ServiceGroupCard } from "@blocks-idp/api-settings/components/service-group-card";
@@ -32,7 +32,11 @@ const ServiceGroupSkeleton = () => (
 /** ─── Page component ────────────────────────────────────────────────────────── */
 export default function ApiSettingsPage() {
   const tenantId = useProjectStore().selectedProject?.tenantId || "";
-  const { data, isLoading } = useGetApiEndpoints({ projectKey: tenantId, page: 0, pageSize: 100 });
+  const { data, isLoading } = useGetApiEndpoints({
+    projectKey: tenantId,
+    page: 0,
+    pageSize: 100,
+  });
   const { mutateAsync: updateEndpoint } = useUpdateApiEndpoint();
   const { mutateAsync: bulkUpdate } = useBulkUpdateApiEndpoints();
 
@@ -66,7 +70,13 @@ export default function ApiSettingsPage() {
               ctrl,
               eps.sort((a, b) => {
                 // Sort by method first (GET, POST, PUT, etc.), then by controller
-                const methodOrder: Record<string, number> = { GET: 0, POST: 1, PUT: 2, PATCH: 3, DELETE: 4 };
+                const methodOrder: Record<string, number> = {
+                  GET: 0,
+                  POST: 1,
+                  PUT: 2,
+                  PATCH: 3,
+                  DELETE: 4,
+                };
                 const aMethodKey = a.method?.toUpperCase?.() || "";
                 const bMethodKey = b.method?.toUpperCase?.() || "";
                 const aMethod = methodOrder[aMethodKey] ?? 999;
@@ -119,11 +129,20 @@ export default function ApiSettingsPage() {
           captchaProvider: ep.captchaProvider,
         });
         if (!result.isSuccess) {
-          throw new Error(result.errors?.join(", ") || "Failed to update MFA setting");
+          throw new Error(
+            result.errors?.join(", ") || "Failed to update MFA setting",
+          );
         }
-        showSuccessToast({ description: `MFA ${value ? "enabled" : "disabled"} for /${ep.controller}/${ep.method.charAt(0).toUpperCase() + ep.method.slice(1)}` });
+        showSuccessToast({
+          description: `MFA ${value ? "enabled" : "disabled"} for /${ep.controller}/${ep.method.charAt(0).toUpperCase() + ep.method.slice(1)}`,
+        });
       } catch (error) {
-        showErrorToast({ errors: error instanceof Error ? error.message : "Failed to update MFA setting" });
+        showErrorToast({
+          errors:
+            error instanceof Error
+              ? error.message
+              : "Failed to update MFA setting",
+        });
       }
     },
     [tenantId, updateEndpoint],
@@ -145,11 +164,20 @@ export default function ApiSettingsPage() {
           mfaType: ep.mfaType,
         });
         if (!result.isSuccess) {
-          throw new Error(result.errors?.join(", ") || "Failed to update Captcha setting");
+          throw new Error(
+            result.errors?.join(", ") || "Failed to update Captcha setting",
+          );
         }
-        showSuccessToast({ description: `Captcha ${value ? "enabled" : "disabled"} for /${ep.controller}/${ep.method.charAt(0).toUpperCase() + ep.method.slice(1)}` });
+        showSuccessToast({
+          description: `Captcha ${value ? "enabled" : "disabled"} for /${ep.controller}/${ep.method.charAt(0).toUpperCase() + ep.method.slice(1)}`,
+        });
       } catch (error) {
-        showErrorToast({ errors: error instanceof Error ? error.message : "Failed to update Captcha setting" });
+        showErrorToast({
+          errors:
+            error instanceof Error
+              ? error.message
+              : "Failed to update Captcha setting",
+        });
       }
     },
     [tenantId, updateEndpoint],
@@ -160,7 +188,9 @@ export default function ApiSettingsPage() {
     async (ids: string[], value: boolean) => {
       try {
         // Preserve current Captcha state when toggling MFA
-        const groupEndpoints = endpoints.filter((ep) => ids.includes(ep.itemId));
+        const groupEndpoints = endpoints.filter((ep) =>
+          ids.includes(ep.itemId),
+        );
         const captchaState =
           groupEndpoints.length > 0
             ? groupEndpoints.every((ep) => ep.isCaptchaRequired)
@@ -178,11 +208,20 @@ export default function ApiSettingsPage() {
           disableAll: false,
         });
         if (!result.isSuccess) {
-          throw new Error(result.errors?.join(", ") || "Failed to bulk update MFA");
+          throw new Error(
+            result.errors?.join(", ") || "Failed to bulk update MFA",
+          );
         }
-        showSuccessToast({ description: `MFA ${value ? "enabled" : "disabled"} for ${ids.length} endpoints` });
+        showSuccessToast({
+          description: `MFA ${value ? "enabled" : "disabled"} for ${ids.length} endpoints`,
+        });
       } catch (error) {
-        showErrorToast({ errors: error instanceof Error ? error.message : "Failed to bulk update MFA" });
+        showErrorToast({
+          errors:
+            error instanceof Error
+              ? error.message
+              : "Failed to bulk update MFA",
+        });
       }
     },
     [tenantId, endpoints, bulkUpdate],
@@ -192,7 +231,9 @@ export default function ApiSettingsPage() {
     async (ids: string[], value: boolean) => {
       try {
         // Preserve current MFA state when toggling Captcha
-        const groupEndpoints = endpoints.filter((ep) => ids.includes(ep.itemId));
+        const groupEndpoints = endpoints.filter((ep) =>
+          ids.includes(ep.itemId),
+        );
         const mfaState =
           groupEndpoints.length > 0
             ? groupEndpoints.every((ep) => ep.isMFARequired)
@@ -210,11 +251,20 @@ export default function ApiSettingsPage() {
           disableAll: false,
         });
         if (!result.isSuccess) {
-          throw new Error(result.errors?.join(", ") || "Failed to bulk update Captcha");
+          throw new Error(
+            result.errors?.join(", ") || "Failed to bulk update Captcha",
+          );
         }
-        showSuccessToast({ description: `Captcha ${value ? "enabled" : "disabled"} for ${ids.length} endpoints` });
+        showSuccessToast({
+          description: `Captcha ${value ? "enabled" : "disabled"} for ${ids.length} endpoints`,
+        });
       } catch (error) {
-        showErrorToast({ errors: error instanceof Error ? error.message : "Failed to bulk update Captcha" });
+        showErrorToast({
+          errors:
+            error instanceof Error
+              ? error.message
+              : "Failed to bulk update Captcha",
+        });
       }
     },
     [tenantId, endpoints, bulkUpdate],
@@ -223,13 +273,28 @@ export default function ApiSettingsPage() {
   const handleBulkGroupDisableAll = useCallback(
     async (ids: string[]) => {
       try {
-        const result = await bulkUpdate({ projectKey: tenantId, itemIds: ids, isMFARequired: false, isCaptchaRequired: false, disableAll: true });
+        const result = await bulkUpdate({
+          projectKey: tenantId,
+          itemIds: ids,
+          isMFARequired: false,
+          isCaptchaRequired: false,
+          disableAll: true,
+        });
         if (!result.isSuccess) {
-          throw new Error(result.errors?.join(", ") || "Failed to disable security features");
+          throw new Error(
+            result.errors?.join(", ") || "Failed to disable security features",
+          );
         }
-        showSuccessToast({ description: `All security features disabled for ${ids.length} endpoints` });
+        showSuccessToast({
+          description: `All security features disabled for ${ids.length} endpoints`,
+        });
       } catch (error) {
-        showErrorToast({ errors: error instanceof Error ? error.message : "Failed to disable security features" });
+        showErrorToast({
+          errors:
+            error instanceof Error
+              ? error.message
+              : "Failed to disable security features",
+        });
       }
     },
     [tenantId, bulkUpdate],
@@ -241,7 +306,9 @@ export default function ApiSettingsPage() {
   const handleBulkMfa = useCallback(async () => {
     try {
       // Preserve current Captcha state when enabling MFA
-      const selectedEndpoints = endpoints.filter((ep) => selectedArray.includes(ep.itemId));
+      const selectedEndpoints = endpoints.filter((ep) =>
+        selectedArray.includes(ep.itemId),
+      );
       const captchaState =
         selectedEndpoints.length > 0
           ? selectedEndpoints.every((ep) => ep.isCaptchaRequired)
@@ -261,17 +328,23 @@ export default function ApiSettingsPage() {
       if (!result.isSuccess) {
         throw new Error(result.errors?.join(", ") || "Failed to enable MFA");
       }
-      showSuccessToast({ description: `MFA enabled for ${selectedArray.length} endpoints` });
+      showSuccessToast({
+        description: `MFA enabled for ${selectedArray.length} endpoints`,
+      });
       clearSelection();
     } catch (error) {
-      showErrorToast({ errors: error instanceof Error ? error.message : "Failed to enable MFA" });
+      showErrorToast({
+        errors: error instanceof Error ? error.message : "Failed to enable MFA",
+      });
     }
   }, [tenantId, endpoints, selectedArray, bulkUpdate, clearSelection]);
 
   const handleBulkCaptcha = useCallback(async () => {
     try {
       // Preserve current MFA state when enabling Captcha
-      const selectedEndpoints = endpoints.filter((ep) => selectedArray.includes(ep.itemId));
+      const selectedEndpoints = endpoints.filter((ep) =>
+        selectedArray.includes(ep.itemId),
+      );
       const mfaState =
         selectedEndpoints.length > 0
           ? selectedEndpoints.every((ep) => ep.isMFARequired)
@@ -289,12 +362,19 @@ export default function ApiSettingsPage() {
         disableAll: false,
       });
       if (!result.isSuccess) {
-        throw new Error(result.errors?.join(", ") || "Failed to enable Captcha");
+        throw new Error(
+          result.errors?.join(", ") || "Failed to enable Captcha",
+        );
       }
-      showSuccessToast({ description: `Captcha enabled for ${selectedArray.length} endpoints` });
+      showSuccessToast({
+        description: `Captcha enabled for ${selectedArray.length} endpoints`,
+      });
       clearSelection();
     } catch (error) {
-      showErrorToast({ errors: error instanceof Error ? error.message : "Failed to enable Captcha" });
+      showErrorToast({
+        errors:
+          error instanceof Error ? error.message : "Failed to enable Captcha",
+      });
     }
   }, [tenantId, endpoints, selectedArray, bulkUpdate, clearSelection]);
 
@@ -304,7 +384,8 @@ export default function ApiSettingsPage() {
       <div>
         <h1 className="text-xl font-semibold md:text-2xl">API Settings</h1>
         <p className="text-muted-foreground">
-          Configure security policies for your API endpoints — enable MFA, Captcha, and manage access controls.
+          Configure security policies for your API endpoints — enable MFA,
+          Captcha, and manage access controls.
         </p>
       </div>
 
@@ -321,52 +402,52 @@ export default function ApiSettingsPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-8">
-          {serviceGroups.map(({ service, swaggerJsonUrl, swaggerUiUrl, controllers }) => (
-            <div key={service} className="flex flex-col gap-3">
-              {/* Service section header */}
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <h2 className="text-lg font-bold capitalize">{service}</h2>
-                  <a
-                    href={swaggerJsonUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] text-muted-foreground underline-offset-2 hover:text-primary hover:underline"
-                    title={swaggerJsonUrl}
-                  >
-                    <span className="truncate">{swaggerJsonUrl}</span>
-                    <ExternalLink className="h-3 w-3 shrink-0" />
-                  </a>
+          {serviceGroups.map(
+            ({ service, swaggerJsonUrl, swaggerUiUrl, controllers }) => (
+              <div key={service} className="flex flex-col gap-3">
+                {/* Service section header */}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <h2 className="text-lg font-bold capitalize">{service}</h2>
+                    <a
+                      href={swaggerJsonUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] text-muted-foreground underline-offset-2 hover:text-primary hover:underline"
+                      title={swaggerJsonUrl}>
+                      <span className="truncate">{swaggerJsonUrl}</span>
+                      <ExternalLink className="h-3 w-3 shrink-0" />
+                    </a>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => window.open(swaggerUiUrl, "_blank")}
+                    className="shrink-0 gap-1.5">
+                    <BookOpen className="h-3.5 w-3.5" />
+                    <span>API Docs</span>
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => window.open(swaggerUiUrl, "_blank")}
-                  className="shrink-0 gap-1.5"
-                >
-                  <BookOpen className="h-3.5 w-3.5" />
-                  <span>API Docs</span>
-                </Button>
+                {/* Controller cards */}
+                <div className="flex flex-col gap-3">
+                  {controllers.map(([controller, eps]) => (
+                    <ServiceGroupCard
+                      key={controller}
+                      controller={controller}
+                      endpoints={eps}
+                      selectedIds={selectedIds}
+                      onSelectEndpoint={handleSelectEndpoint}
+                      onSelectGroup={handleSelectGroup}
+                      onToggleMfa={handleToggleMfa}
+                      onToggleCaptcha={handleToggleCaptcha}
+                      onBulkGroupMfa={handleBulkGroupMfa}
+                      onBulkGroupCaptcha={handleBulkGroupCaptcha}
+                    />
+                  ))}
+                </div>
               </div>
-              {/* Controller cards */}
-              <div className="flex flex-col gap-3">
-                {controllers.map(([controller, eps]) => (
-                  <ServiceGroupCard
-                    key={controller}
-                    controller={controller}
-                    endpoints={eps}
-                    selectedIds={selectedIds}
-                    onSelectEndpoint={handleSelectEndpoint}
-                    onSelectGroup={handleSelectGroup}
-                    onToggleMfa={handleToggleMfa}
-                    onToggleCaptcha={handleToggleCaptcha}
-                    onBulkGroupMfa={handleBulkGroupMfa}
-                    onBulkGroupCaptcha={handleBulkGroupCaptcha}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
+            ),
+          )}
         </div>
       )}
 

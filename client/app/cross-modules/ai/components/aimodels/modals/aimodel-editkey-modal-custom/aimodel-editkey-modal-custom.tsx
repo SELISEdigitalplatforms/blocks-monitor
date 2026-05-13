@@ -28,8 +28,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui-kits/tooltip/tooltip";
 import { Info, Trash2, Pen } from "lucide-react";
-import { IModelInfo, IUpdateModelPayload } from "@blocks-ai/types/aimodel.service.type";
-import { useProjectStore } from "@/store/useProjectStore";
+import {
+  IModelInfo,
+  IUpdateModelPayload,
+} from "@blocks-ai/types/aimodel.service.type";
+import { useProjectStore } from "@/store/project.store.ts";
 import { useUpdateModel } from "@blocks-ai/hooks/use-aimodel";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 
@@ -68,10 +71,22 @@ export const CustomModelEditKeyModal = ({
   const { mutateAsync, isPending } = useUpdateModel();
 
   const initialValues: FormSchema = useMemo(() => {
-    const customParams = (model.CustomParameters ?? {}) as Record<string, unknown>;
-    const defaultTemp = typeof customParams.DefaultTemp === "number" ? customParams.DefaultTemp : 0.3;
-    const maxTokens = typeof customParams.MaxTokens === "number" ? customParams.MaxTokens : 10922;
-    const headerEntries = Object.entries(model.CustomHeaders ?? {}) as [string, string][];
+    const customParams = (model.CustomParameters ?? {}) as Record<
+      string,
+      unknown
+    >;
+    const defaultTemp =
+      typeof customParams.DefaultTemp === "number"
+        ? customParams.DefaultTemp
+        : 0.3;
+    const maxTokens =
+      typeof customParams.MaxTokens === "number"
+        ? customParams.MaxTokens
+        : 10922;
+    const headerEntries = Object.entries(model.CustomHeaders ?? {}) as [
+      string,
+      string,
+    ][];
     const headerArray =
       headerEntries.length > 0
         ? headerEntries.map(([key, value]) => ({ key, value }))
@@ -140,7 +155,9 @@ export const CustomModelEditKeyModal = ({
       }
       setEditKeyModalOpen(false);
     } catch (err) {
-      showErrorToast({ errors: err instanceof Error ? err.message : String(err) });
+      showErrorToast({
+        errors: err instanceof Error ? err.message : String(err),
+      });
     }
   };
 
@@ -150,8 +167,7 @@ export const CustomModelEditKeyModal = ({
       onOpenChange={(v) => {
         setEditKeyModalOpen(v);
         if (!v) form.reset(initialValues);
-      }}
-    >
+      }}>
       <DialogContent className="w-[calc(100%-2rem)] p-6 sm:mx-0 sm:w-[720px]">
         <DialogHeader>
           <DialogTitle>Update Custom Model</DialogTitle>
@@ -159,14 +175,15 @@ export const CustomModelEditKeyModal = ({
         <Form {...form}>
           <form
             onSubmit={handleSubmit(onSubmitHandler)}
-            className="-mr-3 max-h-[80vh] space-y-6 overflow-y-auto pl-1 pr-4 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar]:w-1.5"
-          >
+            className="-mr-3 max-h-[80vh] space-y-6 overflow-y-auto pl-1 pr-4 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar]:w-1.5">
             <FormField
               control={control}
               name="model"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Model Name <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel>
+                    Model Name <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Enter model name" {...field} disabled />
                   </FormControl>
@@ -182,7 +199,9 @@ export const CustomModelEditKeyModal = ({
               name="url"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>API URL <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel>
+                    API URL <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Enter API URL" {...field} />
                   </FormControl>
@@ -205,9 +224,13 @@ export const CustomModelEditKeyModal = ({
                             ? ((field.value as string) ?? "")
                             : maskKey((field.value as string) ?? "")
                         }
-                        onChange={(e) => { if (apiKeyEditable) field.onChange(e.target.value); }}
+                        onChange={(e) => {
+                          if (apiKeyEditable) field.onChange(e.target.value);
+                        }}
                         disabled={!apiKeyEditable}
-                        placeholder={apiKeyEditable ? "Enter new API key" : "API Key"}
+                        placeholder={
+                          apiKeyEditable ? "Enter new API key" : "API Key"
+                        }
                         className="inline-block w-full truncate border-none shadow-none focus-visible:ring-0"
                       />
                     </FormControl>
@@ -216,8 +239,10 @@ export const CustomModelEditKeyModal = ({
                         type="button"
                         variant="ghost"
                         className="h-fit w-fit p-1"
-                        onClick={() => { field.onChange(""); setApiKeyEditable(true); }}
-                      >
+                        onClick={() => {
+                          field.onChange("");
+                          setApiKeyEditable(true);
+                        }}>
                         <Pen className="h-4 w-4 text-foreground/60" />
                       </Button>
                     )}
@@ -231,7 +256,9 @@ export const CustomModelEditKeyModal = ({
               name="apiVersion"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>API Version <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel>
+                    API Version <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="API Version" {...field} />
                   </FormControl>
@@ -252,15 +279,26 @@ export const CustomModelEditKeyModal = ({
                           <Info className="h-4 w-4 text-muted-foreground" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          Lower values make LLM responses more accurate and stable, while higher values make them more random and creative.
+                          Lower values make LLM responses more accurate and
+                          stable, while higher values make them more random and
+                          creative.
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </FormLabel>
                   <div className="mt-2 flex items-center gap-4">
-                    <Slider min={0} max={2} step={0.01} value={[field.value ?? 0.3]} onValueChange={(v: number[]) => field.onChange(v[0])} className="flex-1" />
+                    <Slider
+                      min={0}
+                      max={2}
+                      step={0.01}
+                      value={[field.value ?? 0.3]}
+                      onValueChange={(v: number[]) => field.onChange(v[0])}
+                      className="flex-1"
+                    />
                     <div className="flex min-w-[80px] items-center gap-1 rounded-lg border bg-background px-2 py-1">
-                      <span className="font-bold text-high-emphasis">{(field.value ?? 0.3).toFixed(2)}</span>
+                      <span className="font-bold text-high-emphasis">
+                        {(field.value ?? 0.3).toFixed(2)}
+                      </span>
                       <span className="text-medium-emphasis">/ 2</span>
                     </div>
                   </div>
@@ -281,15 +319,25 @@ export const CustomModelEditKeyModal = ({
                           <Info className="h-4 w-4 text-muted-foreground" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          Used to roughly control the maximum number of tokens in LLM responses (1 token ≈ 1 English short word).
+                          Used to roughly control the maximum number of tokens
+                          in LLM responses (1 token ≈ 1 English short word).
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </FormLabel>
                   <div className="mt-2 flex items-center gap-4">
-                    <Slider min={1} max={32768} step={1} value={[field.value ?? 10922]} onValueChange={(v: number[]) => field.onChange(v[0])} className="flex-1" />
+                    <Slider
+                      min={1}
+                      max={32768}
+                      step={1}
+                      value={[field.value ?? 10922]}
+                      onValueChange={(v: number[]) => field.onChange(v[0])}
+                      className="flex-1"
+                    />
                     <div className="flex min-w-[100px] items-center gap-1 rounded-lg border bg-background px-2 py-1">
-                      <span className="font-bold text-high-emphasis">{field.value ?? 10922}</span>
+                      <span className="font-bold text-high-emphasis">
+                        {field.value ?? 10922}
+                      </span>
                       <span className="text-medium-emphasis">/ 32768</span>
                     </div>
                   </div>
@@ -299,43 +347,86 @@ export const CustomModelEditKeyModal = ({
             />
             <div>
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium">Custom Headers (Optional)</h4>
-                <span className="text-sm text-medium-emphasis">Key / Value pairs</span>
+                <h4 className="text-sm font-medium">
+                  Custom Headers (Optional)
+                </h4>
+                <span className="text-sm text-medium-emphasis">
+                  Key / Value pairs
+                </span>
               </div>
               <div className="mt-3 space-y-2">
                 {fields.map((f, idx) => (
                   <div key={f.id} className="flex items-center gap-3">
-                    <FormField control={control} name={`customHeaders.${idx}.key` as const} render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormControl>
-                          <Input placeholder="Header Key" value={field.value ?? ""} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={control} name={`customHeaders.${idx}.value` as const} render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormControl>
-                          <Input placeholder="Enter value" value={field.value ?? ""} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <Button type="button" variant="ghost" size="icon" onClick={() => remove(idx)} className="text-medium-emphasis hover:text-red-600">
+                    <FormField
+                      control={control}
+                      name={`customHeaders.${idx}.key` as const}
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormControl>
+                            <Input
+                              placeholder="Header Key"
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={control}
+                      name={`customHeaders.${idx}.value` as const}
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormControl>
+                            <Input
+                              placeholder="Enter value"
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => remove(idx)}
+                      className="text-medium-emphasis hover:text-red-600">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 ))}
-                <Button type="button" variant="outline" onClick={() => append({ key: "", value: "" })} className="mt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => append({ key: "", value: "" })}
+                  className="mt-2">
                   + Add ({fields.length})
                 </Button>
               </div>
             </div>
             <DialogFooter className="mt-6 flex items-center justify-end gap-3">
               <DialogClose asChild>
-                <Button variant="secondary" type="button" onClick={() => setEditKeyModalOpen(false)} disabled={isPending}>Cancel</Button>
+                <Button
+                  variant="secondary"
+                  type="button"
+                  onClick={() => setEditKeyModalOpen(false)}
+                  disabled={isPending}>
+                  Cancel
+                </Button>
               </DialogClose>
-              <Button disabled={!form.formState.isValid || isPending} type="submit">
+              <Button
+                disabled={!form.formState.isValid || isPending}
+                type="submit">
                 {isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>

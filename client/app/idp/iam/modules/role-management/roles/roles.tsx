@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui-kits/card/card";
 import { RolesList } from "./roles-list";
 import { Pagination } from "@/components/ui-kits/pagination/pagination";
@@ -8,7 +7,7 @@ import {
   useRolesFilterQueryParams,
   useRolesSortQueryParams,
 } from "./roles-filter-toolbar";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 
 export const Roles = () => {
   const { queryParams, setQueryParams } = useRolesFilterQueryParams();

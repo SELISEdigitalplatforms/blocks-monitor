@@ -1,8 +1,13 @@
 import { Button } from "@/components/ui-kits/button/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-kits/card/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui-kits/card/card";
 import { Form } from "@/components/ui-kits/form/form";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { SSO_PROVIDERS } from "@blocks-idp/authentication/constants/sso-providers.constant";
 import { useSaveSsoCredential } from "@blocks-idp/authentication/hooks/use-sso";
 import { ISsoProviderConfiguration } from "@blocks-idp/authentication/models/sso.model";
@@ -37,10 +42,15 @@ type FormValue = {
 const schema = ssoProviderConfigBaseSchema.extend({
   clientId: z.string().trim().nonempty("Client id is required"),
   clientSecret: z.string().trim().nonempty("Client secret is required"),
-  wellKnownUrl: z.string().url({ message: "Well known URL must be a valid URL." }).trim(),
+  wellKnownUrl: z
+    .string()
+    .url({ message: "Well known URL must be a valid URL." })
+    .trim(),
 });
 
-export const SSOProviderConfigOwnSSOForm: React.FC<SsoConfigForms> = ({ configuration }) => {
+export const SSOProviderConfigOwnSSOForm: React.FC<SsoConfigForms> = ({
+  configuration,
+}) => {
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
   const { mutateAsync } = useSaveSsoCredential();
 
@@ -73,21 +83,25 @@ export const SSOProviderConfigOwnSSOForm: React.FC<SsoConfigForms> = ({ configur
     const res = await mutateAsync(payload);
 
     if (!res.isSuccess) return showErrorToast({ errors: res.errors });
-    showSuccessToast({ description: `Bring your own SSO is configured successfully` });
+    showSuccessToast({
+      description: `Bring your own SSO is configured successfully`,
+    });
   };
 
   return (
     <Form {...form}>
       <form
         className="flex h-full flex-col justify-between gap-6"
-        onSubmit={form.handleSubmit(onFormSubmit)}
-      >
+        onSubmit={form.handleSubmit(onFormSubmit)}>
         <Card>
           <CardHeader>
             <CardTitle>General</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <SSOProviderConfigFormField fields={SSOOwnSSOFormFields} form={form} />
+            <SSOProviderConfigFormField
+              fields={SSOOwnSSOFormFields}
+              form={form}
+            />
           </CardContent>
         </Card>
 

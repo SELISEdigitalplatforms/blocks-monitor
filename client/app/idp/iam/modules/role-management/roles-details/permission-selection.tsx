@@ -2,7 +2,7 @@
 import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { permissionService } from "@blocks-idp/iam/services/permission.service";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import {
   Accordion,
   AccordionContent,
@@ -62,15 +62,16 @@ export const PermissionSelection = forwardRef(function PermissionSelection(
   }>({});
 
   // Fetch permissions for the open group using the hook at the top level
-  const { data: groupedPermissionList, isLoading: isGroupedPermissionLoading } = useGetPermissions({
-    page: 0,
-    pageSize: 5000, // Increase to ensure we get all permissions for a group
-    isBuiltIn: "", // always empty
-    roles: [],
-    search: "",
-    resourceGroup: openGroup ? openGroup : "",
-    projectKey: tenantId,
-  });
+  const { data: groupedPermissionList, isLoading: isGroupedPermissionLoading } =
+    useGetPermissions({
+      page: 0,
+      pageSize: 5000, // Increase to ensure we get all permissions for a group
+      isBuiltIn: "", // always empty
+      roles: [],
+      search: "",
+      resourceGroup: openGroup ? openGroup : "",
+      projectKey: tenantId,
+    });
 
   // Expose handleSave to parent via ref
   const handleSave = () => {
@@ -79,7 +80,9 @@ export const PermissionSelection = forwardRef(function PermissionSelection(
 
     // Gather all permissions from cache that are selected
     Object.values(groupedPermissionListCache).forEach((groupPermissions) => {
-      const selected = groupPermissions.filter((perm) => selectedPermissions.includes(perm.itemId));
+      const selected = groupPermissions.filter((perm) =>
+        selectedPermissions.includes(perm.itemId),
+      );
       allSelectedPermissions.push(...selected);
     });
 
@@ -162,7 +165,9 @@ export const PermissionSelection = forwardRef(function PermissionSelection(
     return (
       <div className="mt-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="mb-4 rounded-sm border bg-background px-4 py-4">
+          <div
+            key={i}
+            className="mb-4 rounded-sm border bg-background px-4 py-4">
             <div className="mb-2 flex items-start gap-2">
               <Skeleton className="mt-1 h-4 w-4" />
               <div className="w-full">
@@ -294,7 +299,11 @@ export const PermissionSelection = forwardRef(function PermissionSelection(
           // Select dependent
           next.push(perm.itemId);
           // If all dependents are checked, check parent
-          if (allDependents.every((depId) => depId === perm.itemId || next.includes(depId))) {
+          if (
+            allDependents.every(
+              (depId) => depId === perm.itemId || next.includes(depId),
+            )
+          ) {
             if (!next.includes(parent.itemId)) next.push(parent.itemId);
           }
         }
@@ -311,7 +320,9 @@ export const PermissionSelection = forwardRef(function PermissionSelection(
   };
 
   // Handle group checkbox toggle
-  const handleGroupToggle = (groupObj: ReturnType<typeof buildGroupPermissionData>) => {
+  const handleGroupToggle = (
+    groupObj: ReturnType<typeof buildGroupPermissionData>,
+  ) => {
     setSelectedPermissions((prev) => {
       const isAllSelected = groupObj.allIds.every((id) => prev.includes(id));
       if (isAllSelected) {
@@ -327,9 +338,12 @@ export const PermissionSelection = forwardRef(function PermissionSelection(
   };
 
   // Check if all permissions in group are selected
-  const isGroupAllSelected = (groupObj: ReturnType<typeof buildGroupPermissionData>) => {
+  const isGroupAllSelected = (
+    groupObj: ReturnType<typeof buildGroupPermissionData>,
+  ) => {
     return (
-      groupObj.allIds.length > 0 && groupObj.allIds.every((id) => selectedPermissions.includes(id))
+      groupObj.allIds.length > 0 &&
+      groupObj.allIds.every((id) => selectedPermissions.includes(id))
     );
   };
 
@@ -344,7 +358,8 @@ export const PermissionSelection = forwardRef(function PermissionSelection(
 
     // Otherwise fall back to permissions data
     if (!permissions || !permissions.data) return 0;
-    return permissions.data.filter((perm) => perm.resourceGroup === groupName).length;
+    return permissions.data.filter((perm) => perm.resourceGroup === groupName)
+      .length;
   };
 
   // Function to call when a group is opened
@@ -361,19 +376,18 @@ export const PermissionSelection = forwardRef(function PermissionSelection(
           onValueChange={(value) => {
             if (value) getGroupData(value);
             else setOpenGroup(null);
-          }}
-        >
+          }}>
           {resourceGroups.map((groupResource) => {
             const groupName = groupResource.resourceGroup;
             const groupObj = buildGroupPermissionData(groupName);
-            const isLoading = openGroup === groupName && isGroupedPermissionLoading;
+            const isLoading =
+              openGroup === groupName && isGroupedPermissionLoading;
 
             return (
               <AccordionItem
                 key={groupName}
                 value={groupName}
-                className="mb-4 rounded-sm border bg-background px-4"
-              >
+                className="mb-4 rounded-sm border bg-background px-4">
                 <AccordionTrigger className="mb-2 flex items-start justify-between gap-1 hover:no-underline focus:no-underline">
                   <div className="flex flex-col items-start">
                     <div className="flex items-center gap-2">
@@ -382,7 +396,9 @@ export const PermissionSelection = forwardRef(function PermissionSelection(
                         onCheckedChange={() => handleGroupToggle(groupObj)}
                         id={`group-${groupName}`}
                       />
-                      <h3 className="text-left text-2xl font-semibold">{groupName}</h3>
+                      <h3 className="text-left text-2xl font-semibold">
+                        {groupName}
+                      </h3>
                     </div>
                     <span className="text-left text-muted-foreground">
                       Total Permissions: {groupResource.count} | Selected:{" "}
@@ -392,9 +408,13 @@ export const PermissionSelection = forwardRef(function PermissionSelection(
                 </AccordionTrigger>
                 <AccordionContent>
                   {isLoading ? (
-                    <div className="py-4 text-center">Loading group permissions...</div>
+                    <div className="py-4 text-center">
+                      Loading group permissions...
+                    </div>
                   ) : groupObj.allIds.length === 0 ? (
-                    <div className="py-4 text-center">Click to load permissions for this group</div>
+                    <div className="py-4 text-center">
+                      Click to load permissions for this group
+                    </div>
                   ) : (
                     <ul className="ml-4">
                       {/* FE Actions with dependents */}
@@ -408,8 +428,7 @@ export const PermissionSelection = forwardRef(function PermissionSelection(
                             />
                             <label
                               htmlFor={`perm-${fa.itemId}`}
-                              className="cursor-pointer font-medium"
-                            >
+                              className="cursor-pointer font-medium">
                               {fa.name}
                             </label>
                             <span className="ml-2 rounded border bg-muted px-2 py-0.5 text-xs">
@@ -420,13 +439,21 @@ export const PermissionSelection = forwardRef(function PermissionSelection(
                           {fa.dependents.length > 0 && (
                             <ul className="ml-8 mt-1">
                               {fa.dependents.map((dep) => (
-                                <li key={dep.itemId} className="mb-1 flex items-center gap-2">
+                                <li
+                                  key={dep.itemId}
+                                  className="mb-1 flex items-center gap-2">
                                   <Checkbox
-                                    checked={selectedPermissions.includes(dep.itemId)}
-                                    onCheckedChange={() => handleToggle(dep, fa)}
+                                    checked={selectedPermissions.includes(
+                                      dep.itemId,
+                                    )}
+                                    onCheckedChange={() =>
+                                      handleToggle(dep, fa)
+                                    }
                                     id={`perm-${dep.itemId}`}
                                   />
-                                  <label htmlFor={`perm-${dep.itemId}`} className="cursor-pointer">
+                                  <label
+                                    htmlFor={`perm-${dep.itemId}`}
+                                    className="cursor-pointer">
                                     {dep.name}
                                   </label>
                                   {dep.type && (
@@ -442,7 +469,9 @@ export const PermissionSelection = forwardRef(function PermissionSelection(
                       ))}
                       {/* Independent permissions */}
                       {groupObj.independentPerms.map((perm) => (
-                        <li key={perm.itemId} className="mb-2 flex items-center gap-2">
+                        <li
+                          key={perm.itemId}
+                          className="mb-2 flex items-center gap-2">
                           <Checkbox
                             checked={selectedPermissions.includes(perm.itemId)}
                             onCheckedChange={() => handleToggle(perm)}
@@ -450,8 +479,7 @@ export const PermissionSelection = forwardRef(function PermissionSelection(
                           />
                           <label
                             htmlFor={`perm-${perm.itemId}`}
-                            className="cursor-pointer font-medium"
-                          >
+                            className="cursor-pointer font-medium">
                             {perm.name}
                           </label>
                           {perm.type && (

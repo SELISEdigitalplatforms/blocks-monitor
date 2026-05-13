@@ -1,7 +1,11 @@
 import { createWrapper } from "@/test-utils/test-providers/query-client";
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { mockProjectStoreFactory, TEST_TENANT_ID, TEST_PROJECT_KEY } from "@/test-utils/__mocks__";
+import {
+  mockProjectStoreFactory,
+  TEST_TENANT_ID,
+  TEST_PROJECT_KEY,
+} from "@/test-utils/__mocks__";
 import {
   mockLanguageServiceFactory,
   mockLanguageKeysResponse,
@@ -56,7 +60,7 @@ import {
 vi.mock("@blocks-localization/services/language.manager.service", () =>
   mockLanguageServiceFactory(),
 );
-vi.mock("@/store/useProjectStore", () => mockProjectStoreFactory());
+vi.mock("@/store/project.store.ts", () => mockProjectStoreFactory());
 
 describe("Language Manager Hooks", () => {
   beforeEach(() => {
@@ -67,20 +71,25 @@ describe("Language Manager Hooks", () => {
 
   describe("useGetBlocksLanguageKey", () => {
     it("should fetch language keys successfully", async () => {
-      vi.mocked(languageManagerService.fetchBlocksLanguageKey).mockResolvedValue(
-        mockLanguageKeysResponse,
-      );
+      vi.mocked(
+        languageManagerService.fetchBlocksLanguageKey,
+      ).mockResolvedValue(mockLanguageKeysResponse);
 
-      const { result } = renderHook(() => useGetBlocksLanguageKey(1, 10, "", [], false), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHook(
+        () => useGetBlocksLanguageKey(1, 10, "", [], false),
+        {
+          wrapper: createWrapper(),
+        },
+      );
 
       expect(result.current.isLoading).toBe(true);
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       expect(result.current.data).toEqual(mockLanguageKeysResponse);
-      expect(languageManagerService.fetchBlocksLanguageKey).toHaveBeenCalledWith(
+      expect(
+        languageManagerService.fetchBlocksLanguageKey,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           projectKey: TEST_TENANT_ID,
           pageNumber: 1,
@@ -93,21 +102,32 @@ describe("Language Manager Hooks", () => {
     });
 
     it("should pass all filter arguments to the service", async () => {
-      vi.mocked(languageManagerService.fetchBlocksLanguageKey).mockResolvedValue(
-        mockLanguageKeysResponse,
-      );
+      vi.mocked(
+        languageManagerService.fetchBlocksLanguageKey,
+      ).mockResolvedValue(mockLanguageKeysResponse);
 
       renderHook(
         () =>
-          useGetBlocksLanguageKey(2, 20, "save", ["module-1"], true, "", false, {
-            startDate: "2024-01-01",
-            endDate: "2024-01-31",
-          }),
+          useGetBlocksLanguageKey(
+            2,
+            20,
+            "save",
+            ["module-1"],
+            true,
+            "",
+            false,
+            {
+              startDate: "2024-01-01",
+              endDate: "2024-01-31",
+            },
+          ),
         { wrapper: createWrapper() },
       );
 
       await waitFor(() =>
-        expect(languageManagerService.fetchBlocksLanguageKey).toHaveBeenCalledWith(
+        expect(
+          languageManagerService.fetchBlocksLanguageKey,
+        ).toHaveBeenCalledWith(
           expect.objectContaining({
             pageNumber: 2,
             pageSize: 20,
@@ -121,13 +141,16 @@ describe("Language Manager Hooks", () => {
     });
 
     it("should handle errors", async () => {
-      vi.mocked(languageManagerService.fetchBlocksLanguageKey).mockRejectedValue(
-        new Error("Fetch failed"),
-      );
+      vi.mocked(
+        languageManagerService.fetchBlocksLanguageKey,
+      ).mockRejectedValue(new Error("Fetch failed"));
 
-      const { result } = renderHook(() => useGetBlocksLanguageKey(1, 10, "", [], false), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHook(
+        () => useGetBlocksLanguageKey(1, 10, "", [], false),
+        {
+          wrapper: createWrapper(),
+        },
+      );
 
       await waitFor(() => expect(result.current.isError).toBe(true));
     });
@@ -137,18 +160,23 @@ describe("Language Manager Hooks", () => {
 
   describe("useGetBlocksLanguageKeyById", () => {
     it("should fetch a language key by id successfully", async () => {
-      vi.mocked(languageManagerService.fetchBlocksLanguageKeyById).mockResolvedValue(
-        mockBlocksLanguageKey,
-      );
+      vi.mocked(
+        languageManagerService.fetchBlocksLanguageKeyById,
+      ).mockResolvedValue(mockBlocksLanguageKey);
 
-      const { result } = renderHook(() => useGetBlocksLanguageKeyById("key-1"), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHook(
+        () => useGetBlocksLanguageKeyById("key-1"),
+        {
+          wrapper: createWrapper(),
+        },
+      );
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       expect(result.current.data).toEqual(mockBlocksLanguageKey);
-      expect(languageManagerService.fetchBlocksLanguageKeyById).toHaveBeenCalledWith({
+      expect(
+        languageManagerService.fetchBlocksLanguageKeyById,
+      ).toHaveBeenCalledWith({
         projectKey: TEST_TENANT_ID,
         itemId: "key-1",
       });
@@ -159,9 +187,9 @@ describe("Language Manager Hooks", () => {
 
   describe("useGetLanguageModules", () => {
     it("should fetch language modules successfully", async () => {
-      vi.mocked(languageManagerService.fetchBlocksLanguageModules).mockResolvedValue(
-        mockLanguageModuleList,
-      );
+      vi.mocked(
+        languageManagerService.fetchBlocksLanguageModules,
+      ).mockResolvedValue(mockLanguageModuleList);
 
       const { result } = renderHook(() => useGetLanguageModules(), {
         wrapper: createWrapper(),
@@ -170,9 +198,9 @@ describe("Language Manager Hooks", () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       expect(result.current.data).toEqual(mockLanguageModuleList);
-      expect(languageManagerService.fetchBlocksLanguageModules).toHaveBeenCalledWith(
-        TEST_TENANT_ID,
-      );
+      expect(
+        languageManagerService.fetchBlocksLanguageModules,
+      ).toHaveBeenCalledWith(TEST_TENANT_ID);
     });
   });
 
@@ -184,18 +212,26 @@ describe("Language Manager Hooks", () => {
         mockLanguageConfigList,
       );
 
-      const { result } = renderHook(() => useGetLanguages(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useGetLanguages(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       expect(result.current.data).toEqual(mockLanguageConfigList);
-      expect(languageManagerService.fetchBlocksLanguages).toHaveBeenCalledWith(TEST_TENANT_ID);
+      expect(languageManagerService.fetchBlocksLanguages).toHaveBeenCalledWith(
+        TEST_TENANT_ID,
+      );
     });
 
     it("should return empty array when no languages exist", async () => {
-      vi.mocked(languageManagerService.fetchBlocksLanguages).mockResolvedValue([]);
+      vi.mocked(languageManagerService.fetchBlocksLanguages).mockResolvedValue(
+        [],
+      );
 
-      const { result } = renderHook(() => useGetLanguages(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useGetLanguages(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
@@ -207,7 +243,9 @@ describe("Language Manager Hooks", () => {
         new Error("Fetch failed"),
       );
 
-      const { result } = renderHook(() => useGetLanguages(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useGetLanguages(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => expect(result.current.isError).toBe(true));
     });
@@ -217,20 +255,29 @@ describe("Language Manager Hooks", () => {
 
   describe("useGetLanguageModule", () => {
     it("should fetch language module when projectKey is provided", async () => {
-      vi.mocked(languageManagerService.getLanguageModule).mockResolvedValue(mockModuleGetsList);
+      vi.mocked(languageManagerService.getLanguageModule).mockResolvedValue(
+        mockModuleGetsList,
+      );
 
-      const { result } = renderHook(() => useGetLanguageModule(TEST_PROJECT_KEY), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHook(
+        () => useGetLanguageModule(TEST_PROJECT_KEY),
+        {
+          wrapper: createWrapper(),
+        },
+      );
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       expect(result.current.data).toEqual(mockModuleGetsList);
-      expect(languageManagerService.getLanguageModule).toHaveBeenCalledWith(TEST_PROJECT_KEY);
+      expect(languageManagerService.getLanguageModule).toHaveBeenCalledWith(
+        TEST_PROJECT_KEY,
+      );
     });
 
     it("should be disabled when projectKey is empty string", async () => {
-      vi.mocked(languageManagerService.getLanguageModule).mockResolvedValue(mockModuleGetsList);
+      vi.mocked(languageManagerService.getLanguageModule).mockResolvedValue(
+        mockModuleGetsList,
+      );
 
       const { result } = renderHook(() => useGetLanguageModule(""), {
         wrapper: createWrapper(),
@@ -247,11 +294,16 @@ describe("Language Manager Hooks", () => {
 
   describe("useGetLanguageKeysTimeline", () => {
     it("should fetch timeline successfully", async () => {
-      vi.mocked(languageManagerService.getKeysTimeline).mockResolvedValue(mockGetTimelineResponse);
+      vi.mocked(languageManagerService.getKeysTimeline).mockResolvedValue(
+        mockGetTimelineResponse,
+      );
 
-      const { result } = renderHook(() => useGetLanguageKeysTimeline(1, 10, "key-1"), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHook(
+        () => useGetLanguageKeysTimeline(1, 10, "key-1"),
+        {
+          wrapper: createWrapper(),
+        },
+      );
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
@@ -269,11 +321,16 @@ describe("Language Manager Hooks", () => {
 
   describe("useGetExportHistory", () => {
     it("should fetch export history successfully", async () => {
-      vi.mocked(languageManagerService.getExportHistory).mockResolvedValue(mockGetExportHistory);
+      vi.mocked(languageManagerService.getExportHistory).mockResolvedValue(
+        mockGetExportHistory,
+      );
 
-      const { result } = renderHook(() => useGetExportHistory(1, 10, TEST_PROJECT_KEY, {}), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHook(
+        () => useGetExportHistory(1, 10, TEST_PROJECT_KEY, {}),
+        {
+          wrapper: createWrapper(),
+        },
+      );
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
@@ -287,7 +344,9 @@ describe("Language Manager Hooks", () => {
     });
 
     it("should pass all filters to the service", async () => {
-      vi.mocked(languageManagerService.getExportHistory).mockResolvedValue(mockGetExportHistory);
+      vi.mocked(languageManagerService.getExportHistory).mockResolvedValue(
+        mockGetExportHistory,
+      );
 
       renderHook(
         () =>
@@ -338,10 +397,12 @@ describe("Language Manager Hooks", () => {
       vi.mocked(languageManagerService.saveBlocksLanguageKey).mockResolvedValue(
         mockSuccessResponse,
       );
-      vi.mocked(languageManagerService.fetchBlocksLanguageKey).mockResolvedValue(
-        mockLanguageKeysResponse,
+      vi.mocked(
+        languageManagerService.fetchBlocksLanguageKey,
+      ).mockResolvedValue(mockLanguageKeysResponse);
+      vi.mocked(languageManagerService.getKeysTimeline).mockResolvedValue(
+        mockGetTimelineResponse,
       );
-      vi.mocked(languageManagerService.getKeysTimeline).mockResolvedValue(mockGetTimelineResponse);
 
       const wrapper = createWrapper();
 
@@ -358,13 +419,18 @@ describe("Language Manager Hooks", () => {
         expect(timelineResult.current.isSuccess).toBe(true);
       });
 
-      const { result: saveResult } = renderHook(() => useSaveBlocksLanguageKey(), { wrapper });
+      const { result: saveResult } = renderHook(
+        () => useSaveBlocksLanguageKey(),
+        { wrapper },
+      );
       saveResult.current.mutate(mockSaveLanguageKeyPayload);
 
       await waitFor(() => expect(saveResult.current.isSuccess).toBe(true));
 
       await waitFor(() => {
-        expect(languageManagerService.fetchBlocksLanguageKey).toHaveBeenCalledTimes(2);
+        expect(
+          languageManagerService.fetchBlocksLanguageKey,
+        ).toHaveBeenCalledTimes(2);
         expect(languageManagerService.getKeysTimeline).toHaveBeenCalledTimes(2);
       });
     });
@@ -388,9 +454,13 @@ describe("Language Manager Hooks", () => {
 
   describe("useSaveLanguageModule", () => {
     it("should save a language module successfully", async () => {
-      vi.mocked(languageManagerService.saveLanguageModule).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(languageManagerService.saveLanguageModule).mockResolvedValue(
+        mockSuccessResponse,
+      );
 
-      const { result } = renderHook(() => useSaveLanguageModule(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useSaveLanguageModule(), {
+        wrapper: createWrapper(),
+      });
 
       result.current.mutate(mockSaveLanguageModulePayload);
 
@@ -402,23 +472,32 @@ describe("Language Manager Hooks", () => {
     });
 
     it("should invalidate get-language-modules on success", async () => {
-      vi.mocked(languageManagerService.saveLanguageModule).mockResolvedValue(mockSuccessResponse);
-      vi.mocked(languageManagerService.fetchBlocksLanguageModules).mockResolvedValue(
-        mockLanguageModuleList,
+      vi.mocked(languageManagerService.saveLanguageModule).mockResolvedValue(
+        mockSuccessResponse,
       );
+      vi.mocked(
+        languageManagerService.fetchBlocksLanguageModules,
+      ).mockResolvedValue(mockLanguageModuleList);
 
       const wrapper = createWrapper();
 
-      const { result: modulesResult } = renderHook(() => useGetLanguageModules(), { wrapper });
+      const { result: modulesResult } = renderHook(
+        () => useGetLanguageModules(),
+        { wrapper },
+      );
       await waitFor(() => expect(modulesResult.current.isSuccess).toBe(true));
 
-      const { result: saveResult } = renderHook(() => useSaveLanguageModule(), { wrapper });
+      const { result: saveResult } = renderHook(() => useSaveLanguageModule(), {
+        wrapper,
+      });
       saveResult.current.mutate(mockSaveLanguageModulePayload);
 
       await waitFor(() => expect(saveResult.current.isSuccess).toBe(true));
 
       await waitFor(() => {
-        expect(languageManagerService.fetchBlocksLanguageModules).toHaveBeenCalledTimes(2);
+        expect(
+          languageManagerService.fetchBlocksLanguageModules,
+        ).toHaveBeenCalledTimes(2);
       });
     });
   });
@@ -427,35 +506,49 @@ describe("Language Manager Hooks", () => {
 
   describe("useSaveLanguage", () => {
     it("should save a language successfully", async () => {
-      vi.mocked(languageManagerService.saveLanguage).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(languageManagerService.saveLanguage).mockResolvedValue(
+        mockSuccessResponse,
+      );
 
-      const { result } = renderHook(() => useSaveLanguage(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useSaveLanguage(), {
+        wrapper: createWrapper(),
+      });
 
       result.current.mutate(mockSaveLanguagePayload);
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(languageManagerService.saveLanguage).toHaveBeenCalledWith(mockSaveLanguagePayload);
+      expect(languageManagerService.saveLanguage).toHaveBeenCalledWith(
+        mockSaveLanguagePayload,
+      );
     });
 
     it("should invalidate get-languages on success", async () => {
-      vi.mocked(languageManagerService.saveLanguage).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(languageManagerService.saveLanguage).mockResolvedValue(
+        mockSuccessResponse,
+      );
       vi.mocked(languageManagerService.fetchBlocksLanguages).mockResolvedValue(
         mockLanguageConfigList,
       );
 
       const wrapper = createWrapper();
 
-      const { result: languagesResult } = renderHook(() => useGetLanguages(), { wrapper });
+      const { result: languagesResult } = renderHook(() => useGetLanguages(), {
+        wrapper,
+      });
       await waitFor(() => expect(languagesResult.current.isSuccess).toBe(true));
 
-      const { result: saveResult } = renderHook(() => useSaveLanguage(), { wrapper });
+      const { result: saveResult } = renderHook(() => useSaveLanguage(), {
+        wrapper,
+      });
       saveResult.current.mutate(mockSaveLanguagePayload);
 
       await waitFor(() => expect(saveResult.current.isSuccess).toBe(true));
 
       await waitFor(() => {
-        expect(languageManagerService.fetchBlocksLanguages).toHaveBeenCalledTimes(2);
+        expect(
+          languageManagerService.fetchBlocksLanguages,
+        ).toHaveBeenCalledTimes(2);
       });
     });
   });
@@ -468,7 +561,9 @@ describe("Language Manager Hooks", () => {
         mockDeleteSuccessResponse,
       );
 
-      const { result } = renderHook(() => useDeleteLanguageKey(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useDeleteLanguageKey(), {
+        wrapper: createWrapper(),
+      });
 
       result.current.mutate(mockDeleteLanguageKeyPayload);
 
@@ -483,9 +578,9 @@ describe("Language Manager Hooks", () => {
       vi.mocked(languageManagerService.deleteLanguageKey).mockResolvedValue(
         mockDeleteSuccessResponse,
       );
-      vi.mocked(languageManagerService.fetchBlocksLanguageKey).mockResolvedValue(
-        mockLanguageKeysResponse,
-      );
+      vi.mocked(
+        languageManagerService.fetchBlocksLanguageKey,
+      ).mockResolvedValue(mockLanguageKeysResponse);
 
       const wrapper = createWrapper();
 
@@ -495,13 +590,18 @@ describe("Language Manager Hooks", () => {
       );
       await waitFor(() => expect(keysResult.current.isSuccess).toBe(true));
 
-      const { result: deleteResult } = renderHook(() => useDeleteLanguageKey(), { wrapper });
+      const { result: deleteResult } = renderHook(
+        () => useDeleteLanguageKey(),
+        { wrapper },
+      );
       deleteResult.current.mutate(mockDeleteLanguageKeyPayload);
 
       await waitFor(() => expect(deleteResult.current.isSuccess).toBe(true));
 
       await waitFor(() => {
-        expect(languageManagerService.fetchBlocksLanguageKey).toHaveBeenCalledTimes(2);
+        expect(
+          languageManagerService.fetchBlocksLanguageKey,
+        ).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -510,7 +610,9 @@ describe("Language Manager Hooks", () => {
         new Error("Delete failed"),
       );
 
-      const { result } = renderHook(() => useDeleteLanguageKey(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useDeleteLanguageKey(), {
+        wrapper: createWrapper(),
+      });
 
       result.current.mutate(mockDeleteLanguageKeyPayload);
 
@@ -522,35 +624,49 @@ describe("Language Manager Hooks", () => {
 
   describe("useDeleteLanguage", () => {
     it("should delete a language successfully", async () => {
-      vi.mocked(languageManagerService.deleteLanguage).mockResolvedValue(mockDeleteSuccessResponse);
+      vi.mocked(languageManagerService.deleteLanguage).mockResolvedValue(
+        mockDeleteSuccessResponse,
+      );
 
-      const { result } = renderHook(() => useDeleteLanguage(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useDeleteLanguage(), {
+        wrapper: createWrapper(),
+      });
 
       result.current.mutate(mockDeleteLanguagePayload);
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(languageManagerService.deleteLanguage).toHaveBeenCalledWith(mockDeleteLanguagePayload);
+      expect(languageManagerService.deleteLanguage).toHaveBeenCalledWith(
+        mockDeleteLanguagePayload,
+      );
     });
 
     it("should invalidate get-languages on success", async () => {
-      vi.mocked(languageManagerService.deleteLanguage).mockResolvedValue(mockDeleteSuccessResponse);
+      vi.mocked(languageManagerService.deleteLanguage).mockResolvedValue(
+        mockDeleteSuccessResponse,
+      );
       vi.mocked(languageManagerService.fetchBlocksLanguages).mockResolvedValue(
         mockLanguageConfigList,
       );
 
       const wrapper = createWrapper();
 
-      const { result: languagesResult } = renderHook(() => useGetLanguages(), { wrapper });
+      const { result: languagesResult } = renderHook(() => useGetLanguages(), {
+        wrapper,
+      });
       await waitFor(() => expect(languagesResult.current.isSuccess).toBe(true));
 
-      const { result: deleteResult } = renderHook(() => useDeleteLanguage(), { wrapper });
+      const { result: deleteResult } = renderHook(() => useDeleteLanguage(), {
+        wrapper,
+      });
       deleteResult.current.mutate(mockDeleteLanguagePayload);
 
       await waitFor(() => expect(deleteResult.current.isSuccess).toBe(true));
 
       await waitFor(() => {
-        expect(languageManagerService.fetchBlocksLanguages).toHaveBeenCalledTimes(2);
+        expect(
+          languageManagerService.fetchBlocksLanguages,
+        ).toHaveBeenCalledTimes(2);
       });
     });
   });
@@ -559,35 +675,52 @@ describe("Language Manager Hooks", () => {
 
   describe("useSetDefaultLanguage", () => {
     it("should set default language successfully", async () => {
-      vi.mocked(languageManagerService.setDefault).mockResolvedValue(mockDeleteSuccessResponse);
+      vi.mocked(languageManagerService.setDefault).mockResolvedValue(
+        mockDeleteSuccessResponse,
+      );
 
-      const { result } = renderHook(() => useSetDefaultLanguage(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useSetDefaultLanguage(), {
+        wrapper: createWrapper(),
+      });
 
       result.current.mutate(mockSetDefaultPayload);
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(languageManagerService.setDefault).toHaveBeenCalledWith(mockSetDefaultPayload);
+      expect(languageManagerService.setDefault).toHaveBeenCalledWith(
+        mockSetDefaultPayload,
+      );
     });
 
     it("should invalidate get-languages on success", async () => {
-      vi.mocked(languageManagerService.setDefault).mockResolvedValue(mockDeleteSuccessResponse);
+      vi.mocked(languageManagerService.setDefault).mockResolvedValue(
+        mockDeleteSuccessResponse,
+      );
       vi.mocked(languageManagerService.fetchBlocksLanguages).mockResolvedValue(
         mockLanguageConfigList,
       );
 
       const wrapper = createWrapper();
 
-      const { result: languagesResult } = renderHook(() => useGetLanguages(), { wrapper });
+      const { result: languagesResult } = renderHook(() => useGetLanguages(), {
+        wrapper,
+      });
       await waitFor(() => expect(languagesResult.current.isSuccess).toBe(true));
 
-      const { result: setDefaultResult } = renderHook(() => useSetDefaultLanguage(), { wrapper });
+      const { result: setDefaultResult } = renderHook(
+        () => useSetDefaultLanguage(),
+        { wrapper },
+      );
       setDefaultResult.current.mutate(mockSetDefaultPayload);
 
-      await waitFor(() => expect(setDefaultResult.current.isSuccess).toBe(true));
+      await waitFor(() =>
+        expect(setDefaultResult.current.isSuccess).toBe(true),
+      );
 
       await waitFor(() => {
-        expect(languageManagerService.fetchBlocksLanguages).toHaveBeenCalledTimes(2);
+        expect(
+          languageManagerService.fetchBlocksLanguages,
+        ).toHaveBeenCalledTimes(2);
       });
     });
   });
@@ -601,13 +734,17 @@ describe("Language Manager Hooks", () => {
         isSuccess: true,
       });
 
-      const { result } = renderHook(() => useTranslateAll(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useTranslateAll(), {
+        wrapper: createWrapper(),
+      });
 
       result.current.mutate(mockTranslateAllPayload);
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(languageManagerService.translateAll).toHaveBeenCalledWith(mockTranslateAllPayload);
+      expect(languageManagerService.translateAll).toHaveBeenCalledWith(
+        mockTranslateAllPayload,
+      );
     });
 
     it("should invalidate get-blocksLanguageKeys and get-blocksLanguageKey on success", async () => {
@@ -615,9 +752,9 @@ describe("Language Manager Hooks", () => {
         errors: null,
         isSuccess: true,
       });
-      vi.mocked(languageManagerService.fetchBlocksLanguageKey).mockResolvedValue(
-        mockLanguageKeysResponse,
-      );
+      vi.mocked(
+        languageManagerService.fetchBlocksLanguageKey,
+      ).mockResolvedValue(mockLanguageKeysResponse);
 
       const wrapper = createWrapper();
 
@@ -627,13 +764,17 @@ describe("Language Manager Hooks", () => {
       );
       await waitFor(() => expect(keysResult.current.isSuccess).toBe(true));
 
-      const { result: translateResult } = renderHook(() => useTranslateAll(), { wrapper });
+      const { result: translateResult } = renderHook(() => useTranslateAll(), {
+        wrapper,
+      });
       translateResult.current.mutate(mockTranslateAllPayload);
 
       await waitFor(() => expect(translateResult.current.isSuccess).toBe(true));
 
       await waitFor(() => {
-        expect(languageManagerService.fetchBlocksLanguageKey).toHaveBeenCalledTimes(2);
+        expect(
+          languageManagerService.fetchBlocksLanguageKey,
+        ).toHaveBeenCalledTimes(2);
       });
     });
   });
@@ -647,13 +788,17 @@ describe("Language Manager Hooks", () => {
         isSuccess: true,
       });
 
-      const { result } = renderHook(() => useTranslateKey(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useTranslateKey(), {
+        wrapper: createWrapper(),
+      });
 
       result.current.mutate(mockTranslateKeyPayload);
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(languageManagerService.translateKey).toHaveBeenCalledWith(mockTranslateKeyPayload);
+      expect(languageManagerService.translateKey).toHaveBeenCalledWith(
+        mockTranslateKeyPayload,
+      );
     });
   });
 
@@ -666,7 +811,9 @@ describe("Language Manager Hooks", () => {
         isSuccess: true,
       });
 
-      const { result } = renderHook(() => useGenerateUilmFile(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useGenerateUilmFile(), {
+        wrapper: createWrapper(),
+      });
 
       result.current.mutate(mockGenerateUilmFilePayload);
 
@@ -682,9 +829,9 @@ describe("Language Manager Hooks", () => {
 
   describe("useGetTranslationSuggestion", () => {
     it("should get a translation suggestion successfully", async () => {
-      vi.mocked(languageManagerService.getTranslationSuggestion).mockResolvedValue(
-        mockTranslationSuggestionResponse,
-      );
+      vi.mocked(
+        languageManagerService.getTranslationSuggestion,
+      ).mockResolvedValue(mockTranslationSuggestionResponse);
 
       const { result } = renderHook(() => useGetTranslationSuggestion(), {
         wrapper: createWrapper(),
@@ -695,15 +842,15 @@ describe("Language Manager Hooks", () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       expect(result.current.data).toEqual(mockTranslationSuggestionResponse);
-      expect(languageManagerService.getTranslationSuggestion).toHaveBeenCalledWith(
-        mockTranslationSuggestionPayload,
-      );
+      expect(
+        languageManagerService.getTranslationSuggestion,
+      ).toHaveBeenCalledWith(mockTranslationSuggestionPayload);
     });
 
     it("should handle errors gracefully", async () => {
-      vi.mocked(languageManagerService.getTranslationSuggestion).mockRejectedValue(
-        new Error("AI service unavailable"),
-      );
+      vi.mocked(
+        languageManagerService.getTranslationSuggestion,
+      ).mockRejectedValue(new Error("AI service unavailable"));
 
       const { result } = renderHook(() => useGetTranslationSuggestion(), {
         wrapper: createWrapper(),
@@ -719,7 +866,9 @@ describe("Language Manager Hooks", () => {
 
   describe("useImportLanguageFile", () => {
     it("should import a language file successfully", async () => {
-      vi.mocked(languageManagerService.importLanguageFile).mockResolvedValue(mockSuccessResponse);
+      vi.mocked(languageManagerService.importLanguageFile).mockResolvedValue(
+        mockSuccessResponse,
+      );
 
       const { result } = renderHook(() => useImportLanguageFile(), {
         wrapper: createWrapper(),
@@ -729,7 +878,9 @@ describe("Language Manager Hooks", () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(languageManagerService.importLanguageFile).toHaveBeenCalledWith(mockImportFile);
+      expect(languageManagerService.importLanguageFile).toHaveBeenCalledWith(
+        mockImportFile,
+      );
     });
   });
 
@@ -737,9 +888,9 @@ describe("Language Manager Hooks", () => {
 
   describe("useSaveLanguageKeyUilmExport", () => {
     it("should export language keys successfully", async () => {
-      vi.mocked(languageManagerService.saveLanguageKeyUilmExport).mockResolvedValue(
-        mockSuccessResponse,
-      );
+      vi.mocked(
+        languageManagerService.saveLanguageKeyUilmExport,
+      ).mockResolvedValue(mockSuccessResponse);
 
       const { result } = renderHook(() => useSaveLanguageKeyUilmExport(), {
         wrapper: createWrapper(),
@@ -749,9 +900,9 @@ describe("Language Manager Hooks", () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(languageManagerService.saveLanguageKeyUilmExport).toHaveBeenCalledWith(
-        mockKeyUilmExport,
-      );
+      expect(
+        languageManagerService.saveLanguageKeyUilmExport,
+      ).toHaveBeenCalledWith(mockKeyUilmExport);
     });
   });
 
@@ -759,9 +910,13 @@ describe("Language Manager Hooks", () => {
 
   describe("useRevertKeyTimeline", () => {
     it("should revert a key timeline successfully", async () => {
-      vi.mocked(languageManagerService.revertKeyTimeline).mockResolvedValue(mockRollbackResponse);
+      vi.mocked(languageManagerService.revertKeyTimeline).mockResolvedValue(
+        mockRollbackResponse,
+      );
 
-      const { result } = renderHook(() => useRevertKeyTimeline(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useRevertKeyTimeline(), {
+        wrapper: createWrapper(),
+      });
 
       result.current.mutate(mockRevertKeyTimelinePayload);
 
@@ -773,8 +928,12 @@ describe("Language Manager Hooks", () => {
     });
 
     it("should invalidate get-uilm-timeline on success", async () => {
-      vi.mocked(languageManagerService.revertKeyTimeline).mockResolvedValue(mockRollbackResponse);
-      vi.mocked(languageManagerService.getKeysTimeline).mockResolvedValue(mockGetTimelineResponse);
+      vi.mocked(languageManagerService.revertKeyTimeline).mockResolvedValue(
+        mockRollbackResponse,
+      );
+      vi.mocked(languageManagerService.getKeysTimeline).mockResolvedValue(
+        mockGetTimelineResponse,
+      );
 
       const wrapper = createWrapper();
 
@@ -784,7 +943,10 @@ describe("Language Manager Hooks", () => {
       );
       await waitFor(() => expect(timelineResult.current.isSuccess).toBe(true));
 
-      const { result: revertResult } = renderHook(() => useRevertKeyTimeline(), { wrapper });
+      const { result: revertResult } = renderHook(
+        () => useRevertKeyTimeline(),
+        { wrapper },
+      );
       revertResult.current.mutate(mockRevertKeyTimelinePayload);
 
       await waitFor(() => expect(revertResult.current.isSuccess).toBe(true));

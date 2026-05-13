@@ -1,5 +1,3 @@
-
-
 import { Button } from "@/components/ui-kits/button/button";
 import { CardContent } from "@/components/ui-kits/card/card";
 import {
@@ -27,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui-kits/select/select";
 import { showErrorToast, toast } from "@/hooks/use-toast";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { useGetEmailConfigs } from "@blocks-communication/mail/hooks/use-email-config";
 import { IEmailTemplate } from "@blocks-communication/mail/models/email";
 import { useGetLanguages } from "@blocks-localization/hooks/use-language-manager";
@@ -46,10 +44,14 @@ interface EditCommunicationProps {
 const EditCommunication = (props: EditCommunicationProps) => {
   const { isLoading, data } = useGetEmailConfigs(0, 100);
   // const { saveEmailTemplate, isPending } = useSaveEmailTemplate();
-  const { isPending: isSaveTemplateLoading, mutateAsync: saveTemplate } = useSaveMailTemplate();
-  const { isLoading: isLanguageListLoading, data: languageListData } = useGetLanguages();
+  const { isPending: isSaveTemplateLoading, mutateAsync: saveTemplate } =
+    useSaveMailTemplate();
+  const { isLoading: isLanguageListLoading, data: languageListData } =
+    useGetLanguages();
   const schema = z.object({
-    mailConfigurationId: z.string().min(1, { message: "MailConfiguration is required" }),
+    mailConfigurationId: z
+      .string()
+      .min(1, { message: "MailConfiguration is required" }),
     language: z.string().min(1, { message: "Language is required" }),
     name: z
       .string()
@@ -152,7 +154,9 @@ const EditCommunication = (props: EditCommunicationProps) => {
                               placeholder="Enter Template name"
                               className="border-default col-span-3 mt-1 border shadow-none"
                               {...field}
-                              disabled={props.templateData.generatedBy === "Tenant"}
+                              disabled={
+                                props.templateData.generatedBy === "Tenant"
+                              }
                               onKeyDown={(e) => {
                                 if (e.key === " " || e.key === "_") {
                                   e.preventDefault();
@@ -176,7 +180,9 @@ const EditCommunication = (props: EditCommunicationProps) => {
                           <FormLabel className="text-left font-medium text-high-emphasis">
                             Language
                           </FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger className="border-default col-span-3 flex h-10 w-full items-center justify-between rounded-md border bg-background px-3 py-2 text-sm shadow-none placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
                                 <SelectValue placeholder="Select language" />
@@ -186,8 +192,7 @@ const EditCommunication = (props: EditCommunicationProps) => {
                               {(languageListData ?? []).map((language) => (
                                 <SelectItem
                                   key={language.languageCode}
-                                  value={language.languageCode}
-                                >
+                                  value={language.languageCode}>
                                   {language.languageName}
                                 </SelectItem>
                               ))}
@@ -207,7 +212,9 @@ const EditCommunication = (props: EditCommunicationProps) => {
                           <FormLabel className="text-left font-medium text-high-emphasis">
                             Email Configuration
                           </FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger className="border-default col-span-3 flex h-10 w-full items-center justify-between rounded-md border bg-background px-3 py-2 text-sm shadow-none placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
                                 <SelectValue placeholder="Select Configuration" />
@@ -215,7 +222,9 @@ const EditCommunication = (props: EditCommunicationProps) => {
                             </FormControl>
                             <SelectContent>
                               {data.map((config) => (
-                                <SelectItem key={config.itemId} value={config.itemId}>
+                                <SelectItem
+                                  key={config.itemId}
+                                  value={config.itemId}>
                                   {config.name}
                                 </SelectItem>
                               ))}

@@ -10,10 +10,13 @@ import {
 import { Pagination } from "@/components/ui-kits/pagination/pagination";
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
 import { toast } from "@/hooks/use-toast";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { IEmailTemplate } from "@blocks-communication/mail/models/email";
 import { useState } from "react";
-import { useGetMFAConfig, useSaveMFAConfig } from "@blocks-idp/mfa/hooks/use-mfa-config";
+import {
+  useGetMFAConfig,
+  useSaveMFAConfig,
+} from "@blocks-idp/mfa/hooks/use-mfa-config";
 import { useGetEmailTemplates } from "@blocks-communication/mail/hooks/use-email-template";
 
 type ChooseEmailTemplateProps = {
@@ -35,17 +38,31 @@ const LoadingSkelton = () => {
   );
 };
 
-export const ChooseEmailTemplate = ({ open, setOpen }: ChooseEmailTemplateProps) => {
+export const ChooseEmailTemplate = ({
+  open,
+  setOpen,
+}: ChooseEmailTemplateProps) => {
   const tenantId = useProjectStore().selectedProject?.tenantId || "";
   const { data: mfaConfigData } = useGetMFAConfig({ projectKey: tenantId });
   const [filter, setFilter] = useState({ page: 0, pageSize: 10 });
-  const { data, isLoading, isFetching } = useGetEmailTemplates(filter.page, filter.pageSize, "", "Name", false, "", "");
+  const { data, isLoading, isFetching } = useGetEmailTemplates(
+    filter.page,
+    filter.pageSize,
+    "",
+    "Name",
+    false,
+    "",
+    "",
+  );
   const { isPending, mutateAsync } = useSaveMFAConfig();
-  const [seletedTemplate, setSelectedTemplate] = useState<IEmailTemplate | null>(null);
+  const [seletedTemplate, setSelectedTemplate] =
+    useState<IEmailTemplate | null>(null);
 
   const onSaveHandler = async () => {
     try {
-      const userMfaTypes = mfaConfigData?.userMfaType ? [...mfaConfigData.userMfaType] : [];
+      const userMfaTypes = mfaConfigData?.userMfaType
+        ? [...mfaConfigData.userMfaType]
+        : [];
       const res = await mutateAsync({
         projectKey: tenantId,
         enableMfa: true,
@@ -81,8 +98,7 @@ export const ChooseEmailTemplate = ({ open, setOpen }: ChooseEmailTemplateProps)
       onOpenChange={(isOpen) => {
         if (!isOpen) setSelectedTemplate(null);
         setOpen(isOpen);
-      }}
-    >
+      }}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Choose a template </DialogTitle>
@@ -100,31 +116,33 @@ export const ChooseEmailTemplate = ({ open, setOpen }: ChooseEmailTemplateProps)
                     itemId: "",
                     name: "",
                   })
-                }
-              >
+                }>
                 <div
-                  className={`relative h-[200px] w-full border ${seletedTemplate?.itemId === "" ? "border border-primary" : " "}`}
-                >
+                  className={`relative h-[200px] w-full border ${seletedTemplate?.itemId === "" ? "border border-primary" : " "}`}>
                   <img
                     src={`/assets/images/services/email/email-template-sample-1.png`}
-                   
                     alt="email-template"
                   />
                 </div>
-                <div className="mt-2 flex items-center justify-between text-sm">Default</div>
+                <div className="mt-2 flex items-center justify-between text-sm">
+                  Default
+                </div>
               </div>
               {data?.templates?.map((template) => (
-                <div className={`w-[150px]`} key={template.itemId} onClick={() => setSelectedTemplate(template)}>
+                <div
+                  className={`w-[150px]`}
+                  key={template.itemId}
+                  onClick={() => setSelectedTemplate(template)}>
                   <div
-                    className={`relative h-[200px] w-full border ${seletedTemplate?.itemId === template.itemId ? "border border-primary" : " "}`}
-                  >
+                    className={`relative h-[200px] w-full border ${seletedTemplate?.itemId === template.itemId ? "border border-primary" : " "}`}>
                     <img
                       src={`/assets/images/services/email/email-template-sample-1.png`}
-                     
                       alt="email-template"
                     />
                   </div>
-                  <div className="mt-2 flex items-center justify-between text-sm">{template.name}</div>
+                  <div className="mt-2 flex items-center justify-between text-sm">
+                    {template.name}
+                  </div>
                 </div>
               ))}
             </>
@@ -155,8 +173,9 @@ export const ChooseEmailTemplate = ({ open, setOpen }: ChooseEmailTemplateProps)
               className="ml-2 min-w-[80px]"
               size="default"
               onClick={onSaveHandler}
-              disabled={isPending || !seletedTemplate || isLoading || isFetching}
-            >
+              disabled={
+                isPending || !seletedTemplate || isLoading || isFetching
+              }>
               Choose
             </Button>
           </div>

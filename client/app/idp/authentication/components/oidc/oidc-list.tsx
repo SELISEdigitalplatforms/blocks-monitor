@@ -1,8 +1,7 @@
-
 import { useGetAuthOidcCredentials } from "@blocks-idp/authentication/hooks/use-auth-oidc";
 import { OIDCCard } from "./oidc-card";
 import { useMemo } from "react";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { Card, CardContent, CardHeader } from "@/components/ui-kits/card/card";
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
 
@@ -86,7 +85,9 @@ export const OidcList = () => {
 
   return (
     <div className="grid gap-4">
-      {sortedOidcData?.map((item) => <OIDCCard key={item.itemId} oidc={item} />)}
+      {sortedOidcData?.map((item) => (
+        <OIDCCard key={item.itemId} oidc={item} />
+      ))}
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { API_BASES } from "@/constants/endpoint.constant";
 // ─── Subpaths ─────────────────────────────────────────────────────────────────
 
 const AUTH_SUBPATH = "/Authentication";
+const AUTH_OIDC_SUBPATH = "/oidc";
 
 // ─── Auth endpoints (auth.service / oauth.service) ───────────────────────────
 
@@ -24,6 +25,7 @@ export const AUTH_CLIENT_ENDPOINTS = {
 // ─── OIDC client endpoints (auth-clients-oidc.service) ──────────────────────
 
 export const AUTH_OIDC_ENDPOINTS = {
+  OIDC_TOKEN: `${API_BASES.IDP}${AUTH_OIDC_SUBPATH}/token`,
   GET_OIDC_CLIENTS: `${API_BASES.IDP}${AUTH_SUBPATH}/GetOIDCClients`,
   GET_OIDC_CLIENT: `${API_BASES.IDP}${AUTH_SUBPATH}/GetOIDCClient`,
   SAVE_OIDC_CLIENT: `${API_BASES.IDP}${AUTH_SUBPATH}/SaveOIDCClient`,

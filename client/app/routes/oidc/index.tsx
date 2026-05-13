@@ -1,6 +1,6 @@
 import LoadingSpinner from "@/components/loader-spinner/loader-spinner";
 import { getRuntimeEnv } from "@/lib/runtime-env";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAuthStore } from "@/store/auth.store.ts";
 import { OIDCSignin } from "@blocks-idp/authentication/pages/oidc/oidc-signin";
 import { OIDCPermissionWrapper } from "@blocks-idp/authentication/pages/oidc/permission-wrapper";
 import { authService } from "@blocks-idp/authentication/services/auth.service";

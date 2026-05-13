@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui-kits/button/button";
 import { Check, Copy, Download } from "lucide-react";
 import { getApiUrl } from "@/lib/get-api-path";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 
 interface UrlWithActionsProps {
   url: string;
@@ -65,7 +65,9 @@ export const UrlWithActions = ({ url }: UrlWithActionsProps) => {
 
   return (
     <div className="group flex min-w-0 items-center gap-1">
-      <span className="text-base font-normal text-high-emphasis underline" title={jwksUrl}>
+      <span
+        className="text-base font-normal text-high-emphasis underline"
+        title={jwksUrl}>
         certificate
       </span>
       <div className="flex flex-shrink-0 items-center gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
@@ -74,8 +76,7 @@ export const UrlWithActions = ({ url }: UrlWithActionsProps) => {
           className="h-auto p-1 transition-colors hover:bg-gray-100"
           onClick={handleCopy}
           type="button"
-          title={isCopying ? "Copied!" : "Copy URL"}
-        >
+          title={isCopying ? "Copied!" : "Copy URL"}>
           {isCopying ? (
             <Check className="h-4 w-4 text-green-600" />
           ) : (
@@ -87,8 +88,7 @@ export const UrlWithActions = ({ url }: UrlWithActionsProps) => {
           className="h-auto p-1 transition-colors hover:bg-gray-100"
           onClick={handleDownload}
           type="button"
-          title="Download certificate"
-        >
+          title="Download certificate">
           <Download className="h-4 w-4 text-gray-600 hover:text-gray-800" />
         </Button>
       </div>

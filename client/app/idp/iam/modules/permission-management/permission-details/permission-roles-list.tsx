@@ -1,11 +1,28 @@
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui-kits/table/table";
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui-kits/table/table";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { IRole } from "@blocks-idp/iam/models/role";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-kits/card/card";
-import { useProjectStore } from "@/store/useProjectStore";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui-kits/card/card";
+import { useProjectStore } from "@/store/project.store.ts";
 import { useGetRoles } from "@blocks-idp/iam/hooks/use-roles";
 import { parseAsInteger, useQueryStates } from "nuqs";
 import { Pagination } from "@/components/ui-kits/pagination/pagination";
@@ -50,7 +67,9 @@ export const PermissionRolesList = ({ slugs }: RolesTableProps) => {
             <span className="font-bold text-medium-emphasis">Name</span>
           </div>
         ),
-        cell: (roles) => <div className="w-[130px] truncate">{roles.row.original.name}</div>,
+        cell: (roles) => (
+          <div className="w-[130px] truncate">{roles.row.original.name}</div>
+        ),
       },
       {
         id: "slug",
@@ -62,7 +81,9 @@ export const PermissionRolesList = ({ slugs }: RolesTableProps) => {
         ),
         cell: (roles) => (
           <div className="w-[150px] truncate">
-            <span className="rounded-sm bg-blocks-primary-shades-300 px-2 py-1">{roles.row.original.slug}</span>
+            <span className="rounded-sm bg-blocks-primary-shades-300 px-2 py-1">
+              {roles.row.original.slug}
+            </span>
           </div>
         ),
       },
@@ -74,10 +95,14 @@ export const PermissionRolesList = ({ slugs }: RolesTableProps) => {
             <span className="font-bold text-medium-emphasis">Description</span>
           </div>
         ),
-        cell: (roles) => <div className="w-[200px] truncate md:w-[260px]">{roles.row.original.description}</div>,
+        cell: (roles) => (
+          <div className="w-[200px] truncate md:w-[260px]">
+            {roles.row.original.description}
+          </div>
+        ),
       },
     ],
-    []
+    [],
   );
 
   const table = useReactTable({
@@ -119,16 +144,23 @@ export const PermissionRolesList = ({ slugs }: RolesTableProps) => {
                   .map((headerGroup) =>
                     headerGroup.headers.map((header) => (
                       <TableHead key={header.id}>
-                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
                       </TableHead>
-                    ))
+                    )),
                   )}
               </TableRow>
             </TableHeader>
             <TableBody>
               {!data?.data.length ? (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center text-muted-foreground">
                     No roles found. Please create new roles.
                   </TableCell>
                 </TableRow>
@@ -137,10 +169,14 @@ export const PermissionRolesList = ({ slugs }: RolesTableProps) => {
                   <TableRow
                     key={row.id}
                     className="cursor-pointer"
-                    onClick={() => onRowClickHandler(row.original.itemId)}
-                  >
+                    onClick={() => onRowClickHandler(row.original.itemId)}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
                     ))}
                   </TableRow>
                 ))

@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui-kits/card/card";
 import { Dialog } from "@/components/ui-kits/dialog/dialog";
 import ConfirmationModal from "@/components/confirmation-modal/confirmation-modal";
 import { IProject } from "@blocks-identifier/models/project.model";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import {
   Tooltip,
   TooltipContent,
@@ -51,13 +51,16 @@ export const EnvironmentCard = ({
     <Dialog open={isConfirmationOpen} onOpenChange={setIsConfirmationOpen}>
       <Card
         onClick={handleCardClick}
-        className={`group flex h-[60px] cursor-pointer flex-col justify-between rounded-sm p-4 shadow-none transition-shadow duration-200 hover:shadow-md ${className}`}
-      >
+        className={`group flex h-[60px] cursor-pointer flex-col justify-between rounded-sm p-4 shadow-none transition-shadow duration-200 hover:shadow-md ${className}`}>
         <CardHeader className="flex flex-row justify-between !p-0">
           <CardTitle className="line-clamp-1 break-all text-lg leading-tight">
             <div className="flex w-fit flex-row items-center gap-1">
               <div className="text-base text-medium-emphasis">
-                {environmentOptions.find((option) => option.value === project?.environment)?.label}
+                {
+                  environmentOptions.find(
+                    (option) => option.value === project?.environment,
+                  )?.label
+                }
               </div>
               {isMigrationOngoing && (
                 <TooltipProvider>

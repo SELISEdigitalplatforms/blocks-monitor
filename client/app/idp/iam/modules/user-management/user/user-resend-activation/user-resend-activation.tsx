@@ -1,7 +1,7 @@
 import ConfirmationModal from "@/components/confirmation-modal/confirmation-modal";
 import { Dialog } from "@/components/ui-kits/dialog/dialog";
 import { toast } from "@/hooks/use-toast";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { useAccountResendActivation } from "@blocks-idp/iam/hooks/use-account";
 
 type UserResendActivationMailProps = {
@@ -45,7 +45,8 @@ export const UserResendActivationMail = ({
         onConfirm={onClickHandler}
         data={{
           dialogTitle: "Confirmation",
-          dialogSubtitle: "Do you want to resend the activation email to this user? ",
+          dialogSubtitle:
+            "Do you want to resend the activation email to this user? ",
           confirmButton: "Resend",
         }}
         buttonState={{

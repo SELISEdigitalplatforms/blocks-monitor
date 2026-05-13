@@ -1,4 +1,4 @@
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { useGetProjects, useGetMigrationStatus } from "@/hooks/use-project";
 import { useGetPeople } from "@/hooks/use-people";
 import { EnvironmentCard } from "@/components/environment-card/environment-card";

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ILog } from "../models/log.model";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { lmtService } from "../services/lmt.service";
 
 type UseLogsParams = {
@@ -44,10 +44,13 @@ export const useLogs = ({
   const fetchInitialLogs = useCallback(async () => {
     try {
       isFirstFetchCompleted.current = true;
-      const res = await lmtService.log.getLogsByDate(generateFetchLogsPayload());
+      const res = await lmtService.log.getLogsByDate(
+        generateFetchLogsPayload(),
+      );
       setIsLoading(false);
       if (res.data.length) setInitialLogs(res.data.reverse());
-      if (res.totalCount && res.totalCount <= page * pageSize) setHasTopMore(false);
+      if (res.totalCount && res.totalCount <= page * pageSize)
+        setHasTopMore(false);
     } catch (_error) {
       // Handle error
     } finally {
@@ -67,7 +70,8 @@ export const useLogs = ({
         const payload = generateFetchLogsPayload();
         payload.filter.endDate = lastDate;
         const res = await lmtService.log.getLogsByDate(payload);
-        if (res.totalCount && res.totalCount <= page * pageSize) setHasTopMore(false);
+        if (res.totalCount && res.totalCount <= page * pageSize)
+          setHasTopMore(false);
         setPage((page) => page + 1);
         if (!res.data.length) return [];
         return res.data.reverse();

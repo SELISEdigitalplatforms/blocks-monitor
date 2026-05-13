@@ -1,3 +1,5 @@
+import { getRuntimeEnv } from "@/lib/runtime-env";
+
 export const API_BASES = {
   COMMUNICATION: "/api",
   CLOUD_CONFIGURATION: "/api",
@@ -5,7 +7,7 @@ export const API_BASES = {
   UILM: "/api",
   UTILITIES: "/api",
   CLOUD_BUILD: "/api",
-  IDP: "/api",
+  IDP: getRuntimeEnv("BLOCKS_IDP_APP_URL") + "/api",
   IDENTIFIER: "/api",
   LMT: "/api",
   MFA: "/api",

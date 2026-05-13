@@ -1,4 +1,4 @@
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { useGetAssets, useAddAssets } from "@/hooks/use-project";
 import { Plus, Github } from "lucide-react";
 import { Button } from "@/components/ui-kits/button/button";
@@ -20,7 +20,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui-kits/table/table";
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import { Pagination } from "@/components/ui-kits/pagination/pagination";
 import { Card, CardContent, CardHeader } from "@/components/ui-kits/card/card";
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
@@ -73,9 +78,11 @@ export const RepositoriesPage = () => {
   }, [debouncedSearchText]);
 
   const [repositoryModalOpen, setRepositoryModalOpen] = useState(false);
-  const [selectRepositoryModalOpen, setSelectRepositoryModalOpen] = useState(false);
+  const [selectRepositoryModalOpen, setSelectRepositoryModalOpen] =
+    useState(false);
 
-  const { data: _isAuthenticated, refetch: refetchAuthorization } = useValidateAuthorization();
+  const { data: _isAuthenticated, refetch: refetchAuthorization } =
+    useValidateAuthorization();
   const { mutateAsync } = useAddAssets();
 
   // Handler for Add Repository button click
@@ -123,7 +130,8 @@ export const RepositoriesPage = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred",
+        description:
+          error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       });
       setSelectRepositoryModalOpen(false);
@@ -140,7 +148,9 @@ export const RepositoriesPage = () => {
             <span className="font-bold text-medium-emphasis">Name</span>
           </div>
         ),
-        cell: (repos) => <div className="truncate">{repos.row.original.name}</div>,
+        cell: (repos) => (
+          <div className="truncate">{repos.row.original.name}</div>
+        ),
       },
       {
         id: "repo link",
@@ -153,9 +163,14 @@ export const RepositoriesPage = () => {
         cell: (repos) => (
           <div className="truncate">
             <span
-              onClick={() => window.open(repos.row.original.link, "_blank", "noopener,noreferrer")}
-              className="cursor-pointer text-blue-600 hover:underline"
-            >
+              onClick={() =>
+                window.open(
+                  repos.row.original.link,
+                  "_blank",
+                  "noopener,noreferrer",
+                )
+              }
+              className="cursor-pointer text-blue-600 hover:underline">
               {repos.row.original.link}
             </span>
           </div>
@@ -198,8 +213,7 @@ export const RepositoriesPage = () => {
           size="sm"
           variant="default"
           className="h-10 text-sm text-primary-foreground"
-          onClick={handleAddRepositoryClick}
-        >
+          onClick={handleAddRepositoryClick}>
           <Plus className="mr-2 h-4 w-4" />
           <span>Add</span>
         </Button>
@@ -225,7 +239,10 @@ export const RepositoriesPage = () => {
                       <TableHead key={header.id} className="text-xs md:text-sm">
                         {header.isPlaceholder
                           ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())}
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
                       </TableHead>
                     )),
                   )}
@@ -239,7 +256,9 @@ export const RepositoriesPage = () => {
                       <TableRow key={index}>
                         {columns.map((_, colIndex) => (
                           <TableCell key={colIndex}>
-                            <Skeleton className={`h-6 ${colIndex === 2 ? "w-24" : "w-full"}`} />
+                            <Skeleton
+                              className={`h-6 ${colIndex === 2 ? "w-24" : "w-full"}`}
+                            />
                           </TableCell>
                         ))}
                       </TableRow>
@@ -248,8 +267,7 @@ export const RepositoriesPage = () => {
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
-                      className="h-24 text-center text-sm text-muted-foreground md:text-base"
-                    >
+                      className="h-24 text-center text-sm text-muted-foreground md:text-base">
                       No repositories found. Add a repository to get started.
                     </TableCell>
                   </TableRow>
@@ -258,7 +276,10 @@ export const RepositoriesPage = () => {
                     <TableRow key={row.id} className="text-xs md:text-sm">
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id} className="py-2 md:py-3">
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
                         </TableCell>
                       ))}
                     </TableRow>
@@ -266,16 +287,17 @@ export const RepositoriesPage = () => {
                 )}
               </TableBody>
             </Table>
-            {!isLoadingAssets && (resourcesResponse?.totalCount || 0) > pageSize && (
-              <div className="mt-5 flex flex-col items-center gap-4 md:flex-row md:justify-end">
-                <Pagination
-                  page={pageNumber}
-                  onChange={onPageChangeHandler}
-                  totalCount={resourcesResponse?.totalCount || 0}
-                  pageSize={pageSize}
-                />
-              </div>
-            )}
+            {!isLoadingAssets &&
+              (resourcesResponse?.totalCount || 0) > pageSize && (
+                <div className="mt-5 flex flex-col items-center gap-4 md:flex-row md:justify-end">
+                  <Pagination
+                    page={pageNumber}
+                    onChange={onPageChangeHandler}
+                    totalCount={resourcesResponse?.totalCount || 0}
+                    pageSize={pageSize}
+                  />
+                </div>
+              )}
           </CardContent>
         </Card>
       </div>
@@ -286,10 +308,14 @@ export const RepositoriesPage = () => {
           <DialogHeader>
             <DialogTitle>Connect repository</DialogTitle>
             <DialogDescription>
-              Select a Git provider to import an existing project from a Git Repository.
+              Select a Git provider to import an existing project from a Git
+              Repository.
             </DialogDescription>
           </DialogHeader>
-          <ProviderButtons destination="/intermediate-page" onClose={handleProviderClose} />
+          <ProviderButtons
+            destination="/intermediate-page"
+            onClose={handleProviderClose}
+          />
         </DialogContent>
       </Dialog>
 
@@ -304,4 +330,3 @@ export const RepositoriesPage = () => {
     </main>
   );
 };
-

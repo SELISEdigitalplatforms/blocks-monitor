@@ -1,11 +1,9 @@
-
-
 import { useQueryState } from "nuqs";
 import { BREADCRUMB_CUSTOM_TITLES } from "@/constants/breadcrumb-custom-title";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui-kits/tabs/tabs";
 import PageBreadcrumb from "@/components/breadcrumb/breadcrumb";
 import { useGetUserById } from "@blocks-idp/iam/hooks/use-user";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import {
   Select,
   SelectContent,
@@ -41,7 +39,9 @@ const Menu = [
 
 export const User = ({ id }: { id: string }) => {
   const tenantId = useProjectStore().selectedProject?.tenantId || "";
-  const [tabId, setTabId] = useQueryState("userDetails", { defaultValue: "details" });
+  const [tabId, setTabId] = useQueryState("userDetails", {
+    defaultValue: "details",
+  });
   const { data } = useGetUserById({ id, projectKey: tenantId });
 
   BREADCRUMB_CUSTOM_TITLES["/services/iam/user-detail"] = "Users";
@@ -75,7 +75,9 @@ export const User = ({ id }: { id: string }) => {
                   ))}
                 </SelectContent>
               </Select>
-              {tabId === "details" ? <UserActionMenu id={id} projectKey={tenantId} /> : null}
+              {tabId === "details" ? (
+                <UserActionMenu id={id} projectKey={tenantId} />
+              ) : null}
             </div>
           </div>
 
@@ -90,32 +92,36 @@ export const User = ({ id }: { id: string }) => {
                     </TabsTrigger>
                   ))}
                 </TabsList>
-                {tabId === "details" ? <UserActionMenu id={id} projectKey={tenantId} /> : null}
+                {tabId === "details" ? (
+                  <UserActionMenu id={id} projectKey={tenantId} />
+                ) : null}
               </div>
             </Tabs>
           </div>
 
           <>
-            {tabId === "details" ?
-              (
+            {tabId === "details" ? (
+              <div className="flex flex-col gap-6">
+                <UserDetails id={id} />
                 <div className="flex flex-col gap-6">
-                  <UserDetails id={id} />
-                  <div className="flex flex-col gap-6">
-                    <UserMemberships id={id} projectKey={tenantId} />
-                    {/* <UserRoles id={id} projectKey={tenantId} />
+                  <UserMemberships id={id} projectKey={tenantId} />
+                  {/* <UserRoles id={id} projectKey={tenantId} />
                     <UserPermissions userId={id} projectKey={tenantId} /> */}
-                  </div>
                 </div>
-              )
-              : null}
+              </div>
+            ) : null}
             {/* {tabId === "rolesAndPermissions" && (
               <div className="flex flex-col gap-6">
                 <UserRoles id={id} projectKey={tenantId} />
                 <UserPermissions userId={id} projectKey={tenantId} />
               </div>
             )} */}
-            {tabId === "devices" && <UserDevices id={id} projectKey={tenantId} />}
-            {tabId === "history" && <UserHistories id={id} projectKey={tenantId} />}
+            {tabId === "devices" && (
+              <UserDevices id={id} projectKey={tenantId} />
+            )}
+            {tabId === "history" && (
+              <UserHistories id={id} projectKey={tenantId} />
+            )}
           </>
         </div>
       </div>

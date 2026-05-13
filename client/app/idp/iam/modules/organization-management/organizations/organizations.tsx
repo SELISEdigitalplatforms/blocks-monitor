@@ -1,9 +1,10 @@
-
-
 import { Card, CardContent, CardHeader } from "@/components/ui-kits/card/card";
 import { Pagination } from "@/components/ui-kits/pagination/pagination";
-import { useGetOrganizations, useGetOrganizationConfig } from "@blocks-idp/iam/hooks/use-organization";
-import { useProjectStore } from "@/store/useProjectStore";
+import {
+  useGetOrganizations,
+  useGetOrganizationConfig,
+} from "@blocks-idp/iam/hooks/use-organization";
+import { useProjectStore } from "@/store/project.store.ts";
 import { OrganizationsList } from "./organizations-list";
 import { AddOrganization } from "../add-organization/add-organization";
 import {
@@ -22,7 +23,10 @@ export function Organizations() {
     projectKey: tenantId,
   });
   const { data: orgConfigData } = useGetOrganizationConfig(tenantId);
-  const isAddDisabled = !orgConfigData || !orgConfigData.isMultiOrgEnabled || !orgConfigData.allowCreationFromCloud;
+  const isAddDisabled =
+    !orgConfigData ||
+    !orgConfigData.isMultiOrgEnabled ||
+    !orgConfigData.allowCreationFromCloud;
   const onPageChangeHandler = (page: number) => {
     setQueryParams((prev) => ({
       ...prev,
@@ -45,7 +49,10 @@ export function Organizations() {
             </div>
           </CardHeader>
           <CardContent>
-            <OrganizationsList organizations={organizationsList} isLoading={loading} />
+            <OrganizationsList
+              organizations={organizationsList}
+              isLoading={loading}
+            />
             {!loading && totalCount > queryParams.pageSize && (
               <div className="mt-4 flex items-center md:justify-end">
                 <Pagination

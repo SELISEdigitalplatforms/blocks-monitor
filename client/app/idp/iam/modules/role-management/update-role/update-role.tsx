@@ -22,7 +22,7 @@ import {
 } from "@/components/ui-kits/form/form";
 import { z } from "zod";
 import { updateRoleFormSchema } from "./utils";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { IRole } from "@blocks-idp/iam/models/role";
 import { useUpdateRole } from "@blocks-idp/iam/hooks/use-roles";
 import { isErrorWithErrors } from "@/lib/error";
@@ -44,7 +44,9 @@ export const UpdateRole = ({ role, isOpen, onClose }: UpdateRoleProps) => {
     formState: { isDirty },
   } = form;
 
-  const onSubmit: SubmitHandler<z.infer<typeof updateRoleFormSchema>> = async (data) => {
+  const onSubmit: SubmitHandler<z.infer<typeof updateRoleFormSchema>> = async (
+    data,
+  ) => {
     const newRole = {
       ...data,
       projectKey: tenantId,
@@ -78,7 +80,9 @@ export const UpdateRole = ({ role, isOpen, onClose }: UpdateRoleProps) => {
         <DialogDescription></DialogDescription>
       </DialogHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex flex-col gap-4">
           <FormField
             name="name"
             control={form.control}
@@ -107,11 +111,17 @@ export const UpdateRole = ({ role, isOpen, onClose }: UpdateRoleProps) => {
           />
           <DialogFooter className="mt-6">
             <DialogTrigger asChild>
-              <Button className="min-w-[80px]" variant="outline" disabled={isPending}>
+              <Button
+                className="min-w-[80px]"
+                variant="outline"
+                disabled={isPending}>
                 Cancel
               </Button>
             </DialogTrigger>
-            <Button className="min-w-[80px]" type="submit" disabled={isPending || !isDirty}>
+            <Button
+              className="min-w-[80px]"
+              type="submit"
+              disabled={isPending || !isDirty}>
               {isPending ? "Updating..." : "Update"}
             </Button>
           </DialogFooter>

@@ -1,9 +1,7 @@
-
-
 import { Card, CardContent, CardHeader } from "@/components/ui-kits/card/card";
 import { Pagination } from "@/components/ui-kits/pagination/pagination";
 import { useGetPermissions } from "@blocks-idp/iam/hooks/use-permission";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { PermissionsList } from "./permissions-list";
 import {
   PermissionsFilterToolbar,
@@ -20,7 +18,12 @@ export function Permissions() {
   const { isLoading, isFetching, data } = useGetPermissions({
     ...queryParams,
     sort: sortQueryParams,
-    isBuiltIn: queryParams.isBuiltIn === "yes" ? "yes" : queryParams.isBuiltIn === "no" ? "no" : "",
+    isBuiltIn:
+      queryParams.isBuiltIn === "yes"
+        ? "yes"
+        : queryParams.isBuiltIn === "no"
+          ? "no"
+          : "",
     type: Number(queryParams.type),
     projectKey: tenantId,
     roles: [],

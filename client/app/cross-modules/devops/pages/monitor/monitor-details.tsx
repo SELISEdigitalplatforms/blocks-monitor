@@ -19,7 +19,7 @@ import {
   ResponseSkeletonLoader,
 } from "@/cross-modules/devops/components/monitor/details/monitor-details-skeletons";
 import { IMonitorSummary } from "@/cross-modules/devops/models/alerts.model";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import {
   useGetMonitorById,
   useGetMonitorDetails,

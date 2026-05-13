@@ -13,7 +13,7 @@ import { lmtService } from "../services/lmt.service";
 import { useGetTraces, useGetTraceById } from "./use-trace";
 
 vi.mock("@blocks-lmt/services/lmt.service", () => mockLmtServiceFactory());
-vi.mock("@/store/useProjectStore", () => mockProjectStoreFactory());
+vi.mock("@/store/project.store.ts", () => mockProjectStoreFactory());
 
 describe("use-trace hooks", () => {
   beforeEach(() => {

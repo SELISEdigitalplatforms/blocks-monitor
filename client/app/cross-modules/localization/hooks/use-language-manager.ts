@@ -1,5 +1,8 @@
-import { useProjectStore } from "@/store/useProjectStore";
-import { ExportHistoryFilters, IKeyUilmExport } from "@blocks-localization/models/language";
+import { useProjectStore } from "@/store/project.store.ts";
+import {
+  ExportHistoryFilters,
+  IKeyUilmExport,
+} from "@blocks-localization/models/language";
 import { languageManagerService } from "@blocks-localization/services/language.manager.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -97,7 +100,9 @@ export const useSaveBlocksLanguageKey = () => {
       queryClient.invalidateQueries({ queryKey: ["get-blocksLanguageKey"] });
       queryClient.invalidateQueries({ queryKey: ["get-blocksLanguageKeys"] });
       queryClient.invalidateQueries({ queryKey: ["get-uilm-timeline"] });
-      queryClient.invalidateQueries({ queryKey: ["get-localization-timeline"] });
+      queryClient.invalidateQueries({
+        queryKey: ["get-localization-timeline"],
+      });
     },
   });
 };
@@ -142,7 +147,9 @@ export const useTranslateKey = () => {
       queryClient.invalidateQueries({ queryKey: ["get-blocksLanguageKey"] });
       queryClient.invalidateQueries({ queryKey: ["get-blocksLanguageKeys"] });
       queryClient.invalidateQueries({ queryKey: ["get-uilm-timeline"] });
-      queryClient.invalidateQueries({ queryKey: ["get-localization-timeline"] });
+      queryClient.invalidateQueries({
+        queryKey: ["get-localization-timeline"],
+      });
     },
   });
 };
@@ -224,7 +231,11 @@ export const useSaveLanguageKeyUilmExport = () => {
   });
 };
 
-export const useGetLanguageKeysTimeline = (pageNumber: number, pageSize: number, keyId: string) => {
+export const useGetLanguageKeysTimeline = (
+  pageNumber: number,
+  pageSize: number,
+  keyId: string,
+) => {
   const tenantId = useProjectStore()?.selectedProject?.tenantId || "";
   return useQuery({
     queryKey: ["get-uilm-timeline", tenantId, pageNumber, pageSize, keyId],
@@ -272,7 +283,9 @@ export const useRevertKeyTimeline = () => {
       languageManagerService.revertKeyTimeline(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-uilm-timeline"] });
-      queryClient.invalidateQueries({ queryKey: ["get-localization-timeline"] });
+      queryClient.invalidateQueries({
+        queryKey: ["get-localization-timeline"],
+      });
     },
   });
 };
@@ -323,7 +336,13 @@ export const useGetTimelineByOperationId = (
 ) => {
   const tenantId = useProjectStore()?.selectedProject?.tenantId || "";
   return useQuery({
-    queryKey: ["get-timeline-by-operation", tenantId, operationId, pageNumber, pageSize],
+    queryKey: [
+      "get-timeline-by-operation",
+      tenantId,
+      operationId,
+      pageNumber,
+      pageSize,
+    ],
     queryFn: () =>
       languageManagerService.getTimelineByOperationId({
         operationId,

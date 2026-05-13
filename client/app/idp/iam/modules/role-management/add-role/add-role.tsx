@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Button } from "@/components/ui-kits/button/button";
@@ -24,7 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui-kits/form/form";
 import { z } from "zod";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 import { useAddRole } from "@blocks-idp/iam/hooks/use-roles";
 import { PrimaryButton } from "@/components/action-buttons/primary-button";
 import { Textarea } from "@/components/ui-kits/textarea/textarea";
@@ -43,7 +42,9 @@ export const AddRole = () => {
     formState: { isDirty },
   } = form;
 
-  const onSubmit: SubmitHandler<z.infer<typeof addRoleFormSchema>> = async (data) => {
+  const onSubmit: SubmitHandler<z.infer<typeof addRoleFormSchema>> = async (
+    data,
+  ) => {
     const newRole = {
       name: data.name,
       description: data.description || "",
@@ -56,8 +57,16 @@ export const AddRole = () => {
       setIsAddRoleOpenModal(false);
       form.reset();
     } catch (error: unknown) {
-      if (error && typeof error === "object" && "status" in error && "errors" in error) {
-        const httpError = error as { status: number; errors: Record<string, string | string[]> };
+      if (
+        error &&
+        typeof error === "object" &&
+        "status" in error &&
+        "errors" in error
+      ) {
+        const httpError = error as {
+          status: number;
+          errors: Record<string, string | string[]>;
+        };
 
         if (httpError.status === 403) {
           showErrorToast({
@@ -79,18 +88,21 @@ export const AddRole = () => {
       onOpenChange={(value) => {
         form.reset(addRoleFormDefaultValue);
         setIsAddRoleOpenModal(value);
-      }}
-    >
+      }}>
       <DialogTrigger asChild>
         <PrimaryButton label="Add Role" />
       </DialogTrigger>
       <DialogContent>
         <DialogHeader className="mb-4">
           <DialogTitle>Add Role</DialogTitle>
-          <DialogDescription>Please fill in the details to add a new role.</DialogDescription>
+          <DialogDescription>
+            Please fill in the details to add a new role.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4">
             <FormField
               name="name"
               control={form.control}
@@ -132,11 +144,17 @@ export const AddRole = () => {
             />
             <DialogFooter className="mt-6">
               <DialogTrigger asChild>
-                <Button className="min-w-[80px]" variant="outline" disabled={isPending}>
+                <Button
+                  className="min-w-[80px]"
+                  variant="outline"
+                  disabled={isPending}>
                   Cancel
                 </Button>
               </DialogTrigger>
-              <Button className="min-w-[80px]" type="submit" disabled={isPending || !isDirty}>
+              <Button
+                className="min-w-[80px]"
+                type="submit"
+                disabled={isPending || !isDirty}>
                 {isPending ? "Adding..." : "Add"}
               </Button>
             </DialogFooter>

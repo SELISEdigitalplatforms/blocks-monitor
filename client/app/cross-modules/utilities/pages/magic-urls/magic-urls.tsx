@@ -1,10 +1,16 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui-kits/card/card";
 import { Pagination } from "@/components/ui-kits/pagination/pagination";
-import { useMagicUrlsFilterQueryParams, MagicUrlsFilterToolBar } from "./magic-urls-filter-toolbar";
+import {
+  useMagicUrlsFilterQueryParams,
+  MagicUrlsFilterToolBar,
+} from "./magic-urls-filter-toolbar";
 import { MagicUrlsList } from "./magic-urls-list";
-import { useProjectStore } from "@/store/useProjectStore";
-import { useGetMagicUrls, useSaveMagicUrlConfig } from "@blocks-utilities/hooks/use-magic-url";
+import { useProjectStore } from "@/store/project.store.ts";
+import {
+  useGetMagicUrls,
+  useSaveMagicUrlConfig,
+} from "@blocks-utilities/hooks/use-magic-url";
 import { MagicUrlDialog } from "@blocks-utilities/components/magic-url-dialog/magic-url-dialog";
 import { MagicUrlConfigDialog } from "@blocks-utilities/components/magic-url-config-dialog/magic-url-config-dialog";
 
@@ -55,7 +61,10 @@ export const MagicUrls = () => {
           <MagicUrlsFilterToolBar />
         </CardHeader>
         <CardContent>
-          <MagicUrlsList data={data?.data || []} isLoading={isLoading || isFetching} />
+          <MagicUrlsList
+            data={data?.data || []}
+            isLoading={isLoading || isFetching}
+          />
           {!loading && data && data.totalCount > queryParams.pageSize && (
             <div className="mt-5 flex items-center md:justify-end">
               <Pagination

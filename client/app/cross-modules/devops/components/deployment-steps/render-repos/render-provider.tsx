@@ -12,7 +12,7 @@ import { Button } from "@/components/ui-kits/button/button";
 import { useNavigate } from "react-router-dom";
 import { useValidateAuthorization } from "@/cross-modules/devops/hooks/github-info";
 import { IProviderDestination } from "@/cross-modules/devops/models/utils";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useProjectStore } from "@/store/project.store.ts";
 
 interface ProviderButtonsProps extends IProviderDestination {
   onClose?: (verifyAuth?: boolean) => void | Promise<void>;
@@ -31,9 +31,9 @@ const ProviderButtons = ({
 
   const { data: verifyAuth } = useValidateAuthorization();
   const [, setSelectedProvider] = useState<string | null>(null);
-  
+
   const targetDestination = destination || "/devops/configure";
-  
+
   if (destination) {
     localStorage.setItem("destination", destination);
   }
@@ -92,8 +92,7 @@ const ProviderButtons = ({
                 onClick={() => handleContinue(provider.id)}
                 className={`flex w-[345px] items-center justify-center gap-2 rounded border border-border bg-background px-4 py-2 font-medium transition-colors duration-200 hover:bg-secondary ${provider.name.toLowerCase()}`}
                 type="button"
-                disabled={!provider.active}
-              >
+                disabled={!provider.active}>
                 <img
                   src={iconSrc}
                   alt={`${provider.name} icon`}
@@ -101,7 +100,9 @@ const ProviderButtons = ({
                   height={18}
                   className="object-contain"
                 />
-                <span className="text-foreground">Continue with {provider.name}</span>
+                <span className="text-foreground">
+                  Continue with {provider.name}
+                </span>
               </Button>
             );
           })}
