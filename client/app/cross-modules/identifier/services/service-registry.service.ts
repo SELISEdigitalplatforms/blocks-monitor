@@ -10,7 +10,12 @@ export class ServiceRegistryService {
   getAllServices(
     payload: IGetAllServicesPayload,
   ): Promise<IGetAllServicesResponse> {
-    return this.httpClient.post(SERVICE_REGISTRY_ENDPOINTS.GET_ALL, payload);
+    return this.httpClient.post(
+      "https://dev-logic.blocksdevelopers.com/api/Service/GetAll",
+      payload,
+      undefined,
+      { absoluteUrl: true },
+    );
   }
 }
 

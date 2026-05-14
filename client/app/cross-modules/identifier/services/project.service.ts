@@ -33,8 +33,8 @@ export class ProjectService {
     errors: unknown | null;
     isSuccess: boolean;
   }> {
-    const url = `${CLOUD_BUILD_ENDPOINTS.REPOS_LIST}?projectkey=${projectKey}`;
-    return this.logicHttpClient.get(url);
+    const url = `https://dev-logic.blocksdevelopers.com/api/build/repos-list?projectkey=${projectKey}`;
+    return this.logicHttpClient.get(url, undefined, { absoluteUrl: true });
   }
 
   addAssets(payload: { tenantGroupId: string; resource: IResource }): Promise<{
