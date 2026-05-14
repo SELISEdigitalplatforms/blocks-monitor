@@ -4,9 +4,9 @@ const AUTH_SUBPATH = "/Authentication";
 
 export const AUTH_ENDPOINTS = {
   TOKEN: `${API_BASE}${AUTH_SUBPATH}/Token`,
-  LOGOUT: `${API_BASE}${AUTH_SUBPATH}/Logout`,
   GET_SOCIAL_LOGIN_ENDPOINT: `${API_BASE}${AUTH_SUBPATH}/GetSocialLogInEndPoint`,
   GET_LOGIN_OPTIONS: `${API_BASE}${AUTH_SUBPATH}/GetLoginOptions`,
+  LOGOUT: `${API_BASE}/auth/Logout`,
 } as const;
 
 export const AUTH_OIDC_ENDPOINTS = {
