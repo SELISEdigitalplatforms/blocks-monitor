@@ -1,5 +1,3 @@
-// import { GRANT_TYPES, SSO_PROVIDERS } from "@blocks-idp/authentication/constants";
-
 export interface IProject {
   itemId: string;
   createdDate: string;

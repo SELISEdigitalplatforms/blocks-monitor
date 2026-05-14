@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader } from "@/components/ui-kits/card/card";
-import { useGetAllIncidentList } from "@blocks-observability/hooks/alerts";
+import { useGetAllIncidentList } from "@blocks-observability/hooks/use-alerts";
 import { useNavigate, useParams } from "react-router-dom";
 import IncidentList, {
   useAlertFilterQueryParams,
