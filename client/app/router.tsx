@@ -1,59 +1,7 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import type { ExtractPaths } from "@/utils/type.util";
+import { createBrowserRouter } from "react-router-dom";
+import { routes } from "./routes";
 
-import { DashboardLayout } from "./layouts/dashboard-layout";
-import { OidcLayout } from "./layouts/oidc-layout";
+export const router = createBrowserRouter([...routes]);
 
-// Auth routes (public, with auth layout)
-import LoginPage from "./routes/auth/login";
-
-// Public routes (with public guard only)
-
-// OIDC routes (un-guarded)
-import OidcIndexPage from "./routes/oidc/index";
-
-// Dashboard routes (protected)
-import HealthPage from "./routes/dashboard/health";
-import HealthIncidentsPage from "./routes/dashboard/health-incidents";
-import HealthMonitorPage from "./routes/dashboard/health-monitor";
-import ProfilePage from "./routes/dashboard/profile";
-import CallbackPage from "./routes/callback/callback";
-
-// Console pages
-
-export const router = createBrowserRouter([
-  // ── Simple login (no guards, no API calls) ──
-  {
-    path: "/login",
-    children: [
-      { index: true, element: <LoginPage /> },
-      { path: "callback", element: <CallbackPage /> },
-    ],
-  },
-
-  // ── OIDC layout (un-guarded, themed) ──
-  // {
-  //   path: "/oidc",
-  //   element: <OidcLayout />,
-  //   children: [{ index: true, element: <OidcIndexPage /> }],
-  // },
-
-  // ── Dashboard layout (protected routes) ──
-  {
-    element: <DashboardLayout />,
-    children: [
-      { path: "/health", element: <HealthPage /> },
-      { path: "/health/monitor/:id", element: <HealthMonitorPage /> },
-      {
-        path: "/health/monitor/incidents/:id",
-        element: <HealthIncidentsPage />,
-      },
-      { path: "/profile", element: <ProfilePage /> },
-    ],
-  },
-
-  // ── Root redirect: authenticated users go to health ──
-  { path: "/", element: <Navigate to="/health" replace /> },
-
-  // ── Catch-all: redirect to login ──
-  { path: "*", element: <Navigate to="/login" replace /> },
-]);
+export type RouterType = ExtractPaths<typeof routes>;

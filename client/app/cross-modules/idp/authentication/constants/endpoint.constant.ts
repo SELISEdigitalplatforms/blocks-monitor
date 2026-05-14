@@ -19,3 +19,8 @@ export const AUTH_OIDC_ENDPOINTS = {
 export const OIDC_FLOW_ENDPOINTS = {
   USER_ACKNOWLEDGEMENT: `${API_BASE}${AUTH_SUBPATH}/UserAcknowledgement`,
 } as const;
+
+export const IMPERSONATION_ENDPOINTS = {
+  IMPERSONATE: `${API_BASE}${AUTH_SUBPATH}/impersonate`,
+  STOP_IMPERSONATION: `${API_BASE}${AUTH_SUBPATH}/impersonation/stop`,
+} as const;
