@@ -6,7 +6,7 @@ import {
   useSaveHealth,
   useUpdateHealth,
   useUpdateSingleMonitor,
-} from "@blocks-observability/hooks/alerts";
+} from "@blocks-observability/hooks/use-alerts";
 import {
   toCreateCallbackPayload,
   toCreateRequestPayload,

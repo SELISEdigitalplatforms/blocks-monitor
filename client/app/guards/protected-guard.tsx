@@ -6,26 +6,34 @@ import { useProjectStore } from "@/store/project.store.ts";
 import {
   useStartImpersonation,
   useStopImpersonation,
-} from "@blocks-identifier/hooks/use-impersonation";
-import { ImpersonationRequest } from "@blocks-identifier/services/impersonation.service";
+} from "@blocks-idp/authentication/hooks/use-impersonation";
 import { useGetUser } from "@blocks-idp/iam/hooks/use-user";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppState } from "./public-guard";
+import { ImpersonationRequest } from "@blocks-idp/authentication/models/impersonate.model";
 
 export function ProtectedGuard({ children }: { children: React.ReactNode }) {
   const { isMounted } = useAppState();
-  const { data: user } = useGetUser();
+  const {
+    data: user,
+    isLoading,
+    isError,
+  } = useGetUser({
+    enabled: isMounted,
+  });
   const { data: _projects } = useGetProjects({ enabled: !!user });
+
   const { setUser } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!isMounted) return;
-    if (!user) return navigate(`/login`, { replace: true });
+    if (isLoading) return;
+    if (isError || !user) return navigate(`/login`, { replace: true });
     setUser(user.data);
-  }, [user, navigate, setUser]);
-  if (!isMounted || !user) return null;
+  }, [user, isLoading, isError, navigate, setUser, isMounted]);
+  if (!isMounted || isLoading || !user) return null;
   return <>{children}</>;
 }
 

@@ -1,7 +1,7 @@
 import LoadingSpinner from "@/components/loader-spinner/loader-spinner";
 import { Logo } from "@/components/logo";
 import { toast } from "@/hooks/use-toast";
-import { extractOIDCParams } from "@blocks-idp/authentication/utils/oidc-utils";
+import { extractOIDCParams } from "@blocks-idp/authentication/utils/oidc.util";
 import {
   createContext,
   ReactNode,

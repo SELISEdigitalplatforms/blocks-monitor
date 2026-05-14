@@ -9,7 +9,7 @@ import {
 } from "@/components/ui-kits/card/card";
 import { Separator } from "@/components/ui-kits/separator/separator";
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
-import { BREADCRUMB_CUSTOM_TITLES } from "@/constants/breadcrumb-custom-title";
+import { useProjectStore } from "@/store/project.store.ts";
 import AlertAction from "@blocks-observability/components/alert/alert-action";
 import NotificationModal from "@blocks-observability/components/alert/notification-modal";
 import MonitorCard from "@blocks-observability/components/monitor/details/monitor-card";
@@ -18,13 +18,12 @@ import {
   MonitorCardSkeleton,
   ResponseSkeletonLoader,
 } from "@blocks-observability/components/monitor/details/monitor-details-skeletons";
-import { IMonitorSummary } from "@blocks-observability/models/alerts.model";
-import { useProjectStore } from "@/store/project.store.ts";
 import {
   useGetMonitorById,
   useGetMonitorDetails,
   useGetMonitorDownTime,
-} from "@blocks-observability/hooks/alerts";
+} from "@blocks-observability/hooks/use-alerts";
+import { IMonitorSummary } from "@blocks-observability/models/alerts.model";
 import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -205,8 +204,6 @@ const MonitorDetails = () => {
     },
     ...(data?.dateRangeSummary || []),
   ];
-
-  BREADCRUMB_CUSTOM_TITLES["/alerts/monitor"] = "Alert";
 
   return (
     <div>

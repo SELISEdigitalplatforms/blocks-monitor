@@ -17,7 +17,7 @@ import { showErrorToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { signinFormDefaultValue, signinFormSchema } from "./schema";
-import { useOIDCContext } from "@/layouts/oidc-layout";
+import { useOIDCContext } from "@/layouts/oidc-layout/oidc-layout";
 import {
   ISigninByEmailPayload,
   ISigninByEmailResponse,
@@ -25,7 +25,7 @@ import {
 import {
   buildOIDCNavigationUrl,
   getCurrentOIDCParams,
-} from "@blocks-idp/authentication/utils/oidc-utils";
+} from "@blocks-idp/authentication/utils/oidc.util";
 import { PasswordInput } from "@/components/password-input";
 import { getApiUrl } from "@/lib/get-api-path";
 

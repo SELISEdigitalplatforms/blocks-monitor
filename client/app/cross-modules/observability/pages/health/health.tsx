@@ -16,7 +16,7 @@ import {
   type HealthTabKey,
   HEALTH_TABS,
 } from "../../constants/health.constant";
-import { useGetHealthMonitorList } from "@blocks-observability/hooks/alerts";
+import { useGetHealthMonitorList } from "@blocks-observability/hooks/use-alerts";
 import { AlertsList } from "@blocks-observability/components/alert/alerts-list";
 import { Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
