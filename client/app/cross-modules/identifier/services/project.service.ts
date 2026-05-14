@@ -13,6 +13,7 @@ import {
 
 export class ProjectService {
   private readonly httpClient = serviceInstances.observabilityService;
+  private readonly logicHttpClient = serviceInstances.logicService;
   getProjects(
     page: number,
     pageSize: number,
@@ -33,7 +34,7 @@ export class ProjectService {
     isSuccess: boolean;
   }> {
     const url = `${CLOUD_BUILD_ENDPOINTS.REPOS_LIST}?projectkey=${projectKey}`;
-    return this.httpClient.get(url);
+    return this.logicHttpClient.get(url);
   }
 
   addAssets(payload: { tenantGroupId: string; resource: IResource }): Promise<{
