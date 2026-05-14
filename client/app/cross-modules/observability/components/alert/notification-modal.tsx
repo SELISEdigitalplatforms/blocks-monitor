@@ -11,7 +11,7 @@ import { useState } from "react";
 import {
   useUpdateHealth,
   useUpdateSingleMonitor,
-} from "@blocks-observability/hooks/alerts";
+} from "@blocks-observability/hooks/use-alerts";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { ErrorTransformer } from "@blocks-observability/utils/error-transform";
 import { z } from "zod";

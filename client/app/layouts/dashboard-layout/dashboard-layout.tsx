@@ -4,7 +4,7 @@ import { DashboardHeader } from "@/layouts/dashboard-header/dashboard-header";
 import { SidebarMenuDesktop } from "@/layouts/sidebar-menu-desktop/sidebar-menu-desktop";
 import { Outlet } from "react-router-dom";
 
-export function DashboardLayout() {
+export default function DashboardLayout() {
   return (
     <ProtectedGuard>
       {/* <ImpersonateGuard> */}

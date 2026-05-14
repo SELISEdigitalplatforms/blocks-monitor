@@ -16,7 +16,6 @@ export const useAddSingleMonitor = () => {
     mutationFn: (payload: IAddSingleMonitorPayload) =>
       alertsService.addSingleMonitor(payload),
     onSuccess: (_data, variables) => {
-      // Invalidate monitor list for the affected project so lists refresh
       queryClient.invalidateQueries({
         queryKey: ["monitor-list-by-id", variables.projectKey],
       });
@@ -145,7 +144,6 @@ export const useGetMonitorResponseTime = (option: {
 }) => {
   return useQuery({
     queryKey: ["get-monitor-response-id", option.monitorId, option.timeRange],
-    // queryFn: () => alertsService.GetMonitorResponseTime(monitorId),
     queryFn: async () => {
       const now = new Date();
       let startTime: Date;

@@ -1,5 +1,4 @@
-import { Activity } from "lucide-react";
-import { Menu } from "@/models/menu.model";
+import type { Menu } from "@/models/menu.model";
 import {
   Home,
   Package,
@@ -9,8 +8,7 @@ import {
   Key,
   Lock,
   Zap,
-
-  // Gauge, GitBranch, Shield , ShieldCheck, ScanFace,
+  Activity,
 } from "lucide-react";
 
 export const navigationMenus: Menu[] = [
