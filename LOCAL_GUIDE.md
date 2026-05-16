@@ -53,7 +53,7 @@ All development workflows are handled via:
 ### Available Commands
 
 * `./run.sh -b` or `--backend`
-  Run only the .NET API (default port: 5001)
+  Run only the .NET API (default port: 5000)
 
 * `./run.sh -w` or `--worker`
   Run only the .NET Worker service
@@ -247,6 +247,74 @@ git commit -m "Make run.sh executable"
 | Fix via git (permanent) | `git add --chmod=+x run.sh && git commit` |
 
 > This applies to **macOS, Linux, and WSL** — they all follow POSIX permission semantics.
+
+---
+
+## Local HTTPS (frontend + backend)
+
+Standardized local TLS is driven by **two machine/user environment variables** — the single source of truth for both the Vite dev server and the .NET API:
+
+| Variable | Value |
+|---|---|
+| `OBSERVABILITY_SSL_CERT` | Absolute path to an mkcert **cert** PEM |
+| `OBSERVABILITY_SSL_KEY`  | Absolute path to the matching **key** PEM |
+
+**Rule (everywhere):** if **both** vars are set **and both files exist** → serve **HTTPS** on the dev domain; otherwise → **HTTP**. It never throws / never hard-fails.
+
+| Frontend dev server | Backend API |
+|---|---|
+| `https://dev-observability.blocksdevelopers.com:4000` | `https://dev-observability.blocksdevelopers.com:5000` |
+
+### One-time setup
+
+1. Install mkcert and its local CA (once per machine):
+
+   ```bash
+   mkcert -install
+   ```
+
+2. Generate a cert + key for the dev domain (keep them OUTSIDE the repo, e.g. `~/.certs`):
+
+   ```bash
+   mkcert dev-observability.blocksdevelopers.com
+   ```
+
+3. Add a hosts-file entry so the domain resolves locally:
+
+   ```
+   127.0.0.1 dev-observability.blocksdevelopers.com
+   ```
+
+   * Windows: `C:\Windows\System32\drivers\etc\hosts` (edit as Administrator)
+   * macOS / Linux: `/etc/hosts` (`sudo`)
+
+4. Set the two environment variables (point at the files from step 2):
+
+   **Windows (PowerShell, persists for the user — reopen the terminal after):**
+
+   ```powershell
+   setx OBSERVABILITY_SSL_CERT "C:\Users\<you>\.certs\dev-observability.blocksdevelopers.com.pem"
+   setx OBSERVABILITY_SSL_KEY  "C:\Users\<you>\.certs\dev-observability.blocksdevelopers.com-key.pem"
+   ```
+
+   **macOS / Linux (add to `~/.zshrc` or `~/.bashrc`):**
+
+   ```bash
+   export OBSERVABILITY_SSL_CERT="$HOME/.certs/dev-observability.blocksdevelopers.com.pem"
+   export OBSERVABILITY_SSL_KEY="$HOME/.certs/dev-observability.blocksdevelopers.com-key.pem"
+   ```
+
+### Behavior matrix
+
+| `OBSERVABILITY_SSL_CERT` / `OBSERVABILITY_SSL_KEY` | Files exist | Result |
+|---|---|---|
+| Both set | Yes | **HTTPS** on the dev domain (FE :4000, API :5000) |
+| Both set | No | HTTP — warning logged, no crash |
+| Either unset | — | HTTP — warning logged, no crash |
+
+Works for **every launch path**: bare `npm run dev` (client/), `./run.sh -f/-b/-a`, and `./run.ps1 -f/-b/-a` (including the run-all background processes). A bare `dotnet run` with no script uses the minimal `launchSettings.json` and stays HTTP.
+
+> **Reusable for any project:** change only the **domain** (hosts entry, mkcert cert, the client `--host` and API `launchUrl`). Cert paths live solely in the two env vars — nothing is hardcoded in committed files, and the built/deployed Docker artifact is unaffected (these are read only by the dev server / run scripts).
 
 ---
 
