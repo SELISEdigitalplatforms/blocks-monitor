@@ -8,8 +8,8 @@ API_PROJECT="$SCRIPT_DIR/server/Api/Api.csproj"
 WORKER_PROJECT="$SCRIPT_DIR/server/Worker/Worker.csproj"
 WWWROOT_DIR="$SCRIPT_DIR/server/Api/wwwroot"
 
-API_PORT=5001
-FRONTEND_PORT=4001
+API_PORT=5000
+FRONTEND_PORT=4000
 
 API_PID=""
 WORKER_PID=""
@@ -110,9 +110,28 @@ build_frontend() {
 }
 
 # ---------- BACKEND ----------
+# HTTPS is driven by the machine env vars OBSERVABILITY_SSL_CERT / OBSERVABILITY_SSL_KEY.
+# Both set + both files present -> HTTPS on $API_PORT; otherwise -> HTTP (fallback).
+configure_backend_tls() {
+    if [ -n "${OBSERVABILITY_SSL_CERT:-}" ] && [ -n "${OBSERVABILITY_SSL_KEY:-}" ] \
+       && [ -f "$OBSERVABILITY_SSL_CERT" ] && [ -f "$OBSERVABILITY_SSL_KEY" ]; then
+        export Kestrel__Certificates__Default__Path="$OBSERVABILITY_SSL_CERT"
+        export Kestrel__Certificates__Default__KeyPath="$OBSERVABILITY_SSL_KEY"
+        export ASPNETCORE_URLS="https://0.0.0.0:$API_PORT"
+        echo "Backend TLS: HTTPS on $API_PORT"
+    else
+        export ASPNETCORE_URLS="http://0.0.0.0:$API_PORT"
+        echo "Backend TLS: cert env not set/found — HTTP on $API_PORT"
+    fi
+}
+
 run_backend() {
+    configure_backend_tls
     echo "Running .NET API on port $API_PORT..."
-    dotnet run --project "$API_PROJECT"
+    # Pass the URL on the command line: it has higher precedence than the
+    # launchSettings.json applicationUrl, which would otherwise override
+    # the ASPNETCORE_URLS we exported above.
+    dotnet run --project "$API_PROJECT" -- --urls "$ASPNETCORE_URLS"
 }
 
 run_worker() {

@@ -121,6 +121,10 @@ npm --prefix client run dev   # port 4001 (script overrides Vite config)
 
 Use npm run local if you want Vite's default port from [client/vite.config.ts](client/vite.config.ts) (4000).
 
+## Local HTTPS
+
+Frontend dev server and backend API serve HTTPS on `dev-observability.blocksdevelopers.com` when the machine env vars `OBSERVABILITY_SSL_CERT` and `OBSERVABILITY_SSL_KEY` (mkcert PEM cert + key paths) are both set and both files exist; otherwise they fall back to HTTP (no crash). No cert path is committed, and the deployed Docker artifact is unaffected. One-time setup (mkcert, hosts entry, env vars, behavior matrix): see [LOCAL_GUIDE.md](LOCAL_GUIDE.md#local-https-frontend--backend).
+
 ## Client environment
 
 The repo includes [client/.env](client/.env) for local development. Vite only exposes variables with the BLOCKS_ prefix (see [client/vite.config.ts](client/vite.config.ts)). In production, the API replaces tokens in built assets and injects them into window.__BLOCKS_ENV__ (see [server/Api/Program.cs](server/Api/Program.cs) and [client/index.html](client/index.html)).

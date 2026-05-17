@@ -15,7 +15,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui-kits/sheet/sheet";
-import { navigationMenus } from "@/constants/navigation-menus";
+import { navigationMenus } from "@/constants/navigation-menus.constant";
 import { useFilteredMenus } from "@/hooks/use-filtered-menus";
 
 export function SidebarMobileView() {
@@ -30,7 +30,11 @@ export function SidebarMobileView() {
           <span className="sr-only">Toggle navigation menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-full overflow-y-auto p-0" aria-describedby={undefined} hideClose>
+      <SheetContent
+        side="left"
+        className="w-full overflow-y-auto p-0"
+        aria-describedby={undefined}
+        hideClose>
         <SheetHeader className="h-[60px] px-4 py-3">
           <SheetTitle className="flex items-center justify-between">
             <Link to="/health">
@@ -43,18 +47,26 @@ export function SidebarMobileView() {
         </SheetHeader>
         <Separator />
         <div className="mt-3 flex w-full flex-col items-start px-6">
-          <div className="ml-1 text-sm text-[hsl(var(--low-emphasis))]">Project</div>
+          <div className="ml-1 text-sm text-[hsl(var(--low-emphasis))]">
+            Project
+          </div>
           <ProjectList />
         </div>
         <div className="my-3 flex w-full flex-col items-start px-6">
-          <div className="ml-1 text-sm text-[hsl(var(--low-emphasis))]">Environment</div>
+          <div className="ml-1 text-sm text-[hsl(var(--low-emphasis))]">
+            Environment
+          </div>
           <EnvironmentList />
         </div>
         <Separator />
         <nav className="grid gap-2">
           {allowedMenu.map((menu) => (
             <Fragment key={menu.id}>
-              {menu.type === "menu" ? <MobileMenuItem menu={menu} onClick={() => setOpen(false)} /> : <Separator />}
+              {menu.type === "menu" ? (
+                <MobileMenuItem menu={menu} onClick={() => setOpen(false)} />
+              ) : (
+                <Separator />
+              )}
             </Fragment>
           ))}
         </nav>

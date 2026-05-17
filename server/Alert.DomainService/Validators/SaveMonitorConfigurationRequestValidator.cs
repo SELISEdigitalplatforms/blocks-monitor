@@ -48,7 +48,7 @@ namespace DomainService.Validators
                 return true;
 
             var monitors = await _monitorConfigurationRepoService.GetConfigurationListByTenantIdAsync(projectKey);
-            return monitors.Count < 5;
+            return monitors.Count <= 10;
         }
 
         private async Task<bool> BeUniqueUrl(SaveMonitorConfigurationRequest request, string url, CancellationToken token)
