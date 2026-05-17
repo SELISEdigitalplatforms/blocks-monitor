@@ -56,16 +56,16 @@ Blocks Observability is a monorepo with an ASP.NET Core API, a background Worker
 
 ### Options (shared where applicable)
 
-| Flag | run.sh (macOS/Linux) | run.ps1 (Windows) | Notes |
-| --- | --- | --- | --- |
-| -a, --all | build SPA then run API + Worker | build SPA then run API + Worker | run.ps1 starts API/Worker in new PowerShell windows and waits for Enter to stop them |
-| -b, --backend | run API | run API | run.ps1 restores .NET dependencies first |
-| -w, --worker | run Worker | run Worker | run.ps1 restores .NET dependencies first |
-| -f, --frontend | run Vite dev server | run Vite dev server | run.sh uses npm clean-install only if node_modules missing; run.ps1 always runs npm install |
-| -k, --kill-port | kill process on API port 5001 | kill process on API port 5001 | run.sh uses lsof or netstat; run.ps1 uses netstat/taskkill |
-| -n, --npm <args> | run npm in client/ | run npm in client/ | examples: -n install, -n run build |
-| -d, --dotnet <args> | not supported | run dotnet command | examples: -d restore, -d build |
-| -h, --help | show help | show help |  |
+| Flag                | run.sh (macOS/Linux)            | run.ps1 (Windows)               | Notes                                                                                       |
+| ------------------- | ------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------- |
+| -a, --all           | build SPA then run API + Worker | build SPA then run API + Worker | run.ps1 starts API/Worker in new PowerShell windows and waits for Enter to stop them        |
+| -b, --backend       | run API                         | run API                         | run.ps1 restores .NET dependencies first                                                    |
+| -w, --worker        | run Worker                      | run Worker                      | run.ps1 restores .NET dependencies first                                                    |
+| -f, --frontend      | run Vite dev server             | run Vite dev server             | run.sh uses npm clean-install only if node_modules missing; run.ps1 always runs npm install |
+| -k, --kill-port     | kill process on API port 5001   | kill process on API port 5001   | run.sh uses lsof or netstat; run.ps1 uses netstat/taskkill                                  |
+| -n, --npm <args>    | run npm in client/              | run npm in client/              | examples: -n install, -n run build                                                          |
+| -d, --dotnet <args> | not supported                   | run dotnet command              | examples: -d restore, -d build                                                              |
+| -h, --help          | show help                       | show help                       |                                                                                             |
 
 ### Unix (run.sh)
 
@@ -119,7 +119,7 @@ npm --prefix client install
 npm --prefix client run dev   # port 4001 (script overrides Vite config)
 ```
 
-Use npm run local if you want Vite's default port from [client/vite.config.ts](client/vite.config.ts) (4000).
+Use npm run local if you want Vite's default port from [client/vite.config.ts](client/vite.config.ts) (4001).
 
 ## Local HTTPS
 
@@ -127,7 +127,7 @@ Frontend dev server and backend API serve HTTPS on `dev-observability.blocksdeve
 
 ## Client environment
 
-The repo includes [client/.env](client/.env) for local development. Vite only exposes variables with the BLOCKS_ prefix (see [client/vite.config.ts](client/vite.config.ts)). In production, the API replaces tokens in built assets and injects them into window.__BLOCKS_ENV__ (see [server/Api/Program.cs](server/Api/Program.cs) and [client/index.html](client/index.html)).
+The repo includes [client/.env](client/.env) for local development. Vite only exposes variables with the BLOCKS\_ prefix (see [client/vite.config.ts](client/vite.config.ts)). In production, the API replaces tokens in built assets and injects them into window.**BLOCKS_ENV** (see [server/Api/Program.cs](server/Api/Program.cs) and [client/index.html](client/index.html)).
 
 Variables used by the client (via [client/app/lib/runtime-env.ts](client/app/lib/runtime-env.ts)):
 

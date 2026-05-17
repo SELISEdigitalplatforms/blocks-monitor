@@ -76,8 +76,8 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
     },
     server: {
-      host: true, // Listen on all addresses (0.0.0.0)
-      port: 4000,
+      host: "127.0.0.1",
+      port: 4001,
       strictPort: true, // Exit if the port is already in use
       https: resolveDevHttps(), // HTTPS when DEPLOYMENT_SSL_* are set; else HTTP
       allowedHosts: [

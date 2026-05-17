@@ -181,25 +181,6 @@ export default function LoginPage() {
     return () => clearTimeout(timeoutId);
   }, [titleNumber, titles]);
 
-  // const handleLogin = () => {
-
-  //   setIsLoading(true);
-  //   const blocksKey = getRuntimeEnv("BLOCKS_X_BLOCKS_KEY");
-
-  //   const params = new URLSearchParams({
-  //     response_type: "code",
-  //     client_id: "1bd234da-1fa1-4264-982e-3debb1078be5",
-  //     redirect_uri: "https://dev-observability.blocksdevelopers.com/oidc",
-  //     scope: "openId",
-  //     audience: "https://dev-observability.blocksdevelopers.com",
-  //     state: "039849038",
-  //     nonce: "35443",
-  //     ...(blocksKey ? { "x-blocks-key": blocksKey } : {}),
-  //   });
-
-  //   window.location.href = `https://dev-idp.blocksdevelopers.com/api/Authentication/Authorize?${params.toString()}`;
-  // };
-
   const startLogin = async () => {
     try {
       if (isStarting) return;
@@ -212,7 +193,8 @@ export default function LoginPage() {
       const clientId =
         getRuntimeEnv("BLOCKS_OIDC_CLIENT_ID") ||
         "1bd234da-1fa1-4264-982e-3debb1078be5";
-      const initiateUrl = `${baseUrl}/api/idp/initiate?x-blocks-key=${blocksKey}&clientId=${clientId}`;
+      const redirectUri = `https://dev-observability.blocksdevelopers.com/login/callback`;
+      const initiateUrl = `${baseUrl}/api/idp/initiate?x-blocks-key=${blocksKey}&clientId=${clientId}&redirectUri=${redirectUri}`;
       const headers: Record<string, string> = {};
       if (blocksKey) headers["X-Blocks-Key"] = blocksKey;
 
