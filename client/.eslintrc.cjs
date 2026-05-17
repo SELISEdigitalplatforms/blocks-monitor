@@ -28,6 +28,11 @@ module.exports = {
     "react/react-in-jsx-scope": "off",
     "react/jsx-uses-react": "off",
     "no-unused-vars": "off",
+    "no-console": ["error"],
+    "@typescript-eslint/no-empty-object-type": [
+      "error",
+      { allowInterfaces: "with-single-extends" },
+    ],
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {

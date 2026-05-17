@@ -50,11 +50,11 @@ LABEL org.opencontainers.image.title="blocks-idp-api" \
 WORKDIR /app
 
 ENV ASPNETCORE_ENVIRONMENT=Production \
-    ASPNETCORE_URLS=http://0.0.0.0:5001 \
+    ASPNETCORE_URLS=http://0.0.0.0:5000 \
     DOTNET_RUNNING_IN_CONTAINER=true \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
-EXPOSE 5001
+EXPOSE 5000
 
 RUN apk add --no-cache icu-libs
 

@@ -81,7 +81,7 @@ $ApiProject = Join-Path $ScriptDir "server/Api/Api.csproj"
 $WorkerProject = Join-Path $ScriptDir "server/Worker/Worker.csproj"
 $Wwwroot = Join-Path $ScriptDir "server/Api/wwwroot"
 
-$ApiPort = 5001
+$ApiPort = 5000
 
 # ---- Helpers ----
 
@@ -118,9 +118,30 @@ function Build-Frontend {
     }
 }
 
+# HTTPS is driven by the machine env vars OBSERVABILITY_SSL_CERT / OBSERVABILITY_SSL_KEY.
+# Both set + both files present -> HTTPS on $ApiPort; otherwise -> HTTP (fallback).
+# Sets the Kestrel cert env vars (inherited by child Start-Process) and stores
+# the URL in $script:AspNetCoreUrls to pass on the command line.
+function Set-BackendTls {
+    $cert = $env:OBSERVABILITY_SSL_CERT
+    $key  = $env:OBSERVABILITY_SSL_KEY
+    if ($cert -and $key -and (Test-Path $cert) -and (Test-Path $key)) {
+        $env:Kestrel__Certificates__Default__Path = $cert
+        $env:Kestrel__Certificates__Default__KeyPath = $key
+        $script:AspNetCoreUrls = "https://0.0.0.0:$ApiPort"
+        Write-Host "Backend TLS: HTTPS on $ApiPort"
+    }
+    else {
+        $script:AspNetCoreUrls = "http://0.0.0.0:$ApiPort"
+        Write-Host "Backend TLS: cert env not set/found - HTTP on $ApiPort"
+    }
+}
+
 function Run-Backend {
+    Set-BackendTls
     Write-Host "Running .NET API..."
-    dotnet run --project $ApiProject
+    # --urls on the command line outranks launchSettings.json applicationUrl.
+    dotnet run --project $ApiProject -- --urls $script:AspNetCoreUrls
 }
 
 function Run-Worker {
@@ -169,10 +190,14 @@ if ($All) {
     Restore-Dotnet
     Build-Frontend
 
+    # Resolve TLS in this (parent) process: the Kestrel__* env vars it sets are
+    # inherited by the child Start-Process; the URL is passed on its command line.
+    Set-BackendTls
+
     Write-Host "Starting API + Worker..."
 
     $api = Start-Process powershell `
-        -ArgumentList "-NoExit", "-Command", "dotnet run --project '$ApiProject'" `
+        -ArgumentList "-NoExit", "-Command", "dotnet run --project '$ApiProject' -- --urls '$script:AspNetCoreUrls'" `
         -PassThru
 
     $worker = Start-Process powershell `

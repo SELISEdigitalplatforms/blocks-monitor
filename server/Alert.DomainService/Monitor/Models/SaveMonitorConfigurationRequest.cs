@@ -6,6 +6,7 @@
         public string? RepoId { get; set; }
         public string? RepoName { get; set; }
         public string? ExternalServiceId { get; set; }
+        public string? ExternalServiceName { get; set; }
         public string? Name { get; set; }
         public string? Url { get; set; }
 
@@ -18,7 +19,7 @@
         public int? TimeoutInSeconds { get; set; }
         public bool IsActive { get; set; }
 
-        public string? MonitorSourcetype { get; set; }
+        public string? MonitorSourceType { get; set; }
 
         public string? ExpectedContent { get; set; }
         public string? CustomHttpHeaders { get; set; }

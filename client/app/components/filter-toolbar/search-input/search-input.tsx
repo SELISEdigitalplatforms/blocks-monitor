@@ -2,7 +2,8 @@ import { useRef, MouseEvent, useState, useEffect } from "react";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui-kits/button/button";
 import { Input } from "@/components/ui-kits/input/input";
-import { cn, debounce } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { debounce } from "@/utils/debounce.util";
 
 interface SearchInputProps {
   onChange: (value: string) => void;
@@ -65,9 +66,11 @@ export const SearchInput: React.FC<SearchInputProps> = ({
       <Button
         variant="ghost"
         size="xs"
-        className={cn("h-full p-1 pr-0 hover:bg-transparent", !value && "invisible")}
-        onClick={handleClear}
-      >
+        className={cn(
+          "h-full p-1 pr-0 hover:bg-transparent",
+          !value && "invisible",
+        )}
+        onClick={handleClear}>
         <X className="h-4 w-4 text-muted-foreground" />
       </Button>
     </div>

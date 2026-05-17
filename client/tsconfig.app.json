@@ -17,7 +17,7 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@/*": ["./app/*"],
-      "@blocks-idp/*": ["./app/idp/*"],
+      "@blocks-idp/*": ["./app/cross-modules/idp/*"],
       "@blocks-lmt/*": ["./app/cross-modules/lmt/*"],
       "@blocks-storage/*": ["./app/cross-modules/storage/*"],
       "@blocks-communication/*": ["./app/cross-modules/communication/*"],
@@ -25,9 +25,16 @@
       "@blocks-localization/*": ["./app/cross-modules/localization/*"],
       "@blocks-utilities/*": ["./app/cross-modules/utilities/*"],
       "@blocks-ai/*": ["./app/cross-modules/ai/*"],
-      "@blocks-devops/*": ["./app/cross-modules/devops/*"]
+      "@blocks-observability/*": ["./app/cross-modules/observability/*"]
     }
   },
   "include": ["app"],
-  "exclude": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx", "**/test-utils/**", "**/__mocks__/**"]
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/test-utils/**",
+    "**/__mocks__/**"
+  ]
 }

@@ -15,7 +15,7 @@ namespace DomainService.Monitor.Entity
 
 
         public MonitorConfigurationTypes? MonitorConfigurationType { get; set; }
-        public MonitorSourcetypes? MonitorSourcetypes { get; set; }
+        public MonitorSourceTypes? MonitorSourcetypes { get; set; }
 
         public int LastStatusCode { get; set; }
         public bool IsResolved { get; set; } = false;

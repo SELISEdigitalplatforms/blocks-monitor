@@ -1,9 +1,5 @@
-import MonitorDetails from "@blocks-devops/pages/alert/monitor-details";
+import MonitorDetails from "@blocks-observability/pages/monitor/monitor-details";
 
 export default function HealthMonitorPage() {
-  return (
-    <main className="p-6">
-      <MonitorDetails />
-    </main>
-  );
+  return <MonitorDetails />;
 }
