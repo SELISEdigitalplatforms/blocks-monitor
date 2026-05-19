@@ -101,7 +101,8 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
           />
         ),
         cell: ({ row }) => {
-          const name = row.original.name || row.original.operationName || "N/A";
+          const name =
+            row.original?.name || row.original.operationName || "N/A";
           return (
             <div className="ml-2 flex flex-row items-center sm:ml-0 sm:w-[180px]">
               <span className="break-all">{name}</span>
@@ -233,7 +234,7 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
         cell: ({ row }) => {
           const request =
             row.original.monitorConfigurationType === 0 ? true : false;
-          const name = row.original.name;
+          const name = row.original?.name;
           const monitorSourceType = row.original.monitorSourceTypes;
           return (
             <>
