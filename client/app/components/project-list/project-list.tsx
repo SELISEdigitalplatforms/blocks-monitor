@@ -69,7 +69,7 @@ export function ProjectList() {
     setSelectedProject(project);
   };
 
-  const name = projectData?.data.name || selectedProject?.name;
+  const name = projectData?.data?.name || selectedProject?.name;
   const projects = projectGroups
     .map((group) => group.projects[0])
     .filter(Boolean);
@@ -100,7 +100,7 @@ export function ProjectList() {
                   <Loader size={16} className="animate-spin text-gray-400" />
                 </div>
               ) : (
-                <span>{project.name}</span>
+                <span>{project?.name}</span>
               )}
             </DropdownMenuItem>
           ))}
