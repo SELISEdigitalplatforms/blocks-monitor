@@ -26,7 +26,6 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
-    <ProjectReference Include="..\Alert.DomainService\Alert.DomainService.csproj" PrivateAssets="All" />
     <None Remove="bin\Release\net9.0\Alert.DomainService.dll" />
     <None Include="$(OutputPath)Alert.DomainService.dll" Pack="true" PackagePath="lib/net9.0/" />
   </ItemGroup>

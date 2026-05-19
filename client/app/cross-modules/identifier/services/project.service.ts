@@ -20,7 +20,7 @@ export class ProjectService {
     tenantGroupId: string,
   ): Promise<IProjectGroup[]> {
     const url = `${PROJECT_ENDPOINTS.GETS}?page=${page}&pageSize=${pageSize}&tenantGroupId=${tenantGroupId}`;
-    return this.httpClient.get(url);
+    return this.logicHttpClient.get(url);
   }
 
   getProject(payload: IGetProjectPayload): Promise<IGetProjectResponse> {

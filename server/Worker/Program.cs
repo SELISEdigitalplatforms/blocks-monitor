@@ -23,7 +23,6 @@ using Worker.Consumers.Users;
 const string _serviceName = "blocks-os-worker";
 
 var vaultType = ResolveVaultType();
-Console.WriteLine($"Using Genesis vault type: {vaultType}");
 var secret = await ApplicationConfigurations.ConfigureLogAndSecretsAsync(_serviceName, vaultType);
 
 await CreateHostBuilder(args).Build().RunAsync();
@@ -57,7 +56,7 @@ IHostBuilder CreateHostBuilder(string[] args) =>
 
             services.RegisterAllServices();
 
-           
+
 
             #region Identifier Service Consumers
             services.AddApplicationServices();

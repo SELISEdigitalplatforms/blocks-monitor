@@ -35,6 +35,8 @@ function resolveDevHttps(): { cert: Buffer; key: Buffer } | undefined {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "BLOCKS_");
   const proxyTarget = env.BLOCKS_API_BASE_URL;
+  const devHost = env.BLOCKS_DEV_HOST || true;
+  const httpsConfig = resolveDevHttps();
 
   return {
     envPrefix: ["BLOCKS_"],
@@ -76,12 +78,13 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
     },
     server: {
-      host: "127.0.0.1",
+      host: devHost,
       port: 4001,
       strictPort: true, // Exit if the port is already in use
-      https: resolveDevHttps(), // HTTPS when DEPLOYMENT_SSL_* are set; else HTTP
+      https: httpsConfig, // HTTPS when DEPLOYMENT_SSL_* are set; else HTTP
       allowedHosts: [
         "dev-cloud.seliseblocks.com",
+        "dev-observability.blocksdevelopers.com",
         "localhost",
         ".seliseblocks.com",
         ".blocksdevelopers.com",
