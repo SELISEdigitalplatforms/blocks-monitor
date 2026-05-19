@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using System.Net;
+using XUnitTest.Utilities;
 
 namespace XUnitTest.DomainService.Shared
 {
@@ -44,7 +45,7 @@ namespace XUnitTest.DomainService.Shared
                 _tenants.Object
             );
 
-            _context = BlocksContext.Create(
+            _context = BlocksContextTestHelper.Create(
                 tenantId: "tenant-123",
                 roles: null,
                 userId: "user-123",
@@ -59,7 +60,7 @@ namespace XUnitTest.DomainService.Shared
                 displayName: null,
                 oauthToken: null,
                 refreshToken: null,
-                actualTentId: null
+                actualTenantId: null
             );
             BlocksContext.SetContext(_context);
         }
@@ -164,7 +165,7 @@ namespace XUnitTest.DomainService.Shared
         {
             var request = new SaveSsoCredentialRequest { Provider = "Google", ClientId = "client-123" };
             var validationResult = new ValidationResult();
-            
+
             _validator.Setup(x => x.ValidateAsync(request, default)).ReturnsAsync(validationResult);
             _authenticationRepository.Setup(x => x.GetSocialLoginCredentialByIdAsync(It.IsAny<string>())).ReturnsAsync((SocialLoginCredential)null);
             _authenticationRepository.Setup(x => x.SaveSocialLoginCredentialAsync(It.IsAny<SocialLoginCredential>())).ReturnsAsync(true);
@@ -181,7 +182,7 @@ namespace XUnitTest.DomainService.Shared
         {
             var request = new SaveSsoCredentialRequest();
             var validationResult = new ValidationResult(new[] { new ValidationFailure("Provider", "Provider is required") });
-            
+
             _validator.Setup(x => x.ValidateAsync(request, default)).ReturnsAsync(validationResult);
 
             var result = await _service.SaveSocialLoginCredentialAsync(request);
@@ -194,8 +195,8 @@ namespace XUnitTest.DomainService.Shared
         public async Task SaveSocialLoginCredentialAsync_WithExistingCredential_UpdatesCredential()
         {
             var request = new SaveSsoCredentialRequest { ItemId = "existing-id", Provider = "Google" };
-            var existingCredential = new SocialLoginCredential 
-            { 
+            var existingCredential = new SocialLoginCredential
+            {
                 ItemId = "existing-id",
                 Provider = "Google",
                 Audience = "test-audience",
@@ -208,7 +209,7 @@ namespace XUnitTest.DomainService.Shared
                 Scope = "test-scope"
             };
             var validationResult = new ValidationResult();
-            
+
             _validator.Setup(x => x.ValidateAsync(request, default)).ReturnsAsync(validationResult);
             _authenticationRepository.Setup(x => x.GetSocialLoginCredentialByIdAsync("existing-id")).ReturnsAsync(existingCredential);
             _authenticationRepository.Setup(x => x.SaveSocialLoginCredentialAsync(It.IsAny<SocialLoginCredential>())).ReturnsAsync(true);
@@ -425,7 +426,15 @@ namespace XUnitTest.DomainService.Shared
             var request = new SaveClientCredentialRequest { Name = "Test Client", Roles = new List<string> { "role1" } };
             var tenant = new Tenant
             {
-                ApplicationDomain = "test-domain.com",
+                Applications = new List<Applications>
+                {
+                    new()
+                    {
+                        Domain = "test-domain.com",
+                        CookieDomain = "test-domain.com",
+                        IsDomainVerified = true
+                    }
+                },
                 DbConnectionString = "test-connection-string",
                 JwtTokenParameters = new JwtTokenParameters
                 {

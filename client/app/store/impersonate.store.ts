@@ -4,10 +4,10 @@ import { persist } from "zustand/middleware";
 interface ImpersonateState {
   isImpersonated: boolean;
   impersonatedTenantId: string | null;
-  originalTenantId: string | null;
+  actualTenantId: string | null;
   startImpersonation: (
     impersonatedTenantId: string,
-    originalTenantId: string,
+    actualTenantId: string,
   ) => void;
   stopImpersonation: () => void;
 
@@ -19,25 +19,25 @@ export const useImpersonateStore = create<ImpersonateState>()(
     (set) => ({
       isImpersonated: false,
       impersonatedTenantId: null,
-      originalTenantId: null,
+      actualTenantId: null,
       startImpersonation: (
         impersonatedTenantId: string,
-        originalTenantId: string,
+        actualTenantId: string,
       ) => {
-        set({ isImpersonated: true, impersonatedTenantId, originalTenantId });
+        set({ isImpersonated: true, impersonatedTenantId, actualTenantId });
       },
       stopImpersonation: () => {
         set({
           isImpersonated: false,
           impersonatedTenantId: null,
-          originalTenantId: null,
+          actualTenantId: null,
         });
       },
       reset: () => {
         set({
           isImpersonated: false,
           impersonatedTenantId: null,
-          originalTenantId: null,
+          actualTenantId: null,
         });
       },
     }),

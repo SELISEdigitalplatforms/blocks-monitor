@@ -694,7 +694,15 @@ namespace XUnitTest.Users.Validators
             return new Tenant
             {
                 CreatedBy = createdBy,
-                ApplicationDomain = "test-domain",
+                Applications = new List<Applications>
+                {
+                    new()
+                    {
+                        Domain = "test-domain",
+                        CookieDomain = "test-domain",
+                        IsDomainVerified = true
+                    }
+                },
                 DbConnectionString = "mongodb://localhost",
                 JwtTokenParameters = new JwtTokenParameters
                 {

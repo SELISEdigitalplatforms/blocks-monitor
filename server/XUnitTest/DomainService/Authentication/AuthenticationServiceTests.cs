@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using StackExchange.Redis;
+using XUnitTest.Utilities;
 
 namespace XUnitTest.DomainService.Authentication
 {
@@ -63,7 +64,7 @@ namespace XUnitTest.DomainService.Authentication
         public async Task ProcessLogoutAll_RemovesAllTokens_AndUpdatesSessions()
         {
             // Arrange
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant-id",
                 roles: Array.Empty<string>(),
                 userId: "test-user-id",
@@ -78,7 +79,7 @@ namespace XUnitTest.DomainService.Authentication
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant-id"
+                actualTenantId: "test-tenant-id"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -150,7 +151,7 @@ namespace XUnitTest.DomainService.Authentication
             var httpRequest = CreateMockHttpRequestWithCookie(tenantId, expectedToken);
 
             // Arrange
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: tenantId,
                 roles: Array.Empty<string>(),
                 userId: "test-user-id",
@@ -165,7 +166,7 @@ namespace XUnitTest.DomainService.Authentication
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: expectedToken,
-                actualTentId: "test-tenant-id"
+                actualTenantId: "test-tenant-id"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -189,8 +190,15 @@ namespace XUnitTest.DomainService.Authentication
             var tenant = new Tenant
             {
                 TenantId = tenantId,
-                CookieDomain = cookieDomain,
-                ApplicationDomain = "test.example.com",
+                Applications = new List<Applications>
+                {
+                    new()
+                    {
+                        Domain = "test.example.com",
+                        CookieDomain = cookieDomain,
+                        IsDomainVerified = true
+                    }
+                },
                 DbConnectionString = "test-connection-string",
                 JwtTokenParameters = new JwtTokenParameters()
                 {
@@ -199,7 +207,7 @@ namespace XUnitTest.DomainService.Authentication
                 }
             };
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: tenantId,
                 roles: Array.Empty<string>(),
                 userId: "test-user-id",
@@ -214,7 +222,7 @@ namespace XUnitTest.DomainService.Authentication
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken:string.Empty,
-                actualTentId: "test-tenant-id"
+                actualTenantId: "test-tenant-id"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -267,7 +275,7 @@ namespace XUnitTest.DomainService.Authentication
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
-        
+
         [Fact]
         public async Task LogoutUser_WithRefreshToken_Should_ProcessLogout()
         {
@@ -311,7 +319,7 @@ namespace XUnitTest.DomainService.Authentication
                 new Session { RefreshToken = "token2" }
             };
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "8656D85F-C3E0-48AA-9505-654505096AEC",
                 roles: Array.Empty<string>(),
                 userId: "test-user-id",
@@ -326,7 +334,7 @@ namespace XUnitTest.DomainService.Authentication
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant-id"
+                actualTenantId: "test-tenant-id"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -380,7 +388,7 @@ namespace XUnitTest.DomainService.Authentication
                 new Session { RefreshToken = "token3" }
             };
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "8656D85F-C3E0-48AA-9505-654505096AEC",
                 roles: Array.Empty<string>(),
                 userId: "test-user-id",
@@ -395,7 +403,7 @@ namespace XUnitTest.DomainService.Authentication
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant-id"
+                actualTenantId: "test-tenant-id"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -565,7 +573,7 @@ namespace XUnitTest.DomainService.Authentication
             var expectedToken = "header-token-value";
             var httpRequest = CreateMockHttpRequestWithHeader(tenantId, expectedToken);
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "8656D85F-C3E0-48AA-9505-654505096AEC",
                 roles: Array.Empty<string>(),
                 userId: "test-user-id",
@@ -580,7 +588,7 @@ namespace XUnitTest.DomainService.Authentication
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant-id"
+                actualTenantId: "test-tenant-id"
             );
 
             BlocksContext.SetContext(blocksContext, true);

@@ -7,6 +7,7 @@ using Mfa.DomainService.Services;
 using Mfa.DomainService.Shared;
 using Moq;
 using MfaConfig = Mfa.DomainService.Configuration.Configuration;
+using XUnitTest.Utilities;
 
 namespace XUnitTest.DomainService.Mfa
 {
@@ -90,29 +91,29 @@ namespace XUnitTest.DomainService.Mfa
         public async Task GenerateOTPAsync_WithValidRequest_GeneratesOTP()
         {
             // Arrange
-            var request = new OtpGenerationRequest 
-            { 
-                UserId = "user-123", 
+            var request = new OtpGenerationRequest
+            {
+                UserId = "user-123",
                 MfaType = UserMfaType.Email,
                 SendPhoneNumberAsEmailDomain = "example.com"
             };
             var config = new MfaConfig { EnableMfa = true };
-            var userInfo = new UserInfo 
-            { 
+            var userInfo = new UserInfo
+            {
                 ItemId = "user-123",
                 Email = "test@example.com",
-                UserMfaType = UserMfaType.Email 
+                UserMfaType = UserMfaType.Email
             };
-            var expectedResponse = new OtpGenerationResponse 
-            { 
-                IsSuccess = true, 
-                MfaId = "mfa-123" 
+            var expectedResponse = new OtpGenerationResponse
+            {
+                IsSuccess = true,
+                MfaId = "mfa-123"
             };
             var mockOtpService = new Mock<IOtpService>();
 
             _configurationService.Setup(x => x.GetAsync()).ReturnsAsync(config);
             _mfaRepository.Setup(x => x.GetItemAsync<UserInfo>(
-                It.IsAny<System.Linq.Expressions.Expression<System.Func<UserInfo, bool>>>(), 
+                It.IsAny<System.Linq.Expressions.Expression<System.Func<UserInfo, bool>>>(),
                 "Users"))
                 .ReturnsAsync(userInfo);
             _otpServiceFactory.Setup(x => x.GetOTPService(UserMfaType.Email))
@@ -134,24 +135,24 @@ namespace XUnitTest.DomainService.Mfa
         public async Task GenerateOTPAsync_WithoutMfaType_UsesUserMfaType()
         {
             // Arrange
-            var request = new OtpGenerationRequest 
-            { 
+            var request = new OtpGenerationRequest
+            {
                 UserId = "user-123",
                 SendPhoneNumberAsEmailDomain = ""
             };
             var config = new MfaConfig { EnableMfa = true };
-            var userInfo = new UserInfo 
-            { 
+            var userInfo = new UserInfo
+            {
                 ItemId = "user-123",
                 Email = "test@example.com",
-                UserMfaType = UserMfaType.TOTP 
+                UserMfaType = UserMfaType.TOTP
             };
             var expectedResponse = new OtpGenerationResponse { IsSuccess = true };
             var mockOtpService = new Mock<IOtpService>();
 
             _configurationService.Setup(x => x.GetAsync()).ReturnsAsync(config);
             _mfaRepository.Setup(x => x.GetItemAsync<UserInfo>(
-                It.IsAny<System.Linq.Expressions.Expression<System.Func<UserInfo, bool>>>(), 
+                It.IsAny<System.Linq.Expressions.Expression<System.Func<UserInfo, bool>>>(),
                 "Users"))
                 .ReturnsAsync(userInfo);
             _otpServiceFactory.Setup(x => x.GetOTPService(UserMfaType.TOTP))
@@ -175,17 +176,17 @@ namespace XUnitTest.DomainService.Mfa
         public async Task VerifyOTPAsync_WhenValid_AndNotFromTokenCall_UpdatesUserMfa()
         {
             // Arrange
-            var request = new VerifyOtpRequest 
-            { 
+            var request = new VerifyOtpRequest
+            {
                 VerificationCode = "123456",
                 MfaId = "mfa-123",
                 AuthType = UserMfaType.Email,
                 IsFromTokenCall = false
             };
-            var verificationResponse = new OtpVerificationResponse 
-            { 
-                IsValid = true, 
-                UserId = "user-123" 
+            var verificationResponse = new OtpVerificationResponse
+            {
+                IsValid = true,
+                UserId = "user-123"
             };
             var mockOtpService = new Mock<IOtpService>();
 
@@ -208,7 +209,7 @@ namespace XUnitTest.DomainService.Mfa
             result.UserId.Should().Be("user-123");
             _mfaRepository.Verify(x => x.UpdatePartialAsync<UserMfaInfo>(
                 "user-123",
-                It.Is<Dictionary<string, object>>(d => 
+                It.Is<Dictionary<string, object>>(d =>
                     d.ContainsKey("MfaEnabled") && (bool)d["MfaEnabled"] == true &&
                     d.ContainsKey("IsMfaVerified") && (bool)d["IsMfaVerified"] == true),
                 "Users"), Times.Once);
@@ -218,17 +219,17 @@ namespace XUnitTest.DomainService.Mfa
         public async Task VerifyOTPAsync_WhenValid_AndFromTokenCall_DoesNotUpdateUserMfa()
         {
             // Arrange
-            var request = new VerifyOtpRequest 
-            { 
+            var request = new VerifyOtpRequest
+            {
                 VerificationCode = "123456",
                 MfaId = "mfa-123",
                 AuthType = UserMfaType.TOTP,
                 IsFromTokenCall = true
             };
-            var verificationResponse = new OtpVerificationResponse 
-            { 
-                IsValid = true, 
-                UserId = "user-123" 
+            var verificationResponse = new OtpVerificationResponse
+            {
+                IsValid = true,
+                UserId = "user-123"
             };
             var mockOtpService = new Mock<IOtpService>();
 
@@ -253,17 +254,17 @@ namespace XUnitTest.DomainService.Mfa
         public async Task VerifyOTPAsync_WhenInvalid_DoesNotUpdateUserMfa()
         {
             // Arrange
-            var request = new VerifyOtpRequest 
-            { 
+            var request = new VerifyOtpRequest
+            {
                 VerificationCode = "wrong-code",
                 MfaId = "mfa-123",
                 AuthType = UserMfaType.Email,
                 IsFromTokenCall = false
             };
-            var verificationResponse = new OtpVerificationResponse 
-            { 
-                IsValid = false, 
-                UserId = "user-123" 
+            var verificationResponse = new OtpVerificationResponse
+            {
+                IsValid = false,
+                UserId = "user-123"
             };
             var mockOtpService = new Mock<IOtpService>();
 
@@ -308,7 +309,7 @@ namespace XUnitTest.DomainService.Mfa
         {
             // Arrange
             var request = new DisableUserMfaRequest { UserId = "user-123" };
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant",
                 roles: Array.Empty<string>(),
                 userId: "different-user",
@@ -323,7 +324,7 @@ namespace XUnitTest.DomainService.Mfa
                 displayName: "Test User",
                 oauthToken: "",
                 refreshToken: "",
-                actualTentId: "test-tenant"
+                actualTenantId: "test-tenant"
             );
             BlocksContext.SetContext(blocksContext);
 
@@ -345,7 +346,7 @@ namespace XUnitTest.DomainService.Mfa
             // Arrange
             var userId = "user-123";
             var request = new DisableUserMfaRequest { UserId = userId };
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant",
                 roles: Array.Empty<string>(),
                 userId: userId,
@@ -360,7 +361,7 @@ namespace XUnitTest.DomainService.Mfa
                 displayName: "Test User",
                 oauthToken: "",
                 refreshToken: "",
-                actualTentId: "test-tenant"
+                actualTenantId: "test-tenant"
             );
             BlocksContext.SetContext(blocksContext);
 
@@ -378,7 +379,7 @@ namespace XUnitTest.DomainService.Mfa
             result.IsSuccess.Should().BeTrue();
             _mfaRepository.Verify(x => x.UpdatePartialAsync<UserMfaInfo>(
                 userId,
-                It.Is<Dictionary<string, object>>(d => 
+                It.Is<Dictionary<string, object>>(d =>
                     d.ContainsKey("MfaEnabled") && (bool)d["MfaEnabled"] == false &&
                     d.ContainsKey("UserMfaType") && (UserMfaType)d["UserMfaType"] == UserMfaType.None &&
                     d.ContainsKey("IsMfaVerified") && (bool)d["IsMfaVerified"] == false),
@@ -432,16 +433,16 @@ namespace XUnitTest.DomainService.Mfa
             var mfaContext = MfaAuthenticationContext.Create(mfaId, "user-123");
             var serializedContext = mfaContext.Sterilize();
             var config = new MfaConfig { EnableMfa = true };
-            var userInfo = new UserInfo 
-            { 
+            var userInfo = new UserInfo
+            {
                 ItemId = "user-123",
                 Email = "test@example.com",
-                UserMfaType = UserMfaType.Email 
+                UserMfaType = UserMfaType.Email
             };
-            var expectedResponse = new OtpGenerationResponse 
-            { 
-                IsSuccess = true, 
-                MfaId = "new-mfa-123" 
+            var expectedResponse = new OtpGenerationResponse
+            {
+                IsSuccess = true,
+                MfaId = "new-mfa-123"
             };
             var mockOtpService = new Mock<IOtpService>();
 
@@ -449,7 +450,7 @@ namespace XUnitTest.DomainService.Mfa
             _cacheClient.Setup(x => x.GetStringValueAsync(mfaId)).ReturnsAsync(serializedContext);
             _configurationService.Setup(x => x.GetAsync()).ReturnsAsync(config);
             _mfaRepository.Setup(x => x.GetItemAsync<UserInfo>(
-                It.IsAny<System.Linq.Expressions.Expression<System.Func<UserInfo, bool>>>(), 
+                It.IsAny<System.Linq.Expressions.Expression<System.Func<UserInfo, bool>>>(),
                 "Users"))
                 .ReturnsAsync(userInfo);
             _otpServiceFactory.Setup(x => x.GetOTPService(UserMfaType.Email))
@@ -477,10 +478,10 @@ namespace XUnitTest.DomainService.Mfa
             var serializedContext = mfaContext.Sterilize();
             var config = new MfaConfig { EnableMfa = true };
             var userInfo = new UserInfo
-            { 
-                ItemId = "user-123", 
+            {
+                ItemId = "user-123",
                 Email = "test@example.com",
-                UserMfaType = UserMfaType.Email 
+                UserMfaType = UserMfaType.Email
             };
             var expectedResponse = new OtpGenerationResponse { IsSuccess = true };
             var mockOtpService = new Mock<IOtpService>();
@@ -489,7 +490,7 @@ namespace XUnitTest.DomainService.Mfa
             _cacheClient.Setup(x => x.GetStringValueAsync(mfaId)).ReturnsAsync(serializedContext);
             _configurationService.Setup(x => x.GetAsync()).ReturnsAsync(config);
             _mfaRepository.Setup(x => x.GetItemAsync<UserInfo>(
-                It.IsAny<System.Linq.Expressions.Expression<System.Func<UserInfo, bool>>>(), 
+                It.IsAny<System.Linq.Expressions.Expression<System.Func<UserInfo, bool>>>(),
                 "Users"))
                 .ReturnsAsync(userInfo);
             _otpServiceFactory.Setup(x => x.GetOTPService(UserMfaType.Email))

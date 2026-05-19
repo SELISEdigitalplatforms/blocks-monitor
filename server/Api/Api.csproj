@@ -21,6 +21,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Alert.DomainService\Alert.DomainService.csproj" />
     <ProjectReference Include="..\Authentication.DomainService\Authentication.DomainService.csproj" />
     <ProjectReference Include="..\Captcha.DomainService\Captcha.DomainService.csproj" />
     <ProjectReference Include="..\Cloud.DomainService\Cloud.DomainService.csproj" />

@@ -14,6 +14,7 @@ using Moq;
 using Moq.Protected;
 using System.Net;
 using System.Text.Json;
+using XUnitTest.Utilities;
 
 namespace XUnitTest.DomainService.Mfa
 {
@@ -288,7 +289,7 @@ namespace XUnitTest.DomainService.Mfa
 
         private BlocksContext CreateBlocksContext()
         {
-            return BlocksContext.Create(
+            return BlocksContextTestHelper.Create(
                 tenantId: "test-tenant",
                 roles: Array.Empty<string>(),
                 userId: "test-user",
@@ -303,7 +304,7 @@ namespace XUnitTest.DomainService.Mfa
                 displayName: "Test User",
                 oauthToken: "test-token",
                 refreshToken: "",
-                actualTentId: "test-tenant"
+                actualTenantId: "test-tenant"
             );
         }
 
