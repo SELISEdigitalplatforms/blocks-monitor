@@ -6,6 +6,8 @@ import HealthPage from "./dashboard/health";
 import HealthIncidentsPage from "./dashboard/health-incidents";
 import HealthMonitorPage from "./dashboard/health-monitor";
 import ProfilePage from "./dashboard/profile";
+import { ConsoleLayout } from "@/layouts/console-layout/console-layout";
+import Console from "@/pages/console/console";
 
 export const routes = [
   {
@@ -14,6 +16,10 @@ export const routes = [
       { index: true, element: <LoginPage /> },
       { path: "callback", element: <CallbackPage /> },
     ],
+  },
+  {
+    element: <ConsoleLayout />,
+    children: [{ path: "/console", element: <Console /> }],
   },
   {
     element: <DashboardLayout />,
@@ -27,6 +33,6 @@ export const routes = [
       { path: "/profile", element: <ProfilePage /> },
     ],
   },
-  { path: "/", element: <Navigate to="/health" replace /> },
+  { path: "/", element: <Navigate to="/console" replace /> },
   { path: "*", element: <Navigate to="/login" replace /> },
 ] as const satisfies RouteObject[];

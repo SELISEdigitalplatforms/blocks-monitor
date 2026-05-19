@@ -1,3 +1,4 @@
+import { ErrorBoundary } from "@/components/error-boundary";
 import { DashboardLayoutProvider } from "@/contexts/dashboard-layout-provider";
 import { ImpersonateGuard, ProtectedGuard } from "@/guards/protected-guard";
 import { DashboardHeader } from "@/layouts/dashboard-header/dashboard-header";
@@ -14,7 +15,9 @@ export default function DashboardLayout() {
             <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
               <DashboardHeader />
               <main className="relative flex-1 overflow-auto p-2 sm:p-4 lg:p-6">
-                <Outlet />
+                <ErrorBoundary>
+                  <Outlet />
+                </ErrorBoundary>
               </main>
             </div>
           </div>
