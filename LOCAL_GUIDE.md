@@ -53,7 +53,7 @@ All development workflows are handled via:
 ### Available Commands
 
 - `./run.sh -b` or `--backend`
-  Run only the .NET API (default port: 5001)
+  Run only the .NET API (default port: 5000)
 
 - `./run.sh -w` or `--worker`
   Run only the .NET Worker service
@@ -263,7 +263,7 @@ Standardized local TLS is driven by **two machine/user environment variables** â
 
 | Frontend dev server                                   | Backend API                                           |
 | ----------------------------------------------------- | ----------------------------------------------------- |
-| `https://dev-observability.blocksdevelopers.com:4001` | `https://dev-observability.blocksdevelopers.com:5001` |
+| `https://dev-observability.blocksdevelopers.com:4000` | `https://dev-observability.blocksdevelopers.com:5000` |
 
 ### One-time setup
 
@@ -308,7 +308,7 @@ Standardized local TLS is driven by **two machine/user environment variables** â
 
 | `OBSERVABILITY_SSL_CERT` / `OBSERVABILITY_SSL_KEY` | Files exist | Result                                            |
 | -------------------------------------------------- | ----------- | ------------------------------------------------- |
-| Both set                                           | Yes         | **HTTPS** on the dev domain (FE :4001, API :5001) |
+| Both set                                           | Yes         | **HTTPS** on the dev domain (FE :4000, API :5000) |
 | Both set                                           | No          | HTTP â€” warning logged, no crash                   |
 | Either unset                                       | â€”           | HTTP â€” warning logged, no crash                   |
 

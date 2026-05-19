@@ -8,8 +8,8 @@ API_PROJECT="$SCRIPT_DIR/server/Api/Api.csproj"
 WORKER_PROJECT="$SCRIPT_DIR/server/Worker/Worker.csproj"
 WWWROOT_DIR="$SCRIPT_DIR/server/Api/wwwroot"
 
-API_PORT=5001
-FRONTEND_PORT=4001
+API_PORT=5000
+FRONTEND_PORT=4000
 
 # Ensure SSL vars are explicitly in scope for Vite
 export OBSERVABILITY_SSL_CERT="${OBSERVABILITY_SSL_CERT:-}"
