@@ -188,7 +188,7 @@ export default function LoginPage() {
 
       const blocksKey = getRuntimeEnv("BLOCKS_X_BLOCKS_KEY");
       const baseUrl =
-        getRuntimeEnv("BLOCKS_IDP_APP_URL") ||
+        getRuntimeEnv("BLOCKS_IDP_BASE_URL") ||
         "https://dev-idp.blocksdevelopers.com";
       const clientId =
         getRuntimeEnv("BLOCKS_OIDC_CLIENT_ID") ||

@@ -11,6 +11,10 @@ WWWROOT_DIR="$SCRIPT_DIR/server/Api/wwwroot"
 API_PORT=5001
 FRONTEND_PORT=4001
 
+# Ensure SSL vars are explicitly in scope for Vite
+export OBSERVABILITY_SSL_CERT="${OBSERVABILITY_SSL_CERT:-}"
+export OBSERVABILITY_SSL_KEY="${OBSERVABILITY_SSL_KEY:-}"
+
 API_PID=""
 WORKER_PID=""
 
@@ -77,6 +81,8 @@ trap cleanup EXIT INT TERM
 # ---------- FRONTEND ----------
 run_frontend() {
     echo "Starting frontend..."
+
+
 
     if [ ! -d "$CLIENT_DIR/node_modules" ]; then
         echo "Installing dependencies..."

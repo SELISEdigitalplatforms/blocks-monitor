@@ -13,7 +13,6 @@ using Cloud.LmtService.Models.Trace;
 
 var serviceName = "blocks-os-api";
 var vaultType = ResolveVaultType();
-Console.WriteLine($"Using Genesis vault type: {vaultType}");
 var secret = await ApplicationConfigurations.ConfigureLogAndSecretsAsync(serviceName, vaultType);
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,12 +27,7 @@ var services = builder.Services;
 
 services.AddHealthChecks();
 
-ApplicationConfigurations.ConfigureApi(services);
-
-builder.Services.Configure<MvcOptions>(options =>
-{
-    options.Conventions.Insert(0, new GlobalApiRoutePrefixConvention("api"));
-});
+ApplicationConfigurations.ConfigureApi(services, serviceName, serviceAccessResourceName: "blocks-os");
 
 var wwwrootPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot");
 Directory.CreateDirectory(wwwrootPath);
@@ -41,27 +35,11 @@ Directory.CreateDirectory(wwwrootPath);
 ApplyFrontendRuntimeSettings(builder.Configuration, wwwrootPath);
 
 services.AddEndpointsApiExplorer();
-services.AddSwaggerGen(options =>
+services.AddBlocksSwagger(new BlocksSwaggerOptions
 {
-    options.SwaggerDoc("v1", new() { Title = "Blocks Observability API", Version = "v1" });
-    options.AddSecurityDefinition("Bearer", new()
-    {
-        Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-    });
-    options.AddSecurityRequirement(new()
-    {
-        {
-            new() { Reference = new() { Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, Id = "Bearer" } },
-            []
-        }
-    });
-    var xmlFile = Path.Combine(AppContext.BaseDirectory, "Blocks.Alert.xml");
-    if (File.Exists(xmlFile))
-        options.IncludeXmlComments(xmlFile);
+    Title = "Blocks Observability API",
+    Version = "v1",
+    EnableBearerAuth = true
 });
 
 services.RegisterAllServices();
@@ -73,9 +51,6 @@ services.AddCloudConfigurationServices();
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", "Blocks Observability API v1"));
-
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
@@ -83,11 +58,11 @@ var indexHtml = Path.Combine(app.Environment.WebRootPath ?? "", "index.html");
 if (File.Exists(indexHtml))
 {
     app.MapFallbackToFile("/index.html");
-   // x-blocks-key cookie
-   // check if domain match
-   // get google captch key BLOCKS_GOOGLE_SITE_KEY
-   // Base Url
-   // Construct URL
+    // x-blocks-key cookie
+    // check if domain match
+    // get google captch key BLOCKS_GOOGLE_SITE_KEY
+    // Base Url
+    // Construct URL
 
 
 }
@@ -129,16 +104,28 @@ static void ApplyFrontendRuntimeSettings(IConfiguration configuration, string we
 
     var replacements = new Dictionary<string, string?>
     {
-        ["__BLOCKS_API_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_API_BASE_URL"),
-        ["__BLOCKS_DEPLOYMENT_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_DEPLOYMENT_APP_URL"),
-        ["__BLOCKS_X_BLOCKS_KEY__"] = Environment.GetEnvironmentVariable("BLOCKS_X_BLOCKS_KEY"),
-        ["__BLOCKS_GOOGLE_SITE_KEY__"] = Environment.GetEnvironmentVariable("BLOCKS_GOOGLE_SITE_KEY"),
-        ["__BLOCKS_CONSTRUCT_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_CONSTRUCT_URL"),
-        ["__BLOCKS_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_APP_URL"),
-        ["__BLOCKS_IDP_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_IDP_APP_URL"),
-        ["__BLOCKS_OIDC_CLIENT_ID__"] = Environment.GetEnvironmentVariable("BLOCKS_OIDC_CLIENT_ID"),
-        ["__BLOCKS_LOGIC_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_LOGIC_APP_URL")
+        // ["__BLOCKS_API_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_API_BASE_URL"),
+        // ["__BLOCKS_DEPLOYMENT_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_DEPLOYMENT_APP_URL"),
+        // ["__BLOCKS_X_BLOCKS_KEY__"] = Environment.GetEnvironmentVariable("BLOCKS_X_BLOCKS_KEY"),
+        // ["__BLOCKS_GOOGLE_SITE_KEY__"] = Environment.GetEnvironmentVariable("BLOCKS_GOOGLE_SITE_KEY"),
+        // ["__BLOCKS_CONSTRUCT_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_CONSTRUCT_URL"),
+        // ["__BLOCKS_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_APP_URL"),
+        // ["__BLOCKS_IDP_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_IDP_BASE_URL"),
+        // ["__BLOCKS_OIDC_CLIENT_ID__"] = Environment.GetEnvironmentVariable("BLOCKS_OIDC_CLIENT_ID"),
+        // ["__BLOCKS_LOGIC_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_LOGIC_APP_URL")
+
+        ["__BLOCKS_API_BASE_URL__"] = "https://dev-observability.blocksdevelopers.com",
+        ["__BLOCKS_X_BLOCKS_KEY__"] = "f080a1bea04280a72149fd689d50a48c",
+        ["__BLOCKS_GOOGLE_SITE_KEY__"] = "6LeE8uEqAAAAAM-9mzdFO8sajdin-DsVdxh3RT8c",
+        ["__BLOCKS_CONSTRUCT_URL__"] = "https://dev-construct.seliseblocks.com",
+        ["__BLOCKS_GITHUB_SSO_CLIENT_ID__"] = "Ov23liqWywFtITPvQ4Z9",
+        ["__BLOCKS_APP_URL__"] = "https://dev-observability.blocksdevelopers.com",
+        ["__BLOCKS_LOGIC_APP_URL__"] = "https://dev-logic.blocksdevelopers.com",
+        ["__BLOCKS_IDP_BASE_URL__"] = "https://dev-idp.blocksdevelopers.com",
+        ["__BLOCKS_OIDC_CLIENT_ID__"] = "1bd234da-1fa1-4264-982e-3debb1078be5",
     };
+
+
 
     var files = Directory.EnumerateFiles(webRootPath, "*", SearchOption.AllDirectories)
         .Where(path =>
