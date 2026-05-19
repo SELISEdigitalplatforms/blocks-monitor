@@ -12,17 +12,17 @@ import {
 } from "@/components/ui-kits/select/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui-kits/tabs/tabs";
 import { useProjectStore } from "@/store/project.store.ts";
+import { useAlertFilterQueryParams } from "@blocks-observability/components/alert/alerts-filter-toolbar";
+import { AlertsList } from "@blocks-observability/components/alert/alerts-list";
+import { AddSingleMonitorForm } from "@blocks-observability/components/monitor/form/add-monitor-form";
+import { MonitorModal } from "@blocks-observability/components/monitor/modal/monitor-modal";
+import { useGetHealthMonitorList } from "@blocks-observability/hooks/use-alerts";
+import { Plus } from "lucide-react";
+import { useMemo, useState } from "react";
 import {
   type HealthTabKey,
   HEALTH_TABS,
 } from "../../constants/health.constant";
-import { useGetHealthMonitorList } from "@blocks-observability/hooks/use-alerts";
-import { AlertsList } from "@blocks-observability/components/alert/alerts-list";
-import { Plus } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { useAlertFilterQueryParams } from "@blocks-observability/components/alert/alerts-filter-toolbar";
-import { MonitorModal } from "@blocks-observability/components/monitor/modal/monitor-modal";
-import { AddSingleMonitorForm } from "@blocks-observability/components/monitor/form/add-monitor-form";
 
 const Health = () => {
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
@@ -57,20 +57,20 @@ const Health = () => {
     pageSize: queryParams.pageSize,
   });
 
-  /* eslint-disable no-console */
-  const pingHealthEndpoint = () => {
-    // allow fetch and console statements in this helper
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    fetch("https://dev-os.blocksdevelopers.com/ping")
-      .then((res) => res.json())
-      .then((response) => console.log(response))
-      .catch((err) => console.error(err));
-  };
-  /* eslint-enable no-console */
+  // /* eslint-disable no-console */
+  // const pingHealthEndpoint = () => {
+  //   // allow fetch and console statements in this helper
+  //   // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  //   fetch("https://dev-os.blocksdevelopers.com/ping")
+  //     .then((res) => res.json())
+  //     .then((response) => console.log(response))
+  //     .catch((err) => console.error(err));
+  // };
+  // /* eslint-enable no-console */
 
-  useEffect(() => {
-    pingHealthEndpoint();
-  }, []);
+  // useEffect(() => {
+  //   pingHealthEndpoint();
+  // }, []);
 
   return (
     <main>
