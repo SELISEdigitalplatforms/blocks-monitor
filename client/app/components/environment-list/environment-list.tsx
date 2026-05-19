@@ -79,9 +79,9 @@ export function EnvironmentList() {
   };
 
   const environment =
-    projectData?.data.environment || selectedProject?.environment;
+    projectData?.data?.environment || selectedProject?.environment;
   const applicationDomain =
-    projectData?.data.applicationDomain || selectedProject?.applicationDomain;
+    projectData?.data?.applicationDomain || selectedProject?.applicationDomain;
 
   const projects = useMemo(() => {
     if (!selectedProject) return [];
@@ -121,14 +121,14 @@ export function EnvironmentList() {
           .slice(0, 5)
           .map((project) => (
             <DropdownMenuItem
-              key={project.itemId}
+              key={project?.itemId}
               onSelect={() => handleProjectSelect(project)}>
               {isLoading ? (
                 <div className="flex w-full items-center justify-center py-2">
                   <Loader size={16} className="animate-spin text-gray-400" />
                 </div>
               ) : (
-                <span>{project.environment}</span>
+                <span>{project?.environment}</span>
               )}
             </DropdownMenuItem>
           ))}
