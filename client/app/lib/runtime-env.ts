@@ -20,12 +20,56 @@ declare global {
 const isPlaceholder = (value?: string) =>
   !!value && value.startsWith(PLACEHOLDER_PREFIX) && value.endsWith("__");
 
-export const getRuntimeEnv = (key: RuntimeKey): string => {
+type GetRuntimeEnvOptions = {
+  stripPort?: boolean;
+  ensureTrailingSlash?: boolean;
+};
+
+const stripPortFromUrl = (url: string) => {
+  try {
+    const parsedUrl = new URL(url);
+    parsedUrl.port = "";
+    return parsedUrl.toString();
+  } catch (error) {
+    console.warn(`Failed to parse URL: ${url}`, error);
+    return url;
+  }
+};
+
+const ensureTrailingSlash = (url: string) =>
+  url.endsWith("/") ? url : `${url}/`;
+
+const isLocalEnv = () => {
+  if (import.meta.env.DEV) return true;
+
+  if (typeof window !== "undefined") {
+    const { hostname } = window.location;
+    return hostname === "localhost" || hostname === "127.0.0.1";
+  }
+
+  return false;
+};
+
+export const getRuntimeEnv = (
+  key: RuntimeKey,
+  options: GetRuntimeEnvOptions = {},
+): string => {
+  let value = "";
   const windowValue =
     typeof window !== "undefined" ? window.__BLOCKS_ENV__?.[key] : undefined;
   if (windowValue && !isPlaceholder(windowValue)) {
-    return windowValue;
+    value = windowValue;
+  } else {
+    value = import.meta.env[key] || "";
   }
 
-  return import.meta.env[key] || "";
+  if (options.stripPort && !isLocalEnv()) {
+    value = stripPortFromUrl(value);
+  }
+
+  if (value && options.ensureTrailingSlash) {
+    value = ensureTrailingSlash(value);
+  }
+
+  return value;
 };
