@@ -90,40 +90,58 @@ static VaultType ResolveVaultType()
 
 static void ApplyFrontendRuntimeSettings(IConfiguration configuration, string webRootPath)
 {
-  //  var envFilePath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
-    //var section = configuration.GetSection("FrontendRuntime");
-    //var replacements = new Dictionary<string, string?>
-    //{
-    //    ["__BLOCKS_API_BASE_URL__"] = section["BLOCKS_API_BASE_URL"],
-    //    ["__BLOCKS_X_BLOCKS_KEY__"] = section["BLOCKS_X_BLOCKS_KEY"],
-    //    ["__BLOCKS_GOOGLE_SITE_KEY__"] = section["BLOCKS_GOOGLE_SITE_KEY"],
-    //    ["__BLOCKS_CONSTRUCT_URL__"] = section["BLOCKS_CONSTRUCT_URL"]
-    //};
-
-    DotNetEnv.Env.Load();
-
+    // ACTIVE path: read frontend runtime values from the "FrontendRuntime" section in
+    // appsettings.{Environment}.json. Standard .NET config layering still applies, so
+    // env vars named "FrontendRuntime__BLOCKS_*" override individual keys at deploy time.
+    var section = configuration.GetSection("FrontendRuntime");
     var replacements = new Dictionary<string, string?>
     {
-        // ["__BLOCKS_API_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_API_BASE_URL"),
-        // ["__BLOCKS_DEPLOYMENT_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_DEPLOYMENT_APP_URL"),
-        // ["__BLOCKS_X_BLOCKS_KEY__"] = Environment.GetEnvironmentVariable("BLOCKS_X_BLOCKS_KEY"),
-        // ["__BLOCKS_GOOGLE_SITE_KEY__"] = Environment.GetEnvironmentVariable("BLOCKS_GOOGLE_SITE_KEY"),
-        // ["__BLOCKS_CONSTRUCT_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_CONSTRUCT_URL"),
-        // ["__BLOCKS_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_APP_URL"),
-        // ["__BLOCKS_IDP_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_IDP_BASE_URL"),
-        // ["__BLOCKS_OIDC_CLIENT_ID__"] = Environment.GetEnvironmentVariable("BLOCKS_OIDC_CLIENT_ID"),
-        // ["__BLOCKS_LOGIC_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_LOGIC_APP_URL")
-
-        ["__BLOCKS_API_BASE_URL__"] = "https://dev-observability.blocksdevelopers.com",
-        ["__BLOCKS_X_BLOCKS_KEY__"] = "f080a1bea04280a72149fd689d50a48c",
-        ["__BLOCKS_GOOGLE_SITE_KEY__"] = "6LeE8uEqAAAAAM-9mzdFO8sajdin-DsVdxh3RT8c",
-        ["__BLOCKS_CONSTRUCT_URL__"] = "https://dev-construct.seliseblocks.com",
-        ["__BLOCKS_GITHUB_SSO_CLIENT_ID__"] = "Ov23liqWywFtITPvQ4Z9",
-        ["__BLOCKS_APP_URL__"] = "https://dev-observability.blocksdevelopers.com",
-        ["__BLOCKS_LOGIC_APP_URL__"] = "https://dev-logic.blocksdevelopers.com",
-        ["__BLOCKS_IDP_BASE_URL__"] = "https://dev-idp.blocksdevelopers.com",
-        ["__BLOCKS_OIDC_CLIENT_ID__"] = "1bd234da-1fa1-4264-982e-3debb1078be5",
+        ["__BLOCKS_API_BASE_URL__"] = section["BLOCKS_API_BASE_URL"],
+        ["__BLOCKS_DEPLOYMENT_APP_URL__"] = section["BLOCKS_DEPLOYMENT_APP_URL"],
+        ["__BLOCKS_X_BLOCKS_KEY__"] = section["BLOCKS_X_BLOCKS_KEY"],
+        ["__BLOCKS_GOOGLE_SITE_KEY__"] = section["BLOCKS_GOOGLE_SITE_KEY"],
+        ["__BLOCKS_CONSTRUCT_URL__"] = section["BLOCKS_CONSTRUCT_URL"],
+        ["__BLOCKS_GITHUB_SSO_CLIENT_ID__"] = section["BLOCKS_GITHUB_SSO_CLIENT_ID"],
+        ["__BLOCKS_APP_URL__"] = section["BLOCKS_APP_URL"],
+        ["__BLOCKS_LOGIC_APP_URL__"] = section["BLOCKS_LOGIC_APP_URL"],
+        ["__BLOCKS_IDP_BASE_URL__"] = section["BLOCKS_IDP_BASE_URL"],
+        ["__BLOCKS_OIDC_CLIENT_ID__"] = section["BLOCKS_OIDC_CLIENT_ID"],
     };
+
+    // PREVIOUS path #1 (kept for reference — flip back to this if we need to read bare
+    // process env vars / .env files again instead of the appsettings section):
+    //
+    // DotNetEnv.Env.Load();
+    //
+    // var replacements = new Dictionary<string, string?>
+    // {
+    //     ["__BLOCKS_API_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_API_BASE_URL"),
+    //     ["__BLOCKS_DEPLOYMENT_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_DEPLOYMENT_APP_URL"),
+    //     ["__BLOCKS_X_BLOCKS_KEY__"] = Environment.GetEnvironmentVariable("BLOCKS_X_BLOCKS_KEY"),
+    //     ["__BLOCKS_GOOGLE_SITE_KEY__"] = Environment.GetEnvironmentVariable("BLOCKS_GOOGLE_SITE_KEY"),
+    //     ["__BLOCKS_CONSTRUCT_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_CONSTRUCT_URL"),
+    //     ["__BLOCKS_GITHUB_SSO_CLIENT_ID__"] = Environment.GetEnvironmentVariable("BLOCKS_GITHUB_SSO_CLIENT_ID"),
+    //     ["__BLOCKS_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_APP_URL"),
+    //     ["__BLOCKS_LOGIC_APP_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_LOGIC_APP_URL"),
+    //     ["__BLOCKS_IDP_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_IDP_BASE_URL"),
+    //     ["__BLOCKS_OIDC_CLIENT_ID__"] = Environment.GetEnvironmentVariable("BLOCKS_OIDC_CLIENT_ID"),
+    // };
+
+    // PREVIOUS path #2 (kept for reference — the hardcoded dev values we used before
+    // the section/env-var approach was wired up):
+    //
+    // var replacements = new Dictionary<string, string?>
+    // {
+    //     ["__BLOCKS_API_BASE_URL__"] = "https://dev-observability.blocksdevelopers.com",
+    //     ["__BLOCKS_X_BLOCKS_KEY__"] = "f080a1bea04280a72149fd689d50a48c",
+    //     ["__BLOCKS_GOOGLE_SITE_KEY__"] = "6LeE8uEqAAAAAM-9mzdFO8sajdin-DsVdxh3RT8c",
+    //     ["__BLOCKS_CONSTRUCT_URL__"] = "https://dev-construct.seliseblocks.com",
+    //     ["__BLOCKS_GITHUB_SSO_CLIENT_ID__"] = "Ov23liqWywFtITPvQ4Z9",
+    //     ["__BLOCKS_APP_URL__"] = "https://dev-observability.blocksdevelopers.com",
+    //     ["__BLOCKS_LOGIC_APP_URL__"] = "https://dev-logic.blocksdevelopers.com",
+    //     ["__BLOCKS_IDP_BASE_URL__"] = "https://dev-idp.blocksdevelopers.com",
+    //     ["__BLOCKS_OIDC_CLIENT_ID__"] = "1bd234da-1fa1-4264-982e-3debb1078be5",
+    // };
 
 
 
