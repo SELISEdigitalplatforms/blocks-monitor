@@ -11,7 +11,7 @@ using CloudConfiguration.DomainService.Shared.Utilities;
 using Microsoft.IdentityModel.Tokens;
 using Cloud.LmtService.Models.Trace;
 
-var serviceName = "blocks-os-api";
+var serviceName = "blocks-os";
 var vaultType = ResolveVaultType();
 var secret = await ApplicationConfigurations.ConfigureLogAndSecretsAsync(serviceName, vaultType);
 var builder = WebApplication.CreateBuilder(args);
