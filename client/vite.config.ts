@@ -35,6 +35,7 @@ function resolveDevHttps(): { cert: Buffer; key: Buffer } | undefined {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "BLOCKS_");
   const proxyTarget = env.BLOCKS_API_BASE_URL;
+  const idpProxyTarget = env.BLOCKS_IDP_BASE_URL;
   const devHost = env.BLOCKS_DEV_HOST || true;
   const httpsConfig = resolveDevHttps();
 
@@ -90,12 +91,16 @@ export default defineConfig(({ mode }) => {
         ".blocksdevelopers.com",
       ],
       proxy: {
-        "/dev-idp-proxy": {
-          target: "https://dev-idp.blocksdevelopers.com",
-          changeOrigin: true,
-          secure: true,
-          rewrite: (path) => path.replace(/^\/dev-idp-proxy/, ""),
-        },
+        ...(idpProxyTarget
+          ? {
+              "/dev-idp-proxy": {
+                target: idpProxyTarget,
+                changeOrigin: true,
+                secure: true,
+                rewrite: (path) => path.replace(/^\/dev-idp-proxy/, ""),
+              },
+            }
+          : {}),
         ...(proxyTarget
           ? {
               "/api": {

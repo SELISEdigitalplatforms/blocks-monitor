@@ -1,4 +1,7 @@
+import { getRuntimeEnv } from "@/lib/runtime-env";
+
 export default function ProfilePage() {
-	window.location.replace("http://dev-idp.blocksdevelopers.com/profile");
+	const idpBaseUrl = getRuntimeEnv("BLOCKS_IDP_BASE_URL");
+	window.location.replace(`${idpBaseUrl}/profile`);
 	return null;
 }
