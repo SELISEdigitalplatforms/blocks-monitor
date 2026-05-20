@@ -187,17 +187,14 @@ export default function LoginPage() {
       setIsStarting(true);
 
       const blocksKey = getRuntimeEnv("BLOCKS_X_BLOCKS_KEY");
-      const baseUrl =
-        getRuntimeEnv("BLOCKS_IDP_BASE_URL") ||
-        "https://dev-idp.blocksdevelopers.com";
+      const baseUrl = getRuntimeEnv("BLOCKS_IDP_BASE_URL");
       const clientId =
         getRuntimeEnv("BLOCKS_OIDC_CLIENT_ID") ||
         "1bd234da-1fa1-4264-982e-3debb1078be5";
-      const redirectUrlBase =
-        getRuntimeEnv("BLOCKS_APP_URL", {
-          stripPort: true,
-          ensureTrailingSlash: true,
-        }) || "https://dev-observability.blocksdevelopers.com/";
+      const redirectUrlBase = getRuntimeEnv("BLOCKS_APP_URL", {
+        stripPort: true,
+        ensureTrailingSlash: true,
+      });
       const redirectUri = `${redirectUrlBase}login/callback`;
       const initiateUrl = `${baseUrl}/api/idp/initiate?x-blocks-key=${blocksKey}&clientId=${clientId}&redirectUri=${redirectUri}`;
       const headers: Record<string, string> = {};

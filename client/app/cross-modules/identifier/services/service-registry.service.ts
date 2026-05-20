@@ -1,4 +1,5 @@
 import { serviceInstances } from "@/lib/http-client";
+import { getRuntimeEnv } from "@/lib/runtime-env";
 import { SERVICE_REGISTRY_ENDPOINTS } from "@blocks-identifier/constants/endpoint.constant";
 import {
   IGetAllServicesPayload,
@@ -11,7 +12,7 @@ export class ServiceRegistryService {
     payload: IGetAllServicesPayload,
   ): Promise<IGetAllServicesResponse> {
     return this.httpClient.post(
-      "https://dev-logic.blocksdevelopers.com/api/Service/GetAll",
+      `${getRuntimeEnv("BLOCKS_LOGIC_APP_URL")}/api/Service/GetAll`,
       payload,
       undefined,
       { absoluteUrl: true },
