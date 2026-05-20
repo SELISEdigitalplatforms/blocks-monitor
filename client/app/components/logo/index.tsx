@@ -1,5 +1,6 @@
 import { useTheme } from "@/hooks/use-theme";
 import { RenderAlternatively } from "@/components/render-elements";
+import { useNavigate } from "react-router-dom";
 
 interface LogoProps {
   src?: string;
@@ -9,11 +10,31 @@ interface LogoProps {
   className?: string;
 }
 
-export function Logo({ src, alt = "SELISE Logo", width, height, className }: LogoProps) {
+export function Logo({
+  src,
+  alt = "SELISE Logo",
+  width,
+  height,
+  className,
+}: LogoProps) {
   const { resolvedTheme } = useTheme();
+  const navigate = useNavigate();
+
+  const onLogoClick = () => {
+    navigate("/console");
+  };
 
   if (src) {
-    return <img src={src} alt={alt} width={width} height={height} className={className} />;
+    return (
+      <img
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        className={className}
+        onClick={onLogoClick}
+      />
+    );
   }
 
   return (
@@ -24,6 +45,7 @@ export function Logo({ src, alt = "SELISE Logo", width, height, className }: Log
         width={width}
         height={height}
         className={className}
+        onClick={onLogoClick}
       />
       <img
         src="/Logo.svg"
@@ -31,6 +53,7 @@ export function Logo({ src, alt = "SELISE Logo", width, height, className }: Log
         width={width}
         height={height}
         className={className}
+        onClick={onLogoClick}
       />
     </RenderAlternatively>
   );
