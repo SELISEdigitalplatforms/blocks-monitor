@@ -37,7 +37,7 @@ export function SidebarMobileView() {
         hideClose>
         <SheetHeader className="h-[60px] px-4 py-3">
           <SheetTitle className="flex items-center justify-between">
-            <Link to="/health">
+            <Link to="/console">
               <Logo width={72} height={36} className="h-9 w-auto" />
             </Link>
             <SheetClose className="!mt-0">
