@@ -29,7 +29,6 @@ Options:
   -f, --frontend    Run frontend dev server
   -k, --kill-port   Kill API port ($API_PORT)
   -n, --npm         Run npm command inside client/
-  -d, --dotnet      Run dotnet command
   -h, --help        Show help
 
 Examples:
@@ -37,7 +36,6 @@ Examples:
   $0 -b
   $0 -f
   $0 -k
-  $0 -d restore server/Api/Api.csproj
 EOF
 exit "${1:-1}"
 }
@@ -200,11 +198,6 @@ case "$1" in
         (cd "$CLIENT_DIR" && npm "$@")
         ;;
 
-    -d|--dotnet)
-        shift
-        [ $# -eq 0 ] && echo "Usage: $0 -d <args>" && exit 1
-        (cd "$SCRIPT_DIR" && dotnet "$@")
-        ;;
 
     -h|--help)
         usage 0
