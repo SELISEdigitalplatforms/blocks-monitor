@@ -53,7 +53,7 @@ All development workflows are handled via:
 ### Available Commands
 
 - `./run.sh -b` or `--backend`
-  Run only the .NET API (default port: 5000)
+  Run only the .NET API (default port: 5001)
 
 - `./run.sh -w` or `--worker`
   Run only the .NET Worker service
@@ -263,7 +263,7 @@ Standardized local TLS is driven by **two machine/user environment variables** �
 
 | Frontend dev server                                   | Backend API                                           |
 | ----------------------------------------------------- | ----------------------------------------------------- |
-| `https://dev-observability.blocksdevelopers.com:4000` | `https://dev-observability.blocksdevelopers.com:5000` |
+| `https://dev-observability.blocksdevelopers.com:4001` | `https://dev-observability.blocksdevelopers.com:5001` |
 
 ### One-time setup
 
@@ -308,7 +308,7 @@ Standardized local TLS is driven by **two machine/user environment variables** �
 
 | `OBSERVABILITY_SSL_CERT` / `OBSERVABILITY_SSL_KEY` | Files exist | Result                                            |
 | -------------------------------------------------- | ----------- | ------------------------------------------------- |
-| Both set                                           | Yes         | **HTTPS** on the dev domain (FE :4000, API :5000) |
+| Both set                                           | Yes         | **HTTPS** on the dev domain (FE :4001, API :5001) |
 | Both set                                           | No          | HTTP — warning logged, no crash                   |
 | Either unset                                       | —           | HTTP — warning logged, no crash                   |
 
@@ -323,5 +323,5 @@ Works for **every launch path**: bare `npm run dev` (client/), `./run.sh -f/-b/-
 - Always use `dotnet restore` (or `./run.sh -d restore`) to install backend dependencies
 - Avoid manually editing `.csproj` for packages—use `dotnet add`
 - Frontend is fully standard Node/Vite
-- `./run.sh -a` is your **full-stack dev command**
+- For live frontend changes, run `./run.sh -f` and `./run.sh -b` in separate terminals. `./run.sh -a` builds the SPA once, then runs API + Worker.
 - Worker runs independently—make sure required services (DB, queues, etc.) are available

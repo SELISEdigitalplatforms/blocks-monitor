@@ -62,20 +62,20 @@ Blocks Observability is a monorepo with an ASP.NET Core API, a background Worker
 | -b, --backend       | run API                         | run API                         | run.ps1 restores .NET dependencies first                                                    |
 | -w, --worker        | run Worker                      | run Worker                      | run.ps1 restores .NET dependencies first                                                    |
 | -f, --frontend      | run Vite dev server             | run Vite dev server             | run.sh uses npm clean-install only if node_modules missing; run.ps1 always runs npm install |
-| -k, --kill-port     | kill process on API port 5000   | kill process on API port 5000   | run.sh uses lsof or netstat; run.ps1 uses netstat/taskkill                                  |
+| -k, --kill-port     | kill process on API port 5001   | kill process on API port 5001   | run.sh uses lsof or netstat; run.ps1 uses netstat/taskkill                                  |
 | -n, --npm <args>    | run npm in client/              | run npm in client/              | examples: -n install, -n run build                                                          |
-| -d, --dotnet <args> | not supported                   | run dotnet command              | examples: -d restore, -d build                                                              |
+| -d, --dotnet <args> | run dotnet command              | run dotnet command              | examples: -d restore, -d build                                                              |
 | -h, --help          | show help                       | show help                       |                                                                                             |
 
 ### Unix (run.sh)
 
 ```bash
 ./run.sh -a          # build SPA + run API + Worker
-./run.sh -b          # run API only (port 5000)
+./run.sh -b          # run API only (port 5001)
 ./run.sh -w          # run Worker only
-./run.sh -f          # run Vite dev server (port 4000)
+./run.sh -f          # run Vite dev server (port 4001)
 ./run.sh -n install  # npm install in client/
-./run.sh -k          # kill process on port 5000
+./run.sh -k          # kill process on port 5001
 ```
 
 If you see permission denied, make the script executable:
@@ -116,10 +116,10 @@ dotnet run --project server/Worker/Worker.csproj
 
 ```bash
 npm --prefix client install
-npm --prefix client run dev   # port 4000 (script overrides Vite config)
+npm --prefix client run dev   # port 4001 (script overrides Vite config)
 ```
 
-Use npm run local if you want Vite's default port from [client/vite.config.ts](client/vite.config.ts) (4000).
+Use npm run local if you want Vite's default port from [client/vite.config.ts](client/vite.config.ts) (4001).
 
 ## Local HTTPS
 

@@ -80,7 +80,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: devHost,
-      port: 4000,
+      port: 4001,
       strictPort: true, // Exit if the port is already in use
       https: httpsConfig, // HTTPS when DEPLOYMENT_SSL_* are set; else HTTP
       allowedHosts: [

@@ -8,8 +8,8 @@ API_PROJECT="$SCRIPT_DIR/server/Api/Api.csproj"
 WORKER_PROJECT="$SCRIPT_DIR/server/Worker/Worker.csproj"
 WWWROOT_DIR="$SCRIPT_DIR/server/Api/wwwroot"
 
-API_PORT=5000
-FRONTEND_PORT=4000
+API_PORT=5001
+FRONTEND_PORT=4001
 
 # Ensure SSL vars are explicitly in scope for Vite
 export OBSERVABILITY_SSL_CERT="${OBSERVABILITY_SSL_CERT:-}"
@@ -29,6 +29,7 @@ Options:
   -f, --frontend    Run frontend dev server
   -k, --kill-port   Kill API port ($API_PORT)
   -n, --npm         Run npm command inside client/
+  -d, --dotnet      Run dotnet command
   -h, --help        Show help
 
 Examples:
@@ -36,8 +37,9 @@ Examples:
   $0 -b
   $0 -f
   $0 -k
+  $0 -d restore server/Api/Api.csproj
 EOF
-exit 1
+exit "${1:-1}"
 }
 
 # ---------- PORT CLEANUP ----------
@@ -70,6 +72,10 @@ free_port() {
 
 # ---------- CLEANUP ----------
 cleanup() {
+    if [ -z "${API_PID:-}" ] && [ -z "${WORKER_PID:-}" ]; then
+        return
+    fi
+
     echo "Shutting down..."
 
     [ -n "${API_PID:-}" ] && kill "$API_PID" 2>/dev/null || true
@@ -194,8 +200,14 @@ case "$1" in
         (cd "$CLIENT_DIR" && npm "$@")
         ;;
 
+    -d|--dotnet)
+        shift
+        [ $# -eq 0 ] && echo "Usage: $0 -d <args>" && exit 1
+        (cd "$SCRIPT_DIR" && dotnet "$@")
+        ;;
+
     -h|--help)
-        usage
+        usage 0
         ;;
 
     *)
