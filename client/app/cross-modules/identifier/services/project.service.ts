@@ -1,4 +1,5 @@
 import { serviceInstances } from "@/lib/http-client";
+import { getRuntimeEnv } from "@/lib/runtime-env";
 import {
   CLOUD_BUILD_ENDPOINTS,
   PROJECT_ENDPOINTS,
@@ -33,7 +34,7 @@ export class ProjectService {
     errors: unknown | null;
     isSuccess: boolean;
   }> {
-    const url = `https://dev-logic.blocksdevelopers.com/api/build/repos-list?projectkey=${projectKey}`;
+    const url = `${getRuntimeEnv("BLOCKS_LOGIC_APP_URL")}/api/build/repos-list?projectkey=${projectKey}`;
     return this.logicHttpClient.get(url, undefined, { absoluteUrl: true });
   }
 
