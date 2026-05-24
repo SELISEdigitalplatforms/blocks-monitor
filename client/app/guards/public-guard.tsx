@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Outlet, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "@/store/auth.store.ts";
 
 export const useAppState = () => {
@@ -12,7 +12,7 @@ export const useAppState = () => {
   return { isMounted };
 };
 
-export function PublicGuard({ children }: { children: React.ReactNode }) {
+export function PublicGuard() {
   const { isAuthenticated } = useAuthStore();
   const { isMounted } = useAppState();
   const navigate = useNavigate();
@@ -33,5 +33,5 @@ export function PublicGuard({ children }: { children: React.ReactNode }) {
   }, [isAuthenticated, isMounted, isSSOCallback, navigate]);
 
   if (!isMounted || (isAuthenticated && !isSSOCallback)) return null;
-  return <>{children}</>;
+  return <Outlet />;
 }

@@ -1,14 +1,15 @@
 import { serviceInstances } from "@/lib/http-client";
-import { INotification, INotificationConfig } from "../models/notification.model";
+import {
+  INotification,
+  INotificationConfig,
+} from "../models/notification.model";
 import {
   NOTIFICATION_ENDPOINTS,
   NOTIFICATION_CONFIG_ENDPOINTS,
 } from "../constants/endpoint.constant";
 
-// Notifications live on the logic server; logicService is already based there.
-const logic = serviceInstances.logicService;
-
 export class NotificationService {
+  private readonly logicService = serviceInstances.logicService;
   getNotifications = (
     pageNumber: number,
     pageSize: number,
@@ -21,18 +22,30 @@ export class NotificationService {
       page: String(pageNumber - 1),
       pageSize: String(pageSize),
     });
-    return logic.get(`${NOTIFICATION_ENDPOINTS.GET_NOTIFICATIONS}?${params}`);
+    return this.logicService.get(
+      `${NOTIFICATION_ENDPOINTS.GET_NOTIFICATIONS}?${params}`,
+    );
   };
 
-  markAsRead = (notificationId: string): Promise<{ errors: null | unknown; isSuccess: boolean }> => {
-    return logic.post(NOTIFICATION_ENDPOINTS.MARK_AS_READ, { id: notificationId });
+  markAsRead = (
+    notificationId: string,
+  ): Promise<{ errors: null | unknown; isSuccess: boolean }> => {
+    return this.logicService.post(NOTIFICATION_ENDPOINTS.MARK_AS_READ, {
+      id: notificationId,
+    });
   };
 
-  markAllNotificationsAsRead = (): Promise<{ errors: null | unknown; isSuccess: boolean }> => {
-    return logic.post(NOTIFICATION_ENDPOINTS.MARK_ALL_AS_READ, {});
+  markAllNotificationsAsRead = (): Promise<{
+    errors: null | unknown;
+    isSuccess: boolean;
+  }> => {
+    return this.logicService.post(NOTIFICATION_ENDPOINTS.MARK_ALL_AS_READ, {});
   };
 
-  getNotificationConfig = (config: INotificationConfig, message: string): void => {
+  getNotificationConfig = (
+    config: INotificationConfig,
+    message: string,
+  ): void => {
     let parsedMessage: unknown = message;
     if (typeof message === "string") {
       try {
@@ -62,7 +75,7 @@ export class NotificationService {
     errors: null | unknown;
     isSuccess: boolean;
   }> => {
-    return logic.get(
+    return this.logicService.get(
       `${NOTIFICATION_CONFIG_ENDPOINTS.GET_CONFIGS}?page=${page}&pageSize=${pageSize}&projectKey=${projectKey}`,
     );
   };

@@ -16,7 +16,6 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@/*": ["./app/*"],
       "@blocks-idp/*": ["./app/cross-modules/idp/*"],
       "@blocks-lmt/*": ["./app/cross-modules/lmt/*"],
       "@blocks-storage/*": ["./app/cross-modules/storage/*"],
@@ -25,7 +24,8 @@
       "@blocks-localization/*": ["./app/cross-modules/localization/*"],
       "@blocks-utilities/*": ["./app/cross-modules/utilities/*"],
       "@blocks-ai/*": ["./app/cross-modules/ai/*"],
-      "@blocks-observability/*": ["./app/cross-modules/observability/*"]
+      "@blocks-observability/*": ["./app/cross-modules/observability/*"],
+      "@/*": ["./app/*"]
     }
   },
   "include": ["app"],

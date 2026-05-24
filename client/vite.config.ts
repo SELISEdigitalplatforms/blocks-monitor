@@ -44,7 +44,6 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./app"),
         "@blocks-idp": path.resolve(__dirname, "./app/cross-modules/idp"),
         "@blocks-lmt": path.resolve(__dirname, "./app/cross-modules/lmt"),
         "@blocks-storage": path.resolve(
@@ -72,6 +71,7 @@ export default defineConfig(({ mode }) => {
           __dirname,
           "./app/cross-modules/observability",
         ),
+        "@": path.resolve(__dirname, "./app"),
       },
     },
     build: {
