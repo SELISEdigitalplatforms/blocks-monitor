@@ -75,7 +75,7 @@ namespace DomainService.Alert.Services
                     description = message
                 }),
                 SaveDenormalizedPayloadAsAnObject = false,
-                ConfiguratoinName = "GeneralNotification",
+                ConfigurationName = "GeneralNotification",
                 ContentAvailable = true,
                 ResponseKey = "status",
                 ResponseValue = "sent"
@@ -95,13 +95,13 @@ namespace DomainService.Alert.Services
 
             var blocksKey = _configuration["RootTenantId"];
             var salt = _tenants.GetTenantByID(blocksKey)?.TenantSalt;
-            var actulalSecret = _cryptoService.Hash(blocksKey, salt);
+            var actualSecret = _cryptoService.Hash(blocksKey, salt);
 
             var url = _configuration["NotificationServiceUrl"];
             var headers = new Dictionary<string, string>
             {
                 { "x-blocks-key", blocksKey },
-                { "Secret", actulalSecret}
+                { "Secret", actualSecret}
             };
 
             var (response, httpResponse) = await _httpHelperServices.MakeHttpRequest<NotificationResponse>("NotificationClient", url, HttpMethod.Post, payload, headers);
