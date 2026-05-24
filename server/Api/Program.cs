@@ -11,7 +11,7 @@ using CloudConfiguration.DomainService.Shared.Utilities;
 using Microsoft.IdentityModel.Tokens;
 using Cloud.LmtService.Models.Trace;
 
-var serviceName = "blocks-os";
+var serviceName = "blocks-observability-api";
 var vaultType = ResolveVaultType();
 var secret = await ApplicationConfigurations.ConfigureLogAndSecretsAsync(serviceName, vaultType);
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +27,7 @@ var services = builder.Services;
 
 services.AddHealthChecks();
 
+// This is explicitly set to "blocks-os" as the resource permission are still under "blocks-os" resource in IAM. This can be changed to "blocks-observability" once we have the new resource setup in IAM.
 ApplicationConfigurations.ConfigureApi(services, serviceName, serviceAccessResourceName: "blocks-os");
 
 var wwwrootPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot");

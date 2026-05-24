@@ -154,7 +154,9 @@ namespace DomainService.Monitor.Services
                 );
 
                 var monitorConfig = await _monitorConfigurationCollection.Find(filter).ToListAsync();
-
+                _logger.LogInformation(
+                    "Retrieved {Count} active OutboundPing MonitorConfigurations from database.",
+                    monitorConfig.Count);
                 return monitorConfig;
             }
             catch (Exception ex)

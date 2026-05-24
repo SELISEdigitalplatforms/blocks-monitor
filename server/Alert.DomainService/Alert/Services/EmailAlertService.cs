@@ -25,6 +25,11 @@ namespace DomainService.Alert.Services
         {
             try
             {
+                _logger.LogInformation(
+                    "Preparing email delivery for monitor {MonitorName} ({MonitorUrl})",
+                    monitorConfiguration.Name,
+                    monitorConfiguration.Url);
+
                 _logger.LogInformation("Sending email to: {Emails}",
                     string.Join(", ", monitorConfiguration.Emails));
 
@@ -54,6 +59,12 @@ namespace DomainService.Alert.Services
                 {
                     bool sent = false;
 
+                    _logger.LogInformation(
+                        "Sending {TemplateName} email to {Email} for monitor {MonitorName}",
+                        templateName,
+                        email,
+                        monitorConfiguration.Name);
+
                     if (mailConfig.SmtpClient == 0)
                     {
                         sent = await SendUsingMailKit(template, mailConfig, email, variables);
@@ -65,7 +76,19 @@ namespace DomainService.Alert.Services
 
                     if (!sent)
                         allSuccess = false;
+
+                    _logger.LogInformation(
+                        "Finished {TemplateName} email delivery to {Email} for monitor {MonitorName} with result {Result}",
+                        templateName,
+                        email,
+                        monitorConfiguration.Name,
+                        sent);
                 }
+
+                _logger.LogInformation(
+                    "Completed email delivery for monitor {MonitorName} with overall result {Result}",
+                    monitorConfiguration.Name,
+                    allSuccess);
 
                 return allSuccess;
             }
