@@ -82,6 +82,7 @@ namespace DomainService.Health.Services
                 };
 
                 await _healthConfigurationRepoService.SaveOrUpdateConfigurationAsync(healthConfiguration);
+                await _healthCheckService.LoadMonitorsFromDatabaseAsync();
 
                 return new BaseApiResponse
                 {
