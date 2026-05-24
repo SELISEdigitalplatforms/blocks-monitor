@@ -1,4 +1,5 @@
-﻿using Blocks.Genesis;
+﻿using System;
+using Blocks.Genesis;
 using DomainService.Monitor.Models;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -61,7 +62,7 @@ namespace DomainService.Monitor.Entity
         public string Url { get; set; }
 
         public MonitorConfigurationTypes MonitorConfigurationType { get; set; }
-        public MonitorSourceTypes MonitorSourcetypes { get; set; } = MonitorSourceTypes.DeployedServices;
+        public MonitorSourceTypes MonitorSourceType { get; set; } = MonitorSourceTypes.DeployedServices;
 
         public MonitorTypes? MonitorType { get; set; }
         public ProtocolTypes? ProtocolType { get; set; }

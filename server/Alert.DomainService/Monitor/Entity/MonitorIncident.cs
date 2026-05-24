@@ -1,4 +1,5 @@
-﻿using Blocks.Genesis;
+﻿using System;
+using Blocks.Genesis;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace DomainService.Monitor.Entity
@@ -15,7 +16,8 @@ namespace DomainService.Monitor.Entity
 
 
         public MonitorConfigurationTypes? MonitorConfigurationType { get; set; }
-        public MonitorSourceTypes? MonitorSourcetypes { get; set; }
+
+        public MonitorSourceTypes? MonitorSourceType { get; set; }
 
         public int LastStatusCode { get; set; }
         public bool IsResolved { get; set; } = false;
