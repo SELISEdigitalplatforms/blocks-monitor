@@ -27,7 +27,7 @@ class ImpersonationService {
   stopImpersonation(): Promise<void> {
     return this.httpClient.post(
       `${IMPERSONATION_ENDPOINTS.STOP_IMPERSONATION}`,
-      null,
+      {},
     );
   }
 }
