@@ -13,7 +13,7 @@ namespace DomainService.Monitor.Entity
         public string ResponseBody { get; set; }
         public bool IsSuccess { get; set; }
         public double ResponseTimeMs { get; set; }
-        public HttpMethodTypes HttpMethodType { get; set; }
+        public HttpMethodTypes? HttpMethodType { get; set; }
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     }
 }

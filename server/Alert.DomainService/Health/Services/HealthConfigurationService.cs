@@ -73,7 +73,7 @@ namespace DomainService.Health.Services
                     GracePeriodInSeconds = request.GracePeriodInSeconds,
                     IsActive = request.IsActive,
                     MonitorConfigurationType = MonitorConfigurationTypes.InboundPing,
-                    MonitorSourcetypes = monitorSourceTypeEnum,
+                    MonitorSourceType = monitorSourceTypeEnum,
                     ExternalServiceId = monitorSourceTypeEnum == MonitorSourceTypes.ExternalServices
                                ? request.ExternalServiceId
                                : null,
@@ -82,6 +82,7 @@ namespace DomainService.Health.Services
                 };
 
                 await _healthConfigurationRepoService.SaveOrUpdateConfigurationAsync(healthConfiguration);
+                await _healthCheckService.LoadMonitorsFromDatabaseAsync();
 
                 return new BaseApiResponse
                 {

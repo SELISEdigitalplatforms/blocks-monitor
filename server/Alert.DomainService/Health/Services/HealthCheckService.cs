@@ -172,7 +172,18 @@ namespace DomainService.Health.Services
         public async Task HandlePingEvent(string itemId)
         {
             RequeueByUrl(itemId);
-            await _healthIncidentService.HandleIncidentAsync(itemId);
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _healthIncidentService.HandleIncidentAsync(itemId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[HealthCheck] Failed to handle ping event for {ItemId}", itemId);
+                }
+            });
         }
 
         public void RequeueByUrl(string itemId)
