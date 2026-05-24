@@ -8,10 +8,12 @@ import HealthMonitorPage from "./dashboard/health-monitor";
 import ProfilePage from "./dashboard/profile";
 import { ConsoleLayout } from "@/layouts/console-layout/console-layout";
 import Console from "@/pages/console/console";
+import { PublicGuard } from "@/guards/public-guard";
 
 export const routes = [
   {
     path: "/login",
+    element: <PublicGuard />,
     children: [
       { index: true, element: <LoginPage /> },
       { path: "callback", element: <CallbackPage /> },

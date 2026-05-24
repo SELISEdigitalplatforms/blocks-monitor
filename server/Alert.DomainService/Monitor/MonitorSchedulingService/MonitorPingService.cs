@@ -61,6 +61,7 @@ namespace DomainService.Monitor.Services
                 MonitorId = config.ItemId,
                 Url = config.Url,
                 Timestamp = DateTime.UtcNow,
+                HttpMethodType = config.HttpMethodType,
             };
 
             try
@@ -109,6 +110,7 @@ namespace DomainService.Monitor.Services
                 _logger.LogError(ex, "Monitor failed for {Url}", config.Url);
             }
 
+            await _monitorPingRepoService.SavePingLogAsync(log);
             await _monitorIncidentService.HandleIncidentAsync(config, log);
 
             return log;

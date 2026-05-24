@@ -29,6 +29,11 @@ namespace DomainService.Alert.Services
 
         public async Task<bool> HandleNotificationAlertAsync(MonitorConfiguration monitorConfiguration,MonitorIncident incident)
         {
+            _logger.LogInformation(
+                "Preparing notification delivery for monitor {MonitorName} ({MonitorUrl})",
+                monitorConfiguration.Name,
+                monitorConfiguration.Url);
+
             var title = string.Empty;
             var message = string.Empty;
             if (incident.IsResolved)
@@ -70,7 +75,7 @@ namespace DomainService.Alert.Services
                     description = message
                 }),
                 SaveDenormalizedPayloadAsAnObject = false,
-                ConfiguratoinName = "GeneralNotification",
+                ConfigurationName = "GeneralNotification",
                 ContentAvailable = true,
                 ResponseKey = "status",
                 ResponseValue = "sent"
@@ -90,13 +95,13 @@ namespace DomainService.Alert.Services
 
             var blocksKey = _configuration["RootTenantId"];
             var salt = _tenants.GetTenantByID(blocksKey)?.TenantSalt;
-            var actulalSecret = _cryptoService.Hash(blocksKey, salt);
+            var actualSecret = _cryptoService.Hash(blocksKey, salt);
 
             var url = _configuration["NotificationServiceUrl"];
             var headers = new Dictionary<string, string>
             {
                 { "x-blocks-key", blocksKey },
-                { "Secret", actulalSecret}
+                { "Secret", actualSecret}
             };
 
             var (response, httpResponse) = await _httpHelperServices.MakeHttpRequest<NotificationResponse>("NotificationClient", url, HttpMethod.Post, payload, headers);
@@ -104,12 +109,13 @@ namespace DomainService.Alert.Services
             if (response is not null && response.IsSuccess)
             {
                 _logger.LogInformation("Successfully sent notification to users : {UserIds}", string.Join(", ", UserIds));
+                return true;
             }
             else
             {
                 _logger.LogError("Failed to sent notification to users : {UserIds}. Error : {Error}", string.Join(", ", UserIds), httpResponse.ReasonPhrase);
+                return false;
             }
-            return true;
         }
     }
 }

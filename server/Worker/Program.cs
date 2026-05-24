@@ -20,10 +20,10 @@ using Worker.Consumers;
 using Worker.Consumers.Identifier;
 using Worker.Consumers.Users;
 
-const string _serviceName = "blocks-os-worker";
+const string serviceName = "blocks-observability-worker";
 
 var vaultType = ResolveVaultType();
-var secret = await ApplicationConfigurations.ConfigureLogAndSecretsAsync(_serviceName, vaultType);
+var secret = await ApplicationConfigurations.ConfigureLogAndSecretsAsync(serviceName, vaultType);
 
 await CreateHostBuilder(args).Build().RunAsync();
 
@@ -53,6 +53,7 @@ IHostBuilder CreateHostBuilder(string[] args) =>
             services.AddSingleton<IConsumer<UserStatusChangedEvent>, UserStatusChangedConsumer>();
 
             services.AddHostedService<PeriodicPingBackgroundService>();
+            services.AddHostedService<MonitorSchedulerBackgroundWorker>();
 
             services.RegisterAllServices();
 

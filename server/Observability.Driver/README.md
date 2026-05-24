@@ -15,7 +15,7 @@ The driver mirrors the public surface of [`MonitorController`](../Api/Controller
 With Central Package Management, also add to `Directory.Packages.props`:
 
 ```xml
-<PackageVersion Include="SeliseBlocks.ObservabilityDriver" Version="9.0.0-preview.1" />
+<PackageVersion Include="SeliseBlocks.ObservabilityDriver" Version="10.0.0-preview.2" />
 ```
 
 ## Register

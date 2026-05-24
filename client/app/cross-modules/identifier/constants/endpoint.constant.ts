@@ -2,7 +2,7 @@ import { API_BASE } from "@/constants/endpoint.constant";
 
 const PROJECT_SUBPATH = "/Project";
 const SERVICE_SUBPATH = "/Service";
-const BUILD_SUBPATH = "/build";
+const DEPLOYMENT_SUBPATH = "/deployment";
 
 export const PROJECT_ENDPOINTS = {
   GETS: `${API_BASE}${PROJECT_SUBPATH}/Gets`,
@@ -14,6 +14,6 @@ export const SERVICE_REGISTRY_ENDPOINTS = {
   GET_ALL: `${API_BASE}${SERVICE_SUBPATH}/GetAll`,
 } as const;
 
-export const CLOUD_BUILD_ENDPOINTS = {
-  REPOS_LIST: `${API_BASE}${BUILD_SUBPATH}/repos-list`,
+export const DEPLOYMENT_ENDPOINTS = {
+  REPOS_LIST: `${API_BASE}${DEPLOYMENT_SUBPATH}/GetReposList`,
 } as const;

@@ -1,7 +1,7 @@
 import { serviceInstances } from "@/lib/http-client";
 import { getRuntimeEnv } from "@/lib/runtime-env";
 import {
-  CLOUD_BUILD_ENDPOINTS,
+  DEPLOYMENT_ENDPOINTS,
   PROJECT_ENDPOINTS,
 } from "@blocks-identifier/constants/endpoint.constant";
 import {
@@ -34,7 +34,7 @@ export class ProjectService {
     errors: unknown | null;
     isSuccess: boolean;
   }> {
-    const url = `${getRuntimeEnv("BLOCKS_LOGIC_APP_URL")}/api/build/repos-list?projectkey=${projectKey}`;
+    const url = `${getRuntimeEnv("BLOCKS_LOGIC_APP_URL")}${DEPLOYMENT_ENDPOINTS.REPOS_LIST}?projectkey=${projectKey}`;
     return this.logicHttpClient.get(url, undefined, { absoluteUrl: true });
   }
 
