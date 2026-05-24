@@ -70,12 +70,12 @@ namespace DomainService.Monitor.Services
                     if (parsedType == MonitorSourceTypes.Infrastructure ||
                         parsedType == MonitorSourceTypes.BlocksServices)
                     {
-                        filter = fb.Eq(m => m.MonitorSourcetypes, parsedType);
+                        filter = fb.Eq(m => m.MonitorSourceType, parsedType);
                     }
                     else
                     {
                         filter = fb.And(
-                            fb.Eq(m => m.MonitorSourcetypes, parsedType),
+                            fb.Eq(m => m.MonitorSourceType, parsedType),
                             fb.Eq(m => m.TenantId, tenantId)
                         );
                     }
@@ -83,10 +83,10 @@ namespace DomainService.Monitor.Services
                 else
                 {
                     filter = fb.Or(
-                        fb.Eq(m => m.MonitorSourcetypes, MonitorSourceTypes.Infrastructure),
+                        fb.Eq(m => m.MonitorSourceType, MonitorSourceTypes.Infrastructure),
 
                         fb.And(
-                            fb.In(m => m.MonitorSourcetypes, new[]
+                            fb.In(m => m.MonitorSourceType, new[]
                             {
                                 MonitorSourceTypes.DeployedServices,
                                 MonitorSourceTypes.ExternalServices,
@@ -264,7 +264,7 @@ namespace DomainService.Monitor.Services
                     return null;
 
                 var filter = Builders<MonitorConfiguration>.Filter.And(
-                    Builders<MonitorConfiguration>.Filter.Eq(m => m.MonitorSourcetypes, MonitorSourceTypes.ExternalServices),
+                    Builders<MonitorConfiguration>.Filter.Eq(m => m.MonitorSourceType, MonitorSourceTypes.ExternalServices),
                     Builders<MonitorConfiguration>.Filter.Eq(m => m.ExternalServiceId, externalServiceId)
                 );
 

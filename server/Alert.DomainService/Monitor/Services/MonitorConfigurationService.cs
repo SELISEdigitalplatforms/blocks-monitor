@@ -175,7 +175,7 @@ namespace DomainService.Monitor.Services
                     CreatedDate = DateTime.UtcNow,
                     MonitorConfigurationType = MonitorConfigurationTypes.OutboundPing,
                     CreatedBy = GetCurrentUserId(),
-                    MonitorSourcetypes = monitorSourceTypeEnum,
+                    MonitorSourceType = monitorSourceTypeEnum,
                     ExternalServiceId = monitorSourceTypeEnum == MonitorSourceTypes.ExternalServices
                                ? request.ExternalServiceId
                                : null
@@ -239,7 +239,7 @@ namespace DomainService.Monitor.Services
                 MonitorConfiguration monitorConfiguration;
 
                 monitorConfiguration = await _monitorConfigurationRepoService.GetConfigurationAsync(request.ItemId);
-                if (monitorConfiguration == null || monitorConfiguration.MonitorSourcetypes == MonitorSourceTypes.Infrastructure || monitorConfiguration.MonitorSourcetypes == MonitorSourceTypes.BlocksServices)
+                if (monitorConfiguration == null || monitorConfiguration.MonitorSourceType == MonitorSourceTypes.Infrastructure || monitorConfiguration.MonitorSourceType == MonitorSourceTypes.BlocksServices)
                 {
                     _logger.LogError("MonitorConfiguration with ItemId {ItemId} not found.", request.ItemId);
                     return new BaseApiResponse()
@@ -357,7 +357,7 @@ namespace DomainService.Monitor.Services
             try
             {
                 var monitorConfiguration = await _monitorConfigurationRepoService.GetConfigurationAsync(itemId);
-                if (monitorConfiguration == null || monitorConfiguration.MonitorSourcetypes == MonitorSourceTypes.Infrastructure || monitorConfiguration.MonitorSourcetypes == MonitorSourceTypes.BlocksServices)
+                if (monitorConfiguration == null || monitorConfiguration.MonitorSourceType == MonitorSourceTypes.Infrastructure || monitorConfiguration.MonitorSourceType == MonitorSourceTypes.BlocksServices)
                 {
                     _logger.LogError("MonitorConfiguration with ItemId {ItemId} not found.", itemId);
                     return new BaseApiResponse()
