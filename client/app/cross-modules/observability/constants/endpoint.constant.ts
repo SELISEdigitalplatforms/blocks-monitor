@@ -8,7 +8,7 @@ const MONITOR_SUBPATH = "/Monitor";
 const HEALTH_SUBPATH = "/Health";
 const MIGRATION_SUBPATH = "/migration";
 
-export const CLOUD_BUILD_ENDPOINTS = {
+export const DEPLOYMENT_ENDPOINTS = {
   // Authentication & Authorization
   ACCESS_TOKEN: `${API_BASE}${AUTH_SUBPATH}/accessToken`,
   IS_AUTHORIZED: `${API_BASE}${AUTH_SUBPATH}/isAuthorized`,

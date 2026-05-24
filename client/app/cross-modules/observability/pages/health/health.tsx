@@ -57,21 +57,6 @@ const Health = () => {
     pageSize: queryParams.pageSize,
   });
 
-  // /* eslint-disable no-console */
-  // const pingHealthEndpoint = () => {
-  //   // allow fetch and console statements in this helper
-  //   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  //   fetch("https://dev-os.blocksdevelopers.com/ping")
-  //     .then((res) => res.json())
-  //     .then((response) => console.log(response))
-  //     .catch((err) => console.error(err));
-  // };
-  // /* eslint-enable no-console */
-
-  // useEffect(() => {
-  //   pingHealthEndpoint();
-  // }, []);
-
   return (
     <main>
       <div className="mb-[18px] flex items-center justify-between md:mb-[24px]">
