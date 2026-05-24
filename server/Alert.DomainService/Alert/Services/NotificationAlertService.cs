@@ -62,9 +62,9 @@ namespace DomainService.Alert.Services
             return await SendNotification(payload, userIds);
         }
 
-        public static string CreateNotificationPayload(string title, string message, List<string> userIds)
+        public static object CreateNotificationPayload(string title, string message, List<string> userIds)
         {
-            var payload = new
+            return new
             {
                 ConnectionId = "",
                 Roles = new List<string> { },
@@ -75,12 +75,11 @@ namespace DomainService.Alert.Services
                     description = message
                 }),
                 SaveDenormalizedPayloadAsAnObject = false,
-                ConfigurationName = "GeneralNotification",
+                ConfiguratoinName = "GeneralNotification",
                 ContentAvailable = true,
                 ResponseKey = "status",
                 ResponseValue = "sent"
             };
-            return JsonSerializer.Serialize(payload);
         }
 
 
@@ -93,11 +92,11 @@ namespace DomainService.Alert.Services
         {
             _logger.LogInformation("Sending notification to users : {UserIds}", string.Join(", ", UserIds));
 
-            var blocksKey = _configuration["RootTenantId"];
+            var blocksKey = _configuration["RootTenantId"] ?? string.Empty;
             var salt = _tenants.GetTenantByID(blocksKey)?.TenantSalt;
             var actualSecret = _cryptoService.Hash(blocksKey, salt);
 
-            var url = _configuration["NotificationServiceUrl"];
+            var url = _configuration["NotificationServiceUrl"] ?? string.Empty;
             var headers = new Dictionary<string, string>
             {
                 { "x-blocks-key", blocksKey },
