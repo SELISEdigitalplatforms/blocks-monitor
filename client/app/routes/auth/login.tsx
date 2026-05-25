@@ -192,7 +192,7 @@ export default function LoginPage() {
         getRuntimeEnv("BLOCKS_OIDC_CLIENT_ID")
       const redirectUri =
         getRuntimeEnv("BLOCKS_MONITOR_CALLBACK_URL", {stripPort: true,
-        ensureTrailingSlash: true,});
+        ensureTrailingSlash: false,});
 
       const initiateUrl = `${baseUrl}/api/idp/initiate?x-blocks-key=${blocksKey}&clientId=${clientId}&redirectUri=${redirectUri}`;
       const headers: Record<string, string> = {};
