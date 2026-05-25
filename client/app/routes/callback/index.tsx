@@ -17,7 +17,7 @@ export default function LoginCallbackPage() {
   useEffect(() => {
     if (hasProcessed.current) return;
     hasProcessed.current = true;
-    const apiBaseUrl = getRuntimeEnv("BLOCKS_IDP_BASE_URL");
+    const apiBaseUrl = getRuntimeEnv("BLOCKS_IAM_BASE_URL");
 
     const callbackUrl = new URL("/api/idp/callback", apiBaseUrl);
     // Forward the callback parameters to backend

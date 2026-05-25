@@ -1,6 +1,6 @@
-# Blocks Observability
+# Blocks Monitor
 
-Blocks Observability is a monorepo with an ASP.NET Core API, a background Worker, and a React + Vite SPA. In production, the API serves the built SPA from wwwroot and provides the HTTP endpoints; in development, the SPA runs on the Vite dev server and proxies to the API.
+Blocks Monitor is a monorepo with an ASP.NET Core API, a background Worker, and a React + Vite SPA. In production, the API serves the built SPA from wwwroot and provides the HTTP endpoints; in development, the SPA runs on the Vite dev server and proxies to the API.
 
 ## Project structure
 
@@ -123,7 +123,7 @@ Use npm run local if you want Vite's default port from [client/vite.config.ts](c
 
 ## Local HTTPS
 
-Frontend dev server and backend API serve HTTPS on `dev-observability.blocksdevelopers.com` when the machine env vars `OBSERVABILITY_SSL_CERT` and `OBSERVABILITY_SSL_KEY` (mkcert PEM cert + key paths) are both set and both files exist; otherwise they fall back to HTTP (no crash). No cert path is committed, and the deployed Docker artifact is unaffected. One-time setup (mkcert, hosts entry, env vars, behavior matrix): see [LOCAL_GUIDE.md](LOCAL_GUIDE.md#local-https-frontend--backend).
+Frontend dev server and backend API serve HTTPS on `dev-monitor.blocksdevelopers.com` when the machine env vars `MONITOR_SSL_CERT` and `MONITOR_SSL_KEY` (mkcert PEM cert + key paths) are both set and both files exist; otherwise they fall back to HTTP (no crash). No cert path is committed, and the deployed Docker artifact is unaffected. One-time setup (mkcert, hosts entry, env vars, behavior matrix): see [LOCAL_GUIDE.md](LOCAL_GUIDE.md#local-https-frontend--backend).
 
 ## Client environment
 
@@ -131,10 +131,15 @@ The repo includes [client/.env](client/.env) for local development. Vite only ex
 
 Variables used by the client (via [client/app/lib/runtime-env.ts](client/app/lib/runtime-env.ts)):
 
-- BLOCKS_API_BASE_URL: base URL for API calls and dev proxy target
+- BLOCKS_IAM_BASE_URL: IAM base URL for auth flows
+- BLOCKS_MONITOR_BASE_URL: monitor base URL used for API calls
+- BLOCKS_LOGIC_BASE_URL: logic base URL for service registry calls
 - BLOCKS_X_BLOCKS_KEY: project key sent as X-Blocks-Key
 - BLOCKS_GOOGLE_SITE_KEY: captcha site key used on login
 - BLOCKS_CONSTRUCT_URL: construct site URL linked from the UI
+- BLOCKS_GITHUB_SSO_CLIENT_ID: GitHub SSO client id
+- BLOCKS_BASE_DOMAIN: base domain for Blocks apps
+- BLOCKS_*_CALLBACK_URL: per-app login callback URLs
 
 ## Production / publish
 
@@ -156,8 +161,8 @@ dotnet publish server/Worker/Worker.csproj -c Release -o ./publish/worker
 ### Docker images
 
 ```bash
-docker build -t blocks-observability-api .
-docker build -f Dockerfile.worker -t blocks-observability-worker .
+docker build -t blocks-monitor-api .
+docker build -f Dockerfile.worker -t blocks-monitor-worker .
 ```
 
 ## API / routing

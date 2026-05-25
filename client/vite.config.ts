@@ -3,8 +3,8 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig, loadEnv } from "vite";
 
-// Local dev HTTPS, driven ONLY by the machine env vars OBSERVABILITY_SSL_CERT /
-// OBSERVABILITY_SSL_KEY (abs paths to an mkcert PEM cert + key). Read directly
+// Local dev HTTPS, driven ONLY by the machine env vars MONITOR_SSL_CERT /
+// MONITOR_SSL_KEY (abs paths to an mkcert PEM cert + key). Read directly
 // from process.env — NOT loadEnv, which is BLOCKS_-prefixed and would hide
 // these non-prefixed names. Both set AND both files present -> HTTPS;
 // otherwise warn and fall back to HTTP (returns undefined). Never throws.
@@ -14,12 +14,12 @@ import { defineConfig, loadEnv } from "vite";
 // `https.ServerOptions | undefined`, and vite.config.ts is type-checked by
 // `tsc -b` (tsconfig.node.json, strict) during `npm run build`.
 function resolveDevHttps(): { cert: Buffer; key: Buffer } | undefined {
-  const certPath = process.env.OBSERVABILITY_SSL_CERT;
-  const keyPath = process.env.OBSERVABILITY_SSL_KEY;
+  const certPath = process.env.MONITOR_SSL_CERT;
+  const keyPath = process.env.MONITOR_SSL_KEY;
 
   if (!certPath || !keyPath) {
     console.warn(
-      "[dev-https] OBSERVABILITY_SSL_CERT / OBSERVABILITY_SSL_KEY not set — serving HTTP.",
+      "[dev-https] MONITOR_SSL_CERT / MONITOR_SSL_KEY not set — serving HTTP.",
     );
     return undefined;
   }
@@ -34,8 +34,8 @@ function resolveDevHttps(): { cert: Buffer; key: Buffer } | undefined {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "BLOCKS_");
-  const proxyTarget = env.BLOCKS_API_BASE_URL;
-  const idpProxyTarget = env.BLOCKS_IDP_BASE_URL;
+  const proxyTarget = env.BLOCKS_MONITOR_BASE_URL;
+  const iamProxyTarget = env.BLOCKS_IAM_BASE_URL;
   const devHost = env.BLOCKS_DEV_HOST || true;
   const httpsConfig = resolveDevHttps();
 
@@ -85,19 +85,19 @@ export default defineConfig(({ mode }) => {
       https: httpsConfig, // HTTPS when DEPLOYMENT_SSL_* are set; else HTTP
       allowedHosts: [
         "dev-cloud.seliseblocks.com",
-        "dev-observability.blocksdevelopers.com",
+        "dev-monitor.blocksdevelopers.com",
         "localhost",
         ".seliseblocks.com",
         ".blocksdevelopers.com",
       ],
       proxy: {
-        ...(idpProxyTarget
+        ...(iamProxyTarget
           ? {
-              "/dev-idp-proxy": {
-                target: idpProxyTarget,
+              "/dev-iam-proxy": {
+                target: iamProxyTarget,
                 changeOrigin: true,
                 secure: true,
-                rewrite: (path) => path.replace(/^\/dev-idp-proxy/, ""),
+                rewrite: (path) => path.replace(/^\/dev-iam-proxy/, ""),
               },
             }
           : {}),
@@ -113,7 +113,7 @@ export default defineConfig(({ mode }) => {
                 changeOrigin: true,
                 secure: false,
               },
-              "/idp": {
+              "/iam": {
                 target: proxyTarget,
                 changeOrigin: true,
                 secure: false,
@@ -133,7 +133,7 @@ export default defineConfig(({ mode }) => {
                 changeOrigin: true,
                 secure: false,
               },
-              "/uilm": {
+              "/localization": {
                 target: proxyTarget,
                 changeOrigin: true,
                 secure: false,
@@ -168,7 +168,7 @@ export default defineConfig(({ mode }) => {
                 changeOrigin: true,
                 secure: false,
               },
-              "/uds": {
+              "/data": {
                 target: proxyTarget,
                 changeOrigin: true,
                 secure: false,

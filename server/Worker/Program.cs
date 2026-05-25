@@ -19,8 +19,9 @@ using MonitoringWorker.Consumers;
 using Worker.Consumers;
 using Worker.Consumers.Identifier;
 using Worker.Consumers.Users;
+using SeliseBlocks.ConfigurationDriver;
 
-const string serviceName = "blocks-observability-worker";
+const string serviceName = "blocks-monitor-worker";
 
 var vaultType = ResolveVaultType();
 var secret = await ApplicationConfigurations.ConfigureLogAndSecretsAsync(serviceName, vaultType);
@@ -32,6 +33,13 @@ IHostBuilder CreateHostBuilder(string[] args) =>
         .ConfigureAppConfiguration((context, builder) =>
         {
             // ApplicationConfigurations.ConfigureWorkerEnv(builder, args);
+            builder.AddMongoDbConfiguration(options =>
+            {
+                options.ConnectionString = secret.DatabaseConnectionString;
+                options.DatabaseName     = secret.RootDatabaseName;
+                options.CollectionName   = "Secrets";
+                options.SecretKey        = "blocks-secret-monitor";
+            });
         })
         .ConfigureServices((services) =>
         {
