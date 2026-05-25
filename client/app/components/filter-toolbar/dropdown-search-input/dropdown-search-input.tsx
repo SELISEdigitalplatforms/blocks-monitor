@@ -2,7 +2,7 @@ import { useRef, MouseEvent, useState, useEffect, ReactNode } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui-kits/button/button";
 import { Input } from "@/components/ui-kits/input/input";
-import { cn, debounce } from "@/lib/utils";
+import { debounce } from "@/utils/debounce.util";
 import {
   Select,
   SelectContent,
@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui-kits/select/select";
+import { cn } from "@/lib/utils";
 
 type ValueType = { selected: string; value: string };
 
@@ -78,7 +79,10 @@ export const DropdownSearchInput: React.FC<DropdownSearchInputProps> = ({
         </SelectTrigger>
         <SelectContent className={cn(className.selectContent)}>
           {options.map((item) => (
-            <SelectItem key={item.value} value={item.value} className={cn(className.SelectItem)}>
+            <SelectItem
+              key={item.value}
+              value={item.value}
+              className={cn(className.SelectItem)}>
               {item.label}
             </SelectItem>
           ))}
@@ -99,9 +103,11 @@ export const DropdownSearchInput: React.FC<DropdownSearchInputProps> = ({
       <Button
         variant="ghost"
         size="xs"
-        className={cn("h-full p-1 pr-0 hover:bg-transparent", !value.value && "invisible")}
-        onClick={handleClear}
-      >
+        className={cn(
+          "h-full p-1 pr-0 hover:bg-transparent",
+          !value.value && "invisible",
+        )}
+        onClick={handleClear}>
         <X className="h-4 w-4 text-muted-foreground" />
       </Button>
     </div>

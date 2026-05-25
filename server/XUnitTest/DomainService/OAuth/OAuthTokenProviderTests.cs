@@ -14,6 +14,7 @@ using Moq;
 using System.Text.Json;
 using Blocks.Genesis;
 using Iam.DomainService.Shared.Entities;
+using XUnitTest.Utilities;
 
 namespace XUnitTest.DomainService.OAuth
 {
@@ -340,14 +341,21 @@ namespace XUnitTest.DomainService.OAuth
 
         private void SetupBlocksContext()
         {
-            var context = BlocksContext.Create("tenant-123", null, null, false, null, null, 
-                DateTime.UtcNow.AddHours(1), null, null, null, null, null, null, "", "tenant-123");
+            var context = BlocksContextTestHelper.Create("tenant-123", Array.Empty<string>(), string.Empty, false, string.Empty, string.Empty,
+                DateTime.UtcNow.AddHours(1), string.Empty, Array.Empty<string>(), string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, "tenant-123");
             BlocksContext.SetContext(context);
             _tenants.Setup(x => x.GetTenantByID("tenant-123")).Returns(new Tenant 
             { 
                 TenantId = "tenant-123", 
-                CookieDomain = ".example.com",
-                ApplicationDomain = "test.example.com",
+                Applications = new List<Applications>
+                {
+                    new()
+                    {
+                        Domain = "test.example.com",
+                        CookieDomain = ".example.com",
+                        IsDomainVerified = true
+                    }
+                },
                 DbConnectionString = "test-connection-string",
                 JwtTokenParameters = new JwtTokenParameters
                 {

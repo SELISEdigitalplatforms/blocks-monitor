@@ -96,7 +96,15 @@ namespace XUnitTest.DomainService.OAuth.Services
             {
                 TenantId = "tenant-123",
                 ItemId = "item-456",
-                ApplicationDomain = "test.example.com",
+                Applications = new List<Applications>
+                {
+                    new()
+                    {
+                        Domain = "test.example.com",
+                        CookieDomain = "test.example.com",
+                        IsDomainVerified = true
+                    }
+                },
                 DbConnectionString = "mongodb://localhost:27017/test",
                 JwtTokenParameters = new JwtTokenParameters
                 {
@@ -139,7 +147,15 @@ namespace XUnitTest.DomainService.OAuth.Services
             {
                 TenantId = "tenant-123",
                 ItemId = "item-456",
-                ApplicationDomain = "test.example.com",
+                Applications = new List<Applications>
+                {
+                    new()
+                    {
+                        Domain = "test.example.com",
+                        CookieDomain = "test.example.com",
+                        IsDomainVerified = true
+                    }
+                },
                 DbConnectionString = "mongodb://localhost:27017/test",
                 JwtTokenParameters = new JwtTokenParameters
                 {
@@ -194,7 +210,15 @@ namespace XUnitTest.DomainService.OAuth.Services
             {
                 TenantId = "tenant-123",
                 ItemId = "tenant-item-456",
-                ApplicationDomain = "test.example.com",
+                Applications = new List<Applications>
+                {
+                    new()
+                    {
+                        Domain = "test.example.com",
+                        CookieDomain = "test.example.com",
+                        IsDomainVerified = true
+                    }
+                },
                 DbConnectionString = "mongodb://localhost:27017/test",
                 JwtTokenParameters = new JwtTokenParameters()
                 {
@@ -232,7 +256,15 @@ namespace XUnitTest.DomainService.OAuth.Services
             {
                 TenantId = "tenant-123",
                 ItemId = "tenant-item-456",
-                ApplicationDomain = "test.example.com",
+                Applications = new List<Applications>
+                {
+                    new()
+                    {
+                        Domain = "test.example.com",
+                        CookieDomain = "test.example.com",
+                        IsDomainVerified = true
+                    }
+                },
                 DbConnectionString = "mongodb://localhost:27017/test",
                 JwtTokenParameters = new JwtTokenParameters()
                 {

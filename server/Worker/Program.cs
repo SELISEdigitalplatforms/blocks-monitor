@@ -14,15 +14,17 @@ using Iam.DomainService.Users;
 using Mfa.DomainService.Configuration;
 using Worker;
 using Worker.Configuration;
+using DomainService.Shared.Entity;
+using MonitoringWorker.Consumers;
 using Worker.Consumers;
 using Worker.Consumers.Identifier;
 using Worker.Consumers.Users;
+using SeliseBlocks.ConfigurationDriver;
 
-const string _serviceName = "blocks-os-worker";
+const string serviceName = "blocks-monitor-worker";
 
 var vaultType = ResolveVaultType();
-Console.WriteLine($"Using Genesis vault type: {vaultType}");
-var secret = await ApplicationConfigurations.ConfigureLogAndSecretsAsync(_serviceName, vaultType);
+var secret = await ApplicationConfigurations.ConfigureLogAndSecretsAsync(serviceName, vaultType);
 
 await CreateHostBuilder(args).Build().RunAsync();
 
@@ -31,6 +33,13 @@ IHostBuilder CreateHostBuilder(string[] args) =>
         .ConfigureAppConfiguration((context, builder) =>
         {
             // ApplicationConfigurations.ConfigureWorkerEnv(builder, args);
+            builder.AddMongoDbConfiguration(options =>
+            {
+                options.ConnectionString = secret.DatabaseConnectionString;
+                options.DatabaseName     = secret.RootDatabaseName;
+                options.CollectionName   = "Secrets";
+                options.SecretKey        = "blocks-secret-monitor";
+            });
         })
         .ConfigureServices((services) =>
         {
@@ -52,13 +61,16 @@ IHostBuilder CreateHostBuilder(string[] args) =>
             services.AddSingleton<IConsumer<UserStatusChangedEvent>, UserStatusChangedConsumer>();
 
             services.AddHostedService<PeriodicPingBackgroundService>();
+            services.AddHostedService<MonitorSchedulerBackgroundWorker>();
 
             services.RegisterAllServices();
 
-           
+
 
             #region Identifier Service Consumers
             services.AddApplicationServices();
+            Alert.DomainService.ServiceRegistry.AddApplicationServices(services);
+            services.AddSingleton<IConsumer<MonitorConfigurationUpdateQueue>, MonitorConfigurationUpdateConsumer>();
             services.AddSingleton<IConsumer<Tenant>, ConfigureProjectConsumer>();
             services.AddSingleton<IConsumer<DisableDomainBindingRequest>, DisableDomainBindingConsumer>();
             services.AddSingleton<IConsumer<RestoreProjectRequest>, RestoreProjectConsumer>();

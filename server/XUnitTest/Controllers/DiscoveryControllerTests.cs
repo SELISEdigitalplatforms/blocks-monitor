@@ -9,7 +9,8 @@ using Moq;
 using StackExchange.Redis;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using Xunit;
+// using Xunit;
+using XUnitTest.Utilities;
 
 namespace XUnitTest.Controllers
 {
@@ -86,7 +87,7 @@ namespace XUnitTest.Controllers
                 IssueDate = DateTime.UtcNow
             };
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant-id",
                 roles: Array.Empty<string>(),
                 userId: "test-user-id",
@@ -101,7 +102,7 @@ namespace XUnitTest.Controllers
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant-id"
+                actualTenantId: "test-tenant-id"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -151,7 +152,7 @@ namespace XUnitTest.Controllers
                 IssueDate = DateTime.UtcNow
             };
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant-id",
                 roles: Array.Empty<string>(),
                 userId: "test-user-id",
@@ -166,7 +167,7 @@ namespace XUnitTest.Controllers
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant-id"
+                actualTenantId: "test-tenant-id"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -190,7 +191,7 @@ namespace XUnitTest.Controllers
                 It.Is<RedisKey>(k => k.ToString() == $"{IdpConstants.TenantTokenPublicCertificateCachePrefix}{tenantId}"),
                 It.IsAny<CommandFlags>()), Times.Once);
         }
-        
+
         [Fact]
         public async Task GetJwks_WhenPkcs12LoadFails_FallsBackToLoadCertificate()
         {
@@ -205,7 +206,7 @@ namespace XUnitTest.Controllers
                 IssueDate = DateTime.UtcNow
             };
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant-id",
                 roles: Array.Empty<string>(),
                 userId: "test-user-id",
@@ -220,7 +221,7 @@ namespace XUnitTest.Controllers
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant-id"
+                actualTenantId: "test-tenant-id"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -255,7 +256,7 @@ namespace XUnitTest.Controllers
                 IssueDate = DateTime.UtcNow
             };
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant-id",
                 roles: Array.Empty<string>(),
                 userId: "test-user-id",
@@ -270,7 +271,7 @@ namespace XUnitTest.Controllers
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant-id"
+                actualTenantId: "test-tenant-id"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -324,13 +325,13 @@ namespace XUnitTest.Controllers
             var jwksUriProperty = config.GetType().GetProperty("jwks_uri");
 
             Assert.Equal(issuerUri, issuerProperty?.GetValue(config));
-            Assert.Equal($"{issuerUri}/Authentication/authorize?X-Blocks-Key={projectKey}", 
+            Assert.Equal($"{issuerUri}/Authentication/authorize?X-Blocks-Key={projectKey}",
                 authEndpointProperty?.GetValue(config));
-            Assert.Equal($"{issuerUri}/Authentication/token?X-Blocks-Key={projectKey}", 
+            Assert.Equal($"{issuerUri}/Authentication/token?X-Blocks-Key={projectKey}",
                 tokenEndpointProperty?.GetValue(config));
-            Assert.Equal($"{issuerUri}/Authentication/GetUserInfo?X-Blocks-Key={projectKey}", 
+            Assert.Equal($"{issuerUri}/Authentication/GetUserInfo?X-Blocks-Key={projectKey}",
                 userinfoEndpointProperty?.GetValue(config));
-            Assert.Equal($"{issuerUri}/.well-known/jwks.json?X-Blocks-Key={projectKey}", 
+            Assert.Equal($"{issuerUri}/.well-known/jwks.json?X-Blocks-Key={projectKey}",
                 jwksUriProperty?.GetValue(config));
         }
 
@@ -339,7 +340,7 @@ namespace XUnitTest.Controllers
         {
             // Arrange
             var tenantId = "test-tenant-id";
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant-id",
                 roles: Array.Empty<string>(),
                 userId: "test-user-id",
@@ -354,7 +355,7 @@ namespace XUnitTest.Controllers
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant-id"
+                actualTenantId: "test-tenant-id"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -442,7 +443,7 @@ namespace XUnitTest.Controllers
                 IssueDate = DateTime.UtcNow
             };
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant-id",
                 roles: Array.Empty<string>(),
                 userId: "test-user-id",
@@ -457,7 +458,7 @@ namespace XUnitTest.Controllers
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant-id"
+                actualTenantId: "test-tenant-id"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -483,7 +484,7 @@ namespace XUnitTest.Controllers
         {
             // Arrange
             var tenantId = "test-tenant-id";
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant-id",
                 roles: Array.Empty<string>(),
                 userId: "test-user-id",
@@ -498,7 +499,7 @@ namespace XUnitTest.Controllers
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant-id"
+                actualTenantId: "test-tenant-id"
             );
 
             BlocksContext.SetContext(blocksContext, true);

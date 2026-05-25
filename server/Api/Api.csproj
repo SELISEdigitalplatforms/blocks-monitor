@@ -17,9 +17,12 @@
     <None Include="appsettings.Development.json" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FluentValidation.AspNetCore"/>
+    <PackageReference Include="FluentValidation.AspNetCore" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="SeliseBlocks.ConfigurationDriver" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Alert.DomainService\Alert.DomainService.csproj" />
     <ProjectReference Include="..\Authentication.DomainService\Authentication.DomainService.csproj" />
     <ProjectReference Include="..\Captcha.DomainService\Captcha.DomainService.csproj" />
     <ProjectReference Include="..\Cloud.DomainService\Cloud.DomainService.csproj" />

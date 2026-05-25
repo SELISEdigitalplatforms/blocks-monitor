@@ -59,7 +59,7 @@ namespace XUnitTest.Accounts
                 .Where(m => m.Name == "Create" && m.ReturnType == typeof(BlocksContext))
                 .ToList();
 
-            // Try 15-parameter version first (newer API with actualTentId + refreshToken)
+            // Try 15-parameter version first (newer API with actualTenantId + refreshToken)
             var create15Method = createMethods.FirstOrDefault(m => m.GetParameters().Length == 15);
 
             if (create15Method != null)
@@ -622,11 +622,11 @@ namespace XUnitTest.Accounts
         public async Task SaveSingUpSettingAsync_WithNewSetting_CreatesAndReturnsSuccess()
         {
             // Arrange
-            var request = new SaveSignUpSettingRequest 
-            { 
-                ItemId = "", 
-                IsEmailPasswordSignUpEnabled = true, 
-                IsSSoSignUpEnabled = false 
+            var request = new SaveSignUpSettingRequest
+            {
+                ItemId = "",
+                IsEmailPasswordSignUpEnabled = true,
+                IsSSoSignUpEnabled = false
             };
             SetupBlocksContext("admin-123", "test-tenant");
             _repositoryMock.Setup(x => x.SingnUpSettingAlreadyExist()).ReturnsAsync(false);
@@ -638,8 +638,8 @@ namespace XUnitTest.Accounts
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.ItemId.Should().NotBeNullOrEmpty();
-            _repositoryMock.Verify(x => x.SaveSingUpSettingAsync(It.Is<SignUpSetting>(s => 
-                s.IsEmailPasswordSignUpEnabled == true && 
+            _repositoryMock.Verify(x => x.SaveSingUpSettingAsync(It.Is<SignUpSetting>(s =>
+                s.IsEmailPasswordSignUpEnabled == true &&
                 s.IsSSoSignUpEnabled == false &&
                 s.CreatedBy == "admin-123")), Times.Once);
         }
@@ -649,15 +649,15 @@ namespace XUnitTest.Accounts
         {
             // Arrange
             var existingId = Guid.NewGuid().ToString();
-            var request = new SaveSignUpSettingRequest 
-            { 
-                ItemId = existingId, 
-                IsEmailPasswordSignUpEnabled = false, 
-                IsSSoSignUpEnabled = true 
+            var request = new SaveSignUpSettingRequest
+            {
+                ItemId = existingId,
+                IsEmailPasswordSignUpEnabled = false,
+                IsSSoSignUpEnabled = true
             };
-            var existingSetting = new SignUpSetting 
-            { 
-                ItemId = existingId, 
+            var existingSetting = new SignUpSetting
+            {
+                ItemId = existingId,
                 IsEmailPasswordSignUpEnabled = true,
                 CreatedBy = "original-user",
                 CreatedDate = DateTime.UtcNow.AddDays(-1)
@@ -672,9 +672,9 @@ namespace XUnitTest.Accounts
             // Assert
             result.IsSuccess.Should().BeTrue();
             result.ItemId.Should().Be(existingId);
-            _repositoryMock.Verify(x => x.SaveSingUpSettingAsync(It.Is<SignUpSetting>(s => 
+            _repositoryMock.Verify(x => x.SaveSingUpSettingAsync(It.Is<SignUpSetting>(s =>
                 s.ItemId == existingId &&
-                s.IsEmailPasswordSignUpEnabled == false && 
+                s.IsEmailPasswordSignUpEnabled == false &&
                 s.IsSSoSignUpEnabled == true &&
                 s.LastUpdatedBy == "admin-123")), Times.Once);
         }
@@ -688,10 +688,10 @@ namespace XUnitTest.Accounts
         {
             // Arrange
             var request = new GetSignUpSettingRequest { ItemId = "setting-123" };
-            var expectedSetting = new SignUpSetting 
-            { 
-                ItemId = request.ItemId, 
-                IsEmailPasswordSignUpEnabled = true 
+            var expectedSetting = new SignUpSetting
+            {
+                ItemId = request.ItemId,
+                IsEmailPasswordSignUpEnabled = true
             };
             _repositoryMock.Setup(x => x.GetSignUpSettingAsync(request.ItemId)).ReturnsAsync(expectedSetting);
 
@@ -710,11 +710,11 @@ namespace XUnitTest.Accounts
         public async Task SendActivationToEmailAsync_SendsEmailWithCorrectParameters()
         {
             // Arrange
-            var user = new User 
-            { 
-                ItemId = "user-123", 
-                Email = "TEST@EXAMPLE.COM", 
-                FirstName = "John", 
+            var user = new User
+            {
+                ItemId = "user-123",
+                Email = "TEST@EXAMPLE.COM",
+                FirstName = "John",
                 LastName = "Doe",
                 Language = "fr-FR"
             };

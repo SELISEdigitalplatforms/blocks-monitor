@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.Security.Claims;
+using XUnitTest.Utilities;
 
 namespace XUnitTest.Controllers
 {
@@ -28,13 +29,12 @@ namespace XUnitTest.Controllers
         private readonly Mock<IAuthenticationRepository> _repo = new();
         private readonly Mock<IConfiguration> _config = new();
         private readonly Mock<IConfigurationService> _cloudConfig = new();
-        private readonly Mock<ChangeControllerContext> _context = new(new Mock<ITenants>().Object, new Mock<IDbContextProvider>().Object, new Mock<IHttpContextAccessor>().Object);
         private readonly AuthenticationController _controller;
         private readonly DefaultHttpContext _httpContext;
 
-        public AuthenticationControllerTests()  
+        public AuthenticationControllerTests()
         {
-            _controller = new AuthenticationController(_tokenProvider.Object, _authService.Object, _config.Object, _domainService.Object, _repo.Object, _context.Object, _cloudConfig.Object);
+            _controller = new AuthenticationController(_tokenProvider.Object, _authService.Object, _config.Object, _domainService.Object, _repo.Object, _cloudConfig.Object);
             _httpContext = new DefaultHttpContext();
             _controller.ControllerContext = new ControllerContext
             {
@@ -319,7 +319,7 @@ namespace XUnitTest.Controllers
                 ItemId = "test-client-id",
                 IsSuccess = true
             };
-            
+
             SaveOIDCClientRequest? capturedRequest = null;
             _domainService
                 .Setup(x => x.SaveOIDCClientAsync(It.IsAny<SaveOIDCClientRequest>()))
@@ -512,7 +512,7 @@ namespace XUnitTest.Controllers
             // Assert
             Assert.IsType<SaveOIDCClientResponse>(result);
         }
-  
+
         [Fact]
         public async Task GetOIDCClient_WhenClientNotFound_ReturnsFailureResponse()
         {
@@ -1078,7 +1078,7 @@ namespace XUnitTest.Controllers
                 }
             };
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant",
                 roles: Array.Empty<string>(),
                 userId: userId,
@@ -1093,7 +1093,7 @@ namespace XUnitTest.Controllers
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant"
+                actualTenantId: "test-tenant"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -1121,7 +1121,7 @@ namespace XUnitTest.Controllers
             var userId = "test-user-456";
             var emptyList = new List<GetUserCodesByUserIdResponse>();
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant",
                 roles: Array.Empty<string>(),
                 userId: userId,
@@ -1136,7 +1136,7 @@ namespace XUnitTest.Controllers
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant"
+                actualTenantId: "test-tenant"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -1160,7 +1160,7 @@ namespace XUnitTest.Controllers
             var userId = "test-user-789";
             var userCodes = new List<GetUserCodesByUserIdResponse>();
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant",
                 roles: Array.Empty<string>(),
                 userId: userId,
@@ -1175,7 +1175,7 @@ namespace XUnitTest.Controllers
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant"
+                actualTenantId: "test-tenant"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -1197,7 +1197,7 @@ namespace XUnitTest.Controllers
             Assert.Equal(userId, capturedUserId);
         }
 
-       
+
 
 
 
@@ -1293,7 +1293,7 @@ namespace XUnitTest.Controllers
                 ClientBrandColor = "#FF5733"
             };
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant",
                 roles: Array.Empty<string>(),
                 userId: "test-user",
@@ -1308,7 +1308,7 @@ namespace XUnitTest.Controllers
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant"
+                actualTenantId: "test-tenant"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -1604,7 +1604,7 @@ namespace XUnitTest.Controllers
                 Username = "testuser"
             };
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant",
                 roles: Array.Empty<string>(),
                 userId: "test-user",
@@ -1619,7 +1619,7 @@ namespace XUnitTest.Controllers
                 displayName: "Test User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant"
+                actualTenantId: "test-tenant"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -1654,7 +1654,7 @@ namespace XUnitTest.Controllers
 
             var expectedConstructedUri = "https://example.com/callback?code=auth-code-123&state=state-123";
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant",
                 roles: Array.Empty<string>(),
                 userId: "user-123",
@@ -1669,7 +1669,7 @@ namespace XUnitTest.Controllers
                 displayName: "Authenticated User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant"
+                actualTenantId: "test-tenant"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -1710,7 +1710,7 @@ namespace XUnitTest.Controllers
                 Username = "differentuser"
             };
 
-            var blocksContext = BlocksContext.Create(
+            var blocksContext = BlocksContextTestHelper.Create(
                 tenantId: "test-tenant",
                 roles: Array.Empty<string>(),
                 userId: "user-123",
@@ -1725,7 +1725,7 @@ namespace XUnitTest.Controllers
                 displayName: "Authenticated User",
                 oauthToken: string.Empty,
                 refreshToken: string.Empty,
-                actualTentId: "test-tenant"
+                actualTenantId: "test-tenant"
             );
 
             BlocksContext.SetContext(blocksContext, true);
@@ -1751,8 +1751,8 @@ namespace XUnitTest.Controllers
         public async Task GetLoginOptions_ReturnsOkResultWithLoginOptions()
         {
             // Arrange
-            var expectedResult = new OkObjectResult(new 
-            { 
+            var expectedResult = new OkObjectResult(new
+            {
                 loginOptions = new List<object>
                 {
                     new { provider = "Google", displayName = "Google", iconUrl = "https://example.com/google-icon.png" },
@@ -1781,8 +1781,8 @@ namespace XUnitTest.Controllers
         public async Task GetLoginOptions_ReturnsResponseFromAuthenticationService()
         {
             // Arrange
-            var authServiceResponse = new OkObjectResult(new 
-            { 
+            var authServiceResponse = new OkObjectResult(new
+            {
                 ssoProviders = new List<object>
                 {
                     new { name = "Azure AD", enabled = true },
@@ -1813,8 +1813,8 @@ namespace XUnitTest.Controllers
         public async Task GetLoginOptions_WithNoSsoProviders_ReturnsEmptyList()
         {
             // Arrange
-            var emptyResult = new OkObjectResult(new 
-            { 
+            var emptyResult = new OkObjectResult(new
+            {
                 loginOptions = new List<object>()
             });
 
@@ -1839,8 +1839,8 @@ namespace XUnitTest.Controllers
         public async Task GetLoginOptions_ReturnsCorrectResponseType()
         {
             // Arrange
-            var expectedResult = new OkObjectResult(new 
-            { 
+            var expectedResult = new OkObjectResult(new
+            {
                 providers = new[] { "Google", "Microsoft", "GitHub" }
             });
 
