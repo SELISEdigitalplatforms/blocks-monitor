@@ -1,3 +1,5 @@
+/** SCRIPT 1 goes through all collections and renames the field */
+
 const oldField = "MonitorSourcetypes";
 const newField = "MonitorSourceType"; // 👈 same as above
 
@@ -24,7 +26,23 @@ db.getCollectionNames().forEach((collectionName) => {
 
 print("\n======= DONE =======");
 
-/** Pre-flight check script to identify affected collections and documents */
+
+/** SCRIPT 2 is a pre-flight check to identify affected collections before
+ * running the pre-flight script or update script. */
+
+db.getCollectionNames().forEach((collectionName) => {
+  const count = db.getCollection(collectionName).countDocuments({
+    [oldField]: { $exists: true }
+  });
+
+  if (count > 0) {
+    print(`✅ ${collectionName}: ${count} documents have "${oldField}"`);
+  } else {
+    print(`⛔ ${collectionName}: field "${oldField}" NOT found`);
+  }
+});
+
+/** SCRIPT 3 is a check pre-flight script to identify affected documents inside certain collections */
 
 const oldField = "MonitorSourcetypes";
 const newField = "MonitorSourceType"; // 👈 set your new field name
@@ -50,7 +68,8 @@ print("\n=================================");
 print(`Collections to update: [${collections.join(", ")}]`);
 print("=================================\n");
 
-/** We can use the script below to fix the casing of the field name in the two affected collections. Run it in the MongoDB shell connected to the appropriate database.  */
+/** SCRIPT 4 is a script to fix the casing of the field name in the two affected collections.
+ * Run it in the MongoDB shell connected to the appropriate database.  */
 
 const oldField = "MonitorSourcetypes";
 const newField = "MonitorSourceType"; // 👈 same as above
