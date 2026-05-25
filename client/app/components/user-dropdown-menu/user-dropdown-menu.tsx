@@ -10,28 +10,33 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui-kits/dropdown-menu/dropdown-menu";
-import { useGetUser } from "@/idp/iam/hooks/use-user";
+import { useGetUser } from "@blocks-idp/iam/hooks/use-user";
 
 function UserDropdownMenuLogo() {
   const { data } = useGetUser({ enabled: true });
-  const userData = data?.data || { firstName: "", lastName: "", profileImageUrl: "" };
-  const initials = `${userData.firstName?.[0] || ""}${userData.lastName?.[0] || ""}`.toUpperCase();
+  const userData = data?.data || {
+    firstName: "",
+    lastName: "",
+    profileImageUrl: "",
+  };
+  const initials =
+    `${userData.firstName?.[0] || ""}${userData.lastName?.[0] || ""}`.toUpperCase();
 
   if (userData.profileImageUrl) {
     return (
       <img
         src={userData.profileImageUrl}
         alt="Profile"
-        className="h-full w-full object-cover"
+        className="pointer-events-none h-full w-full object-cover"
       />
     );
   }
 
   if (initials) {
-    return <span>{initials}</span>;
+    return <span className="pointer-events-none">{initials}</span>;
   }
 
-  return <UserRound className="h-4 w-4" />;
+  return <UserRound className="pointer-events-none h-5 w-5" />;
 }
 
 export function UserDropdownMenu() {
@@ -39,10 +44,9 @@ export function UserDropdownMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="link"
+          variant="ghost"
           size="icon"
-          className="relative h-10 w-10 overflow-hidden rounded-full bg-[hsl(var(--avatar-surface-default))] p-0 text-base font-normal text-[hsl(var(--avatar-text-high-emphasis))] hover:no-underline"
-        >
+          className="relative z-50 h-9 w-9 overflow-hidden rounded-full border border-transparent bg-[hsl(var(--avatar-surface-default))] p-0 text-base font-normal text-[hsl(var(--avatar-text-high-emphasis))] transition-all hover:border-input hover:bg-accent/40 hover:text-[hsl(var(--avatar-text-high-emphasis))] hover:shadow-sm">
           <UserDropdownMenuLogo />
         </Button>
       </DropdownMenuTrigger>

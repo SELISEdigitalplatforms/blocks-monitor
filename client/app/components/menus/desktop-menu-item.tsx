@@ -3,7 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui-kits/badge/badge";
 import { cn } from "@/lib/utils";
-import { Menu } from "@/models/menu-models";
+import { Menu } from "@/models/menu.model";
 
 type MenuItemType = Extract<Menu, { type: "menu" }>;
 

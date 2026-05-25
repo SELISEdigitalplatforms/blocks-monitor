@@ -4,6 +4,24 @@
         <name>Api</name>
     </assembly>
     <members>
+        <member name="T:Api.Controllers.HealthController">
+            <summary>
+            Controller for managing health check configurations.
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.HealthController.#ctor(DomainService.Health.Services.HealthConfigurationService,DomainService.Health.Services.HealthCheckService,DomainService.Monitor.Services.IMonitorConfigurationService)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Api.Controllers.HealthController"/> class.
+            </summary>
+            <param name="healthConfigurationService">Service for health configuration operations.</param>
+        </member>
+        <member name="M:Api.Controllers.HealthController.UpdateHealth(DomainService.Health.Models.UpdateHealthConfigurationRequest)">
+            <summary>
+            Updates an existing health configuration.
+            </summary>
+            <param name="request">The request containing updated health configuration details.</param>
+            <returns>The result of the update operation.</returns>
+        </member>
         <member name="T:Api.Controllers.MigrationController">
             <summary>
             Controller for handling migration operations between projects.
@@ -36,6 +54,86 @@
             </summary>
             <param name="tenantGroupId">The tenant group ID to check for migrations.</param>
             <returns>List of migration trackers with incomplete services.</returns>
+        </member>
+        <member name="T:Api.Controllers.MonitorController">
+            <summary>
+            Controller for managing monitor configurations, incidents, and response times.
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.#ctor(DomainService.Monitor.Services.IMonitorConfigurationService,DomainService.Monitor.Services.IMonitorPingService,DomainService.Monitor.Services.IMonitorConfigurationRepoService,DomainService.Monitor.MonitorIncidentService.IMonitorIncidentService)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Api.Controllers.MonitorController"/> class.
+            </summary>
+            <param name="monitorConfigurationService">Service for monitor configuration operations.</param>
+            <param name="monitorPingService">Service for monitor ping operations.</param>
+            <param name="monitorIncidentService">Service for monitor incident operations.</param>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.GetMonitorList(System.String,System.String,System.Int32,System.Int32)">
+            <summary>
+            Retrieves a list of monitor configurations for a given project.
+            </summary>
+            <param name="projectKey">The project key to filter monitor configurations.</param>
+            <returns>A list of monitor configurations.</returns>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.GetMonitorListByRepoId(System.String,System.String)">
+            <summary>
+            Retrieves a list of monitor configurations for a given project.
+            </summary>
+            <param name="projectKey">The project key to filter monitor configurations.</param>
+            <returns>A list of monitor configurations.</returns>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.GetMonitorById(System.String)">
+            <summary>
+            Retrieves a list of monitor configurations for a given project.
+            </summary>
+            <param name="projectKey">The project key to filter monitor configurations.</param>
+            <returns>A list of monitor configurations.</returns>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.SaveMonitor(DomainService.Monitor.Models.SaveMonitorConfigurationRequest)">
+            <summary>
+            Saves a new monitor configuration.
+            </summary>
+            <param name="request">The request containing monitor configuration details.</param>
+            <returns>The result of the save operation.</returns>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.UpdateMonitor(DomainService.Monitor.Models.UpdateMonitorConfigurationRequest)">
+            <summary>
+            Updates an existing monitor configuration.
+            </summary>
+            <param name="request">The request containing updated monitor configuration details.</param>
+            <returns>The result of the update operation.</returns>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.DeleteMonitor(System.String)">
+            <summary>
+            Deletes a monitor configuration by its ID.
+            </summary>
+            <param name="itemId">The ID of the monitor configuration to delete.</param>
+            <returns>The result of the delete operation.</returns>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.GetIncidentList(System.String,System.Int32,System.Int32)">
+            <summary>
+            Retrieves a paginated list of incidents for a specific monitor.
+            </summary>
+            <param name="monitorId">The ID of the monitor.</param>
+            <param name="pageNumber">The page number for pagination.</param>
+            <param name="pageSize">The number of items per page.</param>
+            <returns>A paginated list of incidents.</returns>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.GetMonitorDetails(System.String)">
+            <summary>
+            Retrieves details of incidents for a specific monitor.
+            </summary>
+            <param name="monitorId">The ID of the monitor.</param>
+            <returns>Details of incidents for the monitor.</returns>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.GetMonitorResponseTime(System.String,System.String,System.String)">
+            <summary>
+            Retrieves the response time logs for a monitor within a specified date range.
+            </summary>
+            <param name="monitorId">The ID of the monitor.</param>
+            <param name="startDate">The start date of the range (optional).</param>
+            <param name="endDate">The end date of the range (optional).</param>
+            <returns>The response time logs for the monitor.</returns>
         </member>
         <member name="T:BlocksTemplate.Api.GlobalApiRoutePrefixConvention">
             <summary>Prepends a segment (e.g. <c>api</c>) to every controller’s attribute route template.</summary>

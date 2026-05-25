@@ -52,22 +52,22 @@ All development workflows are handled via:
 
 ### Available Commands
 
-* `./run.sh -b` or `--backend`
-  Run only the .NET API (default port: 5000)
+- `./run.sh -b` or `--backend`
+  Run only the .NET API (default port: 5001)
 
-* `./run.sh -w` or `--worker`
+- `./run.sh -w` or `--worker`
   Run only the .NET Worker service
 
-* `./run.sh -f` or `--frontend`
+- `./run.sh -f` or `--frontend`
   Run frontend dev server (Vite)
 
-* `./run.sh -a` or `--all`
+- `./run.sh -a` or `--all`
   Build frontend → run API + Worker together
 
-* `./run.sh -k` or `--kill-port`
+- `./run.sh -k` or `--kill-port`
   Kill any process using the API port
 
-* `./run.sh -n <args>` or `--npm <args>`
+- `./run.sh -n <args>` or `--npm <args>`
   Run any npm command inside `client/`
   Example:
 
@@ -76,7 +76,7 @@ All development workflows are handled via:
   ./run.sh -n run build
   ```
 
-* `./run.sh -d <args>` or `--dotnet <args>`
+- `./run.sh -d <args>` or `--dotnet <args>`
   Run any .NET CLI command
   Example:
 
@@ -183,8 +183,8 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 
 ### Recommended usage
 
-* ✅ Use `run.sh` with **Git Bash** (best compatibility)
-* ✅ Use `run.ps1` with **PowerShell** (native Windows)
+- ✅ Use `run.sh` with **Git Bash** (best compatibility)
+- ✅ Use `run.ps1` with **PowerShell** (native Windows)
 
 ---
 
@@ -238,23 +238,90 @@ git commit -m "Make run.sh executable"
 
 ### Permission reference
 
-| Scenario | Command |
-|---|---|
-| Make executable for everyone | `chmod +x run.sh` |
-| Make executable for owner only | `chmod u+x run.sh` |
-| Set full permissions numerically | `chmod 755 run.sh` |
-| Check current permissions | `ls -la run.sh` |
-| Fix via git (permanent) | `git add --chmod=+x run.sh && git commit` |
+| Scenario                         | Command                                   |
+| -------------------------------- | ----------------------------------------- |
+| Make executable for everyone     | `chmod +x run.sh`                         |
+| Make executable for owner only   | `chmod u+x run.sh`                        |
+| Set full permissions numerically | `chmod 755 run.sh`                        |
+| Check current permissions        | `ls -la run.sh`                           |
+| Fix via git (permanent)          | `git add --chmod=+x run.sh && git commit` |
 
 > This applies to **macOS, Linux, and WSL** — they all follow POSIX permission semantics.
 
 ---
 
+## Local HTTPS (frontend + backend)
+
+Standardized local TLS is driven by **two machine/user environment variables** — the single source of truth for both the Vite dev server and the .NET API:
+
+| Variable                 | Value                                     |
+| ------------------------ | ----------------------------------------- |
+| `MONITOR_SSL_CERT` | Absolute path to an mkcert **cert** PEM   |
+| `MONITOR_SSL_KEY`  | Absolute path to the matching **key** PEM |
+
+**Rule (everywhere):** if **both** vars are set **and both files exist** → serve **HTTPS** on the dev domain; otherwise → **HTTP**. It never throws / never hard-fails.
+
+| Frontend dev server                                   | Backend API                                           |
+| ----------------------------------------------------- | ----------------------------------------------------- |
+| `https://dev-monitor.blocksdevelopers.com:4001` | `https://dev-monitor.blocksdevelopers.com:5001` |
+
+### One-time setup
+
+1. Install mkcert and its local CA (once per machine):
+
+   ```bash
+   mkcert -install
+   ```
+
+2. Generate a cert + key for the dev domain (keep them OUTSIDE the repo, e.g. `~/.certs`):
+
+   ```bash
+  mkcert dev-monitor.blocksdevelopers.com
+   ```
+
+3. Add a hosts-file entry so the domain resolves locally:
+
+   ```
+  127.0.0.1 dev-monitor.blocksdevelopers.com
+   ```
+
+   - Windows: `C:\Windows\System32\drivers\etc\hosts` (edit as Administrator)
+   - macOS / Linux: `/etc/hosts` (`sudo`)
+
+4. Set the two environment variables (point at the files from step 2):
+
+   **Windows (PowerShell, persists for the user — reopen the terminal after):**
+
+   ```powershell
+  setx MONITOR_SSL_CERT "C:\Users\<you>\.certs\dev-monitor.blocksdevelopers.com.pem"
+  setx MONITOR_SSL_KEY  "C:\Users\<you>\.certs\dev-monitor.blocksdevelopers.com-key.pem"
+   ```
+
+   **macOS / Linux (add to `~/.zshrc` or `~/.bashrc`):**
+
+   ```bash
+  export MONITOR_SSL_CERT="$HOME/.certs/dev-monitor.blocksdevelopers.com.pem"
+  export MONITOR_SSL_KEY="$HOME/.certs/dev-monitor.blocksdevelopers.com-key.pem"
+   ```
+
+### Behavior matrix
+
+| `MONITOR_SSL_CERT` / `MONITOR_SSL_KEY` | Files exist | Result                                            |
+| -------------------------------------------------- | ----------- | ------------------------------------------------- |
+| Both set                                           | Yes         | **HTTPS** on the dev domain (FE :4001, API :5001) |
+| Both set                                           | No          | HTTP — warning logged, no crash                   |
+| Either unset                                       | —           | HTTP — warning logged, no crash                   |
+
+Works for **every launch path**: bare `npm run dev` (client/), `./run.sh -f/-b/-a`, and `./run.ps1 -f/-b/-a` (including the run-all background processes). A bare `dotnet run` with no script uses the minimal `launchSettings.json` and stays HTTP.
+
+> **Reusable for any project:** change only the **domain** (hosts entry, mkcert cert, the client `--host` and API `launchUrl`). Cert paths live solely in the two env vars — nothing is hardcoded in committed files, and the built/deployed Docker artifact is unaffected (these are read only by the dev server / run scripts).
+
+---
+
 ## Notes
 
-* Always use `dotnet restore` (or `./run.sh -d restore`) to install backend dependencies
-* Avoid manually editing `.csproj` for packages—use `dotnet add`
-* Frontend is fully standard Node/Vite
-* `./run.sh -a` is your **full-stack dev command**
-* Worker runs independently—make sure required services (DB, queues, etc.) are available
-
+- Always use `dotnet restore` (or `./run.sh -d restore`) to install backend dependencies
+- Avoid manually editing `.csproj` for packages—use `dotnet add`
+- Frontend is fully standard Node/Vite
+- For live frontend changes, run `./run.sh -f` and `./run.sh -b` in separate terminals. `./run.sh -a` builds the SPA once, then runs API + Worker.
+- Worker runs independently—make sure required services (DB, queues, etc.) are available

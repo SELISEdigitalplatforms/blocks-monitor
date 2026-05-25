@@ -12,7 +12,7 @@ import {
   SheetTrigger,
 } from "@/components/ui-kits/sheet/sheet";
 import { cn } from "@/lib/utils";
-import { Menu } from "@/models/menu-models";
+import { Menu } from "@/models/menu.model";
 
 type MenuItemType = Extract<Menu, { type: "menu" }>;
 

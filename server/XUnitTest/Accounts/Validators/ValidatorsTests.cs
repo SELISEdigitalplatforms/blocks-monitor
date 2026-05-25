@@ -50,7 +50,7 @@ namespace XUnitTest.Accounts.Validators
                 .Where(m => m.Name == "Create" && m.ReturnType == typeof(BlocksContext))
                 .ToList();
 
-            // Try 15-parameter version first (newer API with actualTentId + refreshToken)
+            // Try 15-parameter version first (newer API with actualTenantId + refreshToken)
             var create15Method = createMethods.FirstOrDefault(m => m.GetParameters().Length == 15);
 
             if (create15Method != null)
@@ -152,10 +152,10 @@ namespace XUnitTest.Accounts.Validators
         {
             // Arrange
             var validator = CreateBaseAccountValidator();
-            var request = new BaseAccountRequest 
-            { 
-                Code = "valid-code", 
-                Password = "weak" 
+            var request = new BaseAccountRequest
+            {
+                Code = "valid-code",
+                Password = "weak"
             };
             _cacheClientMock.Setup(x => x.KeyExistsAsync(request.Code)).ReturnsAsync(true);
             _configRepoMock.Setup(x => x.GetConfigurationAsync()).ReturnsAsync(new IamConfiguration
@@ -176,10 +176,10 @@ namespace XUnitTest.Accounts.Validators
         {
             // Arrange
             var validator = CreateBaseAccountValidator();
-            var request = new BaseAccountRequest 
-            { 
-                Code = "valid-code", 
-                Password = "Blacklisted1!" 
+            var request = new BaseAccountRequest
+            {
+                Code = "valid-code",
+                Password = "Blacklisted1!"
             };
             _cacheClientMock.Setup(x => x.KeyExistsAsync(request.Code)).ReturnsAsync(true);
             _configRepoMock.Setup(x => x.GetConfigurationAsync()).ReturnsAsync(new IamConfiguration
@@ -201,10 +201,10 @@ namespace XUnitTest.Accounts.Validators
         {
             // Arrange
             var validator = CreateBaseAccountValidator();
-            var request = new BaseAccountRequest 
-            { 
-                Code = "valid-code", 
-                Password = "Strong@Pass123" 
+            var request = new BaseAccountRequest
+            {
+                Code = "valid-code",
+                Password = "Strong@Pass123"
             };
             _cacheClientMock.Setup(x => x.KeyExistsAsync(request.Code)).ReturnsAsync(true);
             _configRepoMock.Setup(x => x.GetConfigurationAsync()).ReturnsAsync(new IamConfiguration
@@ -225,10 +225,10 @@ namespace XUnitTest.Accounts.Validators
         {
             // Arrange
             var validator = CreateBaseAccountValidator();
-            var request = new BaseAccountRequest 
-            { 
-                Code = "valid-code", 
-                Password = "" 
+            var request = new BaseAccountRequest
+            {
+                Code = "valid-code",
+                Password = ""
             };
             _cacheClientMock.Setup(x => x.KeyExistsAsync(request.Code)).ReturnsAsync(true);
 
@@ -245,10 +245,10 @@ namespace XUnitTest.Accounts.Validators
         {
             // Arrange
             var validator = CreateBaseAccountValidator();
-            var request = new BaseAccountRequest 
-            { 
-                Code = "valid-code", 
-                CaptchaCode = "invalid-captcha" 
+            var request = new BaseAccountRequest
+            {
+                Code = "valid-code",
+                CaptchaCode = "invalid-captcha"
             };
             _cacheClientMock.Setup(x => x.KeyExistsAsync(request.Code)).ReturnsAsync(true);
             SetupCaptchaConfig("recaptcha");
@@ -268,10 +268,10 @@ namespace XUnitTest.Accounts.Validators
         {
             // Arrange
             var validator = CreateBaseAccountValidator();
-            var request = new BaseAccountRequest 
-            { 
-                Code = "valid-code", 
-                CaptchaCode = "valid-captcha" 
+            var request = new BaseAccountRequest
+            {
+                Code = "valid-code",
+                CaptchaCode = "valid-captcha"
             };
             _cacheClientMock.Setup(x => x.KeyExistsAsync(request.Code)).ReturnsAsync(true);
             SetupCaptchaConfig("recaptcha");
@@ -290,10 +290,10 @@ namespace XUnitTest.Accounts.Validators
         {
             // Arrange
             var validator = CreateBaseAccountValidator();
-            var request = new BaseAccountRequest 
-            { 
-                Code = "valid-code", 
-                CaptchaCode = "" 
+            var request = new BaseAccountRequest
+            {
+                Code = "valid-code",
+                CaptchaCode = ""
             };
             _cacheClientMock.Setup(x => x.KeyExistsAsync(request.Code)).ReturnsAsync(true);
 
@@ -310,10 +310,10 @@ namespace XUnitTest.Accounts.Validators
         {
             // Arrange
             var validator = CreateBaseAccountValidator();
-            var request = new BaseAccountRequest 
-            { 
-                Code = "valid-code", 
-                CaptchaCode = "captcha-code" 
+            var request = new BaseAccountRequest
+            {
+                Code = "valid-code",
+                CaptchaCode = "captcha-code"
             };
             _cacheClientMock.Setup(x => x.KeyExistsAsync(request.Code)).ReturnsAsync(true);
             SetupCaptchaConfig(null); // No config found
@@ -576,10 +576,10 @@ namespace XUnitTest.Accounts.Validators
         {
             // Arrange
             var validator = CreateRecoveryUserRequestValidator();
-            var request = new RecoveryUserRequest 
-            { 
-                Email = "test@example.com", 
-                CaptchaCode = "invalid-captcha" 
+            var request = new RecoveryUserRequest
+            {
+                Email = "test@example.com",
+                CaptchaCode = "invalid-captcha"
             };
             SetupCaptchaConfig("recaptcha");
             _captchaServiceMock.Setup(x => x.VerifyCaptchaAsync(It.IsAny<VerifyCaptchaRequest>()))
@@ -598,10 +598,10 @@ namespace XUnitTest.Accounts.Validators
         {
             // Arrange
             var validator = CreateRecoveryUserRequestValidator();
-            var request = new RecoveryUserRequest 
-            { 
-                Email = "test@example.com", 
-                CaptchaCode = "valid-captcha" 
+            var request = new RecoveryUserRequest
+            {
+                Email = "test@example.com",
+                CaptchaCode = "valid-captcha"
             };
             SetupCaptchaConfig("recaptcha");
             _captchaServiceMock.Setup(x => x.VerifyCaptchaAsync(It.IsAny<VerifyCaptchaRequest>()))
@@ -619,10 +619,10 @@ namespace XUnitTest.Accounts.Validators
         {
             // Arrange
             var validator = CreateRecoveryUserRequestValidator();
-            var request = new RecoveryUserRequest 
-            { 
-                Email = "test@example.com", 
-                CaptchaCode = "" 
+            var request = new RecoveryUserRequest
+            {
+                Email = "test@example.com",
+                CaptchaCode = ""
             };
 
             // Act
@@ -638,10 +638,10 @@ namespace XUnitTest.Accounts.Validators
         {
             // Arrange
             var validator = CreateRecoveryUserRequestValidator();
-            var request = new RecoveryUserRequest 
-            { 
-                Email = "test@example.com", 
-                CaptchaCode = "captcha-code" 
+            var request = new RecoveryUserRequest
+            {
+                Email = "test@example.com",
+                CaptchaCode = "captcha-code"
             };
             SetupCaptchaConfig(null);
             _captchaServiceMock.Setup(x => x.VerifyCaptchaAsync(It.Is<VerifyCaptchaRequest>(r => r.ConfigurationName == "")))
@@ -688,7 +688,7 @@ namespace XUnitTest.Accounts.Validators
         private void SetupCaptchaConfig(string provider)
         {
             var captchaConfig = provider != null ? new CaptchaConfiguration { Provider = provider, IsEnable = true } : null;
-            
+
             var asyncCursorMock = new Mock<IAsyncCursor<CaptchaConfiguration>>();
             asyncCursorMock.Setup(x => x.Current).Returns(captchaConfig != null ? new[] { captchaConfig } : Array.Empty<CaptchaConfiguration>());
             asyncCursorMock.SetupSequence(x => x.MoveNext(It.IsAny<CancellationToken>()))

@@ -8,8 +8,12 @@ API_PROJECT="$SCRIPT_DIR/server/Api/Api.csproj"
 WORKER_PROJECT="$SCRIPT_DIR/server/Worker/Worker.csproj"
 WWWROOT_DIR="$SCRIPT_DIR/server/Api/wwwroot"
 
-API_PORT=5000
-FRONTEND_PORT=4000
+API_PORT=5001
+FRONTEND_PORT=4001
+
+# Ensure SSL vars are explicitly in scope for Vite
+export MONITOR_SSL_CERT="${MONITOR_SSL_CERT:-}"
+export MONITOR_SSL_KEY="${MONITOR_SSL_KEY:-}"
 
 API_PID=""
 WORKER_PID=""
@@ -33,7 +37,7 @@ Examples:
   $0 -f
   $0 -k
 EOF
-exit 1
+exit "${1:-1}"
 }
 
 # ---------- PORT CLEANUP ----------
@@ -66,6 +70,10 @@ free_port() {
 
 # ---------- CLEANUP ----------
 cleanup() {
+    if [ -z "${API_PID:-}" ] && [ -z "${WORKER_PID:-}" ]; then
+        return
+    fi
+
     echo "Shutting down..."
 
     [ -n "${API_PID:-}" ] && kill "$API_PID" 2>/dev/null || true
@@ -78,34 +86,62 @@ trap cleanup EXIT INT TERM
 run_frontend() {
     echo "Starting frontend..."
 
+
+
     if [ ! -d "$CLIENT_DIR/node_modules" ]; then
         echo "Installing dependencies..."
-        npm --prefix "$CLIENT_DIR" install
+        (cd "$CLIENT_DIR" && npm clean-install)
     fi
 
     free_port $FRONTEND_PORT
 
-    npm --prefix "$CLIENT_DIR" run dev
+    cd "$CLIENT_DIR" && npm run dev
 }
 
 build_frontend() {
     echo "Building frontend..."
 
-    npm --prefix "$CLIENT_DIR" install
-    npm --prefix "$CLIENT_DIR" run build
+    pushd "$CLIENT_DIR" > /dev/null
+    npm install
+    npm run build
+    popd > /dev/null
 
     mkdir -p "$WWWROOT_DIR"
 
     if [ -d "$CLIENT_DIR/dist" ]; then
         echo "Syncing dist → wwwroot..."
-        rsync -a --delete "$CLIENT_DIR/dist/" "$WWWROOT_DIR/"
+        if command -v rsync >/dev/null 2>&1; then
+            rsync -a --delete "$CLIENT_DIR/dist/" "$WWWROOT_DIR/"
+        else
+            rm -rf "$WWWROOT_DIR"/*
+            cp -r "$CLIENT_DIR/dist/"* "$WWWROOT_DIR/"
+        fi
     fi
 }
 
 # ---------- BACKEND ----------
+# HTTPS is driven by the machine env vars MONITOR_SSL_CERT / MONITOR_SSL_KEY.
+# Both set + both files present -> HTTPS on $API_PORT; otherwise -> HTTP (fallback).
+configure_backend_tls() {
+    if [ -n "${MONITOR_SSL_CERT:-}" ] && [ -n "${MONITOR_SSL_KEY:-}" ] \
+       && [ -f "$MONITOR_SSL_CERT" ] && [ -f "$MONITOR_SSL_KEY" ]; then
+        export Kestrel__Certificates__Default__Path="$MONITOR_SSL_CERT"
+        export Kestrel__Certificates__Default__KeyPath="$MONITOR_SSL_KEY"
+        export ASPNETCORE_URLS="https://0.0.0.0:$API_PORT"
+        echo "Backend TLS: HTTPS on $API_PORT"
+    else
+        export ASPNETCORE_URLS="http://0.0.0.0:$API_PORT"
+        echo "Backend TLS: cert env not set/found — HTTP on $API_PORT"
+    fi
+}
+
 run_backend() {
+    configure_backend_tls
     echo "Running .NET API on port $API_PORT..."
-    dotnet run --project "$API_PROJECT"
+    # Pass the URL on the command line: it has higher precedence than the
+    # launchSettings.json applicationUrl, which would otherwise override
+    # the ASPNETCORE_URLS we exported above.
+    dotnet run --project "$API_PROJECT" -- --urls "$ASPNETCORE_URLS"
 }
 
 run_worker() {
@@ -159,11 +195,12 @@ case "$1" in
     -n|--npm)
         shift
         [ $# -eq 0 ] && echo "Usage: $0 -n <args>" && exit 1
-        npm --prefix "$CLIENT_DIR" "$@"
+        (cd "$CLIENT_DIR" && npm "$@")
         ;;
 
+
     -h|--help)
-        usage
+        usage 0
         ;;
 
     *)
