@@ -22,7 +22,7 @@ export default function OidcIndexPage() {
     authService
       .verifyOidc({ code, state })
       .then((res) => {
-        const isLocalhost = getRuntimeEnv("BLOCKS_API_BASE_URL")?.includes(
+        const isLocalhost = getRuntimeEnv("BLOCKS_MONITOR_BASE_URL")?.includes(
           "localhost",
         );
 

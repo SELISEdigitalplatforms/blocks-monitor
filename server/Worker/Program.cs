@@ -21,7 +21,7 @@ using Worker.Consumers.Identifier;
 using Worker.Consumers.Users;
 using SeliseBlocks.ConfigurationDriver;
 
-const string serviceName = "blocks-observability-worker";
+const string serviceName = "blocks-monitor-worker";
 
 var vaultType = ResolveVaultType();
 var secret = await ApplicationConfigurations.ConfigureLogAndSecretsAsync(serviceName, vaultType);
@@ -38,7 +38,7 @@ IHostBuilder CreateHostBuilder(string[] args) =>
                 options.ConnectionString = secret.DatabaseConnectionString;
                 options.DatabaseName     = secret.RootDatabaseName;
                 options.CollectionName   = "Secrets";
-                options.SecretKey        = "blocks-Secret-observability";
+                options.SecretKey        = "blocks-secret-monitor";
             });
         })
         .ConfigureServices((services) =>

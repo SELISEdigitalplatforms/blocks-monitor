@@ -6,7 +6,7 @@ export class UserService {
   private readonly httpClient = serviceInstances.idpService;
   getUser(): Promise<{ data: User }> {
     return this.httpClient.get(
-      `${getRuntimeEnv("BLOCKS_IDP_BASE_URL")}/api/iam/me`,
+      `${getRuntimeEnv("BLOCKS_IAM_BASE_URL")}/api/iam/me`,
       undefined,
       { absoluteUrl: true },
     );

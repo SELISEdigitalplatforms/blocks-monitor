@@ -4,7 +4,7 @@ import { getRuntimeEnv } from "@/lib/runtime-env";
 // The NotificationHub is hosted on the logic server (same origin the
 // logicService http client talks to), resolved from runtime env.
 const logicOrigin = (): string =>
-  getRuntimeEnv("BLOCKS_LOGIC_APP_URL").trim().replace(/\/$/, "");
+  getRuntimeEnv("BLOCKS_LOGIC_BASE_URL").trim().replace(/\/$/, "");
 
 export class NotificationClientService {
   public connection: HubConnection;
@@ -19,11 +19,12 @@ export class NotificationClientService {
       )
       .withAutomaticReconnect()
       .build();
-    this.connect();
   }
 
   async connect() {
-    this.connection.start();
+    if (this.connection.state === "Disconnected") {
+      await this.connection.start();
+    }
   }
 
   async disconnect() {

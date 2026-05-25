@@ -12,8 +12,8 @@ API_PORT=5001
 FRONTEND_PORT=4001
 
 # Ensure SSL vars are explicitly in scope for Vite
-export OBSERVABILITY_SSL_CERT="${OBSERVABILITY_SSL_CERT:-}"
-export OBSERVABILITY_SSL_KEY="${OBSERVABILITY_SSL_KEY:-}"
+export MONITOR_SSL_CERT="${MONITOR_SSL_CERT:-}"
+export MONITOR_SSL_KEY="${MONITOR_SSL_KEY:-}"
 
 API_PID=""
 WORKER_PID=""
@@ -120,13 +120,13 @@ build_frontend() {
 }
 
 # ---------- BACKEND ----------
-# HTTPS is driven by the machine env vars OBSERVABILITY_SSL_CERT / OBSERVABILITY_SSL_KEY.
+# HTTPS is driven by the machine env vars MONITOR_SSL_CERT / MONITOR_SSL_KEY.
 # Both set + both files present -> HTTPS on $API_PORT; otherwise -> HTTP (fallback).
 configure_backend_tls() {
-    if [ -n "${OBSERVABILITY_SSL_CERT:-}" ] && [ -n "${OBSERVABILITY_SSL_KEY:-}" ] \
-       && [ -f "$OBSERVABILITY_SSL_CERT" ] && [ -f "$OBSERVABILITY_SSL_KEY" ]; then
-        export Kestrel__Certificates__Default__Path="$OBSERVABILITY_SSL_CERT"
-        export Kestrel__Certificates__Default__KeyPath="$OBSERVABILITY_SSL_KEY"
+    if [ -n "${MONITOR_SSL_CERT:-}" ] && [ -n "${MONITOR_SSL_KEY:-}" ] \
+       && [ -f "$MONITOR_SSL_CERT" ] && [ -f "$MONITOR_SSL_KEY" ]; then
+        export Kestrel__Certificates__Default__Path="$MONITOR_SSL_CERT"
+        export Kestrel__Certificates__Default__KeyPath="$MONITOR_SSL_KEY"
         export ASPNETCORE_URLS="https://0.0.0.0:$API_PORT"
         echo "Backend TLS: HTTPS on $API_PORT"
     else
