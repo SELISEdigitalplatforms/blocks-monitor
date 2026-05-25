@@ -118,13 +118,13 @@ function Build-Frontend {
     }
 }
 
-# HTTPS is driven by the machine env vars OBSERVABILITY_SSL_CERT / OBSERVABILITY_SSL_KEY.
+# HTTPS is driven by the machine env vars MONITOR_SSL_CERT / MONITOR_SSL_KEY.
 # Both set + both files present -> HTTPS on $ApiPort; otherwise -> HTTP (fallback).
 # Sets the Kestrel cert env vars (inherited by child Start-Process) and stores
 # the URL in $script:AspNetCoreUrls to pass on the command line.
 function Set-BackendTls {
-    $cert = $env:OBSERVABILITY_SSL_CERT
-    $key  = $env:OBSERVABILITY_SSL_KEY
+    $cert = $env:MONITOR_SSL_CERT
+    $key  = $env:MONITOR_SSL_KEY
     if ($cert -and $key -and (Test-Path $cert) -and (Test-Path $key)) {
         $env:Kestrel__Certificates__Default__Path = $cert
         $env:Kestrel__Certificates__Default__KeyPath = $key

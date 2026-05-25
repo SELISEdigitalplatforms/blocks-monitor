@@ -256,14 +256,14 @@ Standardized local TLS is driven by **two machine/user environment variables** â
 
 | Variable                 | Value                                     |
 | ------------------------ | ----------------------------------------- |
-| `OBSERVABILITY_SSL_CERT` | Absolute path to an mkcert **cert** PEM   |
-| `OBSERVABILITY_SSL_KEY`  | Absolute path to the matching **key** PEM |
+| `MONITOR_SSL_CERT` | Absolute path to an mkcert **cert** PEM   |
+| `MONITOR_SSL_KEY`  | Absolute path to the matching **key** PEM |
 
 **Rule (everywhere):** if **both** vars are set **and both files exist** â†’ serve **HTTPS** on the dev domain; otherwise â†’ **HTTP**. It never throws / never hard-fails.
 
 | Frontend dev server                                   | Backend API                                           |
 | ----------------------------------------------------- | ----------------------------------------------------- |
-| `https://dev-observability.blocksdevelopers.com:4001` | `https://dev-observability.blocksdevelopers.com:5001` |
+| `https://dev-monitor.blocksdevelopers.com:4001` | `https://dev-monitor.blocksdevelopers.com:5001` |
 
 ### One-time setup
 
@@ -276,13 +276,13 @@ Standardized local TLS is driven by **two machine/user environment variables** â
 2. Generate a cert + key for the dev domain (keep them OUTSIDE the repo, e.g. `~/.certs`):
 
    ```bash
-   mkcert dev-observability.blocksdevelopers.com
+  mkcert dev-monitor.blocksdevelopers.com
    ```
 
 3. Add a hosts-file entry so the domain resolves locally:
 
    ```
-   127.0.0.1 dev-observability.blocksdevelopers.com
+  127.0.0.1 dev-monitor.blocksdevelopers.com
    ```
 
    - Windows: `C:\Windows\System32\drivers\etc\hosts` (edit as Administrator)
@@ -293,20 +293,20 @@ Standardized local TLS is driven by **two machine/user environment variables** â
    **Windows (PowerShell, persists for the user â€” reopen the terminal after):**
 
    ```powershell
-   setx OBSERVABILITY_SSL_CERT "C:\Users\<you>\.certs\dev-observability.blocksdevelopers.com.pem"
-   setx OBSERVABILITY_SSL_KEY  "C:\Users\<you>\.certs\dev-observability.blocksdevelopers.com-key.pem"
+  setx MONITOR_SSL_CERT "C:\Users\<you>\.certs\dev-monitor.blocksdevelopers.com.pem"
+  setx MONITOR_SSL_KEY  "C:\Users\<you>\.certs\dev-monitor.blocksdevelopers.com-key.pem"
    ```
 
    **macOS / Linux (add to `~/.zshrc` or `~/.bashrc`):**
 
    ```bash
-   export OBSERVABILITY_SSL_CERT="$HOME/.certs/dev-observability.blocksdevelopers.com.pem"
-   export OBSERVABILITY_SSL_KEY="$HOME/.certs/dev-observability.blocksdevelopers.com-key.pem"
+  export MONITOR_SSL_CERT="$HOME/.certs/dev-monitor.blocksdevelopers.com.pem"
+  export MONITOR_SSL_KEY="$HOME/.certs/dev-monitor.blocksdevelopers.com-key.pem"
    ```
 
 ### Behavior matrix
 
-| `OBSERVABILITY_SSL_CERT` / `OBSERVABILITY_SSL_KEY` | Files exist | Result                                            |
+| `MONITOR_SSL_CERT` / `MONITOR_SSL_KEY` | Files exist | Result                                            |
 | -------------------------------------------------- | ----------- | ------------------------------------------------- |
 | Both set                                           | Yes         | **HTTPS** on the dev domain (FE :4001, API :5001) |
 | Both set                                           | No          | HTTP â€” warning logged, no crash                   |

@@ -34,7 +34,7 @@ export class ProjectService {
     errors: unknown | null;
     isSuccess: boolean;
   }> {
-    const url = `${getRuntimeEnv("BLOCKS_LOGIC_APP_URL")}${DEPLOYMENT_ENDPOINTS.REPOS_LIST}?projectkey=${projectKey}`;
+    const url = `${getRuntimeEnv("BLOCKS_LOGIC_BASE_URL")}${DEPLOYMENT_ENDPOINTS.REPOS_LIST}?projectkey=${projectKey}`;
     return this.logicHttpClient.get(url, undefined, { absoluteUrl: true });
   }
 

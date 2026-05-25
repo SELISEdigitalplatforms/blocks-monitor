@@ -6,13 +6,13 @@
     <PackageId>SeliseBlocks.ObservabilityDriver</PackageId>
     <Authors>SeliseBlocks</Authors>
     <Company>SeliseBlocks</Company>
-    <Description>Blocks Observability Driver - Monitor and Health APIs</Description>
+    <Description>Blocks Monitor Driver - Monitor and Health APIs</Description>
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <IncludeOutputAssemblies>true</IncludeOutputAssemblies>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>Genesis, BlocksGenesis, SeliseBlocksGenesis, Observability, Monitor, Health, Driver</PackageTags>
-    <RepositoryUrl>https://github.com/SELISEdigitalplatforms/blocks-observability</RepositoryUrl>
+    <RepositoryUrl>https://github.com/SELISEdigitalplatforms/blocks-monitor</RepositoryUrl>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>

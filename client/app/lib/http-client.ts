@@ -339,15 +339,15 @@ class HttpClient {
 
 export const serviceInstances = {
   observabilityService: new HttpClient(
-    getRuntimeEnv("BLOCKS_API_BASE_URL") || "",
+    getRuntimeEnv("BLOCKS_MONITOR_BASE_URL") || "",
     getRuntimeEnv("BLOCKS_X_BLOCKS_KEY") || "",
   ),
   logicService: new HttpClient(
-    getRuntimeEnv("BLOCKS_LOGIC_APP_URL") || "",
+    getRuntimeEnv("BLOCKS_LOGIC_BASE_URL") || "",
     getRuntimeEnv("BLOCKS_X_BLOCKS_KEY") || "",
   ),
   idpService: new HttpClient(
-    getRuntimeEnv("BLOCKS_IDP_BASE_URL") || "",
+    getRuntimeEnv("BLOCKS_IAM_BASE_URL") || "",
     getRuntimeEnv("BLOCKS_X_BLOCKS_KEY") || "",
   ),
 };
