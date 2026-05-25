@@ -12,7 +12,7 @@ export class ServiceRegistryService {
     payload: IGetAllServicesPayload,
   ): Promise<IGetAllServicesResponse> {
     return this.httpClient.post(
-      `${getRuntimeEnv("BLOCKS_LOGIC_APP_URL")}/api/Service/GetAll`,
+      `${getRuntimeEnv("BLOCKS_LOGIC_BASE_URL")}/api/Service/GetAll`,
       payload,
       undefined,
       { absoluteUrl: true },
