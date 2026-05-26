@@ -239,7 +239,20 @@ namespace DomainService.Monitor.Services
                 MonitorConfiguration monitorConfiguration;
 
                 monitorConfiguration = await _monitorConfigurationRepoService.GetConfigurationAsync(request.ItemId);
-                if (monitorConfiguration == null || monitorConfiguration.MonitorSourceType == MonitorSourceTypes.Infrastructure || monitorConfiguration.MonitorSourceType == MonitorSourceTypes.BlocksServices)
+                if (monitorConfiguration == null)
+                {
+                    _logger.LogError("MonitorConfiguration with ItemId {ItemId} not found.", request.ItemId);
+                    return new BaseApiResponse()
+                    {
+                        IsSuccess = false,
+                        StatusCode = HttpStatusCode.OK,
+                        Message = $"MonitorConfiguration with ItemId {request.ItemId} not found."
+                    };
+                }
+
+                var effectiveSourceType = monitorConfiguration.EffectiveMonitorSourceType;
+                if (effectiveSourceType == MonitorSourceTypes.Infrastructure ||
+                    effectiveSourceType == MonitorSourceTypes.BlocksServices)
                 {
                     _logger.LogError("MonitorConfiguration with ItemId {ItemId} not found.", request.ItemId);
                     return new BaseApiResponse()
@@ -357,7 +370,20 @@ namespace DomainService.Monitor.Services
             try
             {
                 var monitorConfiguration = await _monitorConfigurationRepoService.GetConfigurationAsync(itemId);
-                if (monitorConfiguration == null || monitorConfiguration.MonitorSourceType == MonitorSourceTypes.Infrastructure || monitorConfiguration.MonitorSourceType == MonitorSourceTypes.BlocksServices)
+                if (monitorConfiguration == null)
+                {
+                    _logger.LogError("MonitorConfiguration with ItemId {ItemId} not found.", itemId);
+                    return new BaseApiResponse()
+                    {
+                        IsSuccess = false,
+                        StatusCode = HttpStatusCode.OK,
+                        Message = $"MonitorConfiguration with ItemId {itemId} not found."
+                    };
+                }
+
+                var effectiveSourceType = monitorConfiguration.EffectiveMonitorSourceType;
+                if (effectiveSourceType == MonitorSourceTypes.Infrastructure ||
+                    effectiveSourceType == MonitorSourceTypes.BlocksServices)
                 {
                     _logger.LogError("MonitorConfiguration with ItemId {ItemId} not found.", itemId);
                     return new BaseApiResponse()
