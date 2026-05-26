@@ -62,7 +62,15 @@ namespace DomainService.Monitor.Entity
         public string Url { get; set; }
 
         public MonitorConfigurationTypes MonitorConfigurationType { get; set; }
-        public MonitorSourceTypes MonitorSourceType { get; set; } = MonitorSourceTypes.DeployedServices;
+        public MonitorSourceTypes? MonitorSourceType { get; set; }
+
+        [BsonElement("MonitorSourcetypes")]
+        [BsonIgnoreIfNull]
+        public MonitorSourceTypes? LegacyMonitorSourceType { get; set; }
+
+        [BsonIgnore]
+        public MonitorSourceTypes EffectiveMonitorSourceType =>
+            MonitorSourceType ?? LegacyMonitorSourceType ?? MonitorSourceTypes.DeployedServices;
 
         public MonitorTypes? MonitorType { get; set; }
         public ProtocolTypes? ProtocolType { get; set; }
