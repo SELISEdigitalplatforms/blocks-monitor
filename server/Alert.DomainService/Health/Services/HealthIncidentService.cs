@@ -99,7 +99,7 @@ namespace DomainService.Health.Services
                     MonitorName = config.Name,
                     MonitorUrl = config.Url,
                     MonitorConfigurationType = config.MonitorConfigurationType,
-                    MonitorSourceType = config.MonitorSourceType,
+                    MonitorSourceType = config.EffectiveMonitorSourceType,
                     StartTime = DateTime.UtcNow,
                     IsResolved = false,
                     FailureReason = "No ping received",
