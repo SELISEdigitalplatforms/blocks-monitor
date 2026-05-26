@@ -1,4 +1,5 @@
-﻿using Blocks.Genesis;
+﻿using System.Linq;
+using Blocks.Genesis;
 using DomainService.Monitor.Entity;
 using DomainService.Monitor.Models;
 using Microsoft.Extensions.Configuration;
@@ -67,31 +68,45 @@ namespace DomainService.Monitor.Services
                         return (new List<MonitorConfiguration>(), 0);
                     }
 
+                    var sourceTypeFilter = fb.Or(
+                        fb.Eq(m => m.MonitorSourceType, parsedType),
+                        fb.Eq(m => m.LegacyMonitorSourceType, parsedType)
+                    );
+
                     if (parsedType == MonitorSourceTypes.Infrastructure ||
                         parsedType == MonitorSourceTypes.BlocksServices)
                     {
-                        filter = fb.Eq(m => m.MonitorSourceType, parsedType);
+                        filter = sourceTypeFilter;
                     }
                     else
                     {
                         filter = fb.And(
-                            fb.Eq(m => m.MonitorSourceType, parsedType),
+                            sourceTypeFilter,
                             fb.Eq(m => m.TenantId, tenantId)
                         );
                     }
                 }
                 else
                 {
+                    var tenantScopedTypes = new[]
+                    {
+                        MonitorSourceTypes.DeployedServices,
+                        MonitorSourceTypes.ExternalServices,
+                        MonitorSourceTypes.OtherServices,
+                    };
+                    var tenantScopedTypesNullable = tenantScopedTypes
+                        .Select(type => (MonitorSourceTypes?)type)
+                        .ToArray();
+
                     filter = fb.Or(
                         fb.Eq(m => m.MonitorSourceType, MonitorSourceTypes.Infrastructure),
+                        fb.Eq(m => m.LegacyMonitorSourceType, MonitorSourceTypes.Infrastructure),
 
                         fb.And(
-                            fb.In(m => m.MonitorSourceType, new[]
-                            {
-                                MonitorSourceTypes.DeployedServices,
-                                MonitorSourceTypes.ExternalServices,
-                                MonitorSourceTypes.OtherServices,
-                            }),
+                            fb.Or(
+                                fb.In(m => m.MonitorSourceType, tenantScopedTypesNullable),
+                                fb.In(m => m.LegacyMonitorSourceType, tenantScopedTypesNullable)
+                            ),
                             fb.Eq(m => m.TenantId, tenantId)
                         )
                     );
@@ -264,7 +279,10 @@ namespace DomainService.Monitor.Services
                     return null;
 
                 var filter = Builders<MonitorConfiguration>.Filter.And(
-                    Builders<MonitorConfiguration>.Filter.Eq(m => m.MonitorSourceType, MonitorSourceTypes.ExternalServices),
+                    Builders<MonitorConfiguration>.Filter.Or(
+                        Builders<MonitorConfiguration>.Filter.Eq(m => m.MonitorSourceType, MonitorSourceTypes.ExternalServices),
+                        Builders<MonitorConfiguration>.Filter.Eq(m => m.LegacyMonitorSourceType, MonitorSourceTypes.ExternalServices)
+                    ),
                     Builders<MonitorConfiguration>.Filter.Eq(m => m.ExternalServiceId, externalServiceId)
                 );
 
