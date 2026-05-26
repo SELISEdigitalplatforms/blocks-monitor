@@ -48,7 +48,7 @@ namespace DomainService.Monitor.MonitorIncidentService
                             MonitorName = config.Name,
                             MonitorUrl = config.Url,
                             MonitorConfigurationType = config.MonitorConfigurationType,
-                            MonitorSourceType = config.MonitorSourceType,
+                            MonitorSourceType = config.EffectiveMonitorSourceType,
                             ProjectKey = config.TenantId,
                             StartTime = response.Timestamp,
                             LastStatusCode = response.StatusCode,
