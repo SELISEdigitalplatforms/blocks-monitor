@@ -4,7 +4,7 @@
 # CONFIG
 # =========================
 
-MONGO_URI="mongodb://10.10.64.11:27017"
+MONGO_URI="mongodb://127.0.0.1:27017"
 DATABASE_NAME="yourDatabaseName"       # 👈 set your database name
 COLLECTION_NAME="MonitorConfigurations"
 URL_SUFFIX=".seliseblocks.com/ping"
