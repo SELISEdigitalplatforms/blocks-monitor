@@ -1,11 +1,13 @@
 import type { Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 const config = {
   darkMode: ["class"],
   content: [
     "./app/**/*.{ts,tsx}",
     "./index.html",
+    "./node_modules/@seliseblocks/blocks-kit/dist/**/*.{js,jsx,ts,tsx}",
   ],
   prefix: "",
   theme: {
@@ -142,7 +144,7 @@ const config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 } satisfies Config;
 
 export default config;
