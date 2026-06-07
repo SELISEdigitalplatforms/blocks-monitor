@@ -93,11 +93,15 @@ export default defineConfig(({ mode }) => {
       proxy: {
         ...(iamProxyTarget
           ? {
-              "/dev-iam-proxy": {
+              "/api/auth": {
                 target: iamProxyTarget,
                 changeOrigin: true,
                 secure: true,
-                rewrite: (path) => path.replace(/^\/dev-iam-proxy/, ""),
+              },
+              "/api/Impersonation": {
+                target: iamProxyTarget,
+                changeOrigin: true,
+                secure: true,
               },
             }
           : {}),

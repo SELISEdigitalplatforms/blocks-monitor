@@ -110,7 +110,7 @@ export interface AlertTree extends Alert {
   lastIncidentAt: Date;
   monitorType: number;
   monitorConfigurationType: number;
-  monitorSourceTypes: number;
+  monitorSourceType: number;
   externalServiceId: string | null;
   externalServiceName: string | null;
 }

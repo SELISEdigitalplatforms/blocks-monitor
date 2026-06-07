@@ -229,12 +229,12 @@ export function BlocksLoginPage({
       <nav className="site-nav">
         <div className="nav-left">
           <img
-            src="/blocks-logos/iam_light_mode.svg"
+            src="/Logo_Light.svg"
             className="nav-logo-mark dark:hidden"
             alt="Blocks logo"
           />
           <img
-            src="/blocks-logos/iam_dark_mode.svg"
+            src="/Logo_Dark.svg"
             className="nav-logo-mark hidden dark:block"
             alt="Blocks logo"
           />
