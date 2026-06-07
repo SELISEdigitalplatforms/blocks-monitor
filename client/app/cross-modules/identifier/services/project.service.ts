@@ -26,7 +26,7 @@ export class ProjectService {
 
   getProject(payload: IGetProjectPayload): Promise<IGetProjectResponse> {
     const url = `${PROJECT_ENDPOINTS.GET}?projectId=${payload.projectId}`;
-    return this.httpClient.get(url);
+    return this.logicHttpClient.get(url);
   }
 
   getEnvRepositories(projectKey: string): Promise<{

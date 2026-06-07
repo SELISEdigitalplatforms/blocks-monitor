@@ -6,7 +6,7 @@ import { ModeToggle } from "@/components/mode-toggle/mode-toggle";
 import { Notification } from "@blocks-communication/components/notification/notification";
 import { SelectedProject } from "@/components/project-list/selected-project";
 import { Button } from "@/components/ui-kits/button/button";
-import { UserDropdownMenu } from "@/components/user-dropdown-menu/user-dropdown-menu";
+// import { UserDropdownMenu } from "@/components/user-dropdown-menu/user-dropdown-menu";
 import { SidebarContext } from "@/contexts/dashboard-layout-provider";
 import { SidebarMobileView } from "@/layouts/sidebar-mobile-view/sidebar-mobile-view";
 import { useProjectStore } from "@/store/project.store.ts";
@@ -14,6 +14,11 @@ import { cn } from "@/lib/utils";
 import { ChevronRight, PanelLeft } from "lucide-react";
 import { useContext } from "react";
 import { useLocation } from "react-router-dom";
+import {
+  AppSwitcher,
+  ThemeSwitcher,
+  UserDropdownMenu,
+} from "@seliseblocks/blocks-kit";
 
 export function DashboardHeader() {
   const { isSidebarOpen, toggleSidebar } = useContext(SidebarContext);
@@ -41,21 +46,23 @@ export function DashboardHeader() {
             onClick={toggleSidebar}>
             <PanelLeft className="h-6 w-6" />
           </Button>
-          {!isProjectOverviewRoute && !isSidebarOpen && (projectName || environment) && (
-            <div className="ml-3 flex min-w-0 items-center gap-1.5">
-              <SelectedProject />
-              {projectName && environment && (
-                <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              )}
-              <SelectedEnvironment />
-            </div>
-          )}
+          {!isProjectOverviewRoute &&
+            !isSidebarOpen &&
+            (projectName || environment) && (
+              <div className="ml-3 flex min-w-0 items-center gap-1.5">
+                <SelectedProject />
+                {projectName && environment && (
+                  <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                )}
+                <SelectedEnvironment />
+              </div>
+            )}
         </div>
 
         <div className="relative z-50 flex items-center gap-4">
           <BackToConsoleNavigator />
           <div className="pointer-events-auto flex items-center">
-            <ModeToggle />
+            <ThemeSwitcher />
           </div>
           <div className="pointer-events-auto flex items-center">
             <Notification />
@@ -64,7 +71,7 @@ export function DashboardHeader() {
             <LanguageSelector />
           </div>
           <div className="pointer-events-auto flex items-center">
-            <BlocksAppLauncher />
+            <AppSwitcher forwardedTo="/dashboard" />
           </div>
           <div className="pointer-events-auto flex items-center">
             <UserDropdownMenu />
