@@ -1,40 +1,113 @@
-import { Navigate, type RouteObject } from "react-router-dom";
-import DashboardLayout from "@/layouts/dashboard-layout/dashboard-layout";
+import { Navigate, type RouteObject, Outlet } from "react-router-dom";
 import LoginPage from "./auth/login";
-import CallbackPage from "./callback";
 import HealthPage from "./dashboard/health";
 import HealthIncidentsPage from "./dashboard/health-incidents";
 import HealthMonitorPage from "./dashboard/health-monitor";
 import ProfilePage from "./dashboard/profile";
-import { ConsoleLayout } from "@/layouts/console-layout/console-layout";
-import Console from "@/pages/console/console";
-import { PublicGuard } from "@/guards/public-guard";
+// import Console from "@/pages/console/console";
+import {
+  AuthResolver,
+  PublicGuard,
+  ProtectedGuard,
+  ConsoleLayout,
+  // DashboardLayout,
+  ImpersonationChecker,
+  ImpersonationTerminator,
+  ImpersonationSynchronizer,
+  CallbackPage,
+  ConsolePage,
+} from "@seliseblocks/blocks-kit";
+import DashboardLayout from "@/layouts/dashboard-layout/dashboard-layout";
+import { DashboardOverview } from "@/pages/dashboard-overview";
+import { EnvironmentsPage } from "@/pages/environments";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 export const routes = [
   {
-    path: "/login",
-    element: <PublicGuard />,
+    element: (
+      <ErrorBoundary>
+        <Outlet />,
+      </ErrorBoundary>
+    ),
     children: [
-      { index: true, element: <LoginPage /> },
-      { path: "callback", element: <CallbackPage /> },
-    ],
-  },
-  {
-    element: <ConsoleLayout />,
-    children: [{ path: "/console", element: <Console /> }],
-  },
-  {
-    element: <DashboardLayout />,
-    children: [
-      { path: "/health", element: <HealthPage /> },
-      { path: "/health/monitor/:id", element: <HealthMonitorPage /> },
+      // All Redirect Url Handle here
       {
-        path: "/health/monitor/incidents/:id",
-        element: <HealthIncidentsPage />,
+        path: "/login/callback",
+        element: <CallbackPage redirectUrl="/console" />,
       },
-      { path: "/profile", element: <ProfilePage /> },
+      {
+        // Set User Auth Information and resolve authentication state before rendering any route
+        element: (
+          <AuthResolver>
+            <Outlet />
+          </AuthResolver>
+        ),
+        children: [
+          // public
+          {
+            element: (
+              <PublicGuard>
+                <Outlet />
+              </PublicGuard>
+            ),
+            children: [{ path: "/login", element: <LoginPage /> }],
+          },
+
+          // protected
+          {
+            element: (
+              <ProtectedGuard>
+                <Outlet />
+              </ProtectedGuard>
+            ),
+            children: [
+              {
+                element: (
+                  <ImpersonationChecker>
+                    <ImpersonationTerminator>
+                      <ConsoleLayout>
+                        <Outlet />
+                      </ConsoleLayout>
+                    </ImpersonationTerminator>
+                  </ImpersonationChecker>
+                ),
+                children: [
+                  { path: "/profile", element: <ProfilePage /> },
+                  { path: "/console", element: <ConsolePage /> },
+                  {
+                    path: "/project-overview/environments",
+                    element: <EnvironmentsPage />,
+                  },
+                ],
+              },
+              {
+                // impersonate
+                element: (
+                  <ImpersonationChecker>
+                    <ImpersonationSynchronizer>
+                      <DashboardLayout />
+                    </ImpersonationSynchronizer>
+                  </ImpersonationChecker>
+                ),
+                children: [
+                  { path: "/dashboard", element: <DashboardOverview /> },
+                  { path: "/health", element: <HealthPage /> },
+                  {
+                    path: "/health/monitor/:id",
+                    element: <HealthMonitorPage />,
+                  },
+                  {
+                    path: "/health/monitor/incidents/:id",
+                    element: <HealthIncidentsPage />,
+                  },
+                ],
+              },
+            ],
+          },
+          { path: "/", element: <Navigate to="/console" replace /> },
+          { path: "*", element: <Navigate to="/login" replace /> },
+        ],
+      },
     ],
   },
-  { path: "/", element: <Navigate to="/console" replace /> },
-  { path: "*", element: <Navigate to="/login" replace /> },
 ] as const satisfies RouteObject[];

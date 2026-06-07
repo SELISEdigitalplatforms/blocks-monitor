@@ -235,7 +235,7 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
           const request =
             row.original.monitorConfigurationType === 0 ? true : false;
           const name = row.original?.name;
-          const monitorSourceType = row.original.monitorSourceTypes;
+          const monitorSourceType = row.original.monitorSourceType;
           return (
             <>
               {monitorSourceType !== 2 ? (
