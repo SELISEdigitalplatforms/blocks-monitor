@@ -17,3 +17,8 @@ export const SERVICE_REGISTRY_ENDPOINTS = {
 export const DEPLOYMENT_ENDPOINTS = {
   REPOS_LIST: `${API_BASE}${DEPLOYMENT_SUBPATH}/GetReposList`,
 } as const;
+const DOMAIN_SUBPATH = "/Domain";
+
+export const DOMAIN_ENDPOINTS = {
+  CONFIGURE: `${API_BASE}${DOMAIN_SUBPATH}/Configure`,
+} as const;
