@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { EnvironmentList } from "@/components/environment-list/environment-list";
 import { Logo } from "@/components/logo";
 import { MobileMenuItem } from "@/components/menus/mobile-menu-item";
-import { ProjectList } from "@/components/project-list/project-list";
+import { ProjectList } from "@/components/project/list/project-list";
 import { Button } from "@/components/ui-kits/button/button";
 import { Separator } from "@/components/ui-kits/separator/separator";
 import {

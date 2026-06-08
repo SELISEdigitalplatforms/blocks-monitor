@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useGetProjects } from "@/cross-modules/identifier/hooks/use-project";
-import { ProjectCard } from "@/components/project-card/project-card";
-import { ProjectCardLoading } from "@/components/project-card/loading";
+import { ProjectCard } from "@/components/project/card/project-card";
+import { ProjectCardLoading } from "@/components/project/card/loading";
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.97 },

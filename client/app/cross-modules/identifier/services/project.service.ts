@@ -2,14 +2,17 @@ import { serviceInstances } from "@/lib/http-client";
 import { getRuntimeEnv } from "@/lib/runtime-env";
 import {
   DEPLOYMENT_ENDPOINTS,
+  DOMAIN_ENDPOINTS,
   PROJECT_ENDPOINTS,
 } from "@blocks-identifier/constants/endpoint.constant";
-import {
+import type {
   IEnvRepository,
   IGetProjectPayload,
   IGetProjectResponse,
   IProjectGroup,
   IResource,
+  IValidateCNameProjectPayload,
+  IValidateCNameProjectResponse,
 } from "@blocks-identifier/models/project.model";
 
 export class ProjectService {
@@ -43,6 +46,12 @@ export class ProjectService {
     isSuccess: boolean;
   }> {
     return this.httpClient.post(PROJECT_ENDPOINTS.ADD_ASSET, payload);
+  }
+
+  validateCNameProject(
+    payload: IValidateCNameProjectPayload,
+  ): Promise<IValidateCNameProjectResponse> {
+    return this.logicHttpClient.post(DOMAIN_ENDPOINTS.CONFIGURE, payload);
   }
 }
 

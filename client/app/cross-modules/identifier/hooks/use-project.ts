@@ -6,10 +6,8 @@ import { useEffect } from "react";
 
 export const useGetProjects = ({
   tenantGroupId = "",
-  enabled = true,
 }: {
   tenantGroupId?: string;
-  enabled?: boolean;
 }) => {
   const setProjects = useProjectStore((state) => state.setProjects);
   const setSelectedProject = useProjectStore(
@@ -20,7 +18,6 @@ export const useGetProjects = ({
     queryKey: ["identifier", "projects", tenantGroupId],
     queryFn: () => projectService.getProjects(0, 100, tenantGroupId),
     staleTime: 5 * 60 * 1000,
-    enabled,
   });
 
   useEffect(() => {
@@ -72,6 +69,18 @@ export const useAddAssets = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-assets"] });
       queryClient.invalidateQueries({ queryKey: ["env-repositories"] });
+    },
+  });
+};
+export const useValidateCNameProject = (options: { projectKey: string }) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: ["identifier", "projects", "validate cname"],
+    mutationFn: crossProjectService.validateCNameProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["identifier", "project", options],
+      });
     },
   });
 };
