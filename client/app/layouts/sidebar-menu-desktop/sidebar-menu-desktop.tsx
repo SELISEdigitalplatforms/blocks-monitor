@@ -1,4 +1,6 @@
+import { EnvironmentList } from "@/components/environment-list/environment-list";
 import { DesktopMenuItem } from "@/components/menus/desktop-menu-item";
+import { ProjectList } from "@/components/project/list/project-list";
 import { Button } from "@/components/ui-kits/button/button";
 import { Separator } from "@/components/ui-kits/separator/separator";
 import { navigationMenus } from "@/constants/navigation-menus.constant";
@@ -7,20 +9,23 @@ import { useFilteredMenus } from "@/hooks/use-filtered-menus";
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
 import { PanelLeft } from "lucide-react";
-import { Fragment, useContext } from "react";
-import { Link } from "react-router-dom";
+import { Fragment, useContext, useMemo } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 export function SidebarMenuDesktop() {
   const { isSidebarOpen, toggleSidebar } = useContext(SidebarContext);
   const { resolvedTheme } = useTheme();
   const allowedMenu = useFilteredMenus(navigationMenus);
+  const { pathname } = useLocation();
 
-  const getLogoSrc = () => {
+  const isProjectOverviewRoute = pathname.startsWith("/project-overview");
+
+  const getLogoSrc = useMemo(() => {
     if (isSidebarOpen) {
       return resolvedTheme === "dark" ? "/Logo_Dark.svg" : "/Logo_Light.svg";
     }
     return resolvedTheme === "dark" ? "/Icon_Dark.svg" : "/Icon_Light.svg";
-  };
+  }, [isSidebarOpen, resolvedTheme]);
 
   return (
     <div
@@ -33,7 +38,7 @@ export function SidebarMenuDesktop() {
             isSidebarOpen ? "h-[36px] w-[72px]" : "h-8 w-8",
           )}>
           <img
-            src={getLogoSrc()}
+            src={getLogoSrc}
             alt="Logo"
             className="h-full w-full object-contain"
           />
@@ -48,6 +53,23 @@ export function SidebarMenuDesktop() {
           </Button>
         )}
       </div>
+      {!isProjectOverviewRoute &&
+        (isSidebarOpen ? (
+          <div className="border-b px-2 pb-2 pt-2">
+            <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Workspace
+            </p>
+            <div className="space-y-0.5">
+              <ProjectList />
+              <EnvironmentList />
+            </div>
+          </div>
+        ) : (
+          <div className="border-b py-1">
+            <ProjectList collapsed />
+            <EnvironmentList collapsed />
+          </div>
+        ))}
       <div className="flex-1 overflow-auto">
         <nav className={cn("grid w-full items-start gap-1 p-2 text-sm")}>
           {allowedMenu.map((menu) => (
