@@ -1,5 +1,4 @@
 import { Navigate, type RouteObject, Outlet } from "react-router-dom";
-import LoginPage from "./auth/login";
 import HealthPage from "./dashboard/health";
 import HealthIncidentsPage from "./dashboard/health-incidents";
 import HealthMonitorPage from "./dashboard/health-monitor";
@@ -14,6 +13,7 @@ import {
   ImpersonationSynchronizer,
   CallbackPage,
   ConsolePage,
+  LoginPage,
 } from "@seliseblocks/blocks-kit";
 import DashboardLayout from "@/layouts/dashboard-layout/dashboard-layout";
 import { DashboardOverview } from "@/pages/dashboard-overview";
@@ -48,7 +48,9 @@ export const routes = [
                 <Outlet />
               </PublicGuard>
             ),
-            children: [{ path: "/login", element: <LoginPage /> }],
+            children: [
+              { path: "/login", element: <LoginPage name="blocks-monitor" /> },
+            ],
           },
 
           // protected
