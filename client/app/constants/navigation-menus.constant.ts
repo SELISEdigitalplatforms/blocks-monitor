@@ -13,6 +13,17 @@ import {
 
 export const navigationMenus: Menu[] = [
   {
+    id: "overview-project",
+    type: "menu",
+    name: "Overview",
+    path: "/dashboard",
+    icon: Home,
+  },
+  {
+    type: "separator",
+    id: "separator-identity",
+  },
+  {
     id: "health",
     type: "menu",
     name: "Health",
@@ -21,14 +32,6 @@ export const navigationMenus: Menu[] = [
   },
 
   // Hidden menus below - kept for backward compatibility but disabled
-  {
-    id: "overview-project",
-    type: "menu",
-    name: "Overview",
-    path: "/dashboard",
-    icon: Home,
-    disabled: true,
-  },
   {
     id: "environments",
     type: "menu",

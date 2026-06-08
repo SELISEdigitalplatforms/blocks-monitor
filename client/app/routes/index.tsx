@@ -4,13 +4,11 @@ import HealthPage from "./dashboard/health";
 import HealthIncidentsPage from "./dashboard/health-incidents";
 import HealthMonitorPage from "./dashboard/health-monitor";
 import ProfilePage from "./dashboard/profile";
-// import Console from "@/pages/console/console";
 import {
   AuthResolver,
   PublicGuard,
   ProtectedGuard,
   ConsoleLayout,
-  // DashboardLayout,
   ImpersonationChecker,
   ImpersonationTerminator,
   ImpersonationSynchronizer,
@@ -74,8 +72,14 @@ export const routes = [
                 children: [
                   { path: "/profile", element: <ProfilePage /> },
                   { path: "/console", element: <ConsolePage /> },
+                ],
+              },
+              {
+                path: "/project-overview",
+                element: <DashboardLayout />,
+                children: [
                   {
-                    path: "/project-overview/environments",
+                    path: "environments",
                     element: <EnvironmentsPage />,
                   },
                 ],
