@@ -9,7 +9,7 @@ import {
 } from "@/components/ui-kits/card/card";
 import { Separator } from "@/components/ui-kits/separator/separator";
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
-import { useProjectStore } from "@/store/project.store.ts";
+import { useProjectStore } from "@seliseblocks/blocks-kit";
 import AlertAction from "@blocks-observability/components/alert/alert-action";
 import NotificationModal from "@blocks-observability/components/alert/notification-modal";
 import MonitorCard from "@blocks-observability/components/monitor/details/monitor-card";

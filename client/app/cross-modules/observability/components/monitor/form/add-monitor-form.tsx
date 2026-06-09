@@ -1,4 +1,4 @@
-import { useProjectStore } from "@/store/project.store.ts";
+import { useProjectStore } from "@seliseblocks/blocks-kit";
 import { MonitorFormFields } from "./monitor-form-fields";
 import { useMonitorFormController } from "./use-monitor-form-controller";
 

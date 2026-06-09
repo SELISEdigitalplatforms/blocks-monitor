@@ -1,5 +1,5 @@
 import { FolderOpen } from "lucide-react";
-import { useProjectStore } from "@/store/project.store.ts";
+import { useProjectStore } from "@seliseblocks/blocks-kit";
 
 export function SelectedProject() {
   const { selectedProject } = useProjectStore();
