@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui-kits/table/table";
-import { useProjectStore } from "@/store/project.store.ts";
+import { useProjectStore } from "@seliseblocks/blocks-kit";
 import AlertAction from "@blocks-observability/components/alert/alert-action";
 import ProgressBar from "@blocks-observability/components/alert/progress-bar";
 import { AlertTree } from "@blocks-observability/models/alerts.model";
