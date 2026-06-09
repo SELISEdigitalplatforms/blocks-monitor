@@ -4,11 +4,10 @@ import { LanguageSelector } from "@/components/language-selector/language-select
 import { SelectedProject } from "@/components/project/list/selected-project";
 import { Button } from "@/components/ui-kits/button/button";
 import { Notification } from "@blocks-communication/components/notification/notification";
-// import { UserDropdownMenu } from "@/components/user-dropdown-menu/user-dropdown-menu";
 import { SidebarContext } from "@/contexts/dashboard-layout-provider";
 import { SidebarMobileView } from "@/layouts/sidebar-mobile-view/sidebar-mobile-view";
 import { cn } from "@/lib/utils";
-import { useProjectStore } from "@/store/project.store.ts";
+import { useProjectStore } from "@seliseblocks/blocks-kit";
 import {
   AppSwitcher,
   ThemeSwitcher,

@@ -6,7 +6,7 @@ import {
   IChangeSettings,
   IManualDeploymentPayload,
 } from "../models/utils";
-import { useProjectStore } from "@/store/project.store.ts";
+import { useProjectStore } from "@seliseblocks/blocks-kit";
 
 export const useGithubVerification = (code: string) => {
   const projectKey = useProjectStore().selectedProject?.tenantId || "";
@@ -73,7 +73,6 @@ export const useRemoveAuthorization = () => {
     mutationKey: ["remove-authorization"],
     mutationFn: githubInfoService.removeAuthorization,
     onSuccess: () => {
-      console.log("Authorization removed successfully");
       queryClient.setQueryData(["verify-auth"], () => undefined);
       queryClient.setQueryData(["github-repos"], () => []);
       queryClient.setQueryData(["repository-user"], () => undefined);
