@@ -2,8 +2,8 @@ import { Button } from "@/components/ui-kits/button/button";
 import { useLogout } from "@blocks-idp/authentication/hooks/use-auth";
 import { getQueryClient } from "@/providers/query-provider";
 import { useAuthStore } from "@/store/auth.store.ts";
-import { useProjectStore } from "@/store/project.store.ts";
 import { useLanguageViewStore } from "@/store/use-language-view.store";
+import { useProjectStore } from "@seliseblocks/blocks-kit";
 
 export function LogOutButton() {
   const queryClient = getQueryClient();
