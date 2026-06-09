@@ -1,4 +1,4 @@
-import { useProjectStore } from "@/store/project.store.ts";
+import { useProjectStore } from "@seliseblocks/blocks-kit";
 
 export function SelectedEnvironment() {
   const { selectedProject } = useProjectStore();

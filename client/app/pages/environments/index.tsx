@@ -1,4 +1,4 @@
-import { useProjectStore } from "@/store/project.store";
+import { useProjectStore } from "@seliseblocks/blocks-kit";
 import { ProjectCardLoading } from "@/components/project/card/loading";
 import { Skeleton } from "@/components/ui-kits/skeleton/skeleton";
 import { useGetProjects } from "@blocks-identifier/hooks/use-project";

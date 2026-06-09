@@ -1,4 +1,4 @@
-import { useProjectStore } from "@/store/project.store";
+import { useProjectStore } from "@seliseblocks/blocks-kit";
 import { getRuntimeEnv } from "@/lib/runtime-env";
 import { getQueryClient } from "@/providers/query-provider";
 import { useAuthStore } from "@/store/auth.store";

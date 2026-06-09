@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui-kits/select/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui-kits/tabs/tabs";
-import { useProjectStore } from "@/store/project.store.ts";
+import { useProjectStore } from "@seliseblocks/blocks-kit";
 import { useAlertFilterQueryParams } from "@blocks-observability/components/alert/alerts-filter-toolbar";
 import { AlertsList } from "@blocks-observability/components/alert/alerts-list";
 import { AddSingleMonitorForm } from "@blocks-observability/components/monitor/form/add-monitor-form";
