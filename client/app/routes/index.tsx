@@ -2,7 +2,7 @@ import { Navigate, type RouteObject, Outlet } from "react-router-dom";
 import HealthPage from "./dashboard/health";
 import HealthIncidentsPage from "./dashboard/health-incidents";
 import HealthMonitorPage from "./dashboard/health-monitor";
-import ProfilePage from "./dashboard/profile";
+// import ProfilePage from "./dashboard/profile";
 import {
   AuthResolver,
   PublicGuard,
@@ -19,6 +19,7 @@ import DashboardLayout from "@/layouts/dashboard-layout/dashboard-layout";
 import { DashboardOverview } from "@/pages/dashboard-overview";
 import { EnvironmentsPage } from "@/pages/environments";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { ProfileRedirect } from "./dashboard/profile-redirect";
 
 export const routes = [
   {
@@ -72,7 +73,7 @@ export const routes = [
                   </ImpersonationChecker>
                 ),
                 children: [
-                  { path: "/profile", element: <ProfilePage /> },
+                  { path: "/profile", element: <ProfileRedirect /> },
                   { path: "/console", element: <ConsolePage /> },
                 ],
               },
