@@ -25,6 +25,7 @@ createRoot(document.getElementById("root")!).render(
                   dark: "/Logo_Dark.svg",
                   light: "/Logo_Light.svg",
                 },
+                name:"blocks-monitor"
               }}>
               <RouterProvider router={router} />
             </BlocksAppLayout>
