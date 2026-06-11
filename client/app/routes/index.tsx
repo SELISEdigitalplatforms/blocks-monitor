@@ -1,24 +1,24 @@
-import { Navigate, type RouteObject, Outlet } from "react-router-dom";
-import HealthPage from "./dashboard/health";
-import HealthIncidentsPage from "./dashboard/health-incidents";
-import HealthMonitorPage from "./dashboard/health-monitor";
-import ProfilePage from "./dashboard/profile";
-import {
-  AuthResolver,
-  PublicGuard,
-  ProtectedGuard,
-  ConsoleLayout,
-  ImpersonationChecker,
-  ImpersonationTerminator,
-  ImpersonationSynchronizer,
-  CallbackPage,
-  ConsolePage,
-  LoginPage,
-} from "@seliseblocks/blocks-kit";
+import { ErrorBoundary } from "@/components/error-boundary";
 import DashboardLayout from "@/layouts/dashboard-layout/dashboard-layout";
 import { DashboardOverview } from "@/pages/dashboard-overview";
 import { EnvironmentsPage } from "@/pages/environments";
-import { ErrorBoundary } from "@/components/error-boundary";
+import {
+ AuthResolver,
+ CallbackPage,
+ ConsoleLayout,
+ ConsolePage,
+ ImpersonationChecker,
+ ImpersonationSynchronizer,
+ ImpersonationTerminator,
+ LoginPage,
+ ProfilePage,
+ ProtectedGuard,
+ PublicGuard,
+} from "@seliseblocks/blocks-kit";
+import { Navigate, Outlet, type RouteObject } from "react-router-dom";
+import HealthPage from "./dashboard/health";
+import HealthIncidentsPage from "./dashboard/health-incidents";
+import HealthMonitorPage from "./dashboard/health-monitor";
 
 export const routes = [
   {
@@ -49,7 +49,7 @@ export const routes = [
               </PublicGuard>
             ),
             children: [
-              { path: "/login", element: <LoginPage name="blocks-monitor" /> },
+              { path: "/login", element: <LoginPage  /> },
             ],
           },
 
