@@ -12,7 +12,7 @@ export class NotificationClientService {
   constructor() {
     this.connection = new HubConnectionBuilder()
       .withUrl(
-        `${logicOrigin()}/NotificationHub?x-blocks-key=${getRuntimeEnv("BLOCKS_X_BLOCKS_KEY")}`,
+        `${logicOrigin()}/api/NotificationHub?x-blocks-key=${getRuntimeEnv("BLOCKS_X_BLOCKS_KEY")}`,
         {
           transport: HttpTransportType.WebSockets,
         },

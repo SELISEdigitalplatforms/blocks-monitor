@@ -1,32 +1,31 @@
-import { ErrorBoundary } from "@/components/error-boundary";
-import DashboardLayout from "@/layouts/dashboard-layout/dashboard-layout";
+import { navigationMenus } from "@/constants/navigation-menus.constant";
 import { DashboardOverview } from "@/pages/dashboard-overview";
-import { EnvironmentsPage } from "@/pages/environments";
 import {
- AuthResolver,
- CallbackPage,
- ConsoleLayout,
- ConsolePage,
- ImpersonationChecker,
- ImpersonationSynchronizer,
- ImpersonationTerminator,
- LoginPage,
- ProfilePage,
- ProtectedGuard,
- PublicGuard,
+  AuthResolver,
+  CallbackPage,
+  ConsoleLayout,
+  ConsolePage,
+  DashboardLayout,
+  EnvironmentsPage,
+  LoginPage,
+  ProfilePage,
+  ProjectOverviewLayout,
+  ProtectedGuard,
+  PublicGuard,
 } from "@seliseblocks/blocks-kit";
 import { Navigate, Outlet, type RouteObject } from "react-router-dom";
 import HealthPage from "./dashboard/health";
 import HealthIncidentsPage from "./dashboard/health-incidents";
 import HealthMonitorPage from "./dashboard/health-monitor";
 
+const redirectPaths: Record<string, string> = {
+  "/health/monitor/*": "/health",
+  "/health/monitor/incidents/*": "/health",
+};
+
 export const routes = [
   {
-    element: (
-      <ErrorBoundary>
-        <Outlet />,
-      </ErrorBoundary>
-    ),
+    element: <Outlet />,
     children: [
       // All Redirect Url Handle here
       {
@@ -48,9 +47,7 @@ export const routes = [
                 <Outlet />
               </PublicGuard>
             ),
-            children: [
-              { path: "/login", element: <LoginPage  /> },
-            ],
+            children: [{ path: "/login", element: <LoginPage /> }],
           },
 
           // protected
@@ -63,13 +60,9 @@ export const routes = [
             children: [
               {
                 element: (
-                  <ImpersonationChecker>
-                    <ImpersonationTerminator>
-                      <ConsoleLayout>
-                        <Outlet />
-                      </ConsoleLayout>
-                    </ImpersonationTerminator>
-                  </ImpersonationChecker>
+                  <ConsoleLayout>
+                    <Outlet />
+                  </ConsoleLayout>
                 ),
                 children: [
                   { path: "/profile", element: <ProfilePage /> },
@@ -78,7 +71,14 @@ export const routes = [
               },
               {
                 path: "/project-overview",
-                element: <DashboardLayout />,
+                element: (
+                  <ProjectOverviewLayout
+                    redirectPaths={redirectPaths}
+                    navigationMenus={navigationMenus}>
+                    <Outlet />
+                  </ProjectOverviewLayout>
+                ),
+
                 children: [
                   {
                     path: "environments",
@@ -89,11 +89,11 @@ export const routes = [
               {
                 // impersonate
                 element: (
-                  <ImpersonationChecker>
-                    <ImpersonationSynchronizer>
-                      <DashboardLayout />
-                    </ImpersonationSynchronizer>
-                  </ImpersonationChecker>
+                  <DashboardLayout
+                    redirectPaths={redirectPaths}
+                    navigationMenus={navigationMenus}>
+                    <Outlet />
+                  </DashboardLayout>
                 ),
                 children: [
                   { path: "/dashboard", element: <DashboardOverview /> },
