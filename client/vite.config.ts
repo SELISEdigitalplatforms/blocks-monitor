@@ -42,7 +42,16 @@ export default defineConfig(({ mode }) => {
   return {
     envPrefix: ["BLOCKS_"],
     plugins: [react()],
+    optimizeDeps: {
+      include: ["@seliseblocks/blocks-kit"],
+    },
     resolve: {
+      dedupe: [
+        "react",
+        "react-dom",
+        "react-router-dom",
+        "@tanstack/react-query",
+      ],
       alias: {
         "@blocks-idp": path.resolve(__dirname, "./app/cross-modules/idp"),
         "@blocks-lmt": path.resolve(__dirname, "./app/cross-modules/lmt"),
@@ -110,7 +119,7 @@ export default defineConfig(({ mode }) => {
               "/api": {
                 target: proxyTarget,
                 changeOrigin: true,
-                secure: false,
+                secure: true,
               },
               "/cloudbuild": {
                 target: proxyTarget,

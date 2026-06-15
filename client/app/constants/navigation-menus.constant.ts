@@ -30,16 +30,16 @@ export const navigationMenus: Menu[] = [
     path: "/health",
     icon: Activity,
   },
-
-  // Hidden menus below - kept for backward compatibility but disabled
   {
     id: "environments",
     type: "menu",
     name: "Environments",
     path: "/project-overview/environments",
     icon: Package,
-    disabled: true,
   },
+
+  // Hidden menus below - kept for backward compatibility but disabled
+
   {
     id: "people",
     type: "menu",
