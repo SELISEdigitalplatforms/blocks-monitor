@@ -42,9 +42,7 @@ export default defineConfig(({ mode }) => {
   return {
     envPrefix: ["BLOCKS_"],
     plugins: [react()],
-    optimizeDeps: {
-      include: ["@seliseblocks/blocks-kit"],
-    },
+
     resolve: {
       alias: {
         "@blocks-idp": path.resolve(__dirname, "./app/cross-modules/idp"),

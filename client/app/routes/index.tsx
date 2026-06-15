@@ -1,4 +1,3 @@
-import { ErrorBoundary } from "@/components/error-boundary";
 import { navigationMenus } from "@/constants/navigation-menus.constant";
 import { DashboardOverview } from "@/pages/dashboard-overview";
 import {
@@ -26,11 +25,7 @@ const redirectPaths: Record<string, string> = {
 
 export const routes = [
   {
-    element: (
-      <ErrorBoundary>
-        <Outlet />,
-      </ErrorBoundary>
-    ),
+    element: <Outlet />,
     children: [
       // All Redirect Url Handle here
       {
