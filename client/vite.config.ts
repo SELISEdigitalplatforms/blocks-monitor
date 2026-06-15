@@ -46,12 +46,6 @@ export default defineConfig(({ mode }) => {
       include: ["@seliseblocks/blocks-kit"],
     },
     resolve: {
-      dedupe: [
-        "react",
-        "react-dom",
-        "react-router-dom",
-        "@tanstack/react-query",
-      ],
       alias: {
         "@blocks-idp": path.resolve(__dirname, "./app/cross-modules/idp"),
         "@blocks-lmt": path.resolve(__dirname, "./app/cross-modules/lmt"),
