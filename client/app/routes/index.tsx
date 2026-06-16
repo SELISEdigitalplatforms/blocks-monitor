@@ -1,11 +1,11 @@
 import { navigationMenus } from "@/constants/navigation-menus.constant";
-import { DashboardOverview } from "@/pages/dashboard-overview";
 import {
   AuthResolver,
   CallbackPage,
   ConsoleLayout,
   ConsolePage,
   DashboardLayout,
+  DashboardOverview,
   EnvironmentsPage,
   LoginPage,
   ProfilePage,

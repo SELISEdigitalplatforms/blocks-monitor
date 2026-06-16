@@ -6,7 +6,7 @@ import {
 import { ImpersonationRequest } from "@blocks-idp/authentication/models/impersonate.model";
 import { useGetUser } from "@blocks-idp/iam/hooks/use-user";
 import { getRuntimeEnv } from "@/lib/runtime-env";
-import { useAuthStore } from "@/store/auth.store";
+import { useAuthStore } from "@seliseblocks/blocks-kit";
 import { useImpersonateStore } from "@/store/impersonate.store";
 import { useProjectStore } from "@seliseblocks/blocks-kit";
 import { useEffect, useRef, useState } from "react";
@@ -23,7 +23,7 @@ export function ProtectedGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isMounted) return;
     if (!data || isError) return navigate(`/login`, { replace: true });
-    setUser(data.data);
+    // setUser(data.data);
   }, [data, navigate, setUser, isError, isMounted]);
 
   if (!isMounted || !data) return null;

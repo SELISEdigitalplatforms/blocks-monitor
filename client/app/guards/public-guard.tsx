@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useSearchParams } from "react-router-dom";
-import { useAuthStore } from "@/store/auth.store.ts";
+import { useAuthStore } from "@seliseblocks/blocks-kit";
 
 export const useAppState = () => {
   const [isMounted, setIsMounted] = useState(false);
