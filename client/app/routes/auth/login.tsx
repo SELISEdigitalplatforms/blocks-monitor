@@ -1,7 +1,7 @@
 import { BlocksLoginPage } from "@/components/blocks-login-page";
 import { showErrorToast } from "@/hooks/use-toast";
 import { getRuntimeEnv } from "@/lib/runtime-env";
-import { useAuthStore } from "@/store/auth.store";
+import { useAuthStore } from "@seliseblocks/blocks-kit";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
