@@ -61,7 +61,7 @@ const Health = () => {
   return (
     <main>
       <div className="mb-[18px] flex items-center justify-between md:mb-[24px]">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between gitems-center">
           <h1 className="text-lg font-semibold md:text-2xl">Health</h1>
           <a
             href={
