@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui-kits/button/button";
 import { getRuntimeEnv } from "@seliseblocks/blocks-kit";
+import { Book } from "lucide-react";
 import { Outlet } from "react-router-dom";
 
 export function HealthLayout() {
@@ -18,7 +19,10 @@ const HealthHeader = () => {
         href={getRuntimeEnv("BLOCKS_MONITOR_BASE_URL") + "/swagger/index.html"}
         target="_blank"
         rel="noopener noreferrer">
-        <Button variant="outline">API Docs</Button>
+        <Button variant="outline" className="gap-2 items-center justify-center">
+          <Book size={14} />
+          API Docs
+        </Button>
       </a>
     </div>
   );
