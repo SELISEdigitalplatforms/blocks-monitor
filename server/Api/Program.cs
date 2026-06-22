@@ -69,7 +69,6 @@ Directory.CreateDirectory(wwwrootPath);
 ApplyFrontendRuntimeSettings(builder.Configuration, wwwrootPath);
 
 
-
 services.RegisterAllServices();
 services.AddApplicationServices();
 Alert.DomainService.ServiceRegistry.AddApplicationServices(services);
