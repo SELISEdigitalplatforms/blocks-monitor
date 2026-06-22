@@ -17,6 +17,7 @@ import { Navigate, Outlet, type RouteObject } from "react-router-dom";
 import HealthPage from "./dashboard/health";
 import HealthIncidentsPage from "./dashboard/health-incidents";
 import HealthMonitorPage from "./dashboard/health-monitor";
+import { HealthLayout } from "@/layouts/health-layout/health-layout";
 
 const redirectPaths: Record<string, string> = {
   "/health/monitor/*": "/health",
@@ -97,14 +98,20 @@ export const routes = [
                 ),
                 children: [
                   { path: "/dashboard", element: <DashboardOverview /> },
-                  { path: "/health", element: <HealthPage /> },
                   {
-                    path: "/health/monitor/:id",
-                    element: <HealthMonitorPage />,
-                  },
-                  {
-                    path: "/health/monitor/incidents/:id",
-                    element: <HealthIncidentsPage />,
+                    path: "/health",
+                    element: <HealthLayout />,
+                    children: [
+                      { path: "/health", element: <HealthPage /> },
+                      {
+                        path: "monitor/:id",
+                        element: <HealthMonitorPage />,
+                      },
+                      {
+                        path: "monitor/incidents/:id",
+                        element: <HealthIncidentsPage />,
+                      },
+                    ],
                   },
                 ],
               },
