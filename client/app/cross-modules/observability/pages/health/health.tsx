@@ -11,19 +11,19 @@ import {
   SelectValue,
 } from "@/components/ui-kits/select/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui-kits/tabs/tabs";
-import { useProjectStore } from "@seliseblocks/blocks-kit";
+import { getRuntimeEnv } from "@/lib/runtime-env";
 import { useAlertFilterQueryParams } from "@blocks-observability/components/alert/alerts-filter-toolbar";
 import { AlertsList } from "@blocks-observability/components/alert/alerts-list";
 import { AddSingleMonitorForm } from "@blocks-observability/components/monitor/form/add-monitor-form";
 import { MonitorModal } from "@blocks-observability/components/monitor/modal/monitor-modal";
 import { useGetHealthMonitorList } from "@blocks-observability/hooks/use-alerts";
-import { Plus, Book } from "lucide-react";
+import { useProjectStore } from "@seliseblocks/blocks-kit";
+import { BookOpen, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   type HealthTabKey,
   HEALTH_TABS,
 } from "../../constants/health.constant";
-import { getRuntimeEnv } from "@/lib/runtime-env";
 
 const Health = () => {
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
@@ -61,7 +61,7 @@ const Health = () => {
   return (
     <main>
       <div className="mb-[18px] flex items-center justify-between md:mb-[24px]">
-        <div className="flex justify-between gitems-center">
+        <div className="flex justify-between items-center">
           <h1 className="text-lg font-semibold md:text-2xl">Health</h1>
           <a
             href={
@@ -72,7 +72,7 @@ const Health = () => {
             <Button
               variant="outline"
               className="gap-2 items-center justify-center">
-              <Book size={14} />
+              <BookOpen className="h-3.5 w-3.5" />
               API Docs
             </Button>
           </a>
