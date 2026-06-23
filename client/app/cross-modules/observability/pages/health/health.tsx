@@ -59,24 +59,22 @@ const Health = () => {
   });
 
   return (
-    <main>
-      <div className="mb-[18px] flex items-center justify-between md:mb-[24px]">
-        <div className="flex justify-between items-center">
-          <h1 className="text-lg font-semibold md:text-2xl">Health</h1>
-          <a
-            href={
-              getRuntimeEnv("BLOCKS_MONITOR_BASE_URL") + "/swagger/index.html"
-            }
-            target="_blank"
-            rel="noopener noreferrer">
-            <Button
-              variant="outline"
-              className="gap-2 items-center justify-center">
-              <BookOpen className="h-3.5 w-3.5" />
-              API Docs
-            </Button>
-          </a>
-        </div>
+    <main className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h1 className="text-lg font-semibold md:text-2xl">Health</h1>
+        <a
+          href={
+            getRuntimeEnv("BLOCKS_MONITOR_BASE_URL") + "/swagger/index.html"
+          }
+          target="_blank"
+          rel="noopener noreferrer">
+          <Button
+            variant="outline"
+            className="gap-2 items-center justify-center">
+            <BookOpen className="h-3.5 w-3.5" />
+            API Docs
+          </Button>
+        </a>
       </div>
 
       <div className="flex items-baseline justify-between">
