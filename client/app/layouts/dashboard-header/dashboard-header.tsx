@@ -68,7 +68,7 @@ export function DashboardHeader() {
             <LanguageSelector />
           </div>
           <div className="pointer-events-auto flex items-center">
-            <AppSwitcher forwardedTo="/dashboard" />
+            <AppSwitcher forwardedTo="/app/dashboard" />
           </div>
           <div className="pointer-events-auto flex items-center">
             <UserDropdownMenu />
