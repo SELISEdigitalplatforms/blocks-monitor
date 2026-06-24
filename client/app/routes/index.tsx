@@ -20,8 +20,8 @@ import HealthMonitorPage from "./dashboard/health-monitor";
 import { HealthLayout } from "@/layouts/health-layout/health-layout";
 
 const redirectPaths: Record<string, string> = {
-  "/health/monitor/*": "/health",
-  "/health/monitor/incidents/*": "/health",
+  "/app/health/monitor/*": "/app/health",
+  "/app/health/monitor/incidents/*": "/app/health",
 };
 
 export const routes = [
@@ -31,7 +31,7 @@ export const routes = [
       // All Redirect Url Handle here
       {
         path: "/login/callback",
-        element: <CallbackPage redirectUrl="/console" />,
+        element: <CallbackPage defaultRedirectUrl="/app/console" />,
       },
       {
         // Set User Auth Information and resolve authentication state before rendering any route
@@ -53,6 +53,7 @@ export const routes = [
 
           // protected
           {
+            path: "/app",
             element: (
               <ProtectedGuard>
                 <Outlet />
@@ -66,12 +67,12 @@ export const routes = [
                   </ConsoleLayout>
                 ),
                 children: [
-                  { path: "/profile", element: <ProfilePage /> },
-                  { path: "/console", element: <ConsolePage /> },
+                  { path: "profile", element: <ProfilePage /> },
+                  { path: "console", element: <ConsolePage /> },
                 ],
               },
               {
-                path: "/project-overview",
+                path: "project-overview",
                 element: (
                   <ProjectOverviewLayout
                     redirectPaths={redirectPaths}
@@ -81,6 +82,10 @@ export const routes = [
                 ),
 
                 children: [
+                  {
+                    index: true,
+                    element: <Navigate to="environments" replace />,
+                  },
                   {
                     path: "environments",
                     element: <EnvironmentsPage />,
@@ -97,12 +102,12 @@ export const routes = [
                   </DashboardLayout>
                 ),
                 children: [
-                  { path: "/dashboard", element: <DashboardOverview /> },
+                  { path: "dashboard", element: <DashboardOverview /> },
                   {
-                    path: "/health",
+                    path: "health",
                     element: <HealthLayout />,
                     children: [
-                      { path: "/health", element: <HealthPage /> },
+                      { path: "health", element: <HealthPage /> },
                       {
                         path: "monitor/:id",
                         element: <HealthMonitorPage />,
@@ -117,7 +122,7 @@ export const routes = [
               },
             ],
           },
-          { path: "/", element: <Navigate to="/console" replace /> },
+          { path: "/", element: <Navigate to="/app/console" replace /> },
           { path: "*", element: <Navigate to="/login" replace /> },
         ],
       },
