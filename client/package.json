@@ -10,8 +10,7 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "lint": "eslint \"app/**/*.{ts,tsx}\"",
-    "lint:fix": "eslint \"app/**/*.{ts,tsx}\" --fix",
-    "prepare": "husky install ../.husky"
+    "lint:fix": "eslint \"app/**/*.{ts,tsx}\" --fix"
   },
   "dependencies": {
     "@beefree.io/sdk": "^11.4.0",
