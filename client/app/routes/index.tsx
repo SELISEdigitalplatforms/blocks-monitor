@@ -107,6 +107,10 @@ export const routes = [
                     path: "health",
                     element: <HealthLayout />,
                     children: [
+                      {
+                        index: true,
+                        element: <Navigate to="health" replace />,
+                      },
                       { path: "health", element: <HealthPage /> },
                       {
                         path: "monitor/:id",
