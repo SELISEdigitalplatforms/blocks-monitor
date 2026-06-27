@@ -16,6 +16,7 @@ var serviceName = "blocks-monitor-api";
 var vaultType = ResolveVaultType();
 var secret = await ApplicationConfigurations.ConfigureLogAndSecretsAsync(serviceName, vaultType);
 var builder = WebApplication.CreateBuilder(args);
+ApplicationConfigurations.ConfigureApiEnv(builder, args);
 
 builder.Configuration.AddMongoDbConfiguration(options =>
 {
@@ -67,13 +68,13 @@ Directory.CreateDirectory(wwwrootPath);
 
 ApplyFrontendRuntimeSettings(builder.Configuration, wwwrootPath);
 
-services.AddEndpointsApiExplorer();
-services.AddBlocksSwagger(new BlocksSwaggerOptions
-{
-    Title = "Blocks Monitor API",
-    Version = "v1",
-    EnableBearerAuth = true
-});
+//services.AddEndpointsApiExplorer();
+//services.AddBlocksSwagger(new BlocksSwaggerOptions
+//{
+//    Title = "Blocks Monitor API",
+//    Version = "v1",
+//    EnableBearerAuth = true
+//});
 
 services.RegisterAllServices();
 services.AddApplicationServices();
