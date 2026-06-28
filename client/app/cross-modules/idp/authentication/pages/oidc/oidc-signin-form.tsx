@@ -12,7 +12,7 @@ import { Input } from "@/components/ui-kits/input/input";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui-kits/button/button";
 import { z } from "zod";
-import { useAuthStore } from "@/store/auth.store.ts";
+import { useAuthStore } from "@seliseblocks/blocks-kit";
 import { showErrorToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -80,7 +80,6 @@ export const signinByEmail = async (
     const text = await response.text();
 
     if (!text || text.trim() === "") {
-      console.warn("Empty response from signin API, continuing with flow");
       return { access_token: "authenticated" } as ISigninByEmailResponse;
     }
 

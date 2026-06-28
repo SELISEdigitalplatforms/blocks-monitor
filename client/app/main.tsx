@@ -19,13 +19,11 @@ createRoot(document.getElementById("root")!).render(
           <NuqsAdapter>
             <BlocksAppLayout
               config={{
-                userBaseUrlKey: "BLOCKS_IAM_BASE_URL",
-                projectBaseUrlKey: "BLOCKS_LOGIC_BASE_URL",
                 appLogoUrl: {
                   dark: "/Logo_Dark.svg",
                   light: "/Logo_Light.svg",
                 },
-                name:"blocks-monitor"
+                name: "blocks-monitor",
               }}>
               <RouterProvider router={router} />
             </BlocksAppLayout>

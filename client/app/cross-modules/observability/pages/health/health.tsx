@@ -11,13 +11,14 @@ import {
   SelectValue,
 } from "@/components/ui-kits/select/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui-kits/tabs/tabs";
-import { useProjectStore } from "@seliseblocks/blocks-kit";
+import { getRuntimeEnv } from "@/lib/runtime-env";
 import { useAlertFilterQueryParams } from "@blocks-observability/components/alert/alerts-filter-toolbar";
 import { AlertsList } from "@blocks-observability/components/alert/alerts-list";
 import { AddSingleMonitorForm } from "@blocks-observability/components/monitor/form/add-monitor-form";
 import { MonitorModal } from "@blocks-observability/components/monitor/modal/monitor-modal";
 import { useGetHealthMonitorList } from "@blocks-observability/hooks/use-alerts";
-import { Plus } from "lucide-react";
+import { useProjectStore } from "@seliseblocks/blocks-kit";
+import { BookOpen, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   type HealthTabKey,
@@ -58,11 +59,22 @@ const Health = () => {
   });
 
   return (
-    <main>
-      <div className="mb-[18px] flex items-center justify-between md:mb-[24px]">
-        <div className="flex items-center">
-          <h1 className="text-lg font-semibold md:text-2xl">Health</h1>
-        </div>
+    <main className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h1 className="text-lg font-semibold md:text-2xl">Health</h1>
+        <a
+          href={
+            getRuntimeEnv("BLOCKS_MONITOR_BASE_URL") + "/swagger/index.html"
+          }
+          target="_blank"
+          rel="noopener noreferrer">
+          <Button
+            variant="outline"
+            className="gap-2 items-center justify-center">
+            <BookOpen className="h-3.5 w-3.5" />
+            API Docs
+          </Button>
+        </a>
       </div>
 
       <div className="flex items-baseline justify-between">
