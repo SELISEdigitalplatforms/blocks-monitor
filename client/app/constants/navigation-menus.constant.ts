@@ -1,22 +1,12 @@
 import type { Menu } from "@/models/menu.model";
-import {
-  Home,
-  Package,
-  Users,
-  BookMinus,
-  Settings,
-  Key,
-  Lock,
-  Zap,
-  Activity,
-} from "lucide-react";
+import { Activity, Home, Package } from "lucide-react";
 
 export const navigationMenus: Menu[] = [
   {
     id: "overview-project",
     type: "menu",
     name: "Overview",
-    path: "/dashboard",
+    path: "/app/dashboard",
     icon: Home,
   },
   {
@@ -27,73 +17,14 @@ export const navigationMenus: Menu[] = [
     id: "health",
     type: "menu",
     name: "Health",
-    path: "/health",
+    path: "/app/health",
     icon: Activity,
   },
   {
     id: "environments",
     type: "menu",
     name: "Environments",
-    path: "/project-overview/environments",
+    path: "/app/project-overview/environments",
     icon: Package,
-  },
-
-  // Hidden menus below - kept for backward compatibility but disabled
-
-  {
-    id: "people",
-    type: "menu",
-    name: "People",
-    path: "/project-overview/people",
-    icon: Users,
-    disabled: true,
-  },
-  {
-    id: "repositories",
-    type: "menu",
-    name: "Repositories",
-    path: "/project-overview/repositories",
-    icon: BookMinus,
-    disabled: true,
-  },
-  {
-    id: "settings",
-    type: "menu",
-    name: "Project Settings",
-    path: "/project-overview/settings",
-    icon: Settings,
-    disabled: true,
-  },
-  {
-    id: "service-identity__authentication",
-    type: "menu",
-    name: "IDP",
-    path: "/services/authentication",
-    icon: Key,
-    disabled: true,
-  },
-  {
-    id: "service-identity__api-settings",
-    type: "menu",
-    name: "API Settings",
-    path: "/services/api-settings",
-    icon: Settings,
-    disabled: true,
-  },
-  {
-    id: "service-identity__secret-management",
-    type: "menu",
-    name: "Secrets & Configs",
-    path: "/services/secret-management",
-    icon: Lock,
-    disabled: true,
-  },
-  {
-    id: "service-identity__lmt",
-    type: "menu",
-    name: "LMT",
-    path: "/services/lmt",
-    icon: Zap,
-    disabled: true,
   },
 ];

@@ -1,5 +1,5 @@
 import { getRuntimeEnv } from "@/lib/runtime-env";
-import { useAuthStore } from "@/store/auth.store";
+import { useAuthStore } from "@seliseblocks/blocks-kit";
 import { Loader } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
