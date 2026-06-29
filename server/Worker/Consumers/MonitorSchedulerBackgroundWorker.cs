@@ -1,6 +1,4 @@
 using DomainService.Monitor.Services;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace MonitoringWorker.Consumers
 {
