@@ -272,7 +272,7 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
   });
   const handleRowClick = (itemId: string) => {
     if (itemId) {
-      navigate(`/health/monitor/${itemId}`);
+      navigate(`/app/health/monitor/${itemId}`);
     }
   };
   if (isLoading) return <LoadingSkelton />;

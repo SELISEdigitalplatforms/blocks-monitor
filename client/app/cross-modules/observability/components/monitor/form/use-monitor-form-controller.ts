@@ -261,7 +261,7 @@ export const useMonitorFormController = ({
         }
 
         if (mode === "add") {
-          navigate(`/health/monitor/${res?.data?.itemId}`);
+          navigate(`/app/health/monitor/${res?.data?.itemId}`);
         }
       } else {
         const res =
@@ -278,7 +278,7 @@ export const useMonitorFormController = ({
         }
 
         if (mode === "add") {
-          navigate(`/health/monitor/${res?.data?.itemId}`);
+          navigate(`/app/health/monitor/${res?.data?.itemId}`);
         }
       }
 
