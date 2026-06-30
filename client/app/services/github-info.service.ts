@@ -90,7 +90,7 @@ export class GithubInfoService {
     return this.httpClient.post<{ message: string }>(url, payload);
   }
 
-  async repoInitialDeploy(payload: { message: string }) {
+  async repoInitialDeploy(payload: IChangeRepoSpecs) {
     const url = DEPLOYMENT_ENDPOINTS.RUN_BUILD;
     return this.httpClient.post<{ message: string }>(url, payload);
   }
