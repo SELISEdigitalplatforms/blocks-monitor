@@ -10,9 +10,8 @@ export const BREADCRUMB_CUSTOM_TITLES: Record<RouterType, string | null> = {
   "/app/project-overview": null,
   "/app/project-overview/environments": null,
   "/app/health": null,
-  "/app/health/health": null,
-  "/app/health/monitor/incidents/:id": null,
-  "/app/health/monitor/:id": "Alert",
+  "/app/monitor/incidents/:id": null,
+  "/app/monitor/:id": "Alert",
   "/app/profile": null,
   "/*": null,
 };
