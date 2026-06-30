@@ -291,7 +291,7 @@ const MonitorDetailsPage = () => {
                   <Button
                     variant="outline"
                     onClick={() =>
-                      navigate(`/app/health/monitor/incidents/${monitorId}`)
+                      navigate(`/app/monitor/incidents/${monitorId}`)
                     }>
                     View all incidents
                   </Button>
