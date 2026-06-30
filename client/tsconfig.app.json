@@ -15,9 +15,8 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
     "paths": {
+      "@/*": ["./app/*"],
       "@/components/*": ["./app/components/*"],
       "@/constants/*": ["./app/constants/*"],
       "@/contexts/*": ["./app/contexts/*"],
@@ -30,8 +29,7 @@
       "@/routes/*": ["./app/routes/*"],
       "@/services/*": ["./app/services/*"],
       "@/styles/*": ["./app/styles/*"],
-      "@/utils/*": ["./app/utils/*"],
-      "@/*": ["./app/*"]
+      "@/utils/*": ["./app/utils/*"]
     }
   },
   "include": ["app"],
