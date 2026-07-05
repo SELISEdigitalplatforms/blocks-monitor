@@ -25,6 +25,8 @@ module.exports = {
     "plugin:react-hooks/recommended",
   ],
   rules: {
+    "react/no-unknown-property": ["error", { ignore: ["cmdk-input-wrapper"] }],
+    "react/prop-types": "off",
     "react/react-in-jsx-scope": "off",
     "react/jsx-uses-react": "off",
     "no-unused-vars": "off",

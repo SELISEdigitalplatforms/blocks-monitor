@@ -1,16 +1,16 @@
-using BlocksTemplate.Api;
 using Blocks.Genesis;
-using Cloud.DomainService.Utilities;
-using DomainService.Utilities;
-using DomainService.Shared;
-using FluentValidation.AspNetCore;
+// using Cloud.DomainService.Utilities;
+// using DomainService.Utilities;
+// using DomainService.Shared;
+// using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Mvc;
-using Cloud.LmtService.Utilities;
-using CloudConfiguration.DomainService.Shared.Utilities;
-using Microsoft.IdentityModel.Tokens;
-using Cloud.LmtService.Models.Trace;
+// using Microsoft.AspNetCore.Mvc;
+// using Cloud.LmtService.Utilities;
+// using CloudConfiguration.DomainService.Shared.Utilities;
+// using Microsoft.IdentityModel.Tokens;
+// using Cloud.LmtService.Models.Trace;
 using SeliseBlocks.ConfigurationDriver;
+using DomainService.Shared.Utilities;
 
 var serviceName = "blocks-monitor-api";
 var vaultType = ResolveVaultType();
@@ -26,7 +26,7 @@ builder.Configuration.AddMongoDbConfiguration(options =>
  options.SecretKey = "blocks-secret-monitor";
 });
 
-ApplicationConfigurations.ConfigureServices(builder.Services, IdpConstants.GetMessageConfiguration(secret.MessageConnectionString));
+ApplicationConfigurations.ConfigureServices(builder.Services, ObservabilityConstants.GetApiMessageConfiguration(secret.MessageConnectionString));
 
 builder.Services.Configure<FormOptions>(options =>
 {
@@ -69,12 +69,12 @@ Directory.CreateDirectory(wwwrootPath);
 ApplyFrontendRuntimeSettings(builder.Configuration, wwwrootPath);
 
 
-services.RegisterAllServices();
-services.AddApplicationServices();
+// services.RegisterAllServices();
+// services.AddApplicationServices();
 Alert.DomainService.ServiceRegistry.AddApplicationServices(services);
-services.AddCloudDomainServices();
-services.AddCloudLmtServices();
-services.AddCloudConfigurationServices();
+// services.AddCloudDomainServices();
+// services.AddCloudLmtServices();
+// services.AddCloudConfigurationServices();
 
 var app = builder.Build();
 
