@@ -1,4 +1,4 @@
-import type { IProject } from "@blocks-identifier/models/project.model";
+import type { IProject } from "@seliseblocks/blocks-kit";
 
 export const getDomain = (url: string = "") => {
   const trimUrl = url.trim();

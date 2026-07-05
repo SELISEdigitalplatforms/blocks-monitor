@@ -193,7 +193,7 @@ namespace DomainService.Monitor.Services
 
                     await _messageClient.SendToConsumerAsync(new ConsumerMessage<MonitorConfigurationUpdateQueue>
                     {
-                        ConsumerName = Constants.MonitorConfigurationUpdateQueue,
+                        ConsumerName = ObservabilityConstants.MonitorConfigurationUpdateQueue,
                         Payload = payload
                     });
 
@@ -275,7 +275,7 @@ namespace DomainService.Monitor.Services
 
                     await _messageClient.SendToConsumerAsync(new ConsumerMessage<MonitorConfigurationUpdateQueue>
                     {
-                        ConsumerName = Constants.MonitorConfigurationUpdateQueue,
+                        ConsumerName = ObservabilityConstants.MonitorConfigurationUpdateQueue,
                         Payload = payload
                     });
 

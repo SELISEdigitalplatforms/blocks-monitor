@@ -45,33 +45,19 @@ export default defineConfig(({ mode }) => {
 
     resolve: {
       alias: {
-        "@blocks-idp": path.resolve(__dirname, "./app/cross-modules/idp"),
-        "@blocks-lmt": path.resolve(__dirname, "./app/cross-modules/lmt"),
-        "@blocks-storage": path.resolve(
-          __dirname,
-          "./app/cross-modules/storage",
-        ),
-        "@blocks-communication": path.resolve(
-          __dirname,
-          "./app/cross-modules/communication",
-        ),
-        "@blocks-identifier": path.resolve(
-          __dirname,
-          "./app/cross-modules/identifier",
-        ),
-        "@blocks-localization": path.resolve(
-          __dirname,
-          "./app/cross-modules/localization",
-        ),
-        "@blocks-utilities": path.resolve(
-          __dirname,
-          "./app/cross-modules/utilities",
-        ),
-        "@blocks-ai": path.resolve(__dirname, "./app/cross-modules/ai"),
-        "@blocks-observability": path.resolve(
-          __dirname,
-          "./app/cross-modules/observability",
-        ),
+        "@/components": path.resolve(__dirname, "./app/components"),
+        "@/constants": path.resolve(__dirname, "./app/constants"),
+        "@/contexts": path.resolve(__dirname, "./app/contexts"),
+        "@/hooks": path.resolve(__dirname, "./app/hooks"),
+        "@/layouts": path.resolve(__dirname, "./app/layouts"),
+        "@/lib": path.resolve(__dirname, "./app/lib"),
+        "@/models": path.resolve(__dirname, "./app/models"),
+        "@/pages": path.resolve(__dirname, "./app/pages"),
+        "@/providers": path.resolve(__dirname, "./app/providers"),
+        "@/routes": path.resolve(__dirname, "./app/routes"),
+        "@/services": path.resolve(__dirname, "./app/services"),
+        "@/styles": path.resolve(__dirname, "./app/styles"),
+        "@/utils": path.resolve(__dirname, "./app/utils"),
         "@": path.resolve(__dirname, "./app"),
       },
     },
