@@ -1,23 +1,28 @@
 import { navigationMenus } from "@/constants/navigation-menus.constant";
+import { HealthLayout } from "@/layouts/health-layout/health-layout";
+import HealthPage from "@/pages/health";
+import IncidentPage from "@/pages/incidents";
+import MonitorDetailsPage from "@/pages/monitor/details";
 import {
-  AuthResolver,
   CallbackPage,
-  ConsoleLayout,
   ConsolePage,
-  DashboardLayout,
   DashboardOverview,
   EnvironmentsPage,
   LoginPage,
   ProfilePage,
+} from "@seliseblocks/blocks-kit/pages";
+import {
   ProjectOverviewLayout,
+  DashboardLayout,
+  ConsoleLayout,
+} from "@seliseblocks/blocks-kit/layouts";
+import {
   ProtectedGuard,
   PublicGuard,
-} from "@seliseblocks/blocks-kit";
+  AuthResolver,
+} from "@seliseblocks/blocks-kit/guards";
+
 import { Navigate, Outlet, type RouteObject } from "react-router-dom";
-import HealthPage from "./dashboard/health";
-import HealthIncidentsPage from "./dashboard/health-incidents";
-import HealthMonitorPage from "./dashboard/health-monitor";
-import { HealthLayout } from "@/layouts/health-layout/health-layout";
 
 const redirectPaths: Record<string, string> = {
   "/app/health/monitor/*": "/app/health",
@@ -104,7 +109,6 @@ export const routes = [
                 children: [
                   { path: "dashboard", element: <DashboardOverview /> },
                   {
-                    path: "health",
                     element: <HealthLayout />,
                     children: [
                       {
@@ -114,11 +118,11 @@ export const routes = [
                       { path: "health", element: <HealthPage /> },
                       {
                         path: "monitor/:id",
-                        element: <HealthMonitorPage />,
+                        element: <MonitorDetailsPage />,
                       },
                       {
                         path: "monitor/incidents/:id",
-                        element: <HealthIncidentsPage />,
+                        element: <IncidentPage />,
                       },
                     ],
                   },

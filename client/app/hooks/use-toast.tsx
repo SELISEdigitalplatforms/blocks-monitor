@@ -1,6 +1,6 @@
 import * as React from "react";
-import type { ToastActionElement, ToastProps } from "@/components/ui-kits/toaster/toast";
 import { handleErrorMessages } from "@/lib/error";
+import { ToastActionElement, ToastProps } from "@/components/core";
 
 const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1000000;
@@ -12,7 +12,7 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement;
 };
 
-const actionTypes = {
+const _actionTypes = {
   ADD_TOAST: "ADD_TOAST",
   UPDATE_TOAST: "UPDATE_TOAST",
   DISMISS_TOAST: "DISMISS_TOAST",
@@ -26,7 +26,7 @@ function genId() {
   return count.toString();
 }
 
-type ActionType = typeof actionTypes;
+type ActionType = typeof _actionTypes;
 
 type Action =
   | {
@@ -178,7 +178,10 @@ type ErrorToastOptions = {
   customMessages?: Record<string, string>;
 };
 
-export const showSuccessToast = ({ title = "Success", description }: SuccessToastOptions) => {
+export const showSuccessToast = ({
+  title = "Success",
+  description,
+}: SuccessToastOptions) => {
   toast({
     variant: "success",
     title,
@@ -186,7 +189,10 @@ export const showSuccessToast = ({ title = "Success", description }: SuccessToas
   });
 };
 
-export const showInfoToast = ({ title = "Info", description }: InfoToastOptions) => {
+export const showInfoToast = ({
+  title = "Info",
+  description,
+}: InfoToastOptions) => {
   toast({
     variant: "info",
     title,
