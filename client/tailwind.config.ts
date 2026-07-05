@@ -4,7 +4,7 @@ import tailwindcssAnimate from "tailwindcss-animate";
 
 const config = {
   darkMode: ["class"],
-  blocklist: ["-: =;"],
+  blocklist: ["[-:=]"],
   content: [
     "./app/**/*.{ts,tsx}",
     "./index.html",

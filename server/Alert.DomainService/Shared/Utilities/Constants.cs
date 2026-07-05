@@ -2,7 +2,7 @@
 
 namespace DomainService.Shared.Utilities
 {
-    public class Constants
+    public class ObservabilityConstants
     {
         public static readonly string MonitorConfigurationUpdateQueue = "blocks_alert_monitor_config_update_listener";
         public List<string> HttpStatusCodes_200 = new List<string>() { "200,201,202,203,204,205,206,207,208,226" };
