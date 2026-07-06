@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-
+﻿
 namespace Worker
 {
     public class PeriodConfiguration
