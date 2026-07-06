@@ -1,38 +1,42 @@
-import { Navigate, type RouteObject, Outlet } from "react-router-dom";
-import HealthPage from "./dashboard/health";
-import HealthIncidentsPage from "./dashboard/health-incidents";
-import HealthMonitorPage from "./dashboard/health-monitor";
-// import ProfilePage from "./dashboard/profile";
+import { navigationMenus } from "@/constants/navigation-menus.constant";
+import { HealthLayout } from "@/layouts/health-layout/health-layout";
+import HealthPage from "@/pages/health";
+import IncidentPage from "@/pages/incidents";
+import MonitorDetailsPage from "@/pages/monitor/details";
 import {
-  AuthResolver,
-  PublicGuard,
-  ProtectedGuard,
-  ConsoleLayout,
-  ImpersonationChecker,
-  ImpersonationTerminator,
-  ImpersonationSynchronizer,
   CallbackPage,
   ConsolePage,
+  DashboardOverview,
+  EnvironmentsPage,
   LoginPage,
-} from "@seliseblocks/blocks-kit";
-import DashboardLayout from "@/layouts/dashboard-layout/dashboard-layout";
-import { DashboardOverview } from "@/pages/dashboard-overview";
-import { EnvironmentsPage } from "@/pages/environments";
-import { ErrorBoundary } from "@/components/error-boundary";
-import { ProfileRedirect } from "./dashboard/profile-redirect";
+  ProfilePage,
+} from "@seliseblocks/blocks-kit/pages";
+import {
+  ProjectOverviewLayout,
+  DashboardLayout,
+  ConsoleLayout,
+} from "@seliseblocks/blocks-kit/layouts";
+import {
+  ProtectedGuard,
+  PublicGuard,
+  AuthResolver,
+} from "@seliseblocks/blocks-kit/guards";
+
+import { Navigate, Outlet, type RouteObject } from "react-router-dom";
+
+const redirectPaths: Record<string, string> = {
+  "/app/health/monitor/*": "/app/health",
+  "/app/health/monitor/incidents/*": "/app/health",
+};
 
 export const routes = [
   {
-    element: (
-      <ErrorBoundary>
-        <Outlet />,
-      </ErrorBoundary>
-    ),
+    element: <Outlet />,
     children: [
       // All Redirect Url Handle here
       {
         path: "/login/callback",
-        element: <CallbackPage redirectUrl="/console" />,
+        element: <CallbackPage defaultRedirectUrl="/app/console" />,
       },
       {
         // Set User Auth Information and resolve authentication state before rendering any route
@@ -49,13 +53,12 @@ export const routes = [
                 <Outlet />
               </PublicGuard>
             ),
-            children: [
-              { path: "/login", element: <LoginPage name="blocks-monitor" /> },
-            ],
+            children: [{ path: "/login", element: <LoginPage /> }],
           },
 
           // protected
           {
+            path: "/app",
             element: (
               <ProtectedGuard>
                 <Outlet />
@@ -64,23 +67,30 @@ export const routes = [
             children: [
               {
                 element: (
-                  <ImpersonationChecker>
-                    <ImpersonationTerminator>
-                      <ConsoleLayout>
-                        <Outlet />
-                      </ConsoleLayout>
-                    </ImpersonationTerminator>
-                  </ImpersonationChecker>
+                  <ConsoleLayout>
+                    <Outlet />
+                  </ConsoleLayout>
                 ),
                 children: [
-                  { path: "/profile", element: <ProfileRedirect /> },
-                  { path: "/console", element: <ConsolePage /> },
+                  { path: "profile", element: <ProfilePage /> },
+                  { path: "console", element: <ConsolePage /> },
                 ],
               },
               {
-                path: "/project-overview",
-                element: <DashboardLayout />,
+                path: "project-overview",
+                element: (
+                  <ProjectOverviewLayout
+                    redirectPaths={redirectPaths}
+                    navigationMenus={navigationMenus}>
+                    <Outlet />
+                  </ProjectOverviewLayout>
+                ),
+
                 children: [
+                  {
+                    index: true,
+                    element: <Navigate to="environments" replace />,
+                  },
                   {
                     path: "environments",
                     element: <EnvironmentsPage />,
@@ -90,28 +100,37 @@ export const routes = [
               {
                 // impersonate
                 element: (
-                  <ImpersonationChecker>
-                    <ImpersonationSynchronizer>
-                      <DashboardLayout />
-                    </ImpersonationSynchronizer>
-                  </ImpersonationChecker>
+                  <DashboardLayout
+                    redirectPaths={redirectPaths}
+                    navigationMenus={navigationMenus}>
+                    <Outlet />
+                  </DashboardLayout>
                 ),
                 children: [
-                  { path: "/dashboard", element: <DashboardOverview /> },
-                  { path: "/health", element: <HealthPage /> },
+                  { path: "dashboard", element: <DashboardOverview /> },
                   {
-                    path: "/health/monitor/:id",
-                    element: <HealthMonitorPage />,
-                  },
-                  {
-                    path: "/health/monitor/incidents/:id",
-                    element: <HealthIncidentsPage />,
+                    element: <HealthLayout />,
+                    children: [
+                      {
+                        index: true,
+                        element: <Navigate to="health" replace />,
+                      },
+                      { path: "health", element: <HealthPage /> },
+                      {
+                        path: "monitor/:id",
+                        element: <MonitorDetailsPage />,
+                      },
+                      {
+                        path: "monitor/incidents/:id",
+                        element: <IncidentPage />,
+                      },
+                    ],
                   },
                 ],
               },
             ],
           },
-          { path: "/", element: <Navigate to="/console" replace /> },
+          { path: "/", element: <Navigate to="/app/console" replace /> },
           { path: "*", element: <Navigate to="/login" replace /> },
         ],
       },
