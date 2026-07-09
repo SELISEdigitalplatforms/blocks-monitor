@@ -24,6 +24,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { useScopedPath } from "@seliseblocks/blocks-kit/hooks";
 import {
   getMonitorFormDefaultValues,
   type MonitorFormMode,
@@ -60,6 +61,7 @@ export const useMonitorFormController = ({
   onSuccess,
 }: UseMonitorFormControllerParams) => {
   const navigate = useNavigate();
+  const scoped = useScopedPath();
   const isEditMode = mode === "edit";
 
   const { data: monitorDetails } = useGetMonitorById(itemId || "");
@@ -263,7 +265,7 @@ export const useMonitorFormController = ({
         }
 
         if (mode === "add") {
-          navigate(`/app/monitor/${res?.data?.itemId}`);
+          navigate(scoped(`monitor/${res?.data?.itemId}`));
         }
       } else {
         const res =
@@ -280,7 +282,7 @@ export const useMonitorFormController = ({
         }
 
         if (mode === "add") {
-          navigate(`/app/monitor/${res?.data?.itemId}`);
+          navigate(scoped(`monitor/${res?.data?.itemId}`));
         }
       }
 

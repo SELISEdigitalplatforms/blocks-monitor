@@ -25,6 +25,7 @@ import {
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useScopedPath } from "@seliseblocks/blocks-kit/hooks";
 import { useAlertFilterQueryParams } from "./alerts-filter-toolbar";
 
 type AlertsListProps = {
@@ -81,6 +82,7 @@ const useAlertSortQueryParams = () =>
 
 export function AlertsList({ data, isLoading }: AlertsListProps) {
   const navigate = useNavigate();
+  const scoped = useScopedPath();
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
   const { queryParams } = useAlertFilterQueryParams();
   const { sortQueryParams, setSortQueryParams } = useAlertSortQueryParams();
@@ -269,7 +271,7 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
   });
   const handleRowClick = (itemId: string) => {
     if (itemId) {
-      navigate(`/app/monitor/${itemId}`);
+      navigate(scoped(`monitor/${itemId}`));
     }
   };
   if (isLoading) return <LoadingSkelton />;
