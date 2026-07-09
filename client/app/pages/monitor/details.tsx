@@ -26,6 +26,7 @@ import { IMonitorSummary } from "@/models/alerts.model";
 import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useScopedPath } from "@seliseblocks/blocks-kit/hooks";
 import IncidentList from "@/components/module/incident/incident-list";
 import ResponseTime from "@/components/module/monitor/details/response-time";
 import { EditSingleMonitorForm } from "../../components/module/monitor/form/edit-monitor-form";
@@ -170,6 +171,7 @@ const MonitorDetailsPage = () => {
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
 
   const navigate = useNavigate();
+  const scoped = useScopedPath();
   const params = useParams();
   const monitorId = params.id as string;
 
@@ -291,7 +293,7 @@ const MonitorDetailsPage = () => {
                   <Button
                     variant="outline"
                     onClick={() =>
-                      navigate(`/app/monitor/incidents/${monitorId}`)
+                      navigate(scoped(`monitor/incidents/${monitorId}`))
                     }>
                     View all incidents
                   </Button>
