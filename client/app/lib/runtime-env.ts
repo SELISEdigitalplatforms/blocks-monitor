@@ -7,6 +7,7 @@ export type RuntimeKey =
   | "BLOCKS_GITHUB_SSO_CLIENT_ID"
   | "BLOCKS_OIDC_CLIENT_ID"
   | "BLOCKS_BASE_DOMAIN"
+  | "BLOCKS_DEV_HOST"
   | "BLOCKS_IAM_BASE_URL"
   | "BLOCKS_IAM_CALLBACK_URL"
   | "BLOCKS_LOCALIZATION_BASE_URL"
@@ -37,12 +38,6 @@ export type RuntimeKey =
   | "BLOCKS_MONITOR_CLIENT_ID"
   | "BLOCKS_RELEASE_CLIENT_ID"
   | "BLOCKS_STUDIO_CLIENT_ID";
-
-declare global {
-  interface Window {
-    __BLOCKS_ENV__?: Partial<Record<RuntimeKey, string>>;
-  }
-}
 
 const isPlaceholder = (value?: string) =>
   !!value && value.startsWith(PLACEHOLDER_PREFIX) && value.endsWith("__");
@@ -82,8 +77,16 @@ export const getRuntimeEnv = (
   options: GetRuntimeEnvOptions = {},
 ): string => {
   let value = "";
-  const windowValue =
-    typeof window !== "undefined" ? window.__BLOCKS_ENV__?.[key] : undefined;
+
+  // Cast to a wider record type since Window.__BLOCKS_ENV__ is declared by blocks-kit
+  // and its RuntimeKey union may differ from ours
+  const env =
+    typeof window !== "undefined"
+      ? (window.__BLOCKS_ENV__ as Partial<Record<string, string>> | undefined)
+      : undefined;
+
+  const windowValue = env?.[key];
+
   if (windowValue && !isPlaceholder(windowValue)) {
     value = windowValue;
   } else {
