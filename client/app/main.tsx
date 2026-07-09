@@ -8,7 +8,7 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import QueryProvider from "@/providers/query-provider";
 import { router } from "./router";
 import "./styles/globals.css";
-import { BlocksAppLayout } from "@seliseblocks/blocks-kit/layouts";
+import { BlocksAppLayout } from "@seliseblocks/blocks-kit/providers";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
