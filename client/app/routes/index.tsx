@@ -12,8 +12,8 @@ import {
   ProfilePage,
 } from "@seliseblocks/blocks-kit/pages";
 import {
-  ProjectOverviewLayout,
-  DashboardLayout,
+  ProjectOverviewRoute,
+  DashboardRoute,
   ConsoleLayout,
 } from "@seliseblocks/blocks-kit/layouts";
 import {
@@ -65,6 +65,7 @@ export const routes = [
               </ProtectedGuard>
             ),
             children: [
+              { index: true, element: <Navigate to="console" replace /> },
               {
                 element: (
                   <ConsoleLayout>
@@ -77,13 +78,12 @@ export const routes = [
                 ],
               },
               {
-                path: "project-overview",
+                path: "project/:tenantGroupId",
                 element: (
-                  <ProjectOverviewLayout
+                  <ProjectOverviewRoute
                     redirectPaths={redirectPaths}
-                    navigationMenus={navigationMenus}>
-                    <Outlet />
-                  </ProjectOverviewLayout>
+                    navigationMenus={navigationMenus}
+                  />
                 ),
 
                 children: [
@@ -99,14 +99,18 @@ export const routes = [
               },
               {
                 // impersonate
+                path: ":itemId",
                 element: (
-                  <DashboardLayout
+                  <DashboardRoute
                     redirectPaths={redirectPaths}
-                    navigationMenus={navigationMenus}>
-                    <Outlet />
-                  </DashboardLayout>
+                    navigationMenus={navigationMenus}
+                  />
                 ),
                 children: [
+                  {
+                    index: true,
+                    element: <Navigate to="dashboard" replace />,
+                  },
                   { path: "dashboard", element: <DashboardOverview /> },
                   {
                     element: <HealthLayout />,
