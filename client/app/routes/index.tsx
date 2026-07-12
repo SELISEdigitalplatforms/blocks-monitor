@@ -4,23 +4,21 @@ import HealthPage from "@/pages/health";
 import IncidentPage from "@/pages/incidents";
 import MonitorDetailsPage from "@/pages/monitor/details";
 import {
+  AuthResolver,
+  ProtectedGuard,
+  PublicGuard,
+} from "@seliseblocks/blocks-kit/guards";
+import {
+  ConsoleLayout,
+  DashboardRoute,
+} from "@seliseblocks/blocks-kit/layouts";
+import {
   CallbackPage,
   ConsolePage,
   DashboardOverview,
-  EnvironmentsPage,
   LoginPage,
   ProfilePage,
 } from "@seliseblocks/blocks-kit/pages";
-import {
-  ProjectOverviewRoute,
-  DashboardRoute,
-  ConsoleLayout,
-} from "@seliseblocks/blocks-kit/layouts";
-import {
-  ProtectedGuard,
-  PublicGuard,
-  AuthResolver,
-} from "@seliseblocks/blocks-kit/guards";
 
 import { Navigate, Outlet, type RouteObject } from "react-router-dom";
 
@@ -77,26 +75,26 @@ export const routes = [
                   { path: "console", element: <ConsolePage /> },
                 ],
               },
-              {
-                path: "project/:tenantGroupId",
-                element: (
-                  <ProjectOverviewRoute
-                    redirectPaths={redirectPaths}
-                    navigationMenus={navigationMenus}
-                  />
-                ),
+              // {
+              //   path: "project/:tenantGroupId",
+              //   element: (
+              //     <ProjectOverviewRoute
+              //       redirectPaths={redirectPaths}
+              //       navigationMenus={navigationMenus}
+              //     />
+              //   ),
 
-                children: [
-                  {
-                    index: true,
-                    element: <Navigate to="environments" replace />,
-                  },
-                  {
-                    path: "environments",
-                    element: <EnvironmentsPage />,
-                  },
-                ],
-              },
+              //   children: [
+              //     {
+              //       index: true,
+              //       element: <Navigate to="environments" replace />,
+              //     },
+              //     {
+              //       path: "environments",
+              //       element: <EnvironmentsPage />,
+              //     },
+              //   ],
+              // },
               {
                 // impersonate
                 path: ":itemId",
