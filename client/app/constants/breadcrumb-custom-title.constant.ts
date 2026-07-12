@@ -7,8 +7,6 @@ export const BREADCRUMB_CUSTOM_TITLES: Record<RouterType, string | null> = {
   "/app": null,
   "/app/console": null,
   "/app/:itemId": null,
-  "/app/project/:tenantGroupId": null,
-  "/app/project/:tenantGroupId/environments": null,
   "/app/:itemId/dashboard": null,
   "/app/:itemId/health": null,
   "/app/:itemId/monitor/:id": "Alert",
