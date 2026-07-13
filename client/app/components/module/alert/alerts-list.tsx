@@ -93,13 +93,14 @@ export function AlertsList({
             label="Name"
             value={sortQueryParams}
             onChange={onSortChange}
+            className="sm:w-[150px] w-[180px]"
           />
         ),
         cell: ({ row }) => {
           const name =
             row.original?.name || row.original.operationName || "N/A";
           return (
-            <div className="ml-2 flex flex-row items-center sm:ml-0 sm:w-[180px]">
+            <div className="ml-2 flex flex-row items-center sm:ml-0 w-[180px] sm:w-[150px]">
               <span className="break-all">{name}</span>
             </div>
           );
@@ -114,6 +115,7 @@ export function AlertsList({
             label="Monitor Type"
             value={sortQueryParams}
             onChange={onSortChange}
+            className="sm:w-[150px] w-[180px]"
           />
         ),
         cell: ({ row }) => {
@@ -137,6 +139,7 @@ export function AlertsList({
             label="URL"
             value={sortQueryParams}
             onChange={onSortChange}
+            className="sm:w-[150px] w-[180px]"
           />
         ),
         cell: ({ row }) => {
@@ -158,6 +161,7 @@ export function AlertsList({
             label="Tagged Service"
             value={sortQueryParams}
             onChange={onSortChange}
+            className="sm:w-[150px] w-[180px]"
           />
         ),
         cell: ({ row }) => {
@@ -181,6 +185,7 @@ export function AlertsList({
             label="Uptime"
             value={sortQueryParams}
             onChange={onSortChange}
+            className="sm:w-[150px] w-[180px]"
           />
         ),
         cell: ({ row }) => {

@@ -24,7 +24,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { parseAsInteger, useQueryStates } from "nuqs";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
 type IncidentListProps = {
   isLoading: boolean;
@@ -83,55 +83,9 @@ const IncidentList = ({
     }
   };
 
-  const getSortValue = useCallback(
-    (incident: IncidentTree): string | number => {
-      switch (sortQueryParams.property) {
-        case "status":
-          return incident.isResolved ? 1 : 0;
-        case "lastStatusCode":
-          return incident.lastStatusCode || 0;
-        case "rootCause":
-          return parseFailureReason(incident.failureReason) || "";
-        case "started_time":
-          return new Date(incident.startTime).getTime();
-        case "end_time":
-          return incident.endTime ? new Date(incident.endTime).getTime() : 0;
-        case "duration": {
-          const startTime = new Date(incident.startTime).getTime();
-          const endTime = incident.endTime
-            ? new Date(incident.endTime).getTime()
-            : Date.now();
-          return Math.max(endTime - startTime, 0);
-        }
-        default:
-          return 0;
-      }
-    },
-    [sortQueryParams.property],
+  const enableSorting = Boolean(
+    externalSortQueryParams && externalOnSortChange,
   );
-
-  const sortedData = useMemo(() => {
-    const nextData = [...data];
-
-    nextData.sort((left, right) => {
-      const leftValue = getSortValue(left);
-      const rightValue = getSortValue(right);
-
-      if (leftValue === rightValue) return 0;
-
-      const comparison =
-        typeof leftValue === "string" && typeof rightValue === "string"
-          ? leftValue.localeCompare(rightValue)
-          : leftValue > rightValue
-            ? 1
-            : -1;
-
-      return sortQueryParams.isDescending ? -comparison : comparison;
-    });
-
-    return nextData;
-  }, [data, sortQueryParams, getSortValue]);
-
   const columns = useMemo<ColumnDef<IncidentTree>[]>(() => {
     const cols: ColumnDef<IncidentTree>[] = [
       {
@@ -142,6 +96,7 @@ const IncidentList = ({
             label="Status"
             value={sortQueryParams}
             onChange={onSortChange}
+            isSortingEnabled={enableSorting}
           />
         ),
         cell: ({ row }) => {
@@ -186,6 +141,7 @@ const IncidentList = ({
             label="Root cause"
             value={sortQueryParams}
             onChange={onSortChange}
+            isSortingEnabled={enableSorting}
           />
         ),
         cell: ({ row }) => (
@@ -202,6 +158,7 @@ const IncidentList = ({
             label="Start time"
             value={sortQueryParams}
             onChange={onSortChange}
+            isSortingEnabled={enableSorting}
           />
         ),
         cell: ({ row }) => {
@@ -221,6 +178,7 @@ const IncidentList = ({
             label="End time"
             value={sortQueryParams}
             onChange={onSortChange}
+            isSortingEnabled={enableSorting}
           />
         ),
         cell: ({ row }) => {
@@ -244,6 +202,7 @@ const IncidentList = ({
             label="Duration"
             value={sortQueryParams}
             onChange={onSortChange}
+            isSortingEnabled={enableSorting}
           />
         ),
         cell: ({ row }) => {
@@ -262,10 +221,10 @@ const IncidentList = ({
       },
     ];
     return cols;
-  }, [showLastStatus, sortQueryParams, onSortChange]);
+  }, [showLastStatus, sortQueryParams, onSortChange, enableSorting]);
 
   const table = useReactTable<IncidentTree>({
-    data: sortedData,
+    data,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
