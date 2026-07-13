@@ -32,6 +32,7 @@ import ResponseTime from "@/components/module/monitor/details/response-time";
 import { EditSingleMonitorForm } from "../../components/module/monitor/form/edit-monitor-form";
 import { MonitorModal } from "../../components/module/monitor/modal/monitor-modal";
 import { Button } from "@/components/core";
+import { useSortQueryParams } from "@/components/common/filter-toolbar";
 
 interface MonitorSummaryProps {
   data: IMonitorSummary[];
@@ -188,6 +189,9 @@ const MonitorDetailsPage = () => {
     timeRange,
     interval,
   });
+  const { sortQueryParams, setSortQueryParams } = useSortQueryParams({
+    initial: { property: "started_time", isDescending: true },
+  });
   const gracePeriod = monitorData?.data?.gracePeriodInSeconds;
   const intervalInSeconds = monitorData?.data?.intervalInSeconds;
   const requestTimeout = monitorData?.data?.timeoutInSeconds;
@@ -302,7 +306,10 @@ const MonitorDetailsPage = () => {
               <IncidentList
                 data={data?.monitorIncidents || []}
                 showLastStatus={request}
-              />{" "}
+                isLoading={isLoading || isMonitorLoading || isRTLoading}
+                sortQueryParams={sortQueryParams}
+                onSortChange={setSortQueryParams}
+              />
             </div>
           </CardContent>
 

@@ -275,6 +275,7 @@ export function AlertsList({
       navigate(scoped(`monitor/${itemId}`));
     }
   };
+
   return (
     <ScrollArea className="w-full">
       <Table className="text-sm">
@@ -332,6 +333,7 @@ export function AlertsList({
           </TableBody>
         )}
       </Table>
+
       <ScrollBar orientation="horizontal" />
     </ScrollArea>
   );

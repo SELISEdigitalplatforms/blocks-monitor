@@ -59,7 +59,7 @@ const IncidentPage = () => {
             onPageChange={handlePageChange}
             sortQueryParams={sortQueryParams}
             onSortChange={setSortQueryParams}
-          />{" "}
+          />
         </CardContent>
       </Card>
     </main>
