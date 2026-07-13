@@ -1,6 +1,4 @@
-import {
-  FilterControls,
-} from "@/components/common/filter-toolbar";
+import { FilterControls } from "@/components/common/filter-toolbar";
 import { ScrollArea, ScrollBar } from "@/components/core";
 import { Skeleton } from "@/components/core";
 import {
