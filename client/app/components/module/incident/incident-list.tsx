@@ -1,5 +1,13 @@
-import { ScrollArea, ScrollBar } from "@/components/core";
+import type { SortValue } from "@/components/common/filter-toolbar";
 import {
+  FilterControls,
+  useSortQueryParams,
+} from "@/components/common/filter-toolbar";
+import { LoadingSkelton } from "@/components/common/table-skeleton";
+import {
+  Pagination,
+  ScrollArea,
+  ScrollBar,
   Table,
   TableBody,
   TableCell,
@@ -7,11 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/core";
-import {
-  FilterControls,
-  useSortQueryParams,
-} from "@/components/common/filter-toolbar";
-import { useCallback, useMemo } from "react";
+import { IncidentTree } from "@/models/alerts.model";
 import {
   CellContext,
   ColumnDef,
@@ -19,12 +23,11 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Pagination } from "@/components/core";
 import { parseAsInteger, useQueryStates } from "nuqs";
-import { IncidentTree } from "@/models/alerts.model";
-import type { SortValue } from "@/components/common/filter-toolbar";
+import { useCallback, useMemo } from "react";
 
 type IncidentListProps = {
+  isLoading: boolean;
   data: IncidentTree[];
   showLastStatus?: boolean;
   totalCount?: number;
@@ -47,6 +50,7 @@ const useIncidentSortQueryParams = () =>
   useSortQueryParams({ initial: { property: "status", isDescending: false } });
 
 const IncidentList = ({
+  isLoading,
   data,
   showLastStatus,
   totalCount = 0,
@@ -287,31 +291,38 @@ const IncidentList = ({
           ))}
         </TableHeader>
 
-        <TableBody>
-          {table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-                className="text-medium-emphasis"
-                isHoverable>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+        {isLoading ? (
+          <LoadingSkelton table={table} />
+        ) : (
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className="text-medium-emphasis"
+                  isHoverable>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={table.getAllColumns().length}
+                  className="h-24 text-center text-muted-foreground">
+                  No results.
+                </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell
-                colSpan={table.getAllColumns().length}
-                className="h-24 text-center text-muted-foreground">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
+            )}
+          </TableBody>
+        )}
       </Table>
       {totalCount > pageSize && (
         <div className="mt-5 flex items-center justify-end">

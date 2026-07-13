@@ -1,7 +1,9 @@
+import type { SortValue } from "@/components/common/filter-toolbar";
 import { FilterControls } from "@/components/common/filter-toolbar";
-import { ScrollArea, ScrollBar } from "@/components/core";
-import { Skeleton } from "@/components/core";
+import { LoadingSkelton } from "@/components/common/table-skeleton";
 import {
+  ScrollArea,
+  ScrollBar,
   Table,
   TableBody,
   TableCell,
@@ -9,10 +11,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/core";
-import { useProjectStore } from "@seliseblocks/blocks-kit";
 import AlertAction from "@/components/module/alert/alert-action";
 import ProgressBar from "@/components/module/alert/progress-bar";
 import { AlertTree } from "@/models/alerts.model";
+import { useProjectStore } from "@seliseblocks/blocks-kit";
+import { useScopedPath } from "@seliseblocks/blocks-kit/hooks";
 import {
   ColumnDef,
   flexRender,
@@ -22,9 +25,7 @@ import {
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useScopedPath } from "@seliseblocks/blocks-kit/hooks";
 import { useAlertFilterQueryParams } from "./alerts-filter-toolbar";
-import type { SortValue } from "@/components/common/filter-toolbar";
 
 type AlertsListProps = {
   data: AlertTree[];
@@ -33,13 +34,6 @@ type AlertsListProps = {
   onSortChange: (params: SortValue) => void;
 };
 
-export const LoadingSkelton = () => (
-  <div className="grid w-full gap-2">
-    {Array.from({ length: 10 }).map((_, index) => (
-      <Skeleton key={index} className="h-12 w-full rounded-xl" />
-    ))}
-  </div>
-);
 export const formatSeconds = (seconds: number) => {
   if (seconds < 60) {
     return `${seconds}s`;
@@ -94,6 +88,7 @@ export function AlertsList({
         accessorKey: "name",
         header: () => (
           <FilterControls.SortHeader
+            key={"name"}
             id="name"
             label="Name"
             value={sortQueryParams}
@@ -114,6 +109,7 @@ export function AlertsList({
         accessorKey: "monitorType",
         header: () => (
           <FilterControls.SortHeader
+            key={"monitor_type"}
             id="monitor_type"
             label="Monitor Type"
             value={sortQueryParams}
@@ -136,6 +132,7 @@ export function AlertsList({
         accessorKey: "url",
         header: () => (
           <FilterControls.SortHeader
+            key={"url"}
             id="url"
             label="URL"
             value={sortQueryParams}
@@ -156,6 +153,7 @@ export function AlertsList({
         accessorKey: "taggedService",
         header: () => (
           <FilterControls.SortHeader
+            key={"tagged_service"}
             id="tagged_service"
             label="Tagged Service"
             value={sortQueryParams}
@@ -178,6 +176,7 @@ export function AlertsList({
         accessorKey: "uptime",
         header: () => (
           <FilterControls.SortHeader
+            key={"uptime"}
             id="uptime"
             label="Uptime"
             value={sortQueryParams}
@@ -212,6 +211,7 @@ export function AlertsList({
         accessorKey: "status",
         header: () => (
           <FilterControls.SortHeader
+            key={"status"}
             id="status"
             label="Status"
             value={sortQueryParams}
@@ -275,7 +275,6 @@ export function AlertsList({
       navigate(scoped(`monitor/${itemId}`));
     }
   };
-  if (isLoading) return <LoadingSkelton />;
   return (
     <ScrollArea className="w-full">
       <Table className="text-sm">
@@ -299,32 +298,39 @@ export function AlertsList({
             </TableRow>
           ))}
         </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-                className="text-medium-emphasis"
-                onClick={() => handleRowClick(row.original.itemId as string)}
-                isHoverable>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+        {isLoading ? (
+          <LoadingSkelton table={table} />
+        ) : (
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className="text-medium-emphasis"
+                  onClick={() => handleRowClick(row.original.itemId as string)}
+                  isHoverable>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={table.getAllColumns().length}
+                  className="h-24 text-center text-muted-foreground">
+                  No results.
+                </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell
-                colSpan={table.getAllColumns().length}
-                className="h-24 text-center text-muted-foreground">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
+            )}
+          </TableBody>
+        )}
       </Table>
       <ScrollBar orientation="horizontal" />
     </ScrollArea>
