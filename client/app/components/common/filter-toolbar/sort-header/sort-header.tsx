@@ -17,15 +17,15 @@ export const useSortQueryParams = ({
   initial?: SortValue;
 }) => {
   const [queryParams, setQueryParams] = useQueryStates({
-    "sort-property": parseAsString.withDefault(initial.property),
-    "sort-isDescending": parseAsBoolean.withDefault(initial.isDescending),
+    sortProperty: parseAsString.withDefault(initial.property),
+    isDescending: parseAsBoolean.withDefault(initial.isDescending),
   });
 
   const setSortQueryParams = useCallback(
     (sort: SortValue) => {
       setQueryParams(() => ({
-        "sort-isDescending": sort.isDescending,
-        "sort-property": sort.property,
+        isDescending: sort.isDescending,
+        sortProperty: sort.property,
       }));
     },
     [setQueryParams],
@@ -36,8 +36,8 @@ export const useSortQueryParams = ({
   }, [setQueryParams]);
 
   const sortQueryParams = {
-    property: queryParams["sort-property"],
-    isDescending: queryParams["sort-isDescending"],
+    property: queryParams["sortProperty"],
+    isDescending: queryParams["isDescending"],
   };
 
   return {
@@ -52,7 +52,10 @@ export const SortHeader = ({ label, id, value, onChange }: SortHeaderProps) => {
 
   const onClickHandler = (e: MouseEvent) => {
     e.stopPropagation();
-    onChange({ property: id, isDescending: id !== value.property ? false : !value.isDescending });
+    onChange({
+      property: id,
+      isDescending: id !== value.property ? false : !value.isDescending,
+    });
   };
 
   const isActive = id === value.property;
@@ -60,7 +63,8 @@ export const SortHeader = ({ label, id, value, onChange }: SortHeaderProps) => {
   return (
     <div className="flex cursor-pointer items-center" onClick={onClickHandler}>
       <span className="font-bold text-medium-emphasis">{label}</span>
-      <Icon className={`ml-2 h-4 w-4 ${isActive ? "text-high-emphasis" : "text-medium-emphasis opacity-50"}`}></Icon>
+      <Icon
+        className={`ml-2 h-4 w-4 ${isActive ? "text-high-emphasis" : "text-medium-emphasis opacity-50"}`}></Icon>
     </div>
   );
 };

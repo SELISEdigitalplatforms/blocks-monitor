@@ -1,15 +1,13 @@
 "use client";
 
-import { Card, CardContent, CardHeader } from "@/components/core";
-import { useGetAllIncidentList } from "@/hooks/use-alerts";
-import { useNavigate, useParams } from "react-router-dom";
+import { useSortQueryParams } from "@/components/common/filter-toolbar";
+import { Button, Card, CardContent, CardHeader } from "@/components/core";
 import IncidentList, {
   useAlertFilterQueryParams,
 } from "@/components/module/incident/incident-list";
-import { Button } from "@/components/core";
+import { useGetAllIncidentList } from "@/hooks/use-alerts";
 import { ArrowLeft } from "lucide-react";
-import { LoadingSkelton } from "@/components/module/alert/alerts-list";
-import { useSortQueryParams } from "@/components/common/filter-toolbar";
+import { useNavigate, useParams } from "react-router-dom";
 
 const IncidentPage = () => {
   const navigate = useNavigate();
@@ -31,9 +29,7 @@ const IncidentPage = () => {
   const handlePageChange = (page: number) => {
     setQueryParams((params) => ({ ...params, page }));
   };
-  if (isLoading) {
-    return <LoadingSkelton />;
-  }
+
   return (
     <main>
       {/* <PageBreadcrumb breadcrumbIndex={2} /> */}
@@ -55,6 +51,7 @@ const IncidentPage = () => {
         <CardHeader></CardHeader>
         <CardContent>
           <IncidentList
+            isLoading={isLoading}
             data={data?.data || []}
             pageSize={queryParams.pageSize}
             totalCount={data?.totalCount}
