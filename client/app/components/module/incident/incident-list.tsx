@@ -5,7 +5,6 @@ import {
 } from "@/components/common/filter-toolbar";
 import { LoadingSkelton } from "@/components/common/table-skeleton";
 import {
-  Pagination,
   ScrollArea,
   ScrollBar,
   Table,
@@ -13,6 +12,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
+  TablePagination,
   TableRow,
 } from "@/components/core";
 import { IncidentTree } from "@/models/alerts.model";
@@ -54,7 +54,7 @@ const IncidentList = ({
   data,
   showLastStatus,
   totalCount = 0,
-  pageNumber,
+  pageNumber = 0,
   pageSize = 10,
   onPageChange,
   sortQueryParams: externalSortQueryParams,
@@ -69,6 +69,9 @@ const IncidentList = ({
   const handlePageChange =
     onPageChange ||
     ((page: number) => setQueryParams((params) => ({ ...params, page })));
+  const handlePageSizeChange = (pageSize: number) => {
+    setQueryParams((params) => ({ ...params, page: 0, pageSize }));
+  };
 
   const parseFailureReason = (reason?: string | null): string | undefined => {
     if (!reason) return undefined; // instead of null
@@ -326,12 +329,13 @@ const IncidentList = ({
       </Table>
       {totalCount > pageSize && (
         <div className="mt-5 flex items-center justify-end">
-          <Pagination
-            page={pageNumber as number}
-            pageSize={pageSize as number}
-            pageSizeOptions={[pageSize as number]}
-            onChange={handlePageChange}
-            totalCount={totalCount || 0}
+          <TablePagination
+            pageIndex={pageNumber}
+            pageSize={pageSize}
+            pageSizeOptions={[5, 10, 15]}
+            onPageSizeChange={handlePageSizeChange}
+            onPageChange={handlePageChange}
+            pageCount={Math.ceil(totalCount / pageSize)}
           />
         </div>
       )}

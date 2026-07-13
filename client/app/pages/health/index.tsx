@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/core";
-import { Pagination } from "@/components/core";
+import { TablePagination } from "@/components/core";
 import {
   Select,
   SelectContent,
@@ -135,13 +135,13 @@ const HealthPage = () => {
         {/* Pagination */}
         {data?.totalCount !== undefined && (
           <div className="mt-5 flex items-center md:justify-end">
-            <Pagination
-              page={queryParams.page}
+            <TablePagination
+              pageIndex={queryParams.page}
               pageSize={queryParams.pageSize}
               pageSizeOptions={[5, 10, 20]}
               onPageSizeChange={handlePageSizeChange}
-              onChange={handlePageChange}
-              totalCount={data?.totalCount || 0}
+              onPageChange={handlePageChange}
+              pageCount={Math.ceil(data.totalCount / queryParams.pageSize)}
             />
           </div>
         )}
