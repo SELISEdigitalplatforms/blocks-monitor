@@ -44,9 +44,9 @@ namespace Api.Controllers
         /// <returns>A list of monitor configurations.</returns>
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetMonitorList([FromQuery] string projectKey, [FromQuery] string? monitorSourcetype, [FromQuery] int pageNumber = 0, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetMonitorList([FromQuery] string projectKey, [FromQuery] string? monitorSourcetype, [FromQuery] int pageNumber = 0, [FromQuery] int pageSize = 10, [FromQuery] string? sortProperty = null, [FromQuery] bool sortIsDescending = false)
         {
-            var result = await _monitorConfigurationService.GetConfigurationListAsync(projectKey, monitorSourcetype, pageNumber, pageSize);
+            var result = await _monitorConfigurationService.GetConfigurationListAsync(projectKey, monitorSourcetype, pageNumber, pageSize, sortProperty, sortIsDescending);
             return Ok(result);
         }
 
@@ -125,9 +125,9 @@ namespace Api.Controllers
         /// <returns>A paginated list of incidents.</returns>
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetIncidentList([FromQuery] string monitorId, int pageNumber = 0, int pageSize = 10)
+        public async Task<IActionResult> GetIncidentList([FromQuery] string monitorId, int pageNumber = 0, int pageSize = 10, [FromQuery] string? sortProperty = null, [FromQuery] bool sortIsDescending = true)
         {
-            var result = await _monitorIncidentService.GetIncidentsByMonitorIdAsync(monitorId, pageNumber, pageSize);
+            var result = await _monitorIncidentService.GetIncidentsByMonitorIdAsync(monitorId, pageNumber, pageSize, sortProperty, sortIsDescending);
             return Ok(result);
         }
 

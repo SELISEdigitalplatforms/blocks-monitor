@@ -9,6 +9,7 @@ import IncidentList, {
 import { Button } from "@/components/core";
 import { ArrowLeft } from "lucide-react";
 import { LoadingSkelton } from "@/components/module/alert/alerts-list";
+import { useSortQueryParams } from "@/components/common/filter-toolbar";
 
 const IncidentPage = () => {
   const navigate = useNavigate();
@@ -16,11 +17,16 @@ const IncidentPage = () => {
   const monitorId = params.id as string;
 
   const { queryParams, setQueryParams } = useAlertFilterQueryParams();
+  const { sortQueryParams, setSortQueryParams } = useSortQueryParams({
+    initial: { property: "started_time", isDescending: true },
+  });
 
   const { data, isLoading } = useGetAllIncidentList(
     monitorId,
     queryParams.page,
     queryParams.pageSize,
+    sortQueryParams.property,
+    sortQueryParams.isDescending,
   );
   const handlePageChange = (page: number) => {
     setQueryParams((params) => ({ ...params, page }));
@@ -54,6 +60,8 @@ const IncidentPage = () => {
             totalCount={data?.totalCount}
             pageNumber={queryParams.page}
             onPageChange={handlePageChange}
+            sortQueryParams={sortQueryParams}
+            onSortChange={setSortQueryParams}
           />{" "}
         </CardContent>
       </Card>

@@ -60,6 +60,8 @@ class AlertsService {
     pageNumber,
     pageSize,
     monitorSourceType,
+    sortProperty,
+    sortIsDescending,
   }: IGetHealthMonitorListPayload) {
     const params = new URLSearchParams({
       projectKey,
@@ -67,6 +69,10 @@ class AlertsService {
       pageSize: pageSize.toString(),
       ...(monitorSourceType !== null && {
         monitorSourceType: monitorSourceType.toString(),
+      }),
+      ...(sortProperty && { sortProperty }),
+      ...(sortProperty && {
+        sortIsDescending: String(Boolean(sortIsDescending)),
       }),
     });
 
@@ -78,8 +84,18 @@ class AlertsService {
     monitorId: string,
     pageNumber: number = 0,
     pageSize: number = 10,
+    sortProperty = "started_time",
+    sortIsDescending = true,
   ) {
-    const url = `${ALERT_ENDPOINTS.GET_INCIDENT_LIST}?monitorId=${encodeURIComponent(monitorId)}&pageNumber=${pageNumber}&pageSize=${pageSize}`;
+    const params = new URLSearchParams({
+      monitorId,
+      pageNumber: pageNumber.toString(),
+      pageSize: pageSize.toString(),
+      sortProperty,
+      sortIsDescending: String(sortIsDescending),
+    });
+
+    const url = `${ALERT_ENDPOINTS.GET_INCIDENT_LIST}?${params.toString()}`;
     return this.httpClient.get<IMonitorIncidentListResponse>(url);
   }
   async getMonitorById(monitorId: string) {

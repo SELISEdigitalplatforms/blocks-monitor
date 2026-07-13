@@ -1,6 +1,5 @@
 import {
   FilterControls,
-  useSortQueryParams,
 } from "@/components/common/filter-toolbar";
 import { ScrollArea, ScrollBar } from "@/components/core";
 import { Skeleton } from "@/components/core";
@@ -27,10 +26,13 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useScopedPath } from "@seliseblocks/blocks-kit/hooks";
 import { useAlertFilterQueryParams } from "./alerts-filter-toolbar";
+import type { SortValue } from "@/components/common/filter-toolbar";
 
 type AlertsListProps = {
   data: AlertTree[];
   isLoading: boolean;
+  sortQueryParams: SortValue;
+  onSortChange: (params: SortValue) => void;
 };
 
 export const LoadingSkelton = () => (
@@ -77,15 +79,16 @@ function formatDate(ms: number): string {
     return `${seconds}s`;
   }
 }
-const useAlertSortQueryParams = () =>
-  useSortQueryParams({ initial: { property: "name", isDescending: false } });
-
-export function AlertsList({ data, isLoading }: AlertsListProps) {
+export function AlertsList({
+  data,
+  isLoading,
+  sortQueryParams,
+  onSortChange,
+}: AlertsListProps) {
   const navigate = useNavigate();
   const scoped = useScopedPath();
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
   const { queryParams } = useAlertFilterQueryParams();
-  const { sortQueryParams, setSortQueryParams } = useAlertSortQueryParams();
 
   const columns = useMemo<ColumnDef<AlertTree>[]>(
     () => [
@@ -96,7 +99,7 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
             id="name"
             label="Name"
             value={sortQueryParams}
-            onChange={setSortQueryParams}
+            onChange={onSortChange}
           />
         ),
         cell: ({ row }) => {
@@ -116,7 +119,7 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
             id="monitor_type"
             label="Monitor Type"
             value={sortQueryParams}
-            onChange={setSortQueryParams}
+            onChange={onSortChange}
           />
         ),
         cell: ({ row }) => {
@@ -138,7 +141,7 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
             id="url"
             label="URL"
             value={sortQueryParams}
-            onChange={setSortQueryParams}
+            onChange={onSortChange}
           />
         ),
         cell: ({ row }) => {
@@ -158,7 +161,7 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
             id="tagged_service"
             label="Tagged Service"
             value={sortQueryParams}
-            onChange={setSortQueryParams}
+            onChange={onSortChange}
           />
         ),
         cell: ({ row }) => {
@@ -180,7 +183,7 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
             id="uptime"
             label="Uptime"
             value={sortQueryParams}
-            onChange={setSortQueryParams}
+            onChange={onSortChange}
           />
         ),
         cell: ({ row }) => {
@@ -214,7 +217,7 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
             id="status"
             label="Status"
             value={sortQueryParams}
-            onChange={setSortQueryParams}
+            onChange={onSortChange}
           />
         ),
         cell: ({ row }) => {
@@ -257,7 +260,7 @@ export function AlertsList({ data, isLoading }: AlertsListProps) {
         },
       },
     ],
-    [setSortQueryParams, sortQueryParams, projectKey],
+    [onSortChange, sortQueryParams, projectKey],
   );
   const table = useReactTable({
     data,
