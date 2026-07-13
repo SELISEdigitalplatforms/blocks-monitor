@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+import { RenderConditionally } from "@seliseblocks/blocks-kit/components";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { MouseEvent, useCallback } from "react";
@@ -9,6 +11,8 @@ type SortHeaderProps = {
   label: string;
   value: SortValue;
   onChange: (params: SortValue) => void;
+  isSortingEnabled?: boolean;
+  className?: string;
 };
 
 export const useSortQueryParams = ({
@@ -47,7 +51,14 @@ export const useSortQueryParams = ({
   };
 };
 
-export const SortHeader = ({ label, id, value, onChange }: SortHeaderProps) => {
+export const SortHeader = ({
+  label,
+  id,
+  value,
+  onChange,
+  isSortingEnabled = true,
+  className,
+}: SortHeaderProps) => {
   const Icon = value.isDescending ? ArrowDown : ArrowUp;
 
   const onClickHandler = (e: MouseEvent) => {
@@ -61,10 +72,15 @@ export const SortHeader = ({ label, id, value, onChange }: SortHeaderProps) => {
   const isActive = id === value.property;
 
   return (
-    <div className="flex cursor-pointer items-center" onClick={onClickHandler}>
+    <div
+      className={cn("flex cursor-pointer items-center", className)}
+      onClick={onClickHandler}>
       <span className="font-bold text-medium-emphasis">{label}</span>
-      <Icon
-        className={`ml-2 h-4 w-4 ${isActive ? "text-high-emphasis" : "text-medium-emphasis opacity-50"}`}></Icon>
+      <RenderConditionally condition={isSortingEnabled}>
+        <Icon
+          className={`ml-2 h-4 w-4 ${isActive ? "text-high-emphasis" : "text-medium-emphasis opacity-50"}`}
+        />
+      </RenderConditionally>
     </div>
   );
 };
