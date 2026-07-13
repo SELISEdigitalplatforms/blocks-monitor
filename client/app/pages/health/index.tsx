@@ -21,11 +21,15 @@ import { BookOpen, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { type HealthTabKey, HEALTH_TABS } from "@/constants/health.constant";
 import { Button } from "@/components/core";
+import { useSortQueryParams } from "@/components/common/filter-toolbar";
 
 const HealthPage = () => {
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
   const { queryParams, setQueryParams } = useAlertFilterQueryParams();
   const [open, setOpen] = useState(false);
+  const { sortQueryParams, setSortQueryParams } = useSortQueryParams({
+    initial: { property: "name", isDescending: false },
+  });
 
   const monitorSourceType = useMemo(
     () => HEALTH_TABS[queryParams.tab as HealthTabKey].monitorSourceType,
@@ -53,6 +57,8 @@ const HealthPage = () => {
     monitorSourceType,
     pageNumber: queryParams.page,
     pageSize: queryParams.pageSize,
+    sortProperty: sortQueryParams.property,
+    sortIsDescending: sortQueryParams.isDescending,
   });
 
   return (
@@ -119,7 +125,12 @@ const HealthPage = () => {
       {/* Alert List Table */}
       <Card>
         <CardContent>
-          <AlertsList data={data?.data || []} isLoading={isLoading} />
+          <AlertsList
+            data={data?.data || []}
+            isLoading={isLoading}
+            sortQueryParams={sortQueryParams}
+            onSortChange={setSortQueryParams}
+          />
         </CardContent>
         {/* Pagination */}
         {data?.totalCount !== undefined && (

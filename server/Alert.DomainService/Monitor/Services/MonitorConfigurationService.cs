@@ -60,13 +60,13 @@ namespace DomainService.Monitor.Services
             };
         }
 
-        public async Task<PaginatedResponse> GetConfigurationListAsync(string tenantId, string? monitorSourceType, int pageNumber, int pageSize)
+        public async Task<PaginatedResponse> GetConfigurationListAsync(string tenantId, string? monitorSourceType, int pageNumber, int pageSize, string? sortProperty = null, bool sortIsDescending = false)
         {
             var data = new List<MonitorConfiguration>();
             int totalCount = 0;
             try
             {
-                (data, totalCount) = await _monitorConfigurationRepoService.GetConfigurationListAsync(tenantId, monitorSourceType, pageNumber, pageSize);
+            (data, totalCount) = await _monitorConfigurationRepoService.GetConfigurationListAsync(tenantId, monitorSourceType, pageNumber, pageSize, sortProperty, sortIsDescending);
                 var monitorIds = data.Select(x => x.ItemId).ToList();
                 var start = DateTime.UtcNow.AddHours(-24);
                 var end = DateTime.UtcNow;

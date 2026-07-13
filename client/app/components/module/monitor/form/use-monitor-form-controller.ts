@@ -217,7 +217,6 @@ export const useMonitorFormController = ({
       repo.repoUrl ||
       "";
 
-    form.setValue("name", repo.repoName || "", { shouldValidate: true });
     form.setValue("urlMonitor", prefillUrl || "", { shouldValidate: true });
   };
 
@@ -230,7 +229,6 @@ export const useMonitorFormController = ({
     const service = services.find((item) => item.serviceId === value);
     if (!service) return;
 
-    form.setValue("name", service.name || "", { shouldValidate: true });
     form.setValue("urlMonitor", service.url || "", { shouldValidate: true });
   };
 
