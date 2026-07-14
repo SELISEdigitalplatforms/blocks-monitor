@@ -54,9 +54,23 @@ export const monitorFormSchema = z
   .object({
     name: z
       .string()
-      .trim()
-      .min(1, "Service name is required")
-      .max(100, "Service name too long. Maximum 100 characters allowed."),
+      .max(100, "Service name too long. Maximum 100 characters allowed.")
+      .superRefine((value, ctx) => {
+        if (value.length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Name is required",
+          });
+          return;
+        }
+
+        if (value.trim().length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Name cannot contain only spaces",
+          });
+        }
+      }),
     monitorConfigurationType: z.enum(["request", "callback"]),
     sourceType: z.enum(["none", "deployed", "my-services"]),
     selectedRepoId: z.string().default(""),

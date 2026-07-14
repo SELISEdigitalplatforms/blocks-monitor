@@ -1,30 +1,8 @@
+import { FilterToolbar } from "@/components/common/filter-toolbar";
 import {
-  FilterToolbar,
-  useSortQueryParams,
-} from "@/components/common/filter-toolbar";
-import {
-  parseAsArrayOf,
-  parseAsIndex,
-  parseAsInteger,
-  parseAsString,
-  useQueryStates,
-} from "nuqs";
-import { parseAsHealthTabKey } from "@/constants/health.constant";
-
-type ALertFilter = { search: string; repositories: string[] };
-
-export const useAlertFilterQueryParams = () => {
-  const [queryParams, setQueryParams] = useQueryStates({
-    tab: parseAsHealthTabKey.withDefault("all"),
-    search: parseAsString.withDefault(""),
-    repositories: parseAsArrayOf(parseAsString).withDefault([]),
-    page: parseAsIndex.withDefault(0),
-    pageSize: parseAsInteger.withDefault(10),
-  });
-  return { queryParams, setQueryParams };
-};
-export const useAlertSortQueryParams = () =>
-  useSortQueryParams({ initial: { property: "name", isDescending: false } });
+  type AlertFilter,
+  useAlertFilterQueryParams,
+} from "./use-alert-filter-query-params";
 
 type AlertFilterToolBarProps = {
   repositories: { value: string; label: string }[];
@@ -43,7 +21,7 @@ export function AlertsFilterToolbar({ repositories }: AlertFilterToolBarProps) {
   const resetHandler = () => setQueryParams(null);
 
   return (
-    <FilterToolbar<ALertFilter>
+    <FilterToolbar<AlertFilter>
       filters={[
         { key: "search", type: "SearchInput", label: "" },
         {
@@ -54,10 +32,23 @@ export function AlertsFilterToolbar({ repositories }: AlertFilterToolBarProps) {
         },
       ]}
       values={{
+        tab: queryParams.tab,
         search: queryParams.search,
         repositories: queryParams.repositories,
+        pageIndex: queryParams.page,
+        pageSize: queryParams.pageSize,
+        property: queryParams.sortProperty,
+        isDescending: queryParams.isDescending,
       }}
-      defaultValues={{ search: "", repositories: [] }}
+      defaultValues={{
+        tab: "all",
+        search: "",
+        repositories: [],
+        pageIndex: 0,
+        pageSize: 10,
+        property: "name",
+        isDescending: false,
+      }}
       onChange={changeHandler}
       onReset={resetHandler}
     />
