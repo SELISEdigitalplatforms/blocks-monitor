@@ -1,5 +1,9 @@
-import { ScrollArea, ScrollBar } from "@/components/core";
+import type { SortValue } from "@/components/common/filter-toolbar";
+import { FilterControls } from "@/components/common/filter-toolbar";
+import { LoadingSkelton } from "@/components/common/table-skeleton";
 import {
+  ScrollArea,
+  ScrollBar,
   Table,
   TableBody,
   TableCell,
@@ -7,11 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/core";
-import {
-  FilterControls,
-  useSortQueryParams,
-} from "@/components/common/filter-toolbar";
-import { useMemo } from "react";
+import { IncidentTree } from "@/models/alerts.model";
 import {
   CellContext,
   ColumnDef,
@@ -19,54 +19,81 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Pagination } from "@/components/core";
-import { parseAsInteger, useQueryStates } from "nuqs";
-import { IncidentTree } from "@/models/alerts.model";
+import { useCallback, useMemo } from "react";
+import { useIncidentFilterQueryParams } from "./use-incident-query-filter-params";
+
+const parseFailureReason = (reason?: string | null): string | undefined => {
+  if (!reason) return undefined; // instead of null
+  try {
+    const parsed = JSON.parse(reason);
+    return parsed?.error || reason;
+  } catch {
+    return reason.replace(/\\n/g, "").trim() || undefined;
+  }
+};
 
 type IncidentListProps = {
+  isLoading: boolean;
   data: IncidentTree[];
-  showLastStatus?: boolean;
   totalCount?: number;
+  showLastStatus?: boolean;
   pageNumber?: number;
   pageSize?: number;
   onPageChange?: (page: number) => void;
+  sortQueryParams?: SortValue;
+  onSortChange?: (params: SortValue) => void;
 };
-
-export const useAlertFilterQueryParams = () => {
-  const [queryParams, setQueryParams] = useQueryStates({
-    page: parseAsInteger.withDefault(0),
-    pageSize: parseAsInteger.withDefault(10),
-  });
-  return { queryParams, setQueryParams };
-};
-
-const useIncidentSortQueryParams = () =>
-  useSortQueryParams({ initial: { property: "status", isDescending: false } });
 
 const IncidentList = ({
+  isLoading,
   data,
   showLastStatus,
   totalCount = 0,
-  pageNumber,
+  pageNumber = 0,
   pageSize = 10,
   onPageChange,
+  sortQueryParams,
+  onSortChange,
 }: IncidentListProps) => {
-  const { setQueryParams } = useAlertFilterQueryParams();
-  const { sortQueryParams, setSortQueryParams } = useIncidentSortQueryParams();
+  const { queryParams, setQueryParams } = useIncidentFilterQueryParams({
+    property: sortQueryParams?.property || "started_time",
+    isDescending: sortQueryParams?.isDescending || true,
+  });
+  const enableSorting = Boolean(sortQueryParams && onSortChange);
+  const sortingValue = useMemo(
+    () => ({
+      property: queryParams?.sortProperty,
+      isDescending: queryParams?.isDescending || false,
+    }),
+    [queryParams],
+  );
 
-  const handlePageChange =
-    onPageChange ||
-    ((page: number) => setQueryParams((params) => ({ ...params, page })));
-
-  const parseFailureReason = (reason?: string | null): string | undefined => {
-    if (!reason) return undefined; // instead of null
-    try {
-      const parsed = JSON.parse(reason);
-      return parsed?.error || reason;
-    } catch {
-      return reason.replace(/\\n/g, "").trim() || undefined;
+  const handlePageChange = (page: number) => {
+    if (onPageChange) {
+      onPageChange(page);
+    } else {
+      setQueryParams((params) => ({ ...params, page }));
     }
   };
+
+  const handlePageSizeChange = (pageSize: number) => {
+    setQueryParams((params) => ({ ...params, page: 0, pageSize }));
+  };
+
+  const handleSortChange = useCallback(
+    (params: SortValue) => {
+      if (onSortChange) {
+        onSortChange(params);
+      } else {
+        setQueryParams((prev) => ({
+          ...prev,
+          property: params.property,
+          isDescending: params.isDescending,
+        }));
+      }
+    },
+    [onSortChange, setQueryParams],
+  );
 
   const columns = useMemo<ColumnDef<IncidentTree>[]>(() => {
     const cols: ColumnDef<IncidentTree>[] = [
@@ -74,10 +101,12 @@ const IncidentList = ({
         accessorKey: "status",
         header: () => (
           <FilterControls.SortHeader
+            key={"status"}
             id="status"
             label="Status"
-            value={sortQueryParams}
-            onChange={setSortQueryParams}
+            value={sortingValue}
+            onChange={handleSortChange}
+            isSortingEnabled={enableSorting}
           />
         ),
         cell: ({ row }) => {
@@ -100,10 +129,11 @@ const IncidentList = ({
               accessorKey: "lastStatusCode",
               header: () => (
                 <FilterControls.SortHeader
+                  key={"lastStatusCode"}
                   id="lastStatusCode"
                   label="Status Code"
-                  value={sortQueryParams}
-                  onChange={setSortQueryParams}
+                  value={sortingValue}
+                  onChange={handleSortChange}
                 />
               ),
               cell: (cell: CellContext<IncidentTree, string | undefined>) => (
@@ -118,10 +148,12 @@ const IncidentList = ({
         accessorKey: "rootCause",
         header: () => (
           <FilterControls.SortHeader
+            key={"rootCause"}
             id="rootCause"
             label="Root cause"
-            value={sortQueryParams}
-            onChange={setSortQueryParams}
+            value={sortingValue}
+            onChange={handleSortChange}
+            isSortingEnabled={enableSorting}
           />
         ),
         cell: ({ row }) => (
@@ -134,10 +166,13 @@ const IncidentList = ({
         accessorKey: "started_time",
         header: () => (
           <FilterControls.SortHeader
+            key={"started_time"}
             id="started_time"
             label="Start time"
-            value={sortQueryParams}
-            onChange={setSortQueryParams}
+            value={sortingValue}
+            defaultValue={{ property: "started_time", isDescending: true }}
+            onChange={handleSortChange}
+            isSortingEnabled={enableSorting}
           />
         ),
         cell: ({ row }) => {
@@ -153,10 +188,12 @@ const IncidentList = ({
         accessorKey: "end_time",
         header: () => (
           <FilterControls.SortHeader
+            key={"end_time"}
             id="end_time"
             label="End time"
-            value={sortQueryParams}
-            onChange={setSortQueryParams}
+            value={sortingValue}
+            onChange={handleSortChange}
+            isSortingEnabled={enableSorting}
           />
         ),
         cell: ({ row }) => {
@@ -176,10 +213,12 @@ const IncidentList = ({
         accessorKey: "duration",
         header: () => (
           <FilterControls.SortHeader
+            key={"duration"}
             id="duration"
             label="Duration"
-            value={sortQueryParams}
-            onChange={setSortQueryParams}
+            value={sortingValue}
+            onChange={handleSortChange}
+            isSortingEnabled={enableSorting}
           />
         ),
         cell: ({ row }) => {
@@ -198,7 +237,7 @@ const IncidentList = ({
       },
     ];
     return cols;
-  }, [showLastStatus, sortQueryParams, setSortQueryParams]);
+  }, [showLastStatus, sortingValue, handleSortChange, enableSorting]);
 
   const table = useReactTable<IncidentTree>({
     data,
@@ -230,40 +269,48 @@ const IncidentList = ({
           ))}
         </TableHeader>
 
-        <TableBody>
-          {table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-                className="text-medium-emphasis"
-                isHoverable>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+        {isLoading ? (
+          <LoadingSkelton table={table} />
+        ) : (
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className="text-medium-emphasis"
+                  isHoverable>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={table.getAllColumns().length}
+                  className="h-24 text-center text-muted-foreground">
+                  No results.
+                </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell
-                colSpan={table.getAllColumns().length}
-                className="h-24 text-center text-muted-foreground">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
+            )}
+          </TableBody>
+        )}
       </Table>
       {totalCount > pageSize && (
         <div className="mt-5 flex items-center justify-end">
-          <Pagination
-            page={pageNumber as number}
-            pageSize={pageSize as number}
-            pageSizeOptions={[pageSize as number]}
-            onChange={handlePageChange}
-            totalCount={totalCount || 0}
+          <FilterControls.TablePagination
+            pageIndex={pageNumber}
+            pageSize={pageSize}
+            pageSizeOptions={[5, 10, 15]}
+            onPageSizeChange={handlePageSizeChange}
+            onPageChange={handlePageChange}
+            pageCount={Math.ceil(totalCount / pageSize)}
           />
         </div>
       )}
