@@ -29,7 +29,6 @@ export * from "./command/command";
 export * from "./radio-group/radio-group";
 export * from "./select/select";
 export * from "./breadcrumb/breadcrumb";
-export * from "./table-pagination/table-pagination";
 export * from "./sheet/sheet";
 export * from "./badge/badge";
 export * from "./dropdown-menu/dropdown-menu";
