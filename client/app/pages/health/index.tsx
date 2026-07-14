@@ -1,40 +1,48 @@
 "use client";
 
-import { Card, CardContent } from "@/components/core";
-import { TablePagination } from "@/components/core";
+import { FilterControls, SortValue } from "@/components/common/filter-toolbar";
 import {
+  Button,
+  Card,
+  CardContent,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Tabs,
+  TabsList,
+  TabsTrigger,
 } from "@/components/core";
-import { Tabs, TabsList, TabsTrigger } from "@/components/core";
-import { getRuntimeEnv } from "@/lib/runtime-env";
-import { useAlertFilterQueryParams } from "@/components/module/alert/alerts-filter-toolbar";
 import { AlertsList } from "@/components/module/alert/alerts-list";
+import { useAlertFilterQueryParams } from "@/components/module/alert/use-alert-filter-query-params";
 import { AddSingleMonitorForm } from "@/components/module/monitor/form/add-monitor-form";
 import { MonitorModal } from "@/components/module/monitor/modal/monitor-modal";
+import { type HealthTabKey, HEALTH_TABS } from "@/constants/health.constant";
 import { useGetHealthMonitorList } from "@/hooks/use-alerts";
+import { getRuntimeEnv } from "@/lib/runtime-env";
 import { useProjectStore } from "@seliseblocks/blocks-kit/store";
 import { BookOpen, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
-import { type HealthTabKey, HEALTH_TABS } from "@/constants/health.constant";
-import { Button } from "@/components/core";
-import { useSortQueryParams } from "@/components/common/filter-toolbar";
 
 const HealthPage = () => {
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
   const { queryParams, setQueryParams } = useAlertFilterQueryParams();
   const [open, setOpen] = useState(false);
-  const { sortQueryParams, setSortQueryParams } = useSortQueryParams({
-    initial: { property: "name", isDescending: false },
-  });
 
   const monitorSourceType = useMemo(
     () => HEALTH_TABS[queryParams.tab as HealthTabKey].monitorSourceType,
     [queryParams.tab],
   );
+
+  const { data, isLoading } = useGetHealthMonitorList({
+    projectKey,
+    monitorSourceType,
+    pageNumber: queryParams.page,
+    pageSize: queryParams.pageSize,
+    sortProperty: queryParams.sortProperty,
+    sortIsDescending: queryParams.isDescending,
+  });
 
   const handleTabChange = (tab: string) => {
     setQueryParams((params) => ({
@@ -52,14 +60,13 @@ const HealthPage = () => {
     setQueryParams((params) => ({ ...params, page: 0, pageSize }));
   };
 
-  const { data, isLoading } = useGetHealthMonitorList({
-    projectKey,
-    monitorSourceType,
-    pageNumber: queryParams.page,
-    pageSize: queryParams.pageSize,
-    sortProperty: sortQueryParams.property,
-    sortIsDescending: sortQueryParams.isDescending,
-  });
+  const handleSortChange = (params: SortValue) => {
+    setQueryParams((prev) => ({
+      ...prev,
+      sortProperty: params.property,
+      isDescending: params.isDescending,
+    }));
+  };
 
   return (
     <main className="space-y-4">
@@ -128,14 +135,17 @@ const HealthPage = () => {
           <AlertsList
             data={data?.data || []}
             isLoading={isLoading}
-            sortQueryParams={sortQueryParams}
-            onSortChange={setSortQueryParams}
+            sortQueryParams={{
+              property: queryParams.sortProperty,
+              isDescending: queryParams.isDescending,
+            }}
+            onSortChange={handleSortChange}
           />
         </CardContent>
         {/* Pagination */}
         {data?.totalCount !== undefined && (
           <div className="mt-5 flex items-center md:justify-end">
-            <TablePagination
+            <FilterControls.TablePagination
               pageIndex={queryParams.page}
               pageSize={queryParams.pageSize}
               pageSizeOptions={[5, 10, 20]}

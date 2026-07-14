@@ -183,6 +183,10 @@ export interface IGetHealthMonitorListPayload extends BaseRequestParams {
   monitorSourceType: MONITOR_SOURCE_TYPES | null;
 }
 
+export interface IGetAllIncidentListPayload extends BaseRequestParams {
+  monitorId: string;
+}
+
 export interface IGetMonitorList extends ApiPaginatedResponse<
   AlertTree,
   string[] | null

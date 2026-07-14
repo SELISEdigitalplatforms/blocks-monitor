@@ -1,8 +1,5 @@
 import type { SortValue } from "@/components/common/filter-toolbar";
-import {
-  FilterControls,
-  useSortQueryParams,
-} from "@/components/common/filter-toolbar";
+import { FilterControls } from "@/components/common/filter-toolbar";
 import { LoadingSkelton } from "@/components/common/table-skeleton";
 import {
   ScrollArea,
@@ -12,7 +9,6 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TablePagination,
   TableRow,
 } from "@/components/core";
 import { IncidentTree } from "@/models/alerts.model";
@@ -23,31 +19,30 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { parseAsInteger, useQueryStates } from "nuqs";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { useIncidentFilterQueryParams } from "./use-incident-query-filter-params";
+
+const parseFailureReason = (reason?: string | null): string | undefined => {
+  if (!reason) return undefined; // instead of null
+  try {
+    const parsed = JSON.parse(reason);
+    return parsed?.error || reason;
+  } catch {
+    return reason.replace(/\\n/g, "").trim() || undefined;
+  }
+};
 
 type IncidentListProps = {
   isLoading: boolean;
   data: IncidentTree[];
-  showLastStatus?: boolean;
   totalCount?: number;
+  showLastStatus?: boolean;
   pageNumber?: number;
   pageSize?: number;
   onPageChange?: (page: number) => void;
   sortQueryParams?: SortValue;
   onSortChange?: (params: SortValue) => void;
 };
-
-export const useAlertFilterQueryParams = () => {
-  const [queryParams, setQueryParams] = useQueryStates({
-    page: parseAsInteger.withDefault(0),
-    pageSize: parseAsInteger.withDefault(10),
-  });
-  return { queryParams, setQueryParams };
-};
-
-const useIncidentSortQueryParams = () =>
-  useSortQueryParams({ initial: { property: "status", isDescending: false } });
 
 const IncidentList = ({
   isLoading,
@@ -57,45 +52,60 @@ const IncidentList = ({
   pageNumber = 0,
   pageSize = 10,
   onPageChange,
-  sortQueryParams: externalSortQueryParams,
-  onSortChange: externalOnSortChange,
+  sortQueryParams,
+  onSortChange,
 }: IncidentListProps) => {
-  const { setQueryParams } = useAlertFilterQueryParams();
-  const { sortQueryParams: internalSortQueryParams, setSortQueryParams } =
-    useIncidentSortQueryParams();
-  const sortQueryParams = externalSortQueryParams || internalSortQueryParams;
-  const onSortChange = externalOnSortChange || setSortQueryParams;
+  const { queryParams, setQueryParams } = useIncidentFilterQueryParams({
+    property: sortQueryParams?.property || "started_time",
+    isDescending: sortQueryParams?.isDescending || true,
+  });
+  const enableSorting = Boolean(sortQueryParams && onSortChange);
+  const sortingValue = useMemo(
+    () => ({
+      property: queryParams?.sortProperty,
+      isDescending: queryParams?.isDescending || false,
+    }),
+    [queryParams],
+  );
 
-  const handlePageChange =
-    onPageChange ||
-    ((page: number) => setQueryParams((params) => ({ ...params, page })));
+  const handlePageChange = (page: number) => {
+    if (onPageChange) {
+      onPageChange(page);
+    } else {
+      setQueryParams((params) => ({ ...params, page }));
+    }
+  };
+
   const handlePageSizeChange = (pageSize: number) => {
     setQueryParams((params) => ({ ...params, page: 0, pageSize }));
   };
 
-  const parseFailureReason = (reason?: string | null): string | undefined => {
-    if (!reason) return undefined; // instead of null
-    try {
-      const parsed = JSON.parse(reason);
-      return parsed?.error || reason;
-    } catch {
-      return reason.replace(/\\n/g, "").trim() || undefined;
-    }
-  };
-
-  const enableSorting = Boolean(
-    externalSortQueryParams && externalOnSortChange,
+  const handleSortChange = useCallback(
+    (params: SortValue) => {
+      if (onSortChange) {
+        onSortChange(params);
+      } else {
+        setQueryParams((prev) => ({
+          ...prev,
+          property: params.property,
+          isDescending: params.isDescending,
+        }));
+      }
+    },
+    [onSortChange, setQueryParams],
   );
+
   const columns = useMemo<ColumnDef<IncidentTree>[]>(() => {
     const cols: ColumnDef<IncidentTree>[] = [
       {
         accessorKey: "status",
         header: () => (
           <FilterControls.SortHeader
+            key={"status"}
             id="status"
             label="Status"
-            value={sortQueryParams}
-            onChange={onSortChange}
+            value={sortingValue}
+            onChange={handleSortChange}
             isSortingEnabled={enableSorting}
           />
         ),
@@ -119,10 +129,11 @@ const IncidentList = ({
               accessorKey: "lastStatusCode",
               header: () => (
                 <FilterControls.SortHeader
+                  key={"lastStatusCode"}
                   id="lastStatusCode"
                   label="Status Code"
-                  value={sortQueryParams}
-                  onChange={onSortChange}
+                  value={sortingValue}
+                  onChange={handleSortChange}
                 />
               ),
               cell: (cell: CellContext<IncidentTree, string | undefined>) => (
@@ -137,10 +148,11 @@ const IncidentList = ({
         accessorKey: "rootCause",
         header: () => (
           <FilterControls.SortHeader
+            key={"rootCause"}
             id="rootCause"
             label="Root cause"
-            value={sortQueryParams}
-            onChange={onSortChange}
+            value={sortingValue}
+            onChange={handleSortChange}
             isSortingEnabled={enableSorting}
           />
         ),
@@ -154,10 +166,12 @@ const IncidentList = ({
         accessorKey: "started_time",
         header: () => (
           <FilterControls.SortHeader
+            key={"started_time"}
             id="started_time"
             label="Start time"
-            value={sortQueryParams}
-            onChange={onSortChange}
+            value={sortingValue}
+            defaultValue={{ property: "started_time", isDescending: true }}
+            onChange={handleSortChange}
             isSortingEnabled={enableSorting}
           />
         ),
@@ -174,10 +188,11 @@ const IncidentList = ({
         accessorKey: "end_time",
         header: () => (
           <FilterControls.SortHeader
+            key={"end_time"}
             id="end_time"
             label="End time"
-            value={sortQueryParams}
-            onChange={onSortChange}
+            value={sortingValue}
+            onChange={handleSortChange}
             isSortingEnabled={enableSorting}
           />
         ),
@@ -198,10 +213,11 @@ const IncidentList = ({
         accessorKey: "duration",
         header: () => (
           <FilterControls.SortHeader
+            key={"duration"}
             id="duration"
             label="Duration"
-            value={sortQueryParams}
-            onChange={onSortChange}
+            value={sortingValue}
+            onChange={handleSortChange}
             isSortingEnabled={enableSorting}
           />
         ),
@@ -221,7 +237,7 @@ const IncidentList = ({
       },
     ];
     return cols;
-  }, [showLastStatus, sortQueryParams, onSortChange, enableSorting]);
+  }, [showLastStatus, sortingValue, handleSortChange, enableSorting]);
 
   const table = useReactTable<IncidentTree>({
     data,
@@ -288,7 +304,7 @@ const IncidentList = ({
       </Table>
       {totalCount > pageSize && (
         <div className="mt-5 flex items-center justify-end">
-          <TablePagination
+          <FilterControls.TablePagination
             pageIndex={pageNumber}
             pageSize={pageSize}
             pageSizeOptions={[5, 10, 15]}
