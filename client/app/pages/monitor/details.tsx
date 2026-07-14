@@ -18,6 +18,8 @@ import {
   ResponseSkeletonLoader,
 } from "@/components/module/monitor/details/monitor-details-skeletons";
 import ResponseTime from "@/components/module/monitor/details/response-time";
+import { EditSingleMonitorForm } from "@/components/module/monitor/form/edit-monitor-form";
+import { MonitorModal } from "@/components/module/monitor/modal/monitor-modal";
 import {
   useGetMonitorById,
   useGetMonitorDetails,
@@ -29,8 +31,6 @@ import { useProjectStore } from "@seliseblocks/blocks-kit/store";
 import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { EditSingleMonitorForm } from "../../components/module/monitor/form/edit-monitor-form";
-import { MonitorModal } from "../../components/module/monitor/modal/monitor-modal";
 
 interface MonitorSummaryProps {
   data: IMonitorSummary[];
@@ -163,23 +163,23 @@ const MonitorSummary = ({
 };
 
 const MonitorDetailsPage = () => {
+  const navigate = useNavigate();
+  const scoped = useScopedPath();
+  const { id } = useParams();
+  const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
+
   const [openNotificationSettings, setOpenNotificationSettings] =
     useState(false);
   const [open, setOpen] = useState(false);
   const [timeRange, setTimeRange] = useState("1h");
-  const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
 
-  const navigate = useNavigate();
-  const scoped = useScopedPath();
-  const params = useParams();
-  const monitorId = params.id || "";
+  const monitorId = id || "";
 
-  const { data, isLoading } = useGetMonitorDetails(monitorId as string);
+  const { data, isLoading } = useGetMonitorDetails(monitorId);
   const { data: monitorData, isLoading: isMonitorLoading } =
     useGetMonitorById(monitorId);
-  const request =
-    monitorData?.data?.monitorConfigurationType === 0 ? true : false;
-  const interval = monitorData?.data?.intervalInSeconds as number;
+  const request = monitorData?.data?.monitorConfigurationType === 0;
+  const interval = monitorData?.data?.intervalInSeconds || 0;
   const monitorSourceType = monitorData?.data?.monitorSourceTypes;
   const { data: rtData, isLoading: isRTLoading } = useGetMonitorDownTime({
     monitorId,

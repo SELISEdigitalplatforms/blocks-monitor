@@ -25,7 +25,7 @@ import {
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAlertFilterQueryParams } from "./alerts-filter-toolbar";
+import { useAlertFilterQueryParams } from "./use-alert-filter-query-params";
 
 type AlertsListProps = {
   data: AlertTree[];
@@ -92,6 +92,7 @@ export function AlertsList({
             id="name"
             label="Name"
             value={sortQueryParams}
+            defaultValue={{ property: "name", isDescending: false }}
             onChange={onSortChange}
             className="sm:w-[150px] w-[180px]"
           />
@@ -314,7 +315,7 @@ export function AlertsList({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   className="text-medium-emphasis"
-                  onClick={() => handleRowClick(row.original.itemId as string)}
+                  onClick={() => handleRowClick(row.original.itemId)}
                   isHoverable>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

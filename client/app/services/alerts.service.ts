@@ -5,6 +5,7 @@ import type {
   IAddSingleMonitorResponse,
   IAlertResponse,
   IDeleteHealthResponse,
+  IGetAllIncidentListPayload,
   IGetHealthMonitorListPayload,
   IGetMonitorList,
   IIncidentSummaryResponse,
@@ -80,19 +81,12 @@ class AlertsService {
     return this.httpClient.get<IGetMonitorList>(url);
   }
 
-  async getAllMonitorIncidentList(
-    monitorId: string,
-    pageNumber: number = 0,
-    pageSize: number = 10,
-    sortProperty = "started_time",
-    sortIsDescending = true,
-  ) {
+  async getAllMonitorIncidentList(payload: IGetAllIncidentListPayload) {
     const params = new URLSearchParams({
-      monitorId,
-      pageNumber: pageNumber.toString(),
-      pageSize: pageSize.toString(),
-      sortProperty,
-      sortIsDescending: String(sortIsDescending),
+      ...payload,
+      pageNumber: payload.pageNumber.toString(),
+      pageSize: payload.pageSize.toString(),
+      sortIsDescending: String(payload.sortIsDescending),
     });
 
     const url = `${ALERT_ENDPOINTS.GET_INCIDENT_LIST}?${params.toString()}`;

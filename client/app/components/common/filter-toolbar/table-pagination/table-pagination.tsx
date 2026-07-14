@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/core/select/select";
 
-export interface TablePaginationProps extends React.HTMLAttributes<HTMLDivElement> {
+interface TablePaginationProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Zero-based current page index. */
   pageIndex: number;
   /** Total number of pages. */
@@ -25,7 +25,9 @@ export interface TablePaginationProps extends React.HTMLAttributes<HTMLDivElemen
   pageSize: number;
   /** Available page-size options. */
   pageSizeOptions?: number[];
+  /** Callback when the page changes. */
   onPageChange: (page: number) => void;
+  /** Callback when the page size changes. */
   onPageSizeChange: (pageSize: number) => void;
   /** Optional summary, e.g. "12 of 134 selected". */
   summary?: React.ReactNode;

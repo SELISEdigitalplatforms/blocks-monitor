@@ -1,5 +1,6 @@
 import type {
   IAddSingleMonitorPayload,
+  IGetAllIncidentListPayload,
   IGetHealthMonitorListPayload,
   ISaveHealth,
   IUpdateHealth,
@@ -130,31 +131,12 @@ export const useGetMonitorById = (monitorId: string) => {
     enabled: !!monitorId,
   });
 };
-export const useGetAllIncidentList = (
-  monitorId: string,
-  pageNumber: number = 0,
-  pageSize: number = 10,
-  sortProperty = "started_time",
-  sortIsDescending = true,
-) => {
+
+export const useGetAllIncidentList = (payload: IGetAllIncidentListPayload) => {
   return useQuery({
-    queryKey: [
-      "get-all-incident-list",
-      monitorId,
-      pageNumber,
-      pageSize,
-      sortProperty,
-      sortIsDescending,
-    ],
-    queryFn: () =>
-      alertsService.getAllMonitorIncidentList(
-        monitorId,
-        pageNumber,
-        pageSize,
-        sortProperty,
-        sortIsDescending,
-      ),
-    enabled: !!monitorId,
+    queryKey: ["get-all-incident-list", payload],
+    queryFn: () => alertsService.getAllMonitorIncidentList(payload),
+    enabled: !!payload.monitorId,
     placeholderData: (previousData) => previousData,
   });
 };
