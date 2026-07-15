@@ -1,4 +1,4 @@
-import { FilterToolbar } from "@/components/common/filter-toolbar";
+import { FilterToolbar } from "@seliseblocks/blocks-kit/components";
 import {
   type AlertFilter,
   useAlertFilterQueryParams,
