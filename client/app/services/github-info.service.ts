@@ -7,13 +7,13 @@ import {
   ICloneRepo,
   IRepositoryUser,
   IBranchMatchResponse,
-} from "../models/github-info";
+} from "@/models/github-info.model";
 import {
   CardRepoAndBranchesResponse,
   IChangeRepoSpecs,
   IChangeSettings,
   IManualDeploymentPayload,
-} from "../models/utils";
+} from "@/models/github-info.model";
 
 export class GithubInfoService {
   private readonly httpClient = serviceInstances.logicService;

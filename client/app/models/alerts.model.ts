@@ -2,7 +2,7 @@ import type {
   ApiPaginatedResponse,
   BaseRequestParams,
   ProjectKey,
-} from "@/models";
+} from "@seliseblocks/blocks-kit/types";
 import { MONITOR_SOURCE_TYPES } from "@/constants/alert.constant";
 
 export interface ITags {
