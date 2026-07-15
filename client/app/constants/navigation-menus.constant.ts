@@ -1,4 +1,4 @@
-import type { Menu } from "@/models/menu.model";
+import type { Menu } from "@seliseblocks/blocks-kit/types";
 import { Activity, Home, Package } from "lucide-react";
 
 export const navigationMenus: Menu[] = [
