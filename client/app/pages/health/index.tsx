@@ -1,6 +1,6 @@
 "use client";
 
-import { FilterControls, SortValue } from "@/components/common/filter-toolbar";
+import { FilterControls, SortValue } from "@seliseblocks/blocks-kit/components";
 import {
   Button,
   Card,

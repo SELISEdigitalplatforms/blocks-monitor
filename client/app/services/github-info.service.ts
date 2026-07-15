@@ -1,6 +1,6 @@
 import { serviceInstances } from "@/lib/http-client";
 import { DEPLOYMENT_ENDPOINTS } from "@/constants/endpoint.constant";
-import { IBuildApiResponse } from "@/models/deployed-logs";
+import { IBuildApiResponse } from "@/models/deployed-logs.model";
 import {
   IRepository,
   IBranch,

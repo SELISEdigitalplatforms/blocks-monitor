@@ -3,7 +3,7 @@ import {
   type SortValue,
   paginationQueryParsers,
   sortQueryParsers,
-} from "@/components/common/filter-toolbar";
+} from "@seliseblocks/blocks-kit/components";
 import { parseAsString, useQueryStates } from "nuqs";
 
 export type IncidentFilter = {

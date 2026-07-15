@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { githubInfoService } from "../services/github-info.service";
-import { IBuildApiResponse } from "../models/deployed-logs";
+import { githubInfoService } from "@/services/github-info.service";
+import { IBuildApiResponse } from "@/models/deployed-logs.model";
 import {
   IChangeRepoSpecs,
   IChangeSettings,
   IManualDeploymentPayload,
-} from "../models/utils";
+} from "@/models/github-info.model";
 import { useProjectStore } from "@seliseblocks/blocks-kit";
 
 export const useGithubVerification = (code: string) => {
