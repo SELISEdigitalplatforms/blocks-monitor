@@ -2,7 +2,7 @@ import type {
   ApiPaginatedResponse,
   BaseRequestParams,
   ProjectKey,
-} from "@/models";
+} from "@seliseblocks/blocks-kit/types";
 import { MONITOR_SOURCE_TYPES } from "@/constants/alert.constant";
 
 export interface ITags {
@@ -181,6 +181,10 @@ export interface IAlertResponse<T> {
 export interface IGetHealthMonitorListPayload extends BaseRequestParams {
   projectKey: ProjectKey;
   monitorSourceType: MONITOR_SOURCE_TYPES | null;
+}
+
+export interface IGetAllIncidentListPayload extends BaseRequestParams {
+  monitorId: string;
 }
 
 export interface IGetMonitorList extends ApiPaginatedResponse<

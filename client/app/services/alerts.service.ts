@@ -5,6 +5,7 @@ import type {
   IAddSingleMonitorResponse,
   IAlertResponse,
   IDeleteHealthResponse,
+  IGetAllIncidentListPayload,
   IGetHealthMonitorListPayload,
   IGetMonitorList,
   IIncidentSummaryResponse,
@@ -60,6 +61,8 @@ class AlertsService {
     pageNumber,
     pageSize,
     monitorSourceType,
+    sortProperty,
+    sortIsDescending,
   }: IGetHealthMonitorListPayload) {
     const params = new URLSearchParams({
       projectKey,
@@ -68,18 +71,25 @@ class AlertsService {
       ...(monitorSourceType !== null && {
         monitorSourceType: monitorSourceType.toString(),
       }),
+      ...(sortProperty && { sortProperty }),
+      ...(sortProperty && {
+        sortIsDescending: String(Boolean(sortIsDescending)),
+      }),
     });
 
     const url = `${ALERT_ENDPOINTS.GET_MONITOR_LIST}?${params.toString()}`;
     return this.httpClient.get<IGetMonitorList>(url);
   }
 
-  async getAllMonitorIncidentList(
-    monitorId: string,
-    pageNumber: number = 0,
-    pageSize: number = 10,
-  ) {
-    const url = `${ALERT_ENDPOINTS.GET_INCIDENT_LIST}?monitorId=${encodeURIComponent(monitorId)}&pageNumber=${pageNumber}&pageSize=${pageSize}`;
+  async getAllMonitorIncidentList(payload: IGetAllIncidentListPayload) {
+    const params = new URLSearchParams({
+      ...payload,
+      pageNumber: payload.pageNumber.toString(),
+      pageSize: payload.pageSize.toString(),
+      sortIsDescending: String(payload.sortIsDescending),
+    });
+
+    const url = `${ALERT_ENDPOINTS.GET_INCIDENT_LIST}?${params.toString()}`;
     return this.httpClient.get<IMonitorIncidentListResponse>(url);
   }
   async getMonitorById(monitorId: string) {

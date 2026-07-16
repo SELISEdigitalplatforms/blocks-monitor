@@ -1,40 +1,44 @@
-"use client";
-
-import { Card, CardContent, CardHeader } from "@/components/core";
+import type { SortValue } from "@seliseblocks/blocks-kit/components";
+import { Button, Card, CardContent } from "@/components/core";
+import IncidentList from "@/components/module/incident/incident-list";
+import { useIncidentFilterQueryParams } from "@/components/module/incident/use-incident-query-filter-params";
 import { useGetAllIncidentList } from "@/hooks/use-alerts";
-import { useNavigate, useParams } from "react-router-dom";
-import IncidentList, {
-  useAlertFilterQueryParams,
-} from "@/components/module/incident/incident-list";
-import { Button } from "@/components/core";
 import { ArrowLeft } from "lucide-react";
-import { LoadingSkelton } from "@/components/module/alert/alerts-list";
+import { useNavigate, useParams } from "react-router-dom";
 
 const IncidentPage = () => {
   const navigate = useNavigate();
-  const params = useParams();
-  const monitorId = params.id as string;
+  const { id } = useParams();
+  const monitorId = id || "";
 
-  const { queryParams, setQueryParams } = useAlertFilterQueryParams();
+  const { queryParams, setQueryParams } = useIncidentFilterQueryParams({
+    property: "started_time",
+    isDescending: true,
+  });
 
-  const { data, isLoading } = useGetAllIncidentList(
+  const { data, isLoading } = useGetAllIncidentList({
     monitorId,
-    queryParams.page,
-    queryParams.pageSize,
-  );
+    pageNumber: queryParams.page,
+    pageSize: queryParams.pageSize,
+    sortProperty: queryParams.sortProperty,
+    sortIsDescending: queryParams.isDescending,
+  });
   const handlePageChange = (page: number) => {
     setQueryParams((params) => ({ ...params, page }));
   };
-  if (isLoading) {
-    return <LoadingSkelton />;
-  }
+  const handleSortChange = (params: SortValue) => {
+    setQueryParams((prev) => ({
+      ...prev,
+      sortProperty: params.property,
+      isDescending: params.isDescending,
+    }));
+  };
+
   return (
     <main>
-      {/* <PageBreadcrumb breadcrumbIndex={2} /> */}
       <div className="hidden md:flex"></div>
       <div className="mb-[18px] md:mb-[20px]">
         <div className="flex items-center">
-          {" "}
           <Button
             size="icon"
             variant="ghost"
@@ -46,15 +50,20 @@ const IncidentPage = () => {
         </div>
       </div>
       <Card className="h-full">
-        <CardHeader></CardHeader>
         <CardContent>
           <IncidentList
+            isLoading={isLoading}
             data={data?.data || []}
-            pageSize={queryParams.pageSize}
             totalCount={data?.totalCount}
+            pageSize={queryParams.pageSize}
             pageNumber={queryParams.page}
             onPageChange={handlePageChange}
-          />{" "}
+            sortQueryParams={{
+              property: queryParams.sortProperty,
+              isDescending: queryParams.isDescending,
+            }}
+            onSortChange={handleSortChange}
+          />
         </CardContent>
       </Card>
     </main>

@@ -56,6 +56,16 @@ const NotificationModal = ({
     return null;
   };
 
+  const resetState = () => {
+    setEmailList(data.emails || []);
+    setEmailErrors({});
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    resetState();
+    onOpenChange(nextOpen);
+  };
+
   const addEmail = () => {
     if (emailList.length >= MAX_EMAILS) {
       return;
@@ -170,7 +180,7 @@ const NotificationModal = ({
           ? "Monitor successfully updated."
           : "Monitor successfully created.",
       });
-      setEmailErrors({});
+      resetState();
       onOpenChange(false);
     } catch (error) {
       return showErrorToast({ errors: ErrorTransformer(error) });
@@ -178,8 +188,7 @@ const NotificationModal = ({
   };
 
   const handleCancel = () => {
-    setEmailList(data.emails || []);
-    setEmailErrors({});
+    resetState();
     onOpenChange(false);
   };
   const hasValidEmail = (): boolean => {
@@ -193,7 +202,7 @@ const NotificationModal = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="md:max-w-screen-sm">
         <DialogHeader>
           <DialogTitle>Notification settings</DialogTitle>

@@ -1,5 +1,6 @@
 "use client";
-import { BackIconButton } from "@/components/common/buttons";
+import { BackIconButton } from "@/components/common/back-buttons";
+import { Button, Skeleton } from "@/components/core";
 import {
   Card,
   CardContent,
@@ -7,31 +8,29 @@ import {
   CardTitle,
 } from "@/components/core/card/card";
 import { Separator } from "@/components/core/separator/separator";
-import { Skeleton } from "@/components/core";
-import { useProjectStore } from "@seliseblocks/blocks-kit/store";
 import AlertAction from "@/components/module/alert/alert-action";
 import NotificationModal from "@/components/module/alert/notification-modal";
+import IncidentList from "@/components/module/incident/incident-list";
 import MonitorCard from "@/components/module/monitor/details/monitor-card";
 import {
   LoadingListSkelton,
   MonitorCardSkeleton,
   ResponseSkeletonLoader,
 } from "@/components/module/monitor/details/monitor-details-skeletons";
+import ResponseTime from "@/components/module/monitor/details/response-time";
+import { EditSingleMonitorForm } from "@/components/module/monitor/form/edit-monitor-form";
+import { MonitorModal } from "@/components/module/monitor/modal/monitor-modal";
 import {
   useGetMonitorById,
   useGetMonitorDetails,
   useGetMonitorDownTime,
 } from "@/hooks/use-alerts";
 import { IMonitorSummary } from "@/models/alerts.model";
+import { useScopedPath } from "@seliseblocks/blocks-kit/hooks";
+import { useProjectStore } from "@seliseblocks/blocks-kit/store";
 import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useScopedPath } from "@seliseblocks/blocks-kit/hooks";
-import IncidentList from "@/components/module/incident/incident-list";
-import ResponseTime from "@/components/module/monitor/details/response-time";
-import { EditSingleMonitorForm } from "../../components/module/monitor/form/edit-monitor-form";
-import { MonitorModal } from "../../components/module/monitor/modal/monitor-modal";
-import { Button } from "@/components/core";
 
 interface MonitorSummaryProps {
   data: IMonitorSummary[];
@@ -164,30 +163,30 @@ const MonitorSummary = ({
 };
 
 const MonitorDetailsPage = () => {
+  const navigate = useNavigate();
+  const scoped = useScopedPath();
+  const { id } = useParams();
+  const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
+
   const [openNotificationSettings, setOpenNotificationSettings] =
     useState(false);
   const [open, setOpen] = useState(false);
   const [timeRange, setTimeRange] = useState("1h");
-  const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
 
-  const navigate = useNavigate();
-  const scoped = useScopedPath();
-  const params = useParams();
-  const monitorId = params.id as string;
+  const monitorId = id || "";
 
-  const { data, isLoading } = useGetMonitorDetails(monitorId as string);
-  const { data: monitorData, isLoading: isMonitorLoading } = useGetMonitorById(
-    monitorId as string,
-  );
-  const request =
-    monitorData?.data?.monitorConfigurationType === 0 ? true : false;
-  const interval = monitorData?.data?.intervalInSeconds as number;
+  const { data, isLoading } = useGetMonitorDetails(monitorId);
+  const { data: monitorData, isLoading: isMonitorLoading } =
+    useGetMonitorById(monitorId);
+  const request = monitorData?.data?.monitorConfigurationType === 0;
+  const interval = monitorData?.data?.intervalInSeconds || 0;
   const monitorSourceType = monitorData?.data?.monitorSourceTypes;
   const { data: rtData, isLoading: isRTLoading } = useGetMonitorDownTime({
     monitorId,
     timeRange,
     interval,
   });
+
   const gracePeriod = monitorData?.data?.gracePeriodInSeconds;
   const intervalInSeconds = monitorData?.data?.intervalInSeconds;
   const requestTimeout = monitorData?.data?.timeoutInSeconds;
@@ -287,7 +286,6 @@ const MonitorDetailsPage = () => {
             <Separator orientation="horizontal" className="mb-6" />
             <div className="flex flex-col gap-5">
               <div className="flex w-full justify-between">
-                {" "}
                 <span className="text-lg font-semibold">Latest incidents</span>
                 {data?.monitorIncidents && data.monitorIncidents.length > 4 && (
                   <Button
@@ -302,7 +300,8 @@ const MonitorDetailsPage = () => {
               <IncidentList
                 data={data?.monitorIncidents || []}
                 showLastStatus={request}
-              />{" "}
+                isLoading={isLoading || isMonitorLoading || isRTLoading}
+              />
             </div>
           </CardContent>
 
