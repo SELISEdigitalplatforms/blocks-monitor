@@ -1,6 +1,6 @@
-import type { SortValue } from "@/components/common/filter-toolbar";
-import { FilterControls } from "@/components/common/filter-toolbar";
-import { LoadingSkelton } from "@/components/common/table-skeleton";
+import type { SortValue } from "@seliseblocks/blocks-kit/components";
+import { FilterControls } from "@seliseblocks/blocks-kit/components";
+import { TableLoadingSkeleton } from "@seliseblocks/blocks-kit/components";
 import {
   ScrollArea,
   ScrollBar,
@@ -306,7 +306,7 @@ export function AlertsList({
           ))}
         </TableHeader>
         {isLoading ? (
-          <LoadingSkelton table={table} />
+          <TableLoadingSkeleton table={table} />
         ) : (
           <TableBody>
             {table.getRowModel().rows?.length ? (

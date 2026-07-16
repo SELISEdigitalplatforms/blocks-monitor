@@ -1,4 +1,4 @@
-import { isValid as isValidDate, isBefore } from "date-fns";
+import { isValid, isBefore } from "date-fns";
 
 const pad = (num: number): string => num.toString().padStart(2, "0");
 
@@ -41,8 +41,8 @@ export function compareDates(dateStringA: string, dateStringB: string): number {
 }
 
 export const checkValidDate = (date: string | Date) => {
-  const isValid = isValidDate(new Date(date));
-  if (!isValid) return false;
+  const isValidDate = isValid(new Date(date));
+  if (!isValidDate) return false;
   const targetDate = new Date("1900-01-01");
   if (isBefore(new Date(date), targetDate)) return false;
   return true;
