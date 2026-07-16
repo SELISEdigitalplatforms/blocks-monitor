@@ -1,13 +1,15 @@
-import "@/lib/resolve-env";
+import { Toaster, TooltipProvider } from "@/components/core";
+import QueryProvider from "@/providers/query-provider";
 import "@/styles/globals.css";
+import "@seliseblocks/blocks-kit/lib";
+import {
+  BlocksAppLayout,
+  ThemeProvider,
+} from "@seliseblocks/blocks-kit/providers";
+import { NuqsAdapter } from "nuqs/adapters/react-router/v6";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
-import { NuqsAdapter } from "nuqs/adapters/react-router/v6";
-import { Toaster, TooltipProvider } from "@/components/core";
-import { ThemeProvider } from "@/hooks/use-theme";
-import QueryProvider from "@/providers/query-provider";
-import { BlocksAppLayout } from "@seliseblocks/blocks-kit/providers";
 import { router } from "./router";
 
 createRoot(document.getElementById("root")!).render(

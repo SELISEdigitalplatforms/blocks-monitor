@@ -1,6 +1,4 @@
-"use client";
-
-import { SortValue } from "@/components/common/filter-toolbar";
+import type { SortValue } from "@seliseblocks/blocks-kit/components";
 import { Button, Card, CardContent } from "@/components/core";
 import IncidentList from "@/components/module/incident/incident-list";
 import { useIncidentFilterQueryParams } from "@/components/module/incident/use-incident-query-filter-params";
