@@ -24,6 +24,35 @@ namespace DomainService.Monitor.MonitorIncidentService
             _monitorIncidentsCollection = db.GetCollection<MonitorIncident>("MonitorIncidents");
         }
 
+        private static SortDefinition<MonitorIncident> BuildSortDefinition(
+            string? sortProperty,
+            bool sortIsDescending)
+        {
+            var sortBuilder = Builders<MonitorIncident>.Sort;
+            return (sortProperty ?? string.Empty).ToLowerInvariant() switch
+            {
+                "status" => sortIsDescending
+                    ? sortBuilder.Descending(x => x.IsResolved)
+                    : sortBuilder.Ascending(x => x.IsResolved),
+                "laststatuscode" => sortIsDescending
+                    ? sortBuilder.Descending(x => x.LastStatusCode)
+                    : sortBuilder.Ascending(x => x.LastStatusCode),
+                "rootcause" => sortIsDescending
+                    ? sortBuilder.Descending(x => x.FailureReason)
+                    : sortBuilder.Ascending(x => x.FailureReason),
+                "started_time" => sortIsDescending
+                    ? sortBuilder.Descending(x => x.StartTime)
+                    : sortBuilder.Ascending(x => x.StartTime),
+                "end_time" => sortIsDescending
+                    ? sortBuilder.Descending(x => x.EndTime)
+                    : sortBuilder.Ascending(x => x.EndTime),
+                "duration" => sortIsDescending
+                    ? sortBuilder.Descending(x => x.StartTime)
+                    : sortBuilder.Ascending(x => x.StartTime),
+                _ => sortBuilder.Descending(x => x.StartTime),
+            };
+        }
+
         public async Task<MonitorIncident?> GetActiveIncidentAsync(string monitorId)
         {
             try
@@ -88,7 +117,7 @@ namespace DomainService.Monitor.MonitorIncidentService
         }
 
 
-        public async Task<List<MonitorIncident>> GetIncidentsByMonitorIdAsync(MonitorConfiguration monitor, int pageNumber, int pageSize)
+        public async Task<List<MonitorIncident>> GetIncidentsByMonitorIdAsync(MonitorConfiguration monitor, int pageNumber, int pageSize, string? sortProperty = null, bool sortIsDescending = true)
         {
             try
             {
@@ -96,7 +125,7 @@ namespace DomainService.Monitor.MonitorIncidentService
 
                 var incidents = await _monitorIncidentsCollection
                     .Find(filter)
-                    .SortByDescending(i => i.StartTime)
+                    .Sort(BuildSortDefinition(sortProperty, sortIsDescending))
                     .Skip((pageNumber - 1) * pageSize)
                     .Limit(pageSize)
                     .ToListAsync();
@@ -285,7 +314,7 @@ namespace DomainService.Monitor.MonitorIncidentService
             }
         }
 
-        public async Task<(List<MonitorIncident>, int)> GetIncidentsWithCountByMonitorIdAsync(MonitorConfiguration monitor, int pageNumber, int pageSize)
+        public async Task<(List<MonitorIncident>, int)> GetIncidentsWithCountByMonitorIdAsync(MonitorConfiguration monitor, int pageNumber, int pageSize, string? sortProperty = null, bool sortIsDescending = true)
         {
             try
             {
@@ -301,7 +330,7 @@ namespace DomainService.Monitor.MonitorIncidentService
                         "data",
                         new BsonArray
                         {
-                            new BsonDocument("$sort", new BsonDocument("StartTime", -1)),
+                            new BsonDocument("$sort", BuildSortBson(sortProperty, sortIsDescending)),
                             new BsonDocument("$skip", skip),
                             new BsonDocument("$limit", pageSize)
                         }
@@ -344,6 +373,21 @@ namespace DomainService.Monitor.MonitorIncidentService
                 _logger.LogError(ex, "Error fetching incidents for MonitorId {MonitorId}", monitor.ItemId);
                 return (new List<MonitorIncident>(), 0);
             }
+        }
+
+        private static BsonDocument BuildSortBson(string? sortProperty, bool sortIsDescending)
+        {
+            var direction = sortIsDescending ? -1 : 1;
+            return (sortProperty ?? string.Empty).ToLowerInvariant() switch
+            {
+                "status" => new BsonDocument("IsResolved", direction),
+                "laststatuscode" => new BsonDocument("LastStatusCode", direction),
+                "rootcause" => new BsonDocument("FailureReason", direction),
+                "started_time" => new BsonDocument("StartTime", direction),
+                "end_time" => new BsonDocument("EndTime", direction),
+                "duration" => new BsonDocument("StartTime", direction),
+                _ => new BsonDocument("StartTime", -1),
+            };
         }
 
         public async Task<List<IncidentListSummary>> GetIncidentsListByDateRangeAsync(

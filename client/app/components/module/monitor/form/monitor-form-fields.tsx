@@ -1,8 +1,8 @@
-import { InfoTooltip } from "@/components/common/info-tool-tip/info-tool-tip";
+import { InfoTooltip } from "@seliseblocks/blocks-kit/components";
 import {
   RenderAlternatively,
   RenderConditionally,
-} from "@/components/common/render-elements";
+} from "@seliseblocks/blocks-kit/components";
 import {
   Accordion,
   AccordionContent,
@@ -163,11 +163,8 @@ export const MonitorFormFields = ({
                   <FormControl>
                     <Input
                       {...field}
+                      placeholder="Enter monitor name"
                       disabled={isEditMode}
-                      onBlur={(e) => {
-                        field.onChange(e.target.value.trim());
-                        field.onBlur();
-                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -264,7 +261,11 @@ export const MonitorFormFields = ({
                   <FormItem>
                     <FormLabel>URL to monitor</FormLabel>
                     <FormControl>
-                      <Input {...field} disabled={isEditMode} />
+                      <Input
+                        {...field}
+                        placeholder="Enter URL to monitor"
+                        disabled={isEditMode}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -391,7 +392,10 @@ export const MonitorFormFields = ({
                           <FormItem>
                             <FormLabel>X-Header-Name</FormLabel>
                             <FormControl>
-                              <Input {...field} />
+                              <Input
+                                {...field}
+                                placeholder="Enter header name"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -404,7 +408,7 @@ export const MonitorFormFields = ({
                           <FormItem>
                             <FormLabel>Value</FormLabel>
                             <FormControl>
-                              <Input {...field} />
+                              <Input {...field} placeholder="Enter value" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

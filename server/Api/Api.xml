@@ -35,7 +35,7 @@
             <param name="monitorPingService">Service for monitor ping operations.</param>
             <param name="monitorIncidentService">Service for monitor incident operations.</param>
         </member>
-        <member name="M:Api.Controllers.MonitorController.GetMonitorList(System.String,System.String,System.Int32,System.Int32)">
+        <member name="M:Api.Controllers.MonitorController.GetMonitorList(System.String,System.String,System.Int32,System.Int32,System.String,System.Boolean)">
             <summary>
             Retrieves a list of monitor configurations for a given project.
             </summary>
@@ -77,7 +77,7 @@
             <param name="itemId">The ID of the monitor configuration to delete.</param>
             <returns>The result of the delete operation.</returns>
         </member>
-        <member name="M:Api.Controllers.MonitorController.GetIncidentList(System.String,System.Int32,System.Int32)">
+        <member name="M:Api.Controllers.MonitorController.GetIncidentList(System.String,System.Int32,System.Int32,System.String,System.Boolean)">
             <summary>
             Retrieves a paginated list of incidents for a specific monitor.
             </summary>

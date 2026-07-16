@@ -1,5 +1,4 @@
-import { getRuntimeEnv } from "@/lib/runtime-env";
-import { HttpClient } from "@seliseblocks/blocks-kit/http";
+import { HttpClient, getRuntimeEnv } from "@seliseblocks/blocks-kit/lib";
 
 export const serviceInstances = {
   observabilityService: new HttpClient({

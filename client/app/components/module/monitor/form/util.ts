@@ -157,7 +157,7 @@ export const toCreateRequestPayload = (
   context: SubmitContext,
 ): IAddSingleMonitorPayload => ({
   projectKey: context.projectKey,
-  name: values.name,
+  name: values.name.trim(),
   repoName: context.repoName,
   repoId: values.selectedRepoId,
   url: values.urlMonitor,
@@ -187,7 +187,7 @@ export const toUpdateRequestPayload = (
   itemId: context.itemId || "",
   projectKey: context.projectKey,
   authorizationType: null,
-  name: values.name,
+  name: values.name.trim(),
   repoName: context.repoName,
   repoId: values.selectedRepoId,
   url: values.urlMonitor,
@@ -215,7 +215,7 @@ export const toCreateCallbackPayload = (
   context: SubmitContext,
 ): ISaveHealth => ({
   projectKey: context.projectKey,
-  name: values.name,
+  name: values.name.trim(),
   monitorConfigurationType: 1,
   intervalInSeconds: toSeconds(values.monitorSettings.monitor_interval),
   gracePeriodInSeconds: toSeconds(values.monitorSettings.grace_time),
@@ -233,7 +233,7 @@ export const toUpdateCallbackPayload = (
 ): IUpdateHealth => ({
   itemId: context.itemId || "",
   projectKey: context.projectKey,
-  name: values.name,
+  name: values.name.trim(),
   monitorConfigurationType: 1,
   intervalInSeconds: toSeconds(values.monitorSettings.monitor_interval),
   gracePeriodInSeconds: toSeconds(values.monitorSettings.grace_time),
