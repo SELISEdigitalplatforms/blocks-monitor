@@ -1,5 +1,5 @@
 "use client";
-import { BackIconButton } from "@/components/common/buttons";
+import { BackIconButton } from "@/components/common/back-buttons";
 import { Button, Skeleton } from "@/components/core";
 import {
   Card,

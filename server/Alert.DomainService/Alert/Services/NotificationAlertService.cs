@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Blocks.Genesis;
 using Devops.DomainService.Shared.Interfaces;
 using DomainService.Monitor.Entity;
@@ -75,7 +75,7 @@ namespace DomainService.Alert.Services
                     description = message
                 }),
                 SaveDenormalizedPayloadAsAnObject = false,
-                ConfiguratoinName = "GeneralNotification",
+                ConfigurationName = "GeneralNotification",
                 ContentAvailable = true,
                 ResponseKey = "status",
                 ResponseValue = "sent"

@@ -1,8 +1,8 @@
-import { InfoTooltip } from "@/components/common/info-tool-tip/info-tool-tip";
+import { InfoTooltip } from "@seliseblocks/blocks-kit/components";
 import {
   RenderAlternatively,
   RenderConditionally,
-} from "@/components/common/render-elements";
+} from "@seliseblocks/blocks-kit/components";
 import {
   Accordion,
   AccordionContent,
