@@ -1,19 +1,19 @@
 import { serviceInstances } from "@/lib/http-client";
 import { DEPLOYMENT_ENDPOINTS } from "@/constants/endpoint.constant";
-import { IBuildApiResponse } from "@/models/deployed-logs";
+import { IBuildApiResponse } from "@/models/deployed-logs.model";
 import {
   IRepository,
   IBranch,
   ICloneRepo,
   IRepositoryUser,
   IBranchMatchResponse,
-} from "../models/github-info";
+} from "@/models/github-info.model";
 import {
   CardRepoAndBranchesResponse,
   IChangeRepoSpecs,
   IChangeSettings,
   IManualDeploymentPayload,
-} from "../models/utils";
+} from "@/models/github-info.model";
 
 export class GithubInfoService {
   private readonly httpClient = serviceInstances.logicService;

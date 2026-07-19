@@ -114,7 +114,7 @@ namespace DomainService.Monitor.MonitorIncidentService
         /// <summary>
         /// Fetches paginated incidents for a specific monitor ID.
         /// </summary>
-        public async Task<PaginatedResponse> GetIncidentsByMonitorIdAsync(string monitorId, int pageNumber, int pageSize)
+        public async Task<PaginatedResponse> GetIncidentsByMonitorIdAsync(string monitorId, int pageNumber, int pageSize, string? sortProperty = null, bool sortIsDescending = true)
         {
             try
             {
@@ -133,7 +133,7 @@ namespace DomainService.Monitor.MonitorIncidentService
                         PageSize = pageSize
                     };
                 }
-                var (result, totalCount) = await _monitorIncidentRepoService.GetIncidentsWithCountByMonitorIdAsync(monitorConfiguration, pageNumber, pageSize);
+                var (result, totalCount) = await _monitorIncidentRepoService.GetIncidentsWithCountByMonitorIdAsync(monitorConfiguration, pageNumber, pageSize, sortProperty, sortIsDescending);
                 return new PaginatedResponse
                 {
                     Data = result,
