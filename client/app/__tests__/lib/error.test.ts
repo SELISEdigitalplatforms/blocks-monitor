@@ -3,7 +3,7 @@ import {
   getErrorMessage,
   isErrorWithErrors,
   handleErrorMessages,
-} from "@/lib/error";
+} from "@seliseblocks/blocks-kit/utils";
 
 describe("getErrorMessage", () => {
   it("returns the generic message for an empty error object", () => {
