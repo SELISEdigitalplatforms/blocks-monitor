@@ -1,4 +1,4 @@
-import { InfoTooltip } from "@/components/common/info-tool-tip/info-tool-tip";
+import { InfoTooltip } from "@seliseblocks/blocks-kit/components";
 import {
   FormControl,
   FormField,

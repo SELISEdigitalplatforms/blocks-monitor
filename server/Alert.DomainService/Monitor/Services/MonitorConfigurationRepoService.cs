@@ -53,7 +53,7 @@ namespace DomainService.Monitor.Services
             }
         }
 
-        public async Task<(List<MonitorConfiguration> Items, int TotalCount)>GetConfigurationListAsync(string tenantId, string? monitorSourceType, int pageNumber, int pageSize)
+        public async Task<(List<MonitorConfiguration> Items, int TotalCount)>GetConfigurationListAsync(string tenantId, string? monitorSourceType, int pageNumber, int pageSize, string? sortProperty = null, bool sortIsDescending = false)
         {
             try
             {
@@ -119,8 +119,11 @@ namespace DomainService.Monitor.Services
 
                 var totalCount = (int)await _monitorConfigurationCollection.CountDocumentsAsync(filter);
 
+                var sort = BuildSortDefinition(monitorSourceType, sortProperty, sortIsDescending);
+
                 var items = await _monitorConfigurationCollection
                     .Find(filter)
+                    .Sort(sort)
                     .Skip(skip)
                     .Limit(pageSize)
                     .ToListAsync();
@@ -136,6 +139,61 @@ namespace DomainService.Monitor.Services
 
                 return (new List<MonitorConfiguration>(), 0);
             }
+        }
+
+        private static SortDefinition<MonitorConfiguration> BuildSortDefinition(
+            string? monitorSourceType,
+            string? sortProperty,
+            bool sortIsDescending)
+        {
+            var sortBuilder = Builders<MonitorConfiguration>.Sort;
+            var direction = sortIsDescending
+                ? SortDirection.Descending
+                : SortDirection.Ascending;
+
+            return (sortProperty ?? string.Empty).ToLowerInvariant() switch
+            {
+                "monitor_type" => direction == SortDirection.Descending
+                    ? sortBuilder.Descending(x => x.MonitorConfigurationType)
+                    : sortBuilder.Ascending(x => x.MonitorConfigurationType),
+                "url" => direction == SortDirection.Descending
+                    ? sortBuilder.Descending(x => x.Url)
+                    : sortBuilder.Ascending(x => x.Url),
+                "tagged_service" => BuildTaggedServiceSort(sortBuilder, monitorSourceType, direction),
+                "uptime" => direction == SortDirection.Descending
+                    ? sortBuilder.Descending(x => x.LastIncidentAt)
+                    : sortBuilder.Ascending(x => x.LastIncidentAt),
+                "status" => direction == SortDirection.Descending
+                    ? sortBuilder.Descending(x => x.CurrentStatus)
+                    : sortBuilder.Ascending(x => x.CurrentStatus),
+                _ => direction == SortDirection.Descending
+                    ? sortBuilder.Descending(x => x.Name)
+                    : sortBuilder.Ascending(x => x.Name),
+            };
+        }
+
+        private static SortDefinition<MonitorConfiguration> BuildTaggedServiceSort(
+            SortDefinitionBuilder<MonitorConfiguration> sortBuilder,
+            string? monitorSourceType,
+            SortDirection direction)
+        {
+            if (string.Equals(monitorSourceType, MonitorSourceTypes.DeployedServices.ToString(), StringComparison.OrdinalIgnoreCase))
+            {
+                return direction == SortDirection.Descending
+                    ? sortBuilder.Descending(x => x.RepoName)
+                    : sortBuilder.Ascending(x => x.RepoName);
+            }
+
+            if (string.Equals(monitorSourceType, MonitorSourceTypes.ExternalServices.ToString(), StringComparison.OrdinalIgnoreCase))
+            {
+                return direction == SortDirection.Descending
+                    ? sortBuilder.Descending(x => x.ExternalServiceName)
+                    : sortBuilder.Ascending(x => x.ExternalServiceName);
+            }
+
+            return direction == SortDirection.Descending
+                ? sortBuilder.Descending(x => x.RepoName)
+                : sortBuilder.Ascending(x => x.RepoName);
         }
 
 
