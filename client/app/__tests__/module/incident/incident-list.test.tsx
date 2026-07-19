@@ -38,10 +38,13 @@ const incident = (over: Partial<IncidentTree> = {}): IncidentTree =>
 
 describe("IncidentList", () => {
   it("renders a loading skeleton while loading", () => {
-    const { container } = render(<IncidentList isLoading data={[]} />, {
+    render(<IncidentList isLoading data={[]} />, {
       wrapper: wrapper(),
     });
-    expect(container.querySelectorAll("tbody tr").length).toBe(5);
+    // While loading, the component swaps the table body for the skeleton and
+    // never falls through to the empty state.
+    expect(screen.getByTestId("table-loading-skeleton")).toBeInTheDocument();
+    expect(screen.queryByText("No results.")).toBeNull();
   });
 
   it("shows an empty state when there are no incidents", () => {
