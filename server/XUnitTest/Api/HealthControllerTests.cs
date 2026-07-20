@@ -4,14 +4,13 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Api.Controllers;
 using Blocks.Genesis;
-using Devops.DomainService.Shared.Interfaces;
+using DomainService.Shared.Services;
 using DomainService.Alert.Entities;
 using DomainService.Alert.Services;
 using DomainService.Health.HealthWorkerService;
 using DomainService.Health.Models;
 using DomainService.Health.Services;
 using DomainService.Monitor.Entity;
-using DomainService.Monitor.Services;
 using DomainService.Shared.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -24,8 +23,6 @@ namespace XUnitTest.Api
 {
     public class HealthControllerTests
     {
-        private readonly Mock<IMonitorConfigurationService> _monitorService = new();
-
         private HealthController Build(IEnumerable<MonitorConfiguration> configs = null)
         {
             var db = new MongoMocks.DbBuilder()
@@ -53,7 +50,7 @@ namespace XUnitTest.Api
             configuration.Setup(c => c["AlertServiceUrl"]).Returns("http://alert");
             var healthConfig = new HealthConfigurationService(new Mock<ILogger<HealthConfigurationService>>().Object, healthCheck, configuration.Object, healthRepo);
 
-            return new HealthController(healthConfig, healthCheck, _monitorService.Object);
+            return new HealthController(healthConfig, healthCheck);
         }
 
         [Fact]
@@ -87,15 +84,24 @@ namespace XUnitTest.Api
         }
 
         [Fact]
-        public async Task DeleteHealth_DelegatesToMonitorService()
+        public async Task DeleteHealth_DelegatesToHealthService()
         {
-            var expected = new BaseApiResponse { IsSuccess = true };
-            _monitorService.Setup(s => s.DeleteConfigurationAsync("m1")).ReturnsAsync(expected);
+            var config = new MonitorConfiguration { ItemId = "m1", MonitorConfigurationType = MonitorConfigurationTypes.InboundPing };
 
-            var result = await Build().DeleteHealth("m1");
+            var result = await Build(new List<MonitorConfiguration> { config }).DeleteHealth("m1");
 
-            var body = result.Should().BeOfType<OkObjectResult>().Subject.Value;
-            body.Should().BeSameAs(expected);
+            var body = (BaseApiResponse)result.Should().BeOfType<OkObjectResult>().Subject.Value;
+            body.IsSuccess.Should().BeTrue();
+            body.Message.Should().Contain("deleted successfully");
+        }
+
+        [Fact]
+        public async Task DeleteHealth_WhenNotFound_ReturnsFailureBody()
+        {
+            var result = await Build().DeleteHealth("missing");
+
+            var body = (BaseApiResponse)result.Should().BeOfType<OkObjectResult>().Subject.Value;
+            body.IsSuccess.Should().BeFalse();
         }
     }
 }

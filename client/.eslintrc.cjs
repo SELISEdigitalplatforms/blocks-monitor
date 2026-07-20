@@ -43,6 +43,39 @@ module.exports = {
         caughtErrorsIgnorePattern: "^_",
       },
     ],
+    // Naming conventions. Kept intentionally permissive to match the code that exists today
+    // (see CONTRIBUTING.md for the target conventions); ratchet toward stricter formats over time.
+    // Object/property/import names are left unchecked because they mirror server wire fields.
+    "@typescript-eslint/naming-convention": [
+      "warn",
+      {
+        selector: "variableLike",
+        format: ["camelCase", "PascalCase", "UPPER_CASE"],
+        leadingUnderscore: "allow",
+      },
+      {
+        selector: "typeLike",
+        format: ["PascalCase"],
+      },
+      {
+        // Enums in this repo use both PascalCase and UPPER_CASE names; allow both for now.
+        selector: "enum",
+        format: ["PascalCase", "UPPER_CASE"],
+      },
+      {
+        selector: "interface",
+        format: ["PascalCase"],
+        // Some interfaces use an I prefix, some do not; do not force either yet.
+      },
+      {
+        selector: ["property", "objectLiteralProperty", "typeProperty", "enumMember"],
+        format: null,
+      },
+      {
+        selector: "import",
+        format: null,
+      },
+    ],
   },
   ignorePatterns: ["node_modules/", "dist/"],
 };

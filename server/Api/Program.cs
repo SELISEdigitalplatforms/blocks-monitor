@@ -26,7 +26,7 @@ builder.Configuration.AddMongoDbConfiguration(options =>
  options.SecretKey = "blocks-secret-monitor";
 });
 
-ApplicationConfigurations.ConfigureServices(builder.Services, ObservabilityConstants.GetApiMessageConfiguration(secret.MessageConnectionString));
+ApplicationConfigurations.ConfigureServices(builder.Services, MonitorConstants.GetApiMessageConfiguration(secret.MessageConnectionString));
 
 builder.Services.Configure<FormOptions>(options =>
 {
@@ -60,7 +60,11 @@ if (builder.Environment.IsDevelopment())
  });
 }
 
-// This is explicitly set to "blocks-os" as the resource permission are still under "blocks-os" resource in IAM. This can be changed to "blocks-observability" once we have the new resource setup in IAM.
+// Authorization currently resolves against the shared "blocks-os" IAM resource because Monitor's own
+// permissions are not yet provisioned in IAM. The dedicated resource must be "blocks-monitor" (the
+// customer-facing product name); "blocks-observability" is the retired legacy brand and must NOT be used.
+// Switch the resource name below to "blocks-monitor" only once that resource and its scopes have been
+// seeded and granted in IAM, otherwise every tenant loses monitor access on deploy.
 ApplicationConfigurations.ConfigureApi(services, serviceName, serviceAccessResourceName: "blocks-os");
 
 var wwwrootPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot");

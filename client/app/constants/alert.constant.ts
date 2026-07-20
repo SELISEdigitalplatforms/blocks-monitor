@@ -19,7 +19,7 @@ export const HTTP_METHODS: {
 export enum ScheduleOptions {
   SIMPLE = "1",
   CRON = "2",
-  CALENDER = "0",
+  CALENDAR = "0",
 }
 export const SCHEDULES: {
   label: string;
@@ -27,7 +27,7 @@ export const SCHEDULES: {
 }[] = [
   { label: "Simple", value: ScheduleOptions.SIMPLE },
   { label: "Cron", value: ScheduleOptions.CRON },
-  { label: "On Calender", value: ScheduleOptions.CALENDER },
+  { label: "On Calendar", value: ScheduleOptions.CALENDAR },
 ];
 export enum REPO_TYPE {
   repo_name = 0,
