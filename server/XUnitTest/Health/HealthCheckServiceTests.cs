@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Blocks.Genesis;
-using Devops.DomainService.Shared.Interfaces;
+using DomainService.Shared.Services;
 using DomainService.Alert.Entities;
 using DomainService.Alert.Services;
 using DomainService.Health.HealthWorkerService;
@@ -108,7 +108,7 @@ namespace XUnitTest.Health
         {
             var sut = Build(MongoMocks.Collection(new List<MonitorConfiguration>()));
 
-            var act = async () => await sut.HandlePingEvent("a");
+            var act = async () => await sut.HandlePingEventAsync("a");
 
             await act.Should().NotThrowAsync();
         }

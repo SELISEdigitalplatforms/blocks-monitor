@@ -47,10 +47,16 @@ namespace DomainService.Monitor.Services
             try
             {
                 data = await _monitorConfigurationRepoService.GetConfigurationAsync(monitorId);
+
+                if (data != null && IsCrossTenantAccess(data))
+                {
+                    _logger.LogWarning("MonitorConfiguration with ItemId {MonitorId} not found.", monitorId);
+                    data = new MonitorConfiguration();
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving MonitorConfiguration with ItemId {MonitorId}", monitorId);
+                _logger.LogError(ex, "Error retrieving MonitorConfiguration with ItemId {MonitorId}", monitorId);
             }
             return new BaseApiResponse()
             {
@@ -92,7 +98,7 @@ namespace DomainService.Monitor.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving MonitorConfiguration with ItemId {TenantId}", tenantId);
+                _logger.LogError(ex, "Error retrieving MonitorConfiguration list for TenantId {TenantId}", tenantId);
             }
             return new PaginatedResponse()
             {
@@ -115,7 +121,7 @@ namespace DomainService.Monitor.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving MonitorConfiguration with ItemId {TenantId}", tenantId);
+                _logger.LogError(ex, "Error retrieving MonitorConfiguration list for TenantId {TenantId}", tenantId);
             }
             return new BaseApiResponse()
             {
@@ -193,7 +199,7 @@ namespace DomainService.Monitor.Services
 
                     await _messageClient.SendToConsumerAsync(new ConsumerMessage<MonitorConfigurationUpdateQueue>
                     {
-                        ConsumerName = ObservabilityConstants.MonitorConfigurationUpdateQueue,
+                        ConsumerName = MonitorConstants.MonitorConfigurationUpdateQueue,
                         Payload = payload
                     });
 
@@ -263,6 +269,18 @@ namespace DomainService.Monitor.Services
                     };
                 }
 
+                // Reject cross-tenant mutation: a caller may only update a monitor owned by their own tenant.
+                if (IsCrossTenantAccess(monitorConfiguration))
+                {
+                    _logger.LogWarning("MonitorConfiguration with ItemId {ItemId} not found.", request.ItemId);
+                    return new BaseApiResponse()
+                    {
+                        IsSuccess = false,
+                        StatusCode = HttpStatusCode.OK,
+                        Message = $"MonitorConfiguration with ItemId {request.ItemId} not found."
+                    };
+                }
+
                 UpdateMonitorConfiguration(request, monitorConfiguration);
 
                 await _monitorConfigurationRepoService.SaveConfigurationAsync(monitorConfiguration);
@@ -275,7 +293,7 @@ namespace DomainService.Monitor.Services
 
                     await _messageClient.SendToConsumerAsync(new ConsumerMessage<MonitorConfigurationUpdateQueue>
                     {
-                        ConsumerName = ObservabilityConstants.MonitorConfigurationUpdateQueue,
+                        ConsumerName = MonitorConstants.MonitorConfigurationUpdateQueue,
                         Payload = payload
                     });
 
@@ -364,6 +382,34 @@ namespace DomainService.Monitor.Services
             }
         }
 
+        [ExcludeFromCodeCoverage]
+        private static string? GetCurrentTenantId()
+        {
+            try
+            {
+                return BlocksContext.GetContext()?.TenantId;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Returns true when the acting caller belongs to a different tenant than the one that owns the
+        /// monitor. Used to keep by-id operations tenant-isolated: a signed-in user of one tenant must not
+        /// be able to read, update, or delete another tenant's monitor. When either the caller's tenant or
+        /// the monitor's tenant is unknown (e.g. system/background contexts), no cross-tenant access is
+        /// asserted so legitimate internal flows keep working.
+        /// </summary>
+        private static bool IsCrossTenantAccess(MonitorConfiguration monitorConfiguration)
+        {
+            var callerTenantId = GetCurrentTenantId();
+            return !string.IsNullOrEmpty(callerTenantId)
+                && !string.IsNullOrEmpty(monitorConfiguration.TenantId)
+                && !string.Equals(callerTenantId, monitorConfiguration.TenantId, StringComparison.Ordinal);
+        }
+
 
         public async Task<BaseApiResponse> DeleteConfigurationAsync(string itemId)
         {
@@ -386,6 +432,18 @@ namespace DomainService.Monitor.Services
                     effectiveSourceType == MonitorSourceTypes.BlocksServices)
                 {
                     _logger.LogError("MonitorConfiguration with ItemId {ItemId} not found.", itemId);
+                    return new BaseApiResponse()
+                    {
+                        IsSuccess = false,
+                        StatusCode = HttpStatusCode.OK,
+                        Message = $"MonitorConfiguration with ItemId {itemId} not found."
+                    };
+                }
+
+                // Reject cross-tenant deletes: a caller may only delete a monitor owned by their own tenant.
+                if (IsCrossTenantAccess(monitorConfiguration))
+                {
+                    _logger.LogWarning("MonitorConfiguration with ItemId {ItemId} not found.", itemId);
                     return new BaseApiResponse()
                     {
                         IsSuccess = false,

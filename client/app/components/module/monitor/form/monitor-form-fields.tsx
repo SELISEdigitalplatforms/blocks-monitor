@@ -50,8 +50,8 @@ const MONITOR_TYPE_OPTIONS: {
   value: MonitorConfigurationType;
   label: string;
 }[] = [
-  { id: "monitor-type-request", value: "request", label: "Request" },
-  { id: "monitor-type-callback", value: "callback", label: "Callback" },
+  { id: "monitor-type-request", value: "request", label: "HTTP Check" },
+  { id: "monitor-type-callback", value: "callback", label: "Heartbeat" },
 ];
 
 const SOURCE_TYPE_OPTIONS: { id: string; value: SourceType; label: string }[] =

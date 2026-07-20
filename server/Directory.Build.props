@@ -3,5 +3,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Surface code-style / naming violations (from .editorconfig) at build time. -->
+    <!-- These report as warnings only: TreatWarningsAsErrors is intentionally not set, so the -->
+    <!-- build stays green while the conventions are ratcheted in. -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest</AnalysisLevel>
   </PropertyGroup>
 </Project>

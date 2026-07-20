@@ -31,7 +31,7 @@ namespace XUnitTest.Alert
                 new() { UserId = "u2", TenantId = "t" }
             });
 
-            var result = await repo.GetProjectPeopleList("t");
+            var result = await repo.GetProjectPeopleListAsync("t");
 
             result.Should().BeEquivalentTo(new[] { "u1", "u2" });
         }
@@ -40,7 +40,7 @@ namespace XUnitTest.Alert
         public async Task GetAlertMailTemplateByName_WhenNotFound_ReturnsNull()
         {
             var repo = Build();
-            var result = await repo.GetAlertMailTemplateByName("Missing");
+            var result = await repo.GetAlertMailTemplateByNameAsync("Missing");
             result.Should().BeNull();
         }
 
@@ -48,7 +48,7 @@ namespace XUnitTest.Alert
         public async Task GetAlertMailTemplateByName_ReturnsTemplate()
         {
             var repo = Build(templates: new List<AlertMailTemplate> { new() { Name = "AlertIncident", TemplateSubject = "S" } });
-            var result = await repo.GetAlertMailTemplateByName("AlertIncident");
+            var result = await repo.GetAlertMailTemplateByNameAsync("AlertIncident");
             result.Should().NotBeNull();
             result!.TemplateSubject.Should().Be("S");
         }
@@ -57,7 +57,7 @@ namespace XUnitTest.Alert
         public async Task GetMailServerConfigurationById_ReturnsConfig()
         {
             var repo = Build(configs: new List<MailServerConfiguration> { new() { ItemId = "cfg1", Host = "smtp.test" } });
-            var result = await repo.GetMailServerConfigurationById("cfg1");
+            var result = await repo.GetMailServerConfigurationByIdAsync("cfg1");
             result.Should().NotBeNull();
             result!.Host.Should().Be("smtp.test");
         }
