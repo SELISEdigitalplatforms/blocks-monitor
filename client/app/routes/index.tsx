@@ -75,26 +75,7 @@ export const routes = [
                   { path: "console", element: <ConsolePage /> },
                 ],
               },
-              // {
-              //   path: "project/:tenantGroupId",
-              //   element: (
-              //     <ProjectOverviewRoute
-              //       redirectPaths={redirectPaths}
-              //       navigationMenus={navigationMenus}
-              //     />
-              //   ),
 
-              //   children: [
-              //     {
-              //       index: true,
-              //       element: <Navigate to="environments" replace />,
-              //     },
-              //     {
-              //       path: "environments",
-              //       element: <EnvironmentsPage />,
-              //     },
-              //   ],
-              // },
               {
                 // impersonate
                 path: ":itemId",
