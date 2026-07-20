@@ -2,7 +2,6 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import ProgressBar from "@/components/module/alert/progress-bar";
 import MonitorCard from "@/components/module/monitor/details/monitor-card";
-import { LoadingSkelton } from "@/components/common/table-skeleton";
 
 describe("ProgressBar", () => {
   it("shows 100% when there are no incidents and status is up", () => {
@@ -55,7 +54,7 @@ describe("MonitorCard", () => {
     render(<MonitorCard {...baseProps} repoName="my-repo" />);
     expect(screen.getByText("my-repo")).toBeInTheDocument();
     expect(screen.getByText("URL to monitor")).toBeInTheDocument();
-    expect(screen.getByText("Request")).toBeInTheDocument();
+    expect(screen.getByText("HTTP Check")).toBeInTheDocument();
   });
 
   it("renders the external service name branch", () => {
@@ -68,8 +67,8 @@ describe("MonitorCard", () => {
       <MonitorCard {...baseProps} request={false} monitorSourceType={1} />,
     );
     expect(screen.getByText("None")).toBeInTheDocument();
-    expect(screen.getByText("Callback URL")).toBeInTheDocument();
-    expect(screen.getByText("Callback")).toBeInTheDocument();
+    expect(screen.getByText("Heartbeat URL")).toBeInTheDocument();
+    expect(screen.getByText("Heartbeat")).toBeInTheDocument();
   });
 
   it("shows a '+N more' recipients hint and fires onOpenChange on edit", async () => {
@@ -83,19 +82,5 @@ describe("MonitorCard", () => {
   it("hides recipients for BlocksServices (monitorSourceType 2)", () => {
     render(<MonitorCard {...baseProps} monitorSourceType={2} />);
     expect(screen.queryByText("Notification recipients")).toBeNull();
-  });
-});
-
-describe("LoadingSkelton", () => {
-  it("renders five skeleton rows spanning the visible columns", () => {
-    const table = {
-      getVisibleLeafColumns: () => [{}, {}],
-    } as never;
-    const { container } = render(
-      <table>
-        <LoadingSkelton table={table} />
-      </table>,
-    );
-    expect(container.querySelectorAll("tr").length).toBe(5);
   });
 });

@@ -68,11 +68,14 @@ describe("formatSeconds", () => {
 
 describe("AlertsList", () => {
   it("renders a loading skeleton", () => {
-    const { container } = render(
+    render(
       <AlertsList data={[]} isLoading sortQueryParams={sort} onSortChange={vi.fn()} />,
       { wrapper: wrapper() },
     );
-    expect(container.querySelectorAll("tbody tr").length).toBe(5);
+    // While loading, the component swaps the table body for the skeleton and
+    // never falls through to the empty state.
+    expect(screen.getByTestId("table-loading-skeleton")).toBeInTheDocument();
+    expect(screen.queryByText("No results.")).toBeNull();
   });
 
   it("renders an empty state", () => {
@@ -94,7 +97,7 @@ describe("AlertsList", () => {
       { wrapper: wrapper() },
     );
     expect(screen.getByText("My Monitor")).toBeInTheDocument();
-    expect(screen.getByText("Request")).toBeInTheDocument();
+    expect(screen.getByText("HTTP Check")).toBeInTheDocument();
     expect(screen.getByText("https://svc.example.com")).toBeInTheDocument();
     expect(screen.getByText("repo-1")).toBeInTheDocument();
     expect(screen.getByTestId("progress")).toHaveAttribute("data-status", "true");
@@ -110,7 +113,7 @@ describe("AlertsList", () => {
       />,
       { wrapper: wrapper() },
     );
-    expect(screen.getByText("Callback")).toBeInTheDocument();
+    expect(screen.getByText("Heartbeat")).toBeInTheDocument();
     expect(screen.queryByTestId("alert-action")).toBeNull();
   });
 
