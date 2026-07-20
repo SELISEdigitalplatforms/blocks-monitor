@@ -2,10 +2,9 @@
 using System.Text;
 using System.Text.Json;
 using Blocks.Genesis;
-using Devops.DomainService.Shared.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace Devops.DomainService.Shared.Services
+namespace DomainService.Shared.Services
 {
     public class HttpHelperServices : IHttpHelperServices
     {

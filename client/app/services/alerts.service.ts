@@ -19,7 +19,7 @@ import { serviceInstances } from "@/lib/http-client";
 import { ALERT_ENDPOINTS } from "@/constants/endpoint.constant";
 
 class AlertsService {
-  private readonly httpClient = serviceInstances.observabilityService;
+  private readonly httpClient = serviceInstances.monitorService;
   async addSingleMonitor(payload: IAddSingleMonitorPayload) {
     const url = ALERT_ENDPOINTS.SAVE_MONITOR;
     return this.httpClient.post<IAlertResponse<IAddSingleMonitorResponse>>(
@@ -40,11 +40,11 @@ class AlertsService {
   }
 
   async getMonitorList(projectKey: string) {
-    const url = `${ALERT_ENDPOINTS.GET_MONITOR_LIST}?ProjectKey=${encodeURIComponent(projectKey)}`;
+    const url = `${ALERT_ENDPOINTS.GET_MONITOR_LIST}?projectKey=${encodeURIComponent(projectKey)}`;
     return this.httpClient.get<IGetMonitorList>(url);
   }
   async getMonitorListById(projectKey: string, repoId: string) {
-    const url = `${ALERT_ENDPOINTS.GET_MONITOR_LIST_BY_REPO_ID}?ProjectKey=${encodeURIComponent(projectKey)}&repoId=${repoId}`;
+    const url = `${ALERT_ENDPOINTS.GET_MONITOR_LIST_BY_REPO_ID}?projectKey=${encodeURIComponent(projectKey)}&repoId=${repoId}`;
     return this.httpClient.get<IGetMonitorList>(url);
   }
   async getMonitorDetails(monitorId: string) {

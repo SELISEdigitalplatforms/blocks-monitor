@@ -1,7 +1,5 @@
 ﻿using DomainService.Health.Models;
 using DomainService.Health.Services;
-using DomainService.Monitor.Entity;
-using DomainService.Monitor.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,18 +13,16 @@ namespace Api.Controllers
     public class HealthController : ControllerBase
     {
         private readonly HealthConfigurationService _healthConfigurationService;
-        private readonly IMonitorConfigurationService _monitorConfigurationService;
         private readonly HealthCheckService _healthCheckService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HealthController"/> class.
         /// </summary>
         /// <param name="healthConfigurationService">Service for health configuration operations.</param>
-        public HealthController(HealthConfigurationService healthConfigurationService, HealthCheckService healthCheckService, IMonitorConfigurationService monitorConfigurationService)
+        public HealthController(HealthConfigurationService healthConfigurationService, HealthCheckService healthCheckService)
         {
             _healthConfigurationService = healthConfigurationService;
             _healthCheckService = healthCheckService;
-            _monitorConfigurationService = monitorConfigurationService;
         }
         [Authorize]
         [HttpPost]
@@ -52,7 +48,7 @@ namespace Api.Controllers
         [HttpGet("{itemId}")]
         public async Task<IActionResult> Ping([FromRoute] string itemId)
         {
-            await _healthCheckService.HandlePingEvent(itemId);
+            await _healthCheckService.HandlePingEventAsync(itemId);
             return Ok(new { message = $"Received ping for {itemId}" });
         }
 
@@ -60,7 +56,7 @@ namespace Api.Controllers
         [HttpDelete]
         public async Task<IActionResult> DeleteHealth([FromQuery] string itemId)
         {
-            var result = await _monitorConfigurationService.DeleteConfigurationAsync(itemId);
+            var result = await _healthConfigurationService.DeleteConfigurationAsync(itemId);
             return Ok(result);
         }
     }

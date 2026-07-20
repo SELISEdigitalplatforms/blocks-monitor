@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Blocks.Genesis;
-using Devops.DomainService.Shared.Interfaces;
+using DomainService.Shared.Services;
 using DomainService.Alert.Services;
 using DomainService.Monitor.Entity;
 using DomainService.Shared.Models;
@@ -26,7 +26,7 @@ namespace XUnitTest.Alert
         public NotificationAlertServiceTests()
         {
             _crypto.Setup(c => c.Hash(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Returns("hashed");
-            // Null tenant exercises the null-safe TenantSalt access in SendNotification.
+            // Null tenant exercises the null-safe TenantSalt access in SendNotificationAsync.
             _tenants.Setup(t => t.GetTenantByID(It.IsAny<string>())).Returns((Tenant)null);
             _config.Setup(c => c["RootTenantId"]).Returns("root");
             _config.Setup(c => c["NotificationServiceUrl"]).Returns("http://notify");
@@ -67,7 +67,7 @@ namespace XUnitTest.Alert
         {
             SetupHttp(new NotificationResponse { IsSuccess = true });
 
-            var result = await Sut(Repo()).SendNotification(new { }, new List<string> { "u1" });
+            var result = await Sut(Repo()).SendNotificationAsync(new { }, new List<string> { "u1" });
 
             result.Should().BeTrue();
         }
@@ -77,7 +77,7 @@ namespace XUnitTest.Alert
         {
             SetupHttp(null);
 
-            var result = await Sut(Repo()).SendNotification(new { }, new List<string> { "u1" });
+            var result = await Sut(Repo()).SendNotificationAsync(new { }, new List<string> { "u1" });
 
             result.Should().BeFalse();
         }
