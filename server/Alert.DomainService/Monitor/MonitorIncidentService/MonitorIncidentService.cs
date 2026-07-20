@@ -34,7 +34,7 @@ namespace DomainService.Monitor.MonitorIncidentService
         {
             try
             {
-                bool isFailure = response.StatusCode < 200 || response.StatusCode >= 500;
+                bool isFailure = response.StatusCode < 200 || response.StatusCode >= 400;
                 var activeIncident = await _monitorIncidentRepoService.GetActiveIncidentAsync(config.ItemId);
 
                 if (isFailure)
