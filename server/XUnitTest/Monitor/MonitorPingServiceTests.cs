@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Devops.DomainService.Shared.Interfaces;
+using DomainService.Shared.Services;
 using DomainService.Monitor.Entity;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;

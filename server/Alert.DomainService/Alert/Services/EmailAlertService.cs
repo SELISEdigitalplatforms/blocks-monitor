@@ -36,7 +36,7 @@ namespace DomainService.Alert.Services
                 string templateName = incident.IsResolved ?
                     "AlertResolved" : "AlertIncident";
 
-                var template = await _alertRepo.GetAlertMailTemplateByName(templateName);
+                var template = await _alertRepo.GetAlertMailTemplateByNameAsync(templateName);
                 if (template == null)
                 {
                     _logger.LogWarning("Mail template {TemplateName} not found", templateName);
@@ -45,7 +45,7 @@ namespace DomainService.Alert.Services
 
                 var variables = BuildVariables(monitorConfiguration, incident);
 
-                var mailConfig = await _alertRepo.GetMailServerConfigurationById(template.MailConfigurationId);
+                var mailConfig = await _alertRepo.GetMailServerConfigurationByIdAsync(template.MailConfigurationId);
 
                 if (mailConfig == null)
                 {
@@ -67,11 +67,11 @@ namespace DomainService.Alert.Services
 
                     if (mailConfig.SmtpClient == 0)
                     {
-                        sent = await SendUsingMailKit(template, mailConfig, email, variables);
+                        sent = await SendUsingMailKitAsync(template, mailConfig, email, variables);
                     }
                     else
                     {
-                        sent = await SendUsingSystemSmtp(template, mailConfig, email, variables);
+                        sent = await SendUsingSystemSmtpAsync(template, mailConfig, email, variables);
                     }
 
                     if (!sent)
@@ -132,7 +132,7 @@ namespace DomainService.Alert.Services
         }
 
 
-        private async Task<bool> SendUsingSystemSmtp(
+        private async Task<bool> SendUsingSystemSmtpAsync(
             AlertMailTemplate template,
             MailServerConfiguration config,
             string toEmail,
@@ -184,7 +184,7 @@ namespace DomainService.Alert.Services
             }
         }
 
-        private async Task<bool> SendUsingMailKit(
+        private async Task<bool> SendUsingMailKitAsync(
             AlertMailTemplate template,
             MailServerConfiguration config,
             string toEmail,

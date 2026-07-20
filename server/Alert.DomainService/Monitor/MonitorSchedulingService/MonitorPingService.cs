@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using DomainService.Monitor.Entity;
-using Devops.DomainService.Shared.Interfaces;
+using DomainService.Shared.Services;
 using Microsoft.Extensions.Logging;
 using DomainService.Monitor.MonitorIncidentService;
 using System.Text.Json;
