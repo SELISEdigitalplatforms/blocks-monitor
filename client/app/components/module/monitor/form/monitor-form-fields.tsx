@@ -288,23 +288,27 @@ export const MonitorFormFields = ({
                   tickLabels={MONITOR_INTERVAL_TICKS}
                 />
 
-                <RenderAlternatively condition={monitorType === "request"}>
-                  <IntervalSliderField
-                    control={form.control}
-                    name="monitorSettings.request_timeout"
-                    label="Request timeout"
-                    tooltipContent={TIMEOUT_TOOLTIP}
-                    tickLabels={MONITOR_INTERVAL_TICKS}
-                  />
-
-                  <IntervalSliderField
-                    control={form.control}
-                    name="monitorSettings.grace_time"
-                    label="Grace Time"
-                    tooltipContent={TIMEOUT_TOOLTIP}
-                    tickLabels={MONITOR_INTERVAL_TICKS}
-                  />
-                </RenderAlternatively>
+                <RenderAlternatively
+                  condition={monitorType === "request"}
+                  whenTrue={
+                    <IntervalSliderField
+                      control={form.control}
+                      name="monitorSettings.request_timeout"
+                      label="Request timeout"
+                      tooltipContent={TIMEOUT_TOOLTIP}
+                      tickLabels={MONITOR_INTERVAL_TICKS}
+                    />
+                  }
+                  whenFalse={
+                    <IntervalSliderField
+                      control={form.control}
+                      name="monitorSettings.grace_time"
+                      label="Grace Time"
+                      tooltipContent={TIMEOUT_TOOLTIP}
+                      tickLabels={MONITOR_INTERVAL_TICKS}
+                    />
+                  }
+                />
               </AccordionContent>
             </AccordionItem>
 
