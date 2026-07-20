@@ -122,8 +122,8 @@ export function AlertsList({
         cell: ({ row }) => {
           const monitorType =
             row.original.monitorConfigurationType === 0
-              ? "Request"
-              : "Callback";
+              ? "HTTP Check"
+              : "Heartbeat";
           return (
             <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
               <span className="break-all">{monitorType}</span>

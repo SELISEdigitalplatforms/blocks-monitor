@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Blocks.Genesis;
-using Devops.DomainService.Shared.Services;
+using DomainService.Shared.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
