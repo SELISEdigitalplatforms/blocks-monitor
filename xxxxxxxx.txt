@@ -1,2 +1,0 @@
-https://dev-localization.blocksdevelopers.com/login/callback?code=IWlODKpgsHIkchfhcQ7Ha9dSY7Wv2SFpawrSKp9vFq0&state=IyxohAep2brzWezKd55Tlw&tenant_id=***REMOVED***&forwardedTo=%2Fconsole
-https://dev-localization.blocksdevelopers.com/login/callback?code=Ig_vzqwRbNKxvDO1XNZCDWRsN4y7Fa8vrO-MNtSeFds&state=kW6BNvW_opKQyYgXLKCEUA&tenant_id=***REMOVED***

@@ -16,7 +16,7 @@ export const navigationMenus: Menu[] = [
   {
     id: "health",
     type: "menu",
-    name: "Health",
+    name: "Monitor",
     path: "/app/health",
     icon: Activity,
   },

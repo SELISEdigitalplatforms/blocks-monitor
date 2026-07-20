@@ -118,6 +118,18 @@ namespace DomainService.Health.Services
                     };
                 }
 
+                // Reject cross-tenant mutation: a caller may only update a heartbeat owned by their own tenant.
+                if (IsCrossTenantAccess(existing))
+                {
+                    _logger.LogWarning("HealthConfiguration with ItemId {ItemId} not found.", request.ItemId);
+                    return new BaseApiResponse
+                    {
+                        IsSuccess = false,
+                        StatusCode = HttpStatusCode.NotFound,
+                        Message = $"HealthConfiguration not found: {request.ItemId}"
+                    };
+                }
+
                 // Update only allowed fields
                 existing.Name = request.Name ?? existing.Name;
                 existing.IntervalInSeconds = request.IntervalInSeconds > 0
@@ -151,6 +163,95 @@ namespace DomainService.Health.Services
                     Message = $"Error updating configuration: {ex.Message}"
                 };
             }
+        }
+
+        /// <summary>
+        /// Deletes a heartbeat (InboundPing) configuration through the health service so that health-specific
+        /// teardown runs: the config is removed via the health repository and the in-memory heartbeat
+        /// scheduler queue is reloaded immediately instead of waiting for the periodic DB poll to drop it.
+        /// </summary>
+        public async Task<BaseApiResponse> DeleteConfigurationAsync(string itemId)
+        {
+            try
+            {
+                var existing = await _healthConfigurationRepoService.GetConfigurationAsync(itemId);
+                if (existing == null)
+                {
+                    _logger.LogWarning("HealthConfiguration with ItemId {ItemId} not found.", itemId);
+                    return new BaseApiResponse
+                    {
+                        IsSuccess = false,
+                        StatusCode = HttpStatusCode.OK,
+                        Message = $"HealthConfiguration not found: {itemId}"
+                    };
+                }
+
+                var effectiveSourceType = existing.EffectiveMonitorSourceType;
+                if (effectiveSourceType == MonitorSourceTypes.Infrastructure ||
+                    effectiveSourceType == MonitorSourceTypes.BlocksServices)
+                {
+                    _logger.LogWarning("HealthConfiguration with ItemId {ItemId} not found.", itemId);
+                    return new BaseApiResponse
+                    {
+                        IsSuccess = false,
+                        StatusCode = HttpStatusCode.OK,
+                        Message = $"HealthConfiguration not found: {itemId}"
+                    };
+                }
+
+                // Reject cross-tenant deletes: a caller may only delete a heartbeat owned by their own tenant.
+                if (IsCrossTenantAccess(existing))
+                {
+                    _logger.LogWarning("HealthConfiguration with ItemId {ItemId} not found.", itemId);
+                    return new BaseApiResponse
+                    {
+                        IsSuccess = false,
+                        StatusCode = HttpStatusCode.OK,
+                        Message = $"HealthConfiguration not found: {itemId}"
+                    };
+                }
+
+                var deleted = await _healthConfigurationRepoService.DeleteConfigurationAsync(itemId);
+                if (!deleted)
+                {
+                    _logger.LogWarning("HealthConfiguration with ItemId {ItemId} does not exist. Cannot delete.", itemId);
+                }
+
+                // Proactively drop the heartbeat from the in-memory scheduler queue rather than waiting for the DB poll.
+                await _healthCheckService.LoadMonitorsFromDatabaseAsync();
+
+                return new BaseApiResponse
+                {
+                    IsSuccess = true,
+                    Message = $"HealthConfiguration with ItemId {itemId} deleted successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting HealthConfiguration {ItemId}", itemId);
+                return new BaseApiResponse
+                {
+                    IsSuccess = false,
+                    Message = $"Error deleting configuration: {ex.Message}"
+                };
+            }
+        }
+
+        private static bool IsCrossTenantAccess(MonitorConfiguration configuration)
+        {
+            string? callerTenantId;
+            try
+            {
+                callerTenantId = BlocksContext.GetContext()?.TenantId;
+            }
+            catch
+            {
+                callerTenantId = null;
+            }
+
+            return !string.IsNullOrEmpty(callerTenantId)
+                && !string.IsNullOrEmpty(configuration.TenantId)
+                && !string.Equals(callerTenantId, configuration.TenantId, StringComparison.Ordinal);
         }
     }
 }

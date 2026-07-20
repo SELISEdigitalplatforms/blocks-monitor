@@ -88,7 +88,7 @@ namespace ObservabilityDriver
             => _healthConfigurationService.UpdateConfigurationAsync(request);
 
         public Task HandlePingAsync(string itemId)
-            => _healthCheckService.HandlePingEvent(itemId);
+            => _healthCheckService.HandlePingEventAsync(itemId);
 
         public Task<BaseApiResponse> DeleteHealthAsync(string itemId)
             => _monitorConfigurationService.DeleteConfigurationAsync(itemId);

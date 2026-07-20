@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Blocks.Genesis;
-using Devops.DomainService.Shared.Interfaces;
+using DomainService.Shared.Services;
 using DomainService.Alert.Entities;
 using DomainService.Alert.Services;
 using DomainService.Monitor.Entity;
