@@ -95,7 +95,7 @@ describe("MonitorFormFields", () => {
   it("fires onMonitorTypeChange when picking a type", async () => {
     const onMonitorTypeChange = vi.fn();
     render(<Harness overrides={{ onMonitorTypeChange }} />);
-    await userEvent.click(screen.getByLabelText("Callback"));
+    await userEvent.click(screen.getByLabelText("Heartbeat"));
     expect(onMonitorTypeChange).toHaveBeenCalledWith("callback");
   });
 
