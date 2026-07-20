@@ -13,6 +13,15 @@ const h = vi.hoisted(() => ({
 vi.mock("@seliseblocks/blocks-kit/store", () => ({
   useProjectStore: () => ({ selectedProject: { tenantId: "proj-1" } }),
 }));
+// getRuntimeEnv falls through to `import.meta.env`, which is not injected into
+// the externalized blocks-kit dependency under vitest (it throws). The page
+// only uses it to prefix the API-docs URL, so resolve it to an empty string;
+// the assertion below expects the bare "/swagger/index.html" path.
+vi.mock("@seliseblocks/blocks-kit/lib", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@seliseblocks/blocks-kit/lib")>();
+  return { ...actual, getRuntimeEnv: () => "" };
+});
 vi.mock("@/hooks/use-alerts", () => ({
   useGetHealthMonitorList: () => h.healthData,
 }));
@@ -49,7 +58,7 @@ describe("HealthPage", () => {
 
   it("renders the heading, tabs, and API docs link", () => {
     renderPage();
-    expect(screen.getByRole("heading", { name: "Health" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Monitor" })).toBeInTheDocument();
     expect(screen.getAllByText("My monitors").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Blocks services").length).toBeGreaterThan(0);
     const docsLink = screen.getByRole("link", { name: /API Docs/ });

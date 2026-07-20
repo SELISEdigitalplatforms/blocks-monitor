@@ -11,3 +11,64 @@ end_of_line = lf
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
+
+# Web sources use a 2-space indent in this repo.
+[*.{ts,tsx,js,jsx,json,css,scss,html}]
+indent_size = 2
+
+# C# uses a 4-space indent (the [*] indent_size = 1 above did not reflect reality).
+[*.cs]
+indent_size = 4
+
+# --- C# naming conventions (encode the conventions already in use) ---
+# Violations surface as build warnings (EnforceCodeStyleInBuild in server/Directory.Build.props);
+# they do not fail the build because TreatWarningsAsErrors is not set. Ratchet to error later.
+
+dotnet_diagnostic.IDE1006.severity = warning
+
+# Symbol groups
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+
+dotnet_naming_symbols.types.applicable_kinds = class, struct, enum, delegate
+dotnet_naming_symbols.types.applicable_accessibilities = *
+
+dotnet_naming_symbols.non_field_members.applicable_kinds = property, method, event
+dotnet_naming_symbols.non_field_members.applicable_accessibilities = *
+
+dotnet_naming_symbols.parameters.applicable_kinds = parameter
+
+dotnet_naming_symbols.locals.applicable_kinds = local
+
+# Naming styles
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+dotnet_naming_style.i_prefixed_pascal.capitalization = pascal_case
+dotnet_naming_style.i_prefixed_pascal.required_prefix = I
+
+dotnet_naming_style.camel_case.capitalization = camel_case
+
+# Rules: interfaces are I-prefixed PascalCase
+dotnet_naming_rule.interfaces_are_i_prefixed.symbols = interfaces
+dotnet_naming_rule.interfaces_are_i_prefixed.style = i_prefixed_pascal
+dotnet_naming_rule.interfaces_are_i_prefixed.severity = warning
+
+# Types are PascalCase
+dotnet_naming_rule.types_are_pascal.symbols = types
+dotnet_naming_rule.types_are_pascal.style = pascal_case
+dotnet_naming_rule.types_are_pascal.severity = warning
+
+# Methods / properties / events are PascalCase
+dotnet_naming_rule.members_are_pascal.symbols = non_field_members
+dotnet_naming_rule.members_are_pascal.style = pascal_case
+dotnet_naming_rule.members_are_pascal.severity = warning
+
+# Parameters are camelCase
+dotnet_naming_rule.parameters_are_camel.symbols = parameters
+dotnet_naming_rule.parameters_are_camel.style = camel_case
+dotnet_naming_rule.parameters_are_camel.severity = warning
+
+# Locals are camelCase
+dotnet_naming_rule.locals_are_camel.symbols = locals
+dotnet_naming_rule.locals_are_camel.style = camel_case
+dotnet_naming_rule.locals_are_camel.severity = warning

@@ -22,7 +22,6 @@ Blocks Monitor is a monorepo with an ASP.NET Core API, a background Worker, and 
 │  ├─ Api/
 │  │  ├─ Api.csproj
 │  │  ├─ Controllers/
-│  │  ├─ GlobalApiRoutePrefixConvention.cs
 │  │  ├─ Program.cs
 │  │  ├─ Properties/launchSettings.json
 │  │  └─ wwwroot/
@@ -168,7 +167,7 @@ docker build -f Dockerfile.worker -t blocks-monitor-worker .
 ## API / routing
 
 - Controllers live in [server/Api/Controllers](server/Api/Controllers).
-- A global route prefix of api is applied by [server/Api/GlobalApiRoutePrefixConvention.cs](server/Api/GlobalApiRoutePrefixConvention.cs), so controller routes like [Route("[controller]/[action]")] become /api/{Controller}/{Action}.
+- A global route prefix of api is applied by the shared Blocks.Genesis host configuration (ApplicationConfigurations.ConfigureApi in [server/Api/Program.cs](server/Api/Program.cs)), so controller routes like [Route("[controller]/[action]")] become /api/{Controller}/{Action}.
 - The API serves the SPA from wwwroot using UseDefaultFiles, UseStaticFiles, and MapFallbackToFile("/index.html") (see [server/Api/Program.cs](server/Api/Program.cs)).
 - Launch profiles are defined in [server/Api/Properties/launchSettings.json](server/Api/Properties/launchSettings.json) and [server/Worker/Properties/launchSettings.json](server/Worker/Properties/launchSettings.json). The URLs there may differ from the run scripts.
 

@@ -1,6 +1,16 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
+// http-client.ts calls getRuntimeEnv() at module load to seed each service's
+// baseURL. getRuntimeEnv falls through to `import.meta.env`, which is not
+// injected into the externalized blocks-kit dependency under vitest (it throws
+// at import). Resolve it to an empty string while keeping the real HttpClient,
+// so the module still builds its genuine service instances for the assertions.
+vi.mock("@seliseblocks/blocks-kit/lib", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@seliseblocks/blocks-kit/lib")>();
+  return { ...actual, getRuntimeEnv: () => "" };
+});
 import { HealthLayout } from "@/layouts/health-layout/health-layout";
 import { serviceInstances, HttpClient } from "@/lib/http-client";
 import * as models from "@/models";
