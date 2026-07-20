@@ -65,7 +65,7 @@ const MonitorCard = ({
         {/* URL to monitor */}
         <div>
           <div className="mb-1 text-xs font-medium text-foreground">
-            {request ? "URL to monitor" : "Callback URL"}
+            {request ? "URL to monitor" : "Heartbeat URL"}
           </div>
           <a
             href={url}
@@ -82,7 +82,7 @@ const MonitorCard = ({
             Monitor type
           </div>
           <div className="text-foreground">
-            {request ? "Request" : "Callback"}
+            {request ? "HTTP Check" : "Heartbeat"}
           </div>
         </div>
 

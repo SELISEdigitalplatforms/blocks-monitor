@@ -97,7 +97,7 @@ describe("AlertsList", () => {
       { wrapper: wrapper() },
     );
     expect(screen.getByText("My Monitor")).toBeInTheDocument();
-    expect(screen.getByText("Request")).toBeInTheDocument();
+    expect(screen.getByText("HTTP Check")).toBeInTheDocument();
     expect(screen.getByText("https://svc.example.com")).toBeInTheDocument();
     expect(screen.getByText("repo-1")).toBeInTheDocument();
     expect(screen.getByTestId("progress")).toHaveAttribute("data-status", "true");
@@ -113,7 +113,7 @@ describe("AlertsList", () => {
       />,
       { wrapper: wrapper() },
     );
-    expect(screen.getByText("Callback")).toBeInTheDocument();
+    expect(screen.getByText("Heartbeat")).toBeInTheDocument();
     expect(screen.queryByTestId("alert-action")).toBeNull();
   });
 
