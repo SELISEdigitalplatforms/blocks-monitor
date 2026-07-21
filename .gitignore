@@ -163,3 +163,6 @@ server/Api/wwwroot/**
 
 # JetBrains files
 .idea/
+
+# build output (never commit)
+builds/
