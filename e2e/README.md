@@ -60,10 +60,10 @@ nothing to patch.
 > Remote dev is shared infrastructure. The login spec is effectively read-only,
 > but anything that mutates data acts on **real dev records**.
 
-**Local build on `:5000`** — omit `E2E_NO_WEBSERVER` and point at the local port:
+**Local build on `:5001`** — omit `E2E_NO_WEBSERVER` and point at the local port:
 
 ```ini
-E2E_BASE_URL=https://dev-monitor.blocksdevelopers.com:5000
+E2E_BASE_URL=https://dev-monitor.blocksdevelopers.com:5001
 ```
 
 Three preconditions cause nearly all failures here:
@@ -74,7 +74,7 @@ Three preconditions cause nearly all failures here:
 2. **TLS** — `MONITOR_SSL_CERT` / `MONITOR_SSL_KEY` must be set and point at real
    files. If not, `run.sh -b` serves HTTP while `E2E_BASE_URL` says `https://`,
    and the run hangs until timeout.
-3. **Port 5000 is free** — every Blocks repo uses it; only one can run at a time.
+3. **Port 5001 is free** — sibling Blocks repos also use it; only one can run at a time.
 
 Auto-start uses `bash run.sh -b`, so **Git Bash's `bash` must be on PATH**.
 
