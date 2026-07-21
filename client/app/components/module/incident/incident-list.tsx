@@ -21,6 +21,7 @@ import {
 } from "@tanstack/react-table";
 import { useCallback, useMemo } from "react";
 import { useIncidentFilterQueryParams } from "./use-incident-query-filter-params";
+import { formatDuration } from "@seliseblocks/blocks-kit/utils";
 
 const parseFailureReason = (reason?: string | null): string | undefined => {
   if (!reason) return undefined; // instead of null
@@ -319,27 +320,5 @@ const IncidentList = ({
     </ScrollArea>
   );
 };
-
-function formatDuration(seconds: number): string {
-  const days = Math.floor(seconds / (24 * 3600));
-  const hours = Math.floor((seconds % (24 * 3600)) / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-
-  const units = [
-    { value: days, label: "d" },
-    { value: hours, label: "h" },
-    { value: minutes, label: "m" },
-    { value: secs, label: "s" },
-  ];
-
-  const nonZero = units.filter((u) => u.value > 0);
-  if (!nonZero.length) return "0s";
-
-  return nonZero
-    .slice(0, 2)
-    .map((u) => `${u.value}${u.label}`)
-    .join(" ");
-}
 
 export default IncidentList;

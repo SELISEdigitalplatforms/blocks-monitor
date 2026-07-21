@@ -194,7 +194,7 @@ namespace DomainService.Monitor.MonitorIncidentService
                 // Fetch aggregated downtime/incidents from repo
                 var results = await _monitorIncidentRepoService.GetDowntimeAndCountByDateRangesAsync(monitorId, ranges);
 
-                var dateRangeSummaryList = results.Select(kv => new MonitorDateRangeSummaryDto
+                var dateRangeSummaryList = results.Select(kv => new MonitorDateRangeSummaryResponse
                 {
                     Range = kv.Key,
                     TotalDurationMs = kv.Value.TotalDurationMs,
