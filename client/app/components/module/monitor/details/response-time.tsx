@@ -23,6 +23,7 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
+import { formatDuration } from "@seliseblocks/blocks-kit/utils";
 
 type DowntimeLog = {
   startTime: string;
@@ -55,18 +56,6 @@ const TIME_RANGES: Record<string, number> = {
   "6h": 6 * 60 * 60 * 1000,
   "12h": 12 * 60 * 60 * 1000,
   "24h": 24 * 60 * 60 * 1000,
-};
-
-const formatDuration = (ms: number) => {
-  const sec = Math.floor(ms / 1000);
-  const min = Math.floor(sec / 60);
-  const hr = Math.floor(min / 60);
-  const d = Math.floor(hr / 24);
-
-  if (d > 0) return `${d}d ${hr % 24}h`;
-  if (hr > 0) return `${hr}h ${min % 60}m`;
-  if (min > 0) return `${min}m ${sec % 60}s`;
-  return `${sec}s`;
 };
 
 const ResponseTime = ({
