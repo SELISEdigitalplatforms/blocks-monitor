@@ -14,7 +14,8 @@ import {
 import AlertAction from "@/components/module/alert/alert-action";
 import ProgressBar from "@/components/module/alert/progress-bar";
 import { AlertTree } from "@/models/alerts.model";
-import { useProjectStore } from "@seliseblocks/blocks-kit";
+import { formatDate } from "@seliseblocks/blocks-kit/utils";
+import { useProjectStore } from "@seliseblocks/blocks-kit/store";
 import { useScopedPath } from "@seliseblocks/blocks-kit/hooks";
 import {
   ColumnDef,
@@ -34,43 +35,6 @@ type AlertsListProps = {
   onSortChange: (params: SortValue) => void;
 };
 
-export const formatSeconds = (seconds: number) => {
-  if (seconds < 60) {
-    return `${seconds}s`;
-  }
-
-  if (seconds < 3600) {
-    const minutes = Math.floor(seconds / 60);
-    return `${minutes}min`;
-  }
-
-  if (seconds < 86400) {
-    const hours = Math.floor(seconds / 3600);
-    return `${hours}h`;
-  }
-
-  const days = Math.floor(seconds / 86400);
-  return `${days}d`;
-};
-function formatDate(ms: number): string {
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (days > 0) {
-    const remainingHours = hours % 24;
-    return `${days}d ${remainingHours}h`;
-  } else if (hours > 0) {
-    const remainingMinutes = minutes % 60;
-    return `${hours}h ${remainingMinutes}m`;
-  } else if (minutes > 0) {
-    const remainingSeconds = seconds % 60;
-    return `${minutes}m ${remainingSeconds}s`;
-  } else {
-    return `${seconds}s`;
-  }
-}
 export function AlertsList({
   data,
   isLoading,
