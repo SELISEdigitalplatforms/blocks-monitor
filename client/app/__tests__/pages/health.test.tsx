@@ -58,7 +58,7 @@ describe("HealthPage", () => {
 
   it("renders the heading, tabs, and API docs link", () => {
     renderPage();
-    expect(screen.getByRole("heading", { name: "Health" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Monitor" })).toBeInTheDocument();
     expect(screen.getAllByText("My monitors").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Blocks services").length).toBeGreaterThan(0);
     const docsLink = screen.getByRole("link", { name: /API Docs/ });

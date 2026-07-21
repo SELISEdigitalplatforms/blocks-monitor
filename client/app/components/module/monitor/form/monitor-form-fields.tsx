@@ -50,8 +50,8 @@ const MONITOR_TYPE_OPTIONS: {
   value: MonitorConfigurationType;
   label: string;
 }[] = [
-  { id: "monitor-type-request", value: "request", label: "Request" },
-  { id: "monitor-type-callback", value: "callback", label: "Callback" },
+  { id: "monitor-type-request", value: "request", label: "HTTP Check" },
+  { id: "monitor-type-callback", value: "callback", label: "Heartbeat" },
 ];
 
 const SOURCE_TYPE_OPTIONS: { id: string; value: SourceType; label: string }[] =
@@ -288,23 +288,27 @@ export const MonitorFormFields = ({
                   tickLabels={MONITOR_INTERVAL_TICKS}
                 />
 
-                <RenderAlternatively condition={monitorType === "request"}>
-                  <IntervalSliderField
-                    control={form.control}
-                    name="monitorSettings.request_timeout"
-                    label="Request timeout"
-                    tooltipContent={TIMEOUT_TOOLTIP}
-                    tickLabels={MONITOR_INTERVAL_TICKS}
-                  />
-
-                  <IntervalSliderField
-                    control={form.control}
-                    name="monitorSettings.grace_time"
-                    label="Grace Time"
-                    tooltipContent={TIMEOUT_TOOLTIP}
-                    tickLabels={MONITOR_INTERVAL_TICKS}
-                  />
-                </RenderAlternatively>
+                <RenderAlternatively
+                  condition={monitorType === "request"}
+                  whenTrue={
+                    <IntervalSliderField
+                      control={form.control}
+                      name="monitorSettings.request_timeout"
+                      label="Request timeout"
+                      tooltipContent={TIMEOUT_TOOLTIP}
+                      tickLabels={MONITOR_INTERVAL_TICKS}
+                    />
+                  }
+                  whenFalse={
+                    <IntervalSliderField
+                      control={form.control}
+                      name="monitorSettings.grace_time"
+                      label="Grace Time"
+                      tooltipContent={TIMEOUT_TOOLTIP}
+                      tickLabels={MONITOR_INTERVAL_TICKS}
+                    />
+                  }
+                />
               </AccordionContent>
             </AccordionItem>
 
