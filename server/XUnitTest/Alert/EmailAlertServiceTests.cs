@@ -103,5 +103,40 @@ namespace XUnitTest.Alert
 
             result.Should().BeFalse();
         }
+
+        [Fact]
+        public async Task HandleEmailAlertAsync_WithRecipientAndMailKitClient_AttemptsSendAndReturnsFalseOnFailure()
+        {
+            // SmtpClient.Default routes through the MailKit sender. Pointing it at a closed loopback port
+            // makes the connection fail fast, exercising the MailKit send path and its catch block.
+            var repo = Repo(
+                templates: new List<AlertMailTemplate> { new() { Name = "AlertIncident", MailConfigurationId = "cfg1", TemplateSubject = "S {{MonitorName}}", TemplateBody = "B {{MonitorUrl}}" } },
+                configs: new List<MailServerConfiguration>
+                {
+                    new() { ItemId = "cfg1", Host = "127.0.0.1", Port = 1, EnableSSL = false, SenderAddress = "from@test", SenderName = "Blocks", SmtpClient = SmtpClient.Default }
+                });
+            var incident = new MonitorIncident { MonitorUrl = "http://api", IsResolved = false, StartTime = DateTime.UtcNow, LastStatusCode = 500, FailureReason = "down" };
+
+            var result = await Sut(repo).HandleEmailAlertAsync(Monitor("a@test.com"), incident);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task HandleEmailAlertAsync_WithRecipientAndSystemSmtpClient_AttemptsSendAndReturnsFalseOnFailure()
+        {
+            // A non-default SmtpClient routes through the System.Net.Mail sender.
+            var repo = Repo(
+                templates: new List<AlertMailTemplate> { new() { Name = "AlertIncident", MailConfigurationId = "cfg1", TemplateSubject = "S", TemplateBody = "B {{MonitorName}}" } },
+                configs: new List<MailServerConfiguration>
+                {
+                    new() { ItemId = "cfg1", Host = "127.0.0.1", Port = 1, EnableSSL = false, SenderAddress = "from@test", SenderName = "Blocks", UseDefaultCredentials = false, SenderUserName = "u", AccountPassword = "p", SmtpClient = SmtpClient.MsMailKit }
+                });
+            var incident = new MonitorIncident { MonitorUrl = "http://api", IsResolved = false, StartTime = DateTime.UtcNow, LastStatusCode = 500 };
+
+            var result = await Sut(repo).HandleEmailAlertAsync(Monitor("a@test.com"), incident);
+
+            result.Should().BeFalse();
+        }
     }
 }
