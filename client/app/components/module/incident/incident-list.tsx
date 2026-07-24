@@ -117,9 +117,7 @@ const IncidentList = ({
             : "text-red-600 bg-red-100 px-2 py-1 rounded-full";
           return (
             <div className="ml-2 flex w-[100px] flex-row items-center gap-2 sm:ml-0">
-              <span className={statusClass}>
-                {isResolved ? "Resolved" : "Unresolved"}
-              </span>
+              <span className={statusClass}>{isResolved ? "Resolved" : "Unresolved"}</span>
             </div>
           );
         },
@@ -199,9 +197,7 @@ const IncidentList = ({
         ),
         cell: ({ row }) => {
           const startTime = new Date(row.original.startTime);
-          const endTime = row.original.endTime
-            ? new Date(row.original.endTime)
-            : null;
+          const endTime = row.original.endTime ? new Date(row.original.endTime) : null;
           const isOngoing = !endTime || endTime < startTime;
           return (
             <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
@@ -251,19 +247,12 @@ const IncidentList = ({
       <Table className="text-sm">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow
-              key={headerGroup.id}
-              className="px-4 py-2 hover:bg-transparent">
+            <TableRow key={headerGroup.id} className="px-4 py-2 hover:bg-transparent">
               {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className="font-bold text-medium-emphasis">
+                <TableHead key={header.id} className="font-bold text-medium-emphasis">
                   {header.isPlaceholder
                     ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
+                    : flexRender(header.column.columnDef.header, header.getContext())}
                 </TableHead>
               ))}
             </TableRow>
@@ -280,13 +269,11 @@ const IncidentList = ({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   className="text-medium-emphasis"
-                  isHoverable>
+                  isHoverable
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -295,7 +282,8 @@ const IncidentList = ({
               <TableRow>
                 <TableCell
                   colSpan={table.getAllColumns().length}
-                  className="h-24 text-center text-muted-foreground">
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No results.
                 </TableCell>
               </TableRow>

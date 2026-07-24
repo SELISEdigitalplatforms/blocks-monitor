@@ -30,10 +30,7 @@ export default function globalSetup() {
   }
 
   const original = fs.readFileSync(indexHtml, "utf8");
-  const patched = original.replace(
-    /(BLOCKS_MONITOR_BASE_URL:\s*")([^"]*)(")/g,
-    `$1${baseURL}$3`,
-  );
+  const patched = original.replace(/(BLOCKS_MONITOR_BASE_URL:\s*")([^"]*)(")/g, `$1${baseURL}$3`);
 
   if (patched === original) {
     console.log(`[e2e] BLOCKS_MONITOR_BASE_URL already "${baseURL}" — no patch needed.`);

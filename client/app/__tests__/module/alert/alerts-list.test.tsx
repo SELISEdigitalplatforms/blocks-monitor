@@ -59,10 +59,9 @@ const sort = { property: "name", isDescending: false };
 
 describe("AlertsList", () => {
   it("renders a loading skeleton", () => {
-    render(
-      <AlertsList data={[]} isLoading sortQueryParams={sort} onSortChange={vi.fn()} />,
-      { wrapper: wrapper() },
-    );
+    render(<AlertsList data={[]} isLoading sortQueryParams={sort} onSortChange={vi.fn()} />, {
+      wrapper: wrapper(),
+    });
     // While loading, the component swaps the table body for the skeleton and
     // never falls through to the empty state.
     expect(screen.getByTestId("table-loading-skeleton")).toBeInTheDocument();

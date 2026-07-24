@@ -100,9 +100,7 @@ vi.mock("@/components/module/monitor/details/monitor-details-skeletons", () => (
   ResponseSkeletonLoader: () => <div data-testid="skeleton-response" />,
 }));
 
-import MonitorDetailsPage, {
-  formatDuration,
-} from "@/pages/monitor/details";
+import MonitorDetailsPage, { formatDuration } from "@/pages/monitor/details";
 
 const renderPage = () =>
   render(
@@ -183,15 +181,9 @@ describe("MonitorDetailsPage", () => {
   it("toggles the notification and configure modals", async () => {
     renderPage();
     await userEvent.click(screen.getByText("Notification Settings"));
-    expect(screen.getByTestId("notification-modal")).toHaveAttribute(
-      "data-open",
-      "true",
-    );
+    expect(screen.getByTestId("notification-modal")).toHaveAttribute("data-open", "true");
     await userEvent.click(screen.getByText("Configure"));
-    expect(screen.getByTestId("monitor-modal")).toHaveAttribute(
-      "data-open",
-      "true",
-    );
+    expect(screen.getByTestId("monitor-modal")).toHaveAttribute("data-open", "true");
   });
 
   it("shows 'View all incidents' and navigates when there are more than four", async () => {
