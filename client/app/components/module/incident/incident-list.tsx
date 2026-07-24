@@ -231,7 +231,7 @@ const IncidentList = ({
           }
           return (
             <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[100px]">
-              <span>{formatDuration(durationSec)}</span>
+              <span>{formatDuration(durationSec * 1000)}</span>
             </div>
           );
         },

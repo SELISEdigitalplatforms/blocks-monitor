@@ -29,16 +29,18 @@ export function RenderConditionally({
   return condition ? <>{children}</> : null;
 }
 
-// Mirrors blocks-kit's RenderAlternatively: children is a [truthy, falsy]
-// tuple; renders the first when `condition` holds, otherwise the second.
+// Mirrors blocks-kit's RenderAlternatively: renders `whenTrue` when
+// `condition` holds, otherwise `whenFalse`.
 export function RenderAlternatively({
   condition,
-  children,
+  whenTrue,
+  whenFalse,
 }: {
   condition: boolean;
-  children: [ReactNode, ReactNode];
+  whenTrue: ReactNode;
+  whenFalse: ReactNode;
 }) {
-  return <>{condition ? children[0] : children[1]}</>;
+  return <>{condition ? whenTrue : whenFalse}</>;
 }
 
 // `FilterControls` is a compound component. The app only reaches for two of its
