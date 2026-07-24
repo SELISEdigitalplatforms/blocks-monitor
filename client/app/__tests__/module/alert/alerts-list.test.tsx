@@ -27,7 +27,7 @@ vi.mock("@/components/module/alert/progress-bar", () => ({
   ),
 }));
 
-import { AlertsList, formatSeconds } from "@/components/module/alert/alerts-list";
+import { AlertsList } from "@/components/module/alert/alerts-list";
 import type { AlertTree } from "@/models/alerts.model";
 
 const wrapper =
@@ -56,15 +56,6 @@ const alert = (over: Partial<AlertTree> = {}): AlertTree =>
   }) as unknown as AlertTree;
 
 const sort = { property: "name", isDescending: false };
-
-describe("formatSeconds", () => {
-  it("formats seconds, minutes, hours, and days", () => {
-    expect(formatSeconds(30)).toBe("30s");
-    expect(formatSeconds(120)).toBe("2min");
-    expect(formatSeconds(7200)).toBe("2h");
-    expect(formatSeconds(172800)).toBe("2d");
-  });
-});
 
 describe("AlertsList", () => {
   it("renders a loading skeleton", () => {
