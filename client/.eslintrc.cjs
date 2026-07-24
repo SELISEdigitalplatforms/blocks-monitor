@@ -26,6 +26,10 @@ module.exports = {
     "prettier",
   ],
   rules: {
+    // Confirmed false positives, disabled with justification (see CONTRIBUTING.md):
+    // - react/prop-types is redundant in this TypeScript codebase; props are
+    //   type-checked by the compiler, so the rule only fires on typed components.
+    // - react/no-unknown-property allows the cmdk library's DOM data attribute.
     "react/no-unknown-property": ["error", { ignore: ["cmdk-input-wrapper"] }],
     "react/prop-types": "off",
     "react/react-in-jsx-scope": "off",
