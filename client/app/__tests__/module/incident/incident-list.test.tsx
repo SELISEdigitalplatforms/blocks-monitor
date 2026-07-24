@@ -6,11 +6,13 @@ import type { ReactNode } from "react";
 import IncidentList from "@/components/module/incident/incident-list";
 import type { IncidentTree } from "@/models/alerts.model";
 
-const wrapper =
-  (search = "") =>
-  ({ children }: { children: ReactNode }) => (
+const wrapper = (search = "") => {
+  const Wrapper = ({ children }: { children: ReactNode }) => (
     <NuqsTestingAdapter searchParams={search}>{children}</NuqsTestingAdapter>
   );
+  Wrapper.displayName = "Wrapper";
+  return Wrapper;
+};
 
 const incident = (over: Partial<IncidentTree> = {}): IncidentTree =>
   ({

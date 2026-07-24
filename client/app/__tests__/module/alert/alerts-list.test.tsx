@@ -30,11 +30,13 @@ vi.mock("@/components/module/alert/progress-bar", () => ({
 import { AlertsList } from "@/components/module/alert/alerts-list";
 import type { AlertTree } from "@/models/alerts.model";
 
-const wrapper =
-  (search = "") =>
-  ({ children }: { children: ReactNode }) => (
+const wrapper = (search = "") => {
+  const Wrapper = ({ children }: { children: ReactNode }) => (
     <NuqsTestingAdapter searchParams={search}>{children}</NuqsTestingAdapter>
   );
+  Wrapper.displayName = "Wrapper";
+  return Wrapper;
+};
 
 const alert = (over: Partial<AlertTree> = {}): AlertTree =>
   ({
