@@ -362,4 +362,4 @@ Incident-duration aggregation for a single monitor, returned by `GetMonitorDetai
 
 ## Authorization
 
-The original controllers decorate every action with `[Authorize]` (except `Ping`, which is public so external probes can hit it). The driver itself does not enforce auth — that's the consumer's controller's responsibility. Apply `[Authorize]` on the controller methods that wrap each driver call, exactly as the source controllers do.
+The original controllers decorate every action with `[Authorize]` (except `Ping`, which is public so external probes can hit it). The driver itself does not enforce auth; that's the consumer's controller's responsibility. Apply `[Authorize]` on the controller methods that wrap each driver call, exactly as the source controllers do.

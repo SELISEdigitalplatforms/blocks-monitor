@@ -8,15 +8,60 @@ and [`client/.eslintrc.cjs`](client/.eslintrc.cjs) (TypeScript/React lint + nami
 Rules start at the conventions already true in the codebase so the build stays green;
 tighten them over time rather than landing a large violating change at once.
 
+## Branch model
+
+- `main`: production-ready code (protected)
+- `dev`: integration branch (protected); all pull requests target `dev`
+- `inception`: the working branch; day-to-day work happens here
+
+Never commit directly to `dev` or `main`. Work on `inception` and open a pull request
+from `inception` into `dev`. Do not force-push and do not rewrite published history.
+
+## Commit conventions
+
+Match the style already in the log. Most commits use Conventional Commits, for example
+`test(monitor): raise backend unit coverage above 90%` or `chore(client): standardize
+ESLint config and scripts`; a plain imperative subject is also used for straightforward
+changes. Keep the subject concise and in the imperative mood, and explain the what and
+the why in the body when it is not obvious.
+
+## Test gates
+
+Run these from the repository root before opening a pull request; they must pass, and
+your change must not reduce coverage:
+
+```bash
+dotnet test server/XUnitTest/XUnitTest.csproj   # backend unit tests
+npm --prefix client run test                    # frontend unit tests
+npm --prefix e2e run test                       # e2e (needs e2e/.env.e2e, see e2e/README.md)
+```
+
+Security scanning gates (SAST, dependency and secret scanning via `scripts/scan.sh`
+where the scanning environment is available) must report no new findings. Fix findings
+in real code or real dependency versions; do not suppress rules, lower thresholds or
+delete tests to make a scan pass.
+
+## Review expectations
+
+- Keep pull requests small and focused; describe what changed, why, and how it was tested.
+- CI runs the build, tests and scans on every pull request into `dev`.
+- At least one maintainer must approve before merge.
+- Update `README.md` and any affected docs in the same pull request as the change.
+
+## Reporting a security issue
+
+Do not open a public issue for a suspected vulnerability. Follow the private disclosure
+process in [SECURITY.md](SECURITY.md).
+
 ## Product vocabulary
 
-- The product is **Blocks Monitor** (short: **Monitor**). **"Observability" is retired** — do
+- The product is **Blocks Monitor** (short: **Monitor**). **"Observability" is retired**: do
   not introduce it in new code, comments, or copy. The one remaining externally-breaking use is
   the published NuGet `PackageId` (`SeliseBlocks.ObservabilityDriver`), which needs a separate
   deprecation window before it can be renamed.
 - Each check type has exactly one user-facing name:
-  - **HTTP Check** — "we ping you" (domain enum `OutboundPing`, `MonitorConfigurationType = request`).
-  - **Heartbeat** — "you ping us" (domain enum `InboundPing`, `MonitorConfigurationType = callback`).
+  - **HTTP Check**: "we ping you" (domain enum `OutboundPing`, `MonitorConfigurationType = request`).
+  - **Heartbeat**: "you ping us" (domain enum `InboundPing`, `MonitorConfigurationType = callback`).
   - "Health" refers only to the in-app status section, never to a check type.
 
 ## HTTP API
@@ -48,7 +93,7 @@ tighten them over time rather than landing a large violating change at once.
 ## Permission scopes and roles
 
 - Authorization currently resolves against the shared **`blocks-os`** IAM resource. The dedicated
-  resource must be **`blocks-monitor`** (the product name) — **not** `blocks-observability`. Only
+  resource must be **`blocks-monitor`** (the product name); **not** `blocks-observability`. Only
   switch the resource name in `server/Api/Program.cs` once that resource and its scopes have been
   seeded and granted in IAM, otherwise every tenant loses access on deploy.
 - Scope grammar is three colon-separated segments: `resource::subject::action`
