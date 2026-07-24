@@ -72,7 +72,8 @@ function SortHeader({
           property: id ?? "",
           isDescending: !(value?.isDescending ?? false),
         })
-      }>
+      }
+    >
       {label}
     </button>
   );

@@ -3,15 +3,8 @@ import { HealthLayout } from "@/layouts/health-layout/health-layout";
 import HealthPage from "@/pages/health";
 import IncidentPage from "@/pages/incidents";
 import MonitorDetailsPage from "@/pages/monitor/details";
-import {
-  AuthResolver,
-  ProtectedGuard,
-  PublicGuard,
-} from "@seliseblocks/blocks-kit/guards";
-import {
-  ConsoleLayout,
-  DashboardRoute,
-} from "@seliseblocks/blocks-kit/layouts";
+import { AuthResolver, ProtectedGuard, PublicGuard } from "@seliseblocks/blocks-kit/guards";
+import { ConsoleLayout, DashboardRoute } from "@seliseblocks/blocks-kit/layouts";
 import {
   CallbackPage,
   ConsolePage,
@@ -80,10 +73,7 @@ export const routes = [
                 // impersonate
                 path: ":itemId",
                 element: (
-                  <DashboardRoute
-                    redirectPaths={redirectPaths}
-                    navigationMenus={navigationMenus}
-                  />
+                  <DashboardRoute redirectPaths={redirectPaths} navigationMenus={navigationMenus} />
                 ),
                 children: [
                   {

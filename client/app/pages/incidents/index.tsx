@@ -39,11 +39,7 @@ const IncidentPage = () => {
       <div className="hidden md:flex"></div>
       <div className="mb-[18px] md:mb-[20px]">
         <div className="flex items-center">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8"
-            onClick={() => navigate(-1)}>
+          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-6 w-6" />
           </Button>
           <span className="text-lg font-semibold md:text-2xl">Incidents</span>

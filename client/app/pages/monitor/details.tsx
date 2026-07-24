@@ -1,12 +1,7 @@
 "use client";
 import { BackIconButton } from "@/components/common/back-buttons";
 import { Button, Skeleton } from "@/components/core";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/core/card/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/core/card/card";
 import { Separator } from "@/components/core/separator/separator";
 import AlertAction from "@/components/module/alert/alert-action";
 import NotificationModal from "@/components/module/alert/notification-modal";
@@ -20,11 +15,7 @@ import {
 import ResponseTime from "@/components/module/monitor/details/response-time";
 import { EditSingleMonitorForm } from "@/components/module/monitor/form/edit-monitor-form";
 import { MonitorModal } from "@/components/module/monitor/modal/monitor-modal";
-import {
-  useGetMonitorById,
-  useGetMonitorDetails,
-  useGetMonitorDownTime,
-} from "@/hooks/use-alerts";
+import { useGetMonitorById, useGetMonitorDetails, useGetMonitorDownTime } from "@/hooks/use-alerts";
 import { IMonitorSummary } from "@/models/alerts.model";
 import { useScopedPath } from "@seliseblocks/blocks-kit/hooks";
 import { useProjectStore } from "@seliseblocks/blocks-kit/store";
@@ -83,20 +74,12 @@ export const formatDuration = (ms: number) => {
   return `${seconds}s`;
 };
 
-const MonitorSummary = ({
-  data,
-  status,
-  incident,
-  createdAt,
-}: MonitorSummaryProps) => {
-  const toMilliseconds = (value: string): number =>
-    parseInt(value, 10) * 24 * 60 * 60 * 1000;
+const MonitorSummary = ({ data, status, incident, createdAt }: MonitorSummaryProps) => {
+  const toMilliseconds = (value: string): number => parseInt(value, 10) * 24 * 60 * 60 * 1000;
   const now = Date.now();
   const incidentDate = new Date(incident);
   const incidentTime =
-    incidentDate.getUTCFullYear() === 1
-      ? new Date(createdAt).getTime()
-      : incidentDate.getTime();
+    incidentDate.getUTCFullYear() === 1 ? new Date(createdAt).getTime() : incidentDate.getTime();
 
   const incidentDuration = formatDuration(now - incidentTime);
 
@@ -109,15 +92,15 @@ const MonitorSummary = ({
               key={`status-${index}`}
               className={`flex flex-1 flex-col rounded-md border-0 border-l-8 shadow-none ${
                 status ? "border-l-green-500" : "border-l-red-500"
-              } bg-transparent py-2 pl-4`}>
-              <CardTitle className="text-base font-medium">
-                Current Status
-              </CardTitle>
+              } bg-transparent py-2 pl-4`}
+            >
+              <CardTitle className="text-base font-medium">Current Status</CardTitle>
               <CardContent className="mt-3 flex flex-col gap-3">
                 <span
                   className={`text-xl font-semibold capitalize ${
                     status ? "text-green-500" : "text-red-500"
-                  }`}>
+                  }`}
+                >
                   {item.status}
                 </span>
                 <span className="text-xs font-medium text-medium-emphasis">
@@ -142,17 +125,15 @@ const MonitorSummary = ({
                 : index === 2
                   ? "border-l-chart-blue"
                   : "border-l-chart-purple"
-            }`}>
+            }`}
+          >
             <CardTitle className="text-base font-medium">
               Last {item.range?.slice(0, -1)} days
             </CardTitle>
             <CardContent className="mt-3 flex flex-col gap-3">
-              <span className="text-xl font-semibold">
-                {uptimePercentage.toFixed(2)}%
-              </span>
+              <span className="text-xl font-semibold">{uptimePercentage.toFixed(2)}%</span>
               <span className="text-xs font-medium text-primary underline">
-                {item.incidentCount} incidents,{" "}
-                {formatDuration(item.totalDurationMs!)} down
+                {item.incidentCount} incidents, {formatDuration(item.totalDurationMs!)} down
               </span>
             </CardContent>
           </Card>
@@ -168,16 +149,14 @@ const MonitorDetailsPage = () => {
   const { id } = useParams();
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
 
-  const [openNotificationSettings, setOpenNotificationSettings] =
-    useState(false);
+  const [openNotificationSettings, setOpenNotificationSettings] = useState(false);
   const [open, setOpen] = useState(false);
   const [timeRange, setTimeRange] = useState("1h");
 
   const monitorId = id || "";
 
   const { data, isLoading } = useGetMonitorDetails(monitorId);
-  const { data: monitorData, isLoading: isMonitorLoading } =
-    useGetMonitorById(monitorId);
+  const { data: monitorData, isLoading: isMonitorLoading } = useGetMonitorById(monitorId);
   const request = monitorData?.data?.monitorConfigurationType === 0;
   const interval = monitorData?.data?.intervalInSeconds || 0;
   const monitorSourceType = monitorData?.data?.monitorSourceTypes;
@@ -225,14 +204,16 @@ const MonitorDetailsPage = () => {
             <Button
               variant="outline"
               className="flex-1 sm:flex-none"
-              onClick={() => setOpenNotificationSettings((open) => !open)}>
+              onClick={() => setOpenNotificationSettings((open) => !open)}
+            >
               <Settings className="mr-2 h-4 w-4" />
               Notification Settings
             </Button>
             <Button
               variant="outline"
               className="flex-1 sm:flex-none"
-              onClick={() => setOpen((open) => !open)}>
+              onClick={() => setOpen((open) => !open)}
+            >
               <Settings className="mr-2 h-4 w-4" />
               Configure
             </Button>
@@ -242,7 +223,8 @@ const MonitorDetailsPage = () => {
               name={monitorData?.data?.name || ""}
               request={request}
               projectKey={projectKey}
-              monitorSourceType={monitorSourceType}>
+              monitorSourceType={monitorSourceType}
+            >
               <Button variant="outline" size="icon" aria-label="Actions">
                 <EllipsisVertical className="h-4 w-4" />
               </Button>
@@ -290,9 +272,8 @@ const MonitorDetailsPage = () => {
                 {data?.monitorIncidents && data.monitorIncidents.length > 4 && (
                   <Button
                     variant="outline"
-                    onClick={() =>
-                      navigate(scoped(`monitor/incidents/${monitorId}`))
-                    }>
+                    onClick={() => navigate(scoped(`monitor/incidents/${monitorId}`))}
+                  >
                     View all incidents
                   </Button>
                 )}
@@ -306,10 +287,7 @@ const MonitorDetailsPage = () => {
           </CardContent>
 
           <MonitorModal open={open} onOpenChange={setOpen} itemId={monitorId}>
-            <EditSingleMonitorForm
-              itemId={monitorId}
-              onSuccess={() => setOpen(false)}
-            />
+            <EditSingleMonitorForm itemId={monitorId} onSuccess={() => setOpen(false)} />
           </MonitorModal>
           <NotificationModal
             open={openNotificationSettings}

@@ -16,9 +16,7 @@ describe("getMonitorFormDefaultValues", () => {
   });
 
   it("respects an explicit configuration type", () => {
-    expect(getMonitorFormDefaultValues("callback").monitorConfigurationType).toBe(
-      "callback",
-    );
+    expect(getMonitorFormDefaultValues("callback").monitorConfigurationType).toBe("callback");
   });
 });
 
@@ -40,9 +38,7 @@ describe("monitorFormSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues.some((i) => i.message === "Name is required")).toBe(
-        true,
-      );
+      expect(result.error.issues.some((i) => i.message === "Name is required")).toBe(true);
     }
   });
 
@@ -54,11 +50,9 @@ describe("monitorFormSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(
-        result.error.issues.some(
-          (i) => i.message === "Name cannot contain only spaces",
-        ),
-      ).toBe(true);
+      expect(result.error.issues.some((i) => i.message === "Name cannot contain only spaces")).toBe(
+        true,
+      );
     }
   });
 
@@ -79,9 +73,7 @@ describe("monitorFormSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues.some((i) => i.message === "URL is required")).toBe(
-        true,
-      );
+      expect(result.error.issues.some((i) => i.message === "URL is required")).toBe(true);
     }
   });
 
@@ -93,9 +85,7 @@ describe("monitorFormSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(
-        result.error.issues.some((i) => i.message.includes("valid URL")),
-      ).toBe(true);
+      expect(result.error.issues.some((i) => i.message.includes("valid URL"))).toBe(true);
     }
   });
 
@@ -109,9 +99,7 @@ describe("monitorFormSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(
-        result.error.issues.some((i) => i.message === "Select a deployed repo."),
-      ).toBe(true);
+      expect(result.error.issues.some((i) => i.message === "Select a deployed repo.")).toBe(true);
     }
   });
 
@@ -125,9 +113,7 @@ describe("monitorFormSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(
-        result.error.issues.some((i) => i.message === "Select a service."),
-      ).toBe(true);
+      expect(result.error.issues.some((i) => i.message === "Select a service.")).toBe(true);
     }
   });
 
@@ -149,9 +135,7 @@ describe("monitorFormSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(
-        result.error.issues.some((i) => i.message === "Grace time is required"),
-      ).toBe(true);
+      expect(result.error.issues.some((i) => i.message === "Grace time is required")).toBe(true);
     }
   });
 });
@@ -172,9 +156,7 @@ describe("requestConfiguration nested rules", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(
-        result.error.issues.some(
-          (i) => i.message === "Request body is required for POST requests",
-        ),
+        result.error.issues.some((i) => i.message === "Request body is required for POST requests"),
       ).toBe(true);
     }
   });

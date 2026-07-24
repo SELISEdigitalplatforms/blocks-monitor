@@ -77,10 +77,7 @@ describe("IncidentList", () => {
 
   it("falls back to the raw failure reason when it is not JSON", () => {
     render(
-      <IncidentList
-        isLoading={false}
-        data={[incident({ failureReason: "Connection refused" })]}
-      />,
+      <IncidentList isLoading={false} data={[incident({ failureReason: "Connection refused" })]} />,
       { wrapper: wrapper() },
     );
     expect(screen.getByText("Connection refused")).toBeInTheDocument();
@@ -88,10 +85,7 @@ describe("IncidentList", () => {
 
   it("labels ongoing incidents when there is no end time", () => {
     render(
-      <IncidentList
-        isLoading={false}
-        data={[incident({ endTime: null as unknown as string })]}
-      />,
+      <IncidentList isLoading={false} data={[incident({ endTime: null as unknown as string })]} />,
       { wrapper: wrapper() },
     );
     expect(screen.getByText("Ongoing")).toBeInTheDocument();
@@ -99,10 +93,7 @@ describe("IncidentList", () => {
 
   it("formats the downtime duration", () => {
     render(
-      <IncidentList
-        isLoading={false}
-        data={[incident({ downtimeDurationSeconds: 3661 })]}
-      />,
+      <IncidentList isLoading={false} data={[incident({ downtimeDurationSeconds: 3661 })]} />,
       { wrapper: wrapper() },
     );
     // 3661s -> 1h 1m (first two non-zero units)
@@ -110,10 +101,9 @@ describe("IncidentList", () => {
   });
 
   it("renders the status code column when showLastStatus is set", () => {
-    render(
-      <IncidentList isLoading={false} showLastStatus data={[incident()]} />,
-      { wrapper: wrapper() },
-    );
+    render(<IncidentList isLoading={false} showLastStatus data={[incident()]} />, {
+      wrapper: wrapper(),
+    });
     expect(screen.getByText("Status Code")).toBeInTheDocument();
     expect(screen.getByText("500")).toBeInTheDocument();
   });
