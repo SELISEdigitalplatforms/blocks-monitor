@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/core";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/core";
 import {
@@ -46,6 +46,30 @@ const TIME_RANGES: Record<string, number> = {
   "24h": 24 * 60 * 60 * 1000,
 };
 
+const CustomTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { payload: ChartPoint }[];
+}) => {
+  if (!active || !payload || !payload.length) return null;
+  const d: ChartPoint = payload[0]?.payload;
+  return (
+    <div className="rounded-md border bg-white p-3 text-sm shadow">
+      <div className="mb-1 font-medium">{new Date(d.ts).toLocaleString()}</div>
+      <div
+        className={d.status === 1 ? "font-semibold text-green-600" : "font-semibold text-red-600"}
+      >
+        {d.status === 1 ? "Up" : "Down"}
+      </div>
+      {d.duration !== undefined && (
+        <div className="mt-1 text-gray-600">Duration: {formatDuration(d.duration * 1000)}</div>
+      )}
+    </div>
+  );
+};
+
 const ResponseTime = ({
   data: downtimes,
   timeRange,
@@ -55,7 +79,9 @@ const ResponseTime = ({
   currentStatus,
   request,
 }: ResponseTimeProps) => {
-  const now = Date.now();
+  // Anchor the window at mount so the render stays pure (no Date.now() call in
+  // render body). Data updates still refresh the memos via their downtimes dep.
+  const [now] = useState(() => Date.now());
   const rangeStart = now - (TIME_RANGES[timeRange] ?? TIME_RANGES["1h"]);
 
   // metrics
@@ -154,31 +180,6 @@ const ResponseTime = ({
 
     return final;
   }, [downtimes, rangeStart, now, currentStatus]);
-
-  // Custom tooltip component
-  const CustomTooltip = ({
-    active,
-    payload,
-  }: {
-    active?: boolean;
-    payload?: { payload: ChartPoint }[];
-  }) => {
-    if (!active || !payload || !payload.length) return null;
-    const d: ChartPoint = payload[0]?.payload;
-    return (
-      <div className="rounded-md border bg-white p-3 text-sm shadow">
-        <div className="mb-1 font-medium">{new Date(d.ts).toLocaleString()}</div>
-        <div
-          className={d.status === 1 ? "font-semibold text-green-600" : "font-semibold text-red-600"}
-        >
-          {d.status === 1 ? "Up" : "Down"}
-        </div>
-        {d.duration !== undefined && (
-          <div className="mt-1 text-gray-600">Duration: {formatDuration(d.duration * 1000)}</div>
-        )}
-      </div>
-    );
-  };
 
   return (
     <Card className="mb-6 border-none p-0 shadow-none">

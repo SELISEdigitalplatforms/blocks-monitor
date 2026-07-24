@@ -76,7 +76,7 @@ export const formatDuration = (ms: number) => {
 
 const MonitorSummary = ({ data, status, incident, createdAt }: MonitorSummaryProps) => {
   const toMilliseconds = (value: string): number => parseInt(value, 10) * 24 * 60 * 60 * 1000;
-  const now = Date.now();
+  const [now] = useState(() => Date.now());
   const incidentDate = new Date(incident);
   const incidentTime =
     incidentDate.getUTCFullYear() === 1 ? new Date(createdAt).getTime() : incidentDate.getTime();
