@@ -49,10 +49,7 @@ describe("use-github-info queries", () => {
       wrapper,
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(githubInfoService.verifyAuthorization).toHaveBeenCalledWith(
-      "code-1",
-      "proj-1",
-    );
+    expect(githubInfoService.verifyAuthorization).toHaveBeenCalledWith("code-1", "proj-1");
   });
 
   it("useGithubVerification is disabled without a code", () => {
@@ -76,17 +73,9 @@ describe("use-github-info queries", () => {
   });
 
   it("useGetGithubRepos runs when verification succeeded", async () => {
-    const { result } = renderHook(
-      () => hooks.useGetGithubRepos(true, "term", 1, 10),
-      { wrapper },
-    );
+    const { result } = renderHook(() => hooks.useGetGithubRepos(true, "term", 1, 10), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(githubInfoService.getGithubRepos).toHaveBeenCalledWith(
-      "proj-1",
-      "term",
-      1,
-      10,
-    );
+    expect(githubInfoService.getGithubRepos).toHaveBeenCalledWith("proj-1", "term", 1, 10);
   });
 
   it("useGetGithubRepos stays idle when not verified", () => {
@@ -109,17 +98,11 @@ describe("use-github-info queries", () => {
       wrapper,
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(githubInfoService.getGithubBranches).toHaveBeenCalledWith(
-      "repo-1",
-      "proj-1",
-    );
+    expect(githubInfoService.getGithubBranches).toHaveBeenCalledWith("repo-1", "proj-1");
   });
 
   it("useRepoAndGitBranchMatch respects the enabled flag", async () => {
-    const off = renderHook(
-      () => hooks.useRepoAndGitBranchMatch("r1", false),
-      { wrapper },
-    );
+    const off = renderHook(() => hooks.useRepoAndGitBranchMatch("r1", false), { wrapper });
     expect(off.result.current.fetchStatus).toBe("idle");
 
     const on = renderHook(() => hooks.useRepoAndGitBranchMatch("r1", true), {
@@ -160,15 +143,9 @@ describe("use-github-info queries", () => {
   });
 
   it("useGetRepoDetails fetches details", async () => {
-    const { result } = renderHook(
-      () => hooks.useGetRepoDetails("proj-1", "repo-1"),
-      { wrapper },
-    );
+    const { result } = renderHook(() => hooks.useGetRepoDetails("proj-1", "repo-1"), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(githubInfoService.getRepoDetails).toHaveBeenCalledWith(
-      "proj-1",
-      "repo-1",
-    );
+    expect(githubInfoService.getRepoDetails).toHaveBeenCalledWith("proj-1", "repo-1");
   });
 
   it("useGetSpecs fetches specs", async () => {
@@ -178,15 +155,9 @@ describe("use-github-info queries", () => {
   });
 
   it("useGetCardProjectAndBranch fetches with a build id", async () => {
-    const { result } = renderHook(
-      () => hooks.useGetCardProjectAndBranch("build-1"),
-      { wrapper },
-    );
+    const { result } = renderHook(() => hooks.useGetCardProjectAndBranch("build-1"), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(githubInfoService.getCardRepoAndBranches).toHaveBeenCalledWith(
-      "build-1",
-      "proj-1",
-    );
+    expect(githubInfoService.getCardRepoAndBranches).toHaveBeenCalledWith("build-1", "proj-1");
   });
 });
 
@@ -238,9 +209,9 @@ describe("use-github-info mutations", () => {
   });
 
   it("mutations surface service errors via onError", async () => {
-    (githubInfoService.repoInitialDeploy as unknown as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
-      new Error("boom"),
-    );
+    (
+      githubInfoService.repoInitialDeploy as unknown as ReturnType<typeof vi.fn>
+    ).mockRejectedValueOnce(new Error("boom"));
     const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const { result } = renderHook(() => hooks.useInitialRepoDeployment(), {
       wrapper,

@@ -33,11 +33,7 @@ const ProgressBar = ({ incidents, status }: IProgressBar) => {
       if (incidents.length === 0) {
         downtimePercentage = status ? 0 : 100;
       } else {
-        downtimePercentage = calculateDowntimePercentage(
-          slotStart,
-          slotEnd,
-          incidents,
-        );
+        downtimePercentage = calculateDowntimePercentage(slotStart, slotEnd, incidents);
       }
 
       slots.push({
@@ -51,10 +47,7 @@ const ProgressBar = ({ incidents, status }: IProgressBar) => {
   }, [incidents, status]);
 
   const progress = useMemo(() => {
-    const totalDowntime = timeSlots.reduce(
-      (sum, slot) => sum + slot.downtimePercentage,
-      0,
-    );
+    const totalDowntime = timeSlots.reduce((sum, slot) => sum + slot.downtimePercentage, 0);
     const averageDowntime = totalDowntime / timeSlots.length;
     return Math.floor(100 - averageDowntime);
   }, [timeSlots]);
@@ -72,9 +65,7 @@ const ProgressBar = ({ incidents, status }: IProgressBar) => {
           />
         ))}
       </div>
-      <span className="text-xs font-medium text-medium-emphasis">
-        {progress}%
-      </span>
+      <span className="text-xs font-medium text-medium-emphasis">{progress}%</span>
     </div>
   );
 };
@@ -112,9 +103,7 @@ const IndividualBar = ({
     <div className="relative">
       <div
         className={`h-6 w-[4.4px] rounded-[2px] ${
-          status
-            ? "bg-green-500 hover:bg-green-700"
-            : "bg-red-500 hover:bg-red-700"
+          status ? "bg-green-500 hover:bg-green-700" : "bg-red-500 hover:bg-red-700"
         }`}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
@@ -155,12 +144,8 @@ function calculateDowntimePercentage(
     const incidentEnd = incident.endTime ? new Date(incident.endTime) : now;
 
     // Check if incident overlaps with this slot
-    const overlapStart = new Date(
-      Math.max(slotStart.getTime(), incidentStart.getTime()),
-    );
-    const overlapEnd = new Date(
-      Math.min(slotEnd.getTime(), incidentEnd.getTime()),
-    );
+    const overlapStart = new Date(Math.max(slotStart.getTime(), incidentStart.getTime()));
+    const overlapEnd = new Date(Math.min(slotEnd.getTime(), incidentEnd.getTime()));
 
     if (overlapStart < overlapEnd) {
       const overlapDuration = overlapEnd.getTime() - overlapStart.getTime();

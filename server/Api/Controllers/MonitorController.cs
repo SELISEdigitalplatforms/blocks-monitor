@@ -44,9 +44,12 @@ namespace Api.Controllers
         /// <returns>A list of monitor configurations.</returns>
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetMonitorList([FromQuery] string projectKey, [FromQuery] string? monitorSourcetype, [FromQuery] int pageNumber = 0, [FromQuery] int pageSize = 10, [FromQuery] string? sortProperty = null, [FromQuery] bool sortIsDescending = false)
+        public async Task<IActionResult> GetMonitorList([FromQuery] string projectKey, [FromQuery] string? monitorSourceType, [FromQuery] int pageNumber = 0, [FromQuery] int pageSize = 10, [FromQuery] string? sortProperty = null, [FromQuery] bool sortIsDescending = false, [FromQuery] string? monitorSourcetype = null)
         {
-            var result = await _monitorConfigurationService.GetConfigurationListAsync(projectKey, monitorSourcetype, pageNumber, pageSize, sortProperty, sortIsDescending);
+            // The correctly-cased `monitorSourceType` takes precedence; the legacy misspelled
+            // `monitorSourcetype` query parameter is still accepted for backward compatibility.
+            var effectiveMonitorSourceType = monitorSourceType ?? monitorSourcetype;
+            var result = await _monitorConfigurationService.GetConfigurationListAsync(projectKey, effectiveMonitorSourceType, pageNumber, pageSize, sortProperty, sortIsDescending);
             return Ok(result);
         }
 

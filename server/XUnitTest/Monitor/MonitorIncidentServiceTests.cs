@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Blocks.Genesis;
-using Devops.DomainService.Shared.Interfaces;
+using DomainService.Shared.Services;
 using DomainService.Alert.Entities;
 using DomainService.Alert.Services;
 using DomainService.Monitor.Entity;
@@ -100,29 +100,29 @@ namespace XUnitTest.Monitor
         }
 
         [Fact]
-        public async Task HandleIncidentAsync_ClientError404_NoActiveIncident_CreatesNoIncident_KNOWN_BUG()
+        public async Task HandleIncidentAsync_ClientError404_NoActiveIncident_CreatesIncident()
         {
-            // KNOWN BUG: failure is computed as (StatusCode < 200 || StatusCode >= 500), so 4xx
-            // responses are treated as "up". A 404 therefore does NOT open an incident even though
-            // the endpoint is clearly broken. Asserting the ACTUAL (buggy) behavior here.
+            // Failure is computed as (StatusCode < 200 || StatusCode >= 400), so a 4xx response is
+            // treated as a failure. A 404 with no active incident should OPEN a new incident.
             _incidentRepo.Setup(r => r.GetActiveIncidentAsync("m1")).ReturnsAsync((MonitorIncident?)null);
 
             await CreateSut().HandleIncidentAsync(Config(), Log(404));
 
-            _incidentRepo.Verify(r => r.CreateIncidentAsync(It.IsAny<MonitorIncident>()), Times.Never);
+            _incidentRepo.Verify(r => r.CreateIncidentAsync(It.IsAny<MonitorIncident>()), Times.Once);
         }
 
         [Fact]
-        public async Task HandleIncidentAsync_ClientError404_WithActiveIncident_ResolvesIt_KNOWN_BUG()
+        public async Task HandleIncidentAsync_ClientError404_WithActiveIncident_DoesNotResolve()
         {
-            // KNOWN BUG continued: because 4xx counts as success, a 404 will RESOLVE an existing
-            // open incident, marking a broken service as recovered. Asserting the actual behavior.
+            // A 404 is a failure, not a recovery. An existing open incident must stay open: no new
+            // incident is created and the active one is not resolved (only in-memory fields update).
             _incidentRepo.Setup(r => r.GetActiveIncidentAsync("m1"))
                 .ReturnsAsync(new MonitorIncident { ItemId = "i1", MonitorId = "m1" });
 
             await CreateSut().HandleIncidentAsync(Config(), Log(404));
 
-            _incidentRepo.Verify(r => r.UpdateIncidentAsync(It.Is<MonitorIncident>(i => i.IsResolved)), Times.Once);
+            _incidentRepo.Verify(r => r.CreateIncidentAsync(It.IsAny<MonitorIncident>()), Times.Never);
+            _incidentRepo.Verify(r => r.UpdateIncidentAsync(It.IsAny<MonitorIncident>()), Times.Never);
         }
 
         [Fact]

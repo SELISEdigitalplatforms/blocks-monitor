@@ -1,11 +1,14 @@
-import { getRuntimeEnv } from "@/lib/runtime-env";
-import { HttpClient } from "@seliseblocks/blocks-kit/http";
+import { HttpClient, getRuntimeEnv } from "@seliseblocks/blocks-kit/lib";
+
+const monitorService = new HttpClient({
+  baseURL: getRuntimeEnv("BLOCKS_MONITOR_BASE_URL") || "",
+  blocksKey: getRuntimeEnv("BLOCKS_X_BLOCKS_KEY") || "",
+});
 
 export const serviceInstances = {
-  observabilityService: new HttpClient({
-    baseURL: getRuntimeEnv("BLOCKS_MONITOR_BASE_URL") || "",
-    blocksKey: getRuntimeEnv("BLOCKS_X_BLOCKS_KEY") || "",
-  }),
+  monitorService,
+  /** @deprecated use monitorService */
+  observabilityService: monitorService,
   logicService: new HttpClient({
     baseURL: getRuntimeEnv("BLOCKS_LOGIC_BASE_URL") || "",
     blocksKey: getRuntimeEnv("BLOCKS_X_BLOCKS_KEY") || "",

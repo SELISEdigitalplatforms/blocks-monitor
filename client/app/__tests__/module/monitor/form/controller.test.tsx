@@ -71,9 +71,7 @@ describe("useMonitorFormController", () => {
   it("initializes an add form with defaults", () => {
     const { result } = render({ mode: "add", projectKey: "p1" });
     expect(result.current.isEditMode).toBe(false);
-    expect(result.current.form.getValues("monitorConfigurationType")).toBe(
-      "request",
-    );
+    expect(result.current.form.getValues("monitorConfigurationType")).toBe("request");
     expect(result.current.isSubmitting).toBe(false);
   });
 
@@ -113,9 +111,7 @@ describe("useMonitorFormController", () => {
     const { result } = render({ mode: "add", projectKey: "p1" });
     act(() => result.current.setSelectedRepoId("r1"));
     expect(result.current.form.getValues("selectedRepoId")).toBe("r1");
-    expect(result.current.form.getValues("urlMonitor")).toBe(
-      "https://custom.example.com",
-    );
+    expect(result.current.form.getValues("urlMonitor")).toBe("https://custom.example.com");
   });
 
   it("setSelectedServiceId prefills the URL from the service in add mode", () => {
@@ -145,9 +141,7 @@ describe("useMonitorFormController", () => {
     const { result } = render({ mode: "add", projectKey: "p1" });
     act(() => result.current.setSourceType("deployed"));
     act(() => result.current.setSelectedRepoId("r1"));
-    expect(result.current.sourceError).toBe(
-      "A monitor already exists for this deployed repo.",
-    );
+    expect(result.current.sourceError).toBe("A monitor already exists for this deployed repo.");
   });
 
   it("submits a new request monitor and navigates on success", async () => {

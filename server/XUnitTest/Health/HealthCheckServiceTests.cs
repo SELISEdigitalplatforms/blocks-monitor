@@ -4,10 +4,11 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Blocks.Genesis;
-using Devops.DomainService.Shared.Interfaces;
+using DomainService.Shared.Services;
 using DomainService.Alert.Entities;
 using DomainService.Alert.Services;
 using DomainService.Health.HealthWorkerService;
+using DomainService.Health.Models;
 using DomainService.Health.Services;
 using DomainService.Monitor.Entity;
 using DomainService.Shared.Models;
@@ -108,7 +109,7 @@ namespace XUnitTest.Health
         {
             var sut = Build(MongoMocks.Collection(new List<MonitorConfiguration>()));
 
-            var act = async () => await sut.HandlePingEvent("a");
+            var act = async () => await sut.HandlePingEventAsync("a");
 
             await act.Should().NotThrowAsync();
         }
@@ -125,6 +126,57 @@ namespace XUnitTest.Health
 
             completed.Should().BeSameAs(run);
             run.IsCompletedSuccessfully.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task StartAsync_WithDueTask_DequeuesAndProcessesIt()
+        {
+            // A task whose scheduled time is already in the past must be dequeued by a worker and handed
+            // to the incident service, leaving the queue empty afterwards.
+            var config = new MonitorConfiguration
+            {
+                ItemId = "due", Url = "http://due",
+                MonitorConfigurationType = MonitorConfigurationTypes.InboundPing
+            };
+            _queue.Enqueue(new HealthQueueTask(config) { NextExecutionTime = System.DateTime.UtcNow.AddSeconds(-5) });
+            var sut = Build(MongoMocks.Collection(new List<MonitorConfiguration>()));
+            using var cts = new CancellationTokenSource();
+            cts.CancelAfter(500);
+
+            var run = sut.StartAsync(cts.Token);
+            var completed = await Task.WhenAny(run, Task.Delay(5000));
+
+            completed.Should().BeSameAs(run);
+            _queue.HasTasks().Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task HandlePingEventAsync_WhenIncidentHandlingThrows_SwallowsInBackground()
+        {
+            // The incident lookup throws; the error must be caught inside the fire-and-forget task and
+            // never surface to the caller.
+            var db = new MongoMocks.DbBuilder()
+                .With(MongoMocks.Collection(new List<MonitorConfiguration>()))
+                .With(MongoMocks.CollectionThrowing<MonitorIncident>())
+                .With(new List<ProjectPeople>())
+                .With(new List<AlertMailTemplate>())
+                .With(new List<MailServerConfiguration>());
+            var secret = MongoMocks.BlocksSecret().Object;
+            var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret);
+            var alertRepo = new AlertRepoService(db.Provider, secret);
+            var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo);
+            var notification = new NotificationAlertService(new Mock<ILogger<NotificationAlertService>>().Object, new Mock<IHttpHelperServices>().Object,
+                new Mock<ICryptoService>().Object, new Mock<ITenants>().Object, alertRepo, new Mock<IConfiguration>().Object);
+            var incidentService = new HealthIncidentService(new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret);
+            var sut = new HealthCheckService(new HealthQueueManager(), new Mock<ILogger<HealthCheckService>>().Object, healthRepo, incidentService, workerCount: 1);
+
+            var act = async () =>
+            {
+                await sut.HandlePingEventAsync("m1");
+                await Task.Delay(200);
+            };
+
+            await act.Should().NotThrowAsync();
         }
     }
 

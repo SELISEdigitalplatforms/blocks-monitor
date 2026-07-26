@@ -7,11 +7,7 @@ type FormActionsRowProps = {
   isSaveDisabled: boolean;
 };
 
-export const FormActionsRow = ({
-  cancelLabel,
-  saveLabel,
-  isSaveDisabled,
-}: FormActionsRowProps) => {
+export const FormActionsRow = ({ cancelLabel, saveLabel, isSaveDisabled }: FormActionsRowProps) => {
   return (
     <div className="flex justify-end gap-2 pt-4">
       <DialogClose asChild>

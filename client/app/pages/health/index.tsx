@@ -1,6 +1,6 @@
 "use client";
 
-import { FilterControls, SortValue } from "@/components/common/filter-toolbar";
+import { FilterControls, SortValue } from "@seliseblocks/blocks-kit/components";
 import {
   Button,
   Card,
@@ -20,7 +20,7 @@ import { AddSingleMonitorForm } from "@/components/module/monitor/form/add-monit
 import { MonitorModal } from "@/components/module/monitor/modal/monitor-modal";
 import { type HealthTabKey, HEALTH_TABS } from "@/constants/health.constant";
 import { useGetHealthMonitorList } from "@/hooks/use-alerts";
-import { getRuntimeEnv } from "@/lib/runtime-env";
+import { getRuntimeEnv } from "@seliseblocks/blocks-kit/lib";
 import { useProjectStore } from "@seliseblocks/blocks-kit/store";
 import { BookOpen, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -71,16 +71,13 @@ const HealthPage = () => {
   return (
     <main className="space-y-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-lg font-semibold md:text-2xl">Health</h1>
+        <h1 className="text-lg font-semibold md:text-2xl">Monitor</h1>
         <a
-          href={
-            getRuntimeEnv("BLOCKS_MONITOR_BASE_URL") + "/swagger/index.html"
-          }
+          href={getRuntimeEnv("BLOCKS_MONITOR_BASE_URL") + "/swagger/index.html"}
           target="_blank"
-          rel="noopener noreferrer">
-          <Button
-            variant="outline"
-            className="gap-2 items-center justify-center">
+          rel="noopener noreferrer"
+        >
+          <Button variant="outline" className="gap-2 items-center justify-center">
             <BookOpen className="h-3.5 w-3.5" />
             API Docs
           </Button>
@@ -123,7 +120,8 @@ const HealthPage = () => {
           type="button"
           data-testid="add-monitor-button"
           onClick={() => setOpen(true)}
-          className="gap-1 items-center justify-center">
+          className="gap-1 items-center justify-center"
+        >
           <Plus size={16} />
           Add Monitor
         </Button>
