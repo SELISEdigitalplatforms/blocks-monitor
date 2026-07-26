@@ -180,6 +180,41 @@ namespace XUnitTest.Health
         }
 
         [Fact]
+        public async Task DeleteConfigurationAsync_WhenDeleteThrows_ReturnsFalse()
+        {
+            var coll = MongoMocks.Collection(new List<MonitorConfiguration>());
+            coll.Setup(c => c.DeleteOneAsync(It.IsAny<FilterDefinition<MonitorConfiguration>>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new MongoException("boom"));
+            var db = new MongoMocks.DbBuilder().With(coll).With(new List<MonitorIncident>());
+            var repo = new HealthConfigurationRepoService(
+                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
+
+            var result = await repo.DeleteConfigurationAsync("m1");
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task ResolveIncidentAsync_WhenUpdateThrows_ReturnsFalse()
+        {
+            // Active incident is found, but the resolving update fails, exercising the catch path.
+            var incidentColl = MongoMocks.Collection(new List<MonitorIncident>
+            {
+                new() { ItemId = "i1", MonitorId = "m1", IsResolved = false }
+            });
+            incidentColl.Setup(c => c.UpdateOneAsync(It.IsAny<FilterDefinition<MonitorIncident>>(), It.IsAny<UpdateDefinition<MonitorIncident>>(),
+                    It.IsAny<UpdateOptions>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new MongoException("boom"));
+            var db = new MongoMocks.DbBuilder().With(new List<MonitorConfiguration>()).With(incidentColl);
+            var repo = new HealthConfigurationRepoService(
+                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
+
+            var result = await repo.ResolveIncidentAsync("m1");
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
         public async Task UpdateConfigurationIncidentStateAsync_WhenThrows_ReturnsFalse()
         {
             var coll = MongoMocks.Collection(new List<MonitorConfiguration>());

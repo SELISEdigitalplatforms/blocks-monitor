@@ -32,17 +32,13 @@ const MonitorCard = ({
         {/* Tagged Service */}
 
         <div>
-          <div className="mb-1 text-xs font-medium text-foreground">
-            Tagged Service
-          </div>
+          <div className="mb-1 text-xs font-medium text-foreground">Tagged Service</div>
           {repoName && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="break-all">Deployed service</span>
               <div className="flex flex-wrap items-center gap-1">
                 <Github size={16} className="text-foreground" />
-                <span className="break-all font-medium text-foreground">
-                  {repoName}
-                </span>
+                <span className="break-all font-medium text-foreground">{repoName}</span>
               </div>
             </div>
           )}
@@ -51,15 +47,11 @@ const MonitorCard = ({
               <span className="break-all">My service</span>
               <div className="flex flex-wrap items-center gap-1">
                 <Layers size={14} className="text-foreground" />
-                <span className="break-all font-medium text-foreground">
-                  {externalServiceName}
-                </span>
+                <span className="break-all font-medium text-foreground">{externalServiceName}</span>
               </div>
             </div>
           )}
-          {!repoName && !externalServiceName && (
-            <span className="text-foreground">{"None"}</span>
-          )}
+          {!repoName && !externalServiceName && <span className="text-foreground">{"None"}</span>}
         </div>
 
         {/* URL to monitor */}
@@ -71,27 +63,22 @@ const MonitorCard = ({
             href={url}
             className="break-all text-blue-600 hover:underline"
             target="_blank"
-            rel="noopener noreferrer">
+            rel="noopener noreferrer"
+          >
             {url}
           </a>
         </div>
 
         {/* Monitor type */}
         <div className={`sm:${request ? "col-span-2" : "col-span-1"}`}>
-          <div className="mb-1 text-xs font-medium text-foreground">
-            Monitor type
-          </div>
-          <div className="text-foreground">
-            {request ? "HTTP Check" : "Heartbeat"}
-          </div>
+          <div className="mb-1 text-xs font-medium text-foreground">Monitor type</div>
+          <div className="text-foreground">{request ? "HTTP Check" : "Heartbeat"}</div>
         </div>
 
         {/* Notification recipients */}
         {monitorSourceType !== 2 && (
           <div className="sm:col-span-2">
-            <div className="mb-1 text-xs font-medium text-foreground">
-              Notification recipients
-            </div>
+            <div className="mb-1 text-xs font-medium text-foreground">Notification recipients</div>
             <div className="flex flex-wrap items-center gap-1">
               <span className="text-foreground">{emails[0]}</span>
               <span className="text-sm text-muted-foreground">
@@ -103,7 +90,8 @@ const MonitorCard = ({
               </span>
               <span
                 className="cursor-pointer text-blue-500 hover:underline"
-                onClick={() => onOpenChange(true)}>
+                onClick={() => onOpenChange(true)}
+              >
                 <Pencil className="ml-1 inline h-4 w-4" />
               </span>
             </div>

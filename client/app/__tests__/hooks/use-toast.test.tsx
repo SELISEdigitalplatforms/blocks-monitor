@@ -107,9 +107,7 @@ describe("toast helper variants", () => {
 
   it("showErrorToast sets the destructive variant from an error object", () => {
     const { result } = renderHook(() => useToast());
-    act(() =>
-      showErrorToast({ errors: { name: "Name required" } }),
-    );
+    act(() => showErrorToast({ errors: { name: "Name required" } }));
     expect(result.current.toasts[0].variant).toBe("destructive");
     expect(result.current.toasts[0].title).toBe("Failed");
   });

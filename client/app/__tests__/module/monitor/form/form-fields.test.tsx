@@ -114,10 +114,17 @@ describe("MonitorFormFields", () => {
   });
 
   it("expands request configuration and toggling JSON reveals header fields", async () => {
-    render(<Harness initialValues={{ requestConfiguration: { ...getMonitorFormDefaultValues().requestConfiguration, http_methods: "2" } }} />);
-    await userEvent.click(
-      screen.getByRole("button", { name: /Request Configuration/ }),
+    render(
+      <Harness
+        initialValues={{
+          requestConfiguration: {
+            ...getMonitorFormDefaultValues().requestConfiguration,
+            http_methods: "2",
+          },
+        }}
+      />,
     );
+    await userEvent.click(screen.getByRole("button", { name: /Request Configuration/ }));
     expect(await screen.findByText("HTTP method")).toBeInTheDocument();
 
     const switchEl = screen.getByRole("switch");

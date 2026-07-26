@@ -18,8 +18,7 @@ vi.mock("@seliseblocks/blocks-kit/store", () => ({
 // only uses it to prefix the API-docs URL, so resolve it to an empty string;
 // the assertion below expects the bare "/swagger/index.html" path.
 vi.mock("@seliseblocks/blocks-kit/lib", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@seliseblocks/blocks-kit/lib")>();
+  const actual = await importOriginal<typeof import("@seliseblocks/blocks-kit/lib")>();
   return { ...actual, getRuntimeEnv: () => "" };
 });
 vi.mock("@/hooks/use-alerts", () => ({
@@ -88,10 +87,7 @@ describe("HealthPage", () => {
   it("reflects a loading state to the list", () => {
     h.healthData = { data: { data: [], totalCount: 0 }, isLoading: true };
     renderPage();
-    expect(screen.getByTestId("alerts-list")).toHaveAttribute(
-      "data-loading",
-      "true",
-    );
+    expect(screen.getByTestId("alerts-list")).toHaveAttribute("data-loading", "true");
   });
 
   it("switches tabs via the desktop tab triggers", async () => {

@@ -1,8 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import {
-  authenticateWithGithub,
-  verifyOAuthState,
-} from "@/services/providers.service";
+import { authenticateWithGithub, verifyOAuthState } from "@/services/providers.service";
 
 describe("providers.service", () => {
   beforeEach(() => {
@@ -22,9 +19,7 @@ describe("providers.service", () => {
 
       expect(openSpy).toHaveBeenCalledTimes(1);
       const url = new URL(openSpy.mock.calls[0][0] as string);
-      expect(url.origin + url.pathname).toBe(
-        "https://github.com/login/oauth/authorize",
-      );
+      expect(url.origin + url.pathname).toBe("https://github.com/login/oauth/authorize");
       expect(url.searchParams.get("client_id")).toBe("client-123");
       expect(url.searchParams.get("scope")).toContain("repo");
       expect(url.searchParams.get("state")).toMatch(/^[0-9a-f]{64}$/);

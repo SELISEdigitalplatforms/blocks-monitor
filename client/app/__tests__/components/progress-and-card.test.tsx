@@ -31,9 +31,7 @@ describe("ProgressBar", () => {
   });
 
   it("reveals a tooltip on hover", () => {
-    const { container } = render(
-      <ProgressBar incidents={[]} status={true} />,
-    );
+    const { container } = render(<ProgressBar incidents={[]} status={true} />);
     const bar = container.querySelector(".h-6")!;
     fireEvent.mouseEnter(bar);
     expect(screen.getByText(/Up/)).toBeInTheDocument();
@@ -63,9 +61,7 @@ describe("MonitorCard", () => {
   });
 
   it("shows None and Callback labels for a callback with no tags", () => {
-    render(
-      <MonitorCard {...baseProps} request={false} monitorSourceType={1} />,
-    );
+    render(<MonitorCard {...baseProps} request={false} monitorSourceType={1} />);
     expect(screen.getByText("None")).toBeInTheDocument();
     expect(screen.getByText("Heartbeat URL")).toBeInTheDocument();
     expect(screen.getByText("Heartbeat")).toBeInTheDocument();
@@ -75,7 +71,9 @@ describe("MonitorCard", () => {
     const onOpenChange = vi.fn();
     render(<MonitorCard {...baseProps} onOpenChange={onOpenChange} />);
     expect(screen.getByText("+ 1 more")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("+ 1 more").parentElement!.querySelector("svg")!.closest("span")!);
+    fireEvent.click(
+      screen.getByText("+ 1 more").parentElement!.querySelector("svg")!.closest("span")!,
+    );
     expect(onOpenChange).toHaveBeenCalledWith(true);
   });
 

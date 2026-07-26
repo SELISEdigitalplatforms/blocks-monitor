@@ -39,16 +39,12 @@ describe("alertsService", () => {
 
   it("deleteSingleMonitor encodes the itemId in the query", async () => {
     await alertsService.deleteSingleMonitor("a b/c");
-    expect(del).toHaveBeenCalledWith(
-      "/api/Monitor/DeleteMonitor?itemId=a%20b%2Fc",
-    );
+    expect(del).toHaveBeenCalledWith("/api/Monitor/DeleteMonitor?itemId=a%20b%2Fc");
   });
 
   it("getMonitorList encodes the project key", async () => {
     await alertsService.getMonitorList("proj key");
-    expect(get).toHaveBeenCalledWith(
-      "/api/Monitor/GetMonitorList?projectKey=proj%20key",
-    );
+    expect(get).toHaveBeenCalledWith("/api/Monitor/GetMonitorList?projectKey=proj%20key");
   });
 
   it("getMonitorListById includes project key and repo id", async () => {
@@ -60,9 +56,7 @@ describe("alertsService", () => {
 
   it("getMonitorDetails encodes the monitor id", async () => {
     await alertsService.getMonitorDetails("m1");
-    expect(get).toHaveBeenCalledWith(
-      "/api/Monitor/GetMonitorDetails?monitorId=m1",
-    );
+    expect(get).toHaveBeenCalledWith("/api/Monitor/GetMonitorDetails?monitorId=m1");
   });
 
   it("isExternalServiceConfigured builds the right query", async () => {

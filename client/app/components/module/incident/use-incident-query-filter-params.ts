@@ -19,9 +19,7 @@ const defaultIncidentFilter: IncidentFilter = {
   isDescending: false,
 };
 
-export const useIncidentFilterQueryParams = (
-  initialValues: Partial<IncidentFilter> = {},
-) => {
+export const useIncidentFilterQueryParams = (initialValues: Partial<IncidentFilter> = {}) => {
   const values: IncidentFilter = {
     ...defaultIncidentFilter,
     ...initialValues,
