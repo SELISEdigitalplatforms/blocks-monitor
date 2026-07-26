@@ -23,20 +23,20 @@ namespace DomainService.Alert.Services
             _mailServerConfigCollection = db.GetCollection<MailServerConfiguration>("MailServerConfigurations");
         }
 
-        public async Task<List<string>> GetProjectPeopleList(string tenantId)
+        public async Task<List<string>> GetProjectPeopleListAsync(string tenantId)
         {
             var filter = Builders<ProjectPeople>.Filter.Eq(r => r.TenantId, tenantId);
             var result = await _projectPeopleCollection.Find(filter).ToListAsync();
             return result.Select(p => p.UserId).ToList();
         }
 
-        public async Task<AlertMailTemplate> GetAlertMailTemplateByName(string name)
+        public async Task<AlertMailTemplate> GetAlertMailTemplateByNameAsync(string name)
         {
             var filter = Builders<AlertMailTemplate>.Filter.Eq(t => t.Name, name);
             return await _alertMailTemplateCollection.Find(filter).FirstOrDefaultAsync();
         }
 
-        public async Task<MailServerConfiguration> GetMailServerConfigurationById(string itemId)
+        public async Task<MailServerConfiguration> GetMailServerConfigurationByIdAsync(string itemId)
         {
             var filter = Builders<MailServerConfiguration>.Filter.Eq(c => c.ItemId, itemId);
             return await _mailServerConfigCollection.Find(filter).FirstOrDefaultAsync();

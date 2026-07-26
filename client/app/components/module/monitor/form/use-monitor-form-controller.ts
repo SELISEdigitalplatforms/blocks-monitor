@@ -14,11 +14,8 @@ import {
   toUpdateCallbackPayload,
   toUpdateRequestPayload,
 } from "./util";
-import { ErrorTransformer } from "@/utils/error-transform";
-import {
-  useGetEnvRepositories,
-  useGetAllServices,
-} from "@seliseblocks/blocks-kit/hooks";
+import { ErrorTransformer } from "@seliseblocks/blocks-kit/utils";
+import { useGetEnvRepositories, useGetAllServices } from "@seliseblocks/blocks-kit/hooks";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo } from "react";
@@ -89,12 +86,11 @@ export const useMonitorFormController = ({
   const { data: envRepositoriesResponse, isLoading: isLoadingRepos } =
     useGetEnvRepositories(projectKey);
 
-  const { data: servicesResponse, isLoading: isLoadingServices } =
-    useGetAllServices({
-      projectKey,
-      page: 0,
-      pageSize: 100,
-    });
+  const { data: servicesResponse, isLoading: isLoadingServices } = useGetAllServices({
+    projectKey,
+    page: 0,
+    pageSize: 100,
+  });
 
   const deployedRepos = useMemo<RepoOption[]>(
     () => (envRepositoriesResponse?.data as RepoOption[]) ?? [],
@@ -116,17 +112,12 @@ export const useMonitorFormController = ({
     [services, selectedServiceId],
   );
 
-  const { data: repoMonitorList } = useGetMonitorListById(
-    projectKey,
-    selectedRepoId,
-  );
+  const { data: repoMonitorList } = useGetMonitorListById(projectKey, selectedRepoId);
 
-  const { data: externalServiceConfig } =
-    useIsExternalServiceConfigured(selectedServiceId);
+  const { data: externalServiceConfig } = useIsExternalServiceConfigured(selectedServiceId);
 
   const repoDuplicate = useMemo(() => {
-    if (isEditMode || sourceType !== "deployed" || !selectedRepoId)
-      return false;
+    if (isEditMode || sourceType !== "deployed" || !selectedRepoId) return false;
     const monitors = repoMonitorList?.data || [];
     return monitors.some((monitor) => monitor.itemId !== itemId);
   }, [isEditMode, sourceType, selectedRepoId, repoMonitorList, itemId]);
@@ -211,11 +202,7 @@ export const useMonitorFormController = ({
     const repo = deployedRepos.find((item) => item.itemId === value);
     if (!repo) return;
 
-    const prefillUrl =
-      repo.customDeploymentUrl ||
-      repo.defaultDeploymentUrl ||
-      repo.repoUrl ||
-      "";
+    const prefillUrl = repo.customDeploymentUrl || repo.defaultDeploymentUrl || repo.repoUrl || "";
 
     form.setValue("urlMonitor", prefillUrl || "", { shouldValidate: true });
   };
@@ -236,27 +223,21 @@ export const useMonitorFormController = ({
     if (isSourceBlocked) return;
 
     const fallbackRepoName = monitorDetails?.data?.repoName || "";
-    const fallbackExternalServiceName =
-      monitorDetails?.data?.externalServiceName || "";
+    const fallbackExternalServiceName = monitorDetails?.data?.externalServiceName || "";
 
     const context = {
       itemId: itemId || "",
       projectKey,
       repoName: selectedRepo?.repoName || fallbackRepoName,
-      externalServiceName:
-        selectedService?.name || fallbackExternalServiceName || "",
+      externalServiceName: selectedService?.name || fallbackExternalServiceName || "",
     };
 
     try {
       if (values.monitorConfigurationType === "request") {
         const res =
           mode === "add"
-            ? await addMutation.mutateAsync(
-                toCreateRequestPayload(values, context),
-              )
-            : await updateRequestMutation.mutateAsync(
-                toUpdateRequestPayload(values, context),
-              );
+            ? await addMutation.mutateAsync(toCreateRequestPayload(values, context))
+            : await updateRequestMutation.mutateAsync(toUpdateRequestPayload(values, context));
 
         if (!res.isSuccess) {
           return showErrorToast({ errors: res.message });
@@ -268,12 +249,8 @@ export const useMonitorFormController = ({
       } else {
         const res =
           mode === "add"
-            ? await saveHealthMutation.mutateAsync(
-                toCreateCallbackPayload(values, context),
-              )
-            : await updateHealthMutation.mutateAsync(
-                toUpdateCallbackPayload(values, context),
-              );
+            ? await saveHealthMutation.mutateAsync(toCreateCallbackPayload(values, context))
+            : await updateHealthMutation.mutateAsync(toUpdateCallbackPayload(values, context));
 
         if (!res.isSuccess) {
           return showErrorToast({ errors: res.message });
@@ -286,9 +263,7 @@ export const useMonitorFormController = ({
 
       showSuccessToast({
         description:
-          mode === "add"
-            ? "Monitor successfully created."
-            : "Monitor successfully updated.",
+          mode === "add" ? "Monitor successfully created." : "Monitor successfully updated.",
       });
 
       onSuccess?.();

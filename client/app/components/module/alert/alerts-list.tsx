@@ -1,6 +1,6 @@
-import type { SortValue } from "@/components/common/filter-toolbar";
-import { FilterControls } from "@/components/common/filter-toolbar";
-import { LoadingSkelton } from "@/components/common/table-skeleton";
+import type { SortValue } from "@seliseblocks/blocks-kit/components";
+import { FilterControls } from "@seliseblocks/blocks-kit/components";
+import { TableLoadingSkeleton } from "@seliseblocks/blocks-kit/components";
 import {
   ScrollArea,
   ScrollBar,
@@ -14,14 +14,10 @@ import {
 import AlertAction from "@/components/module/alert/alert-action";
 import ProgressBar from "@/components/module/alert/progress-bar";
 import { AlertTree } from "@/models/alerts.model";
-import { useProjectStore } from "@seliseblocks/blocks-kit";
+import { formatDate } from "@seliseblocks/blocks-kit/utils";
+import { useProjectStore } from "@seliseblocks/blocks-kit/store";
 import { useScopedPath } from "@seliseblocks/blocks-kit/hooks";
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -34,49 +30,7 @@ type AlertsListProps = {
   onSortChange: (params: SortValue) => void;
 };
 
-export const formatSeconds = (seconds: number) => {
-  if (seconds < 60) {
-    return `${seconds}s`;
-  }
-
-  if (seconds < 3600) {
-    const minutes = Math.floor(seconds / 60);
-    return `${minutes}min`;
-  }
-
-  if (seconds < 86400) {
-    const hours = Math.floor(seconds / 3600);
-    return `${hours}h`;
-  }
-
-  const days = Math.floor(seconds / 86400);
-  return `${days}d`;
-};
-function formatDate(ms: number): string {
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (days > 0) {
-    const remainingHours = hours % 24;
-    return `${days}d ${remainingHours}h`;
-  } else if (hours > 0) {
-    const remainingMinutes = minutes % 60;
-    return `${hours}h ${remainingMinutes}m`;
-  } else if (minutes > 0) {
-    const remainingSeconds = seconds % 60;
-    return `${minutes}m ${remainingSeconds}s`;
-  } else {
-    return `${seconds}s`;
-  }
-}
-export function AlertsList({
-  data,
-  isLoading,
-  sortQueryParams,
-  onSortChange,
-}: AlertsListProps) {
+export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: AlertsListProps) {
   const navigate = useNavigate();
   const scoped = useScopedPath();
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
@@ -98,8 +52,7 @@ export function AlertsList({
           />
         ),
         cell: ({ row }) => {
-          const name =
-            row.original?.name || row.original.operationName || "N/A";
+          const name = row.original?.name || row.original.operationName || "N/A";
           return (
             <div className="ml-2 flex flex-row items-center sm:ml-0 w-[180px] sm:w-[150px]">
               <span className="break-all">{name}</span>
@@ -121,9 +74,7 @@ export function AlertsList({
         ),
         cell: ({ row }) => {
           const monitorType =
-            row.original.monitorConfigurationType === 0
-              ? "Request"
-              : "Callback";
+            row.original.monitorConfigurationType === 0 ? "HTTP Check" : "Heartbeat";
           return (
             <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
               <span className="break-all">{monitorType}</span>
@@ -166,8 +117,7 @@ export function AlertsList({
           />
         ),
         cell: ({ row }) => {
-          const value =
-            row.original.repoName || row.original.externalServiceName || "-";
+          const value = row.original.repoName || row.original.externalServiceName || "-";
 
           return (
             <div className="flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
@@ -195,8 +145,7 @@ export function AlertsList({
           const zeroDate = new Date("0001-01-01T00:00:00Z").getTime();
           const lastIncidentTime = new Date(lastIncidentDateStr).getTime();
           const createdTime = new Date(createdDate).getTime();
-          const incidentTime =
-            lastIncidentTime === zeroDate ? createdTime : lastIncidentTime;
+          const incidentTime = lastIncidentTime === zeroDate ? createdTime : lastIncidentTime;
           const uptime = Date.now() - incidentTime;
           const formattedDate = formatDate(uptime);
 
@@ -238,16 +187,13 @@ export function AlertsList({
         accessorKey: "AlertActions",
         header: () => <div className="text-center"></div>,
         cell: ({ row }) => {
-          const request =
-            row.original.monitorConfigurationType === 0 ? true : false;
+          const request = row.original.monitorConfigurationType === 0 ? true : false;
           const name = row.original?.name;
           const monitorSourceType = row.original.monitorSourceType;
           return (
             <>
               {monitorSourceType !== 2 ? (
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex justify-center">
+                <div onClick={(e) => e.stopPropagation()} className="flex justify-center">
                   <AlertAction
                     monitorId={row.original.itemId as string}
                     isActive={row.original.isActive ?? false}
@@ -287,26 +233,19 @@ export function AlertsList({
       <Table className="text-sm">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow
-              key={headerGroup.id}
-              className="px-4 py-2 hover:bg-transparent">
+            <TableRow key={headerGroup.id} className="px-4 py-2 hover:bg-transparent">
               {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className="font-bold text-medium-emphasis">
+                <TableHead key={header.id} className="font-bold text-medium-emphasis">
                   {header.isPlaceholder
                     ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
+                    : flexRender(header.column.columnDef.header, header.getContext())}
                 </TableHead>
               ))}
             </TableRow>
           ))}
         </TableHeader>
         {isLoading ? (
-          <LoadingSkelton table={table} />
+          <TableLoadingSkeleton table={table} />
         ) : (
           <TableBody>
             {table.getRowModel().rows?.length ? (
@@ -316,13 +255,11 @@ export function AlertsList({
                   data-state={row.getIsSelected() && "selected"}
                   className="text-medium-emphasis"
                   onClick={() => handleRowClick(row.original.itemId)}
-                  isHoverable>
+                  isHoverable
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -331,7 +268,8 @@ export function AlertsList({
               <TableRow>
                 <TableCell
                   colSpan={table.getAllColumns().length}
-                  className="h-24 text-center text-muted-foreground">
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No results.
                 </TableCell>
               </TableRow>

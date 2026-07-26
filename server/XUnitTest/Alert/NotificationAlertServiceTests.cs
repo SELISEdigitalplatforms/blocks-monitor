@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Blocks.Genesis;
-using Devops.DomainService.Shared.Interfaces;
+using DomainService.Shared.Services;
 using DomainService.Alert.Services;
 using DomainService.Monitor.Entity;
 using DomainService.Shared.Models;
@@ -26,7 +26,7 @@ namespace XUnitTest.Alert
         public NotificationAlertServiceTests()
         {
             _crypto.Setup(c => c.Hash(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Returns("hashed");
-            // Null tenant exercises the null-safe TenantSalt access in SendNotification.
+            // Null tenant exercises the null-safe TenantSalt access in SendNotificationAsync.
             _tenants.Setup(t => t.GetTenantByID(It.IsAny<string>())).Returns((Tenant)null);
             _config.Setup(c => c["RootTenantId"]).Returns("root");
             _config.Setup(c => c["NotificationServiceUrl"]).Returns("http://notify");
@@ -67,7 +67,7 @@ namespace XUnitTest.Alert
         {
             SetupHttp(new NotificationResponse { IsSuccess = true });
 
-            var result = await Sut(Repo()).SendNotification(new { }, new List<string> { "u1" });
+            var result = await Sut(Repo()).SendNotificationAsync(new { }, new List<string> { "u1" });
 
             result.Should().BeTrue();
         }
@@ -77,7 +77,7 @@ namespace XUnitTest.Alert
         {
             SetupHttp(null);
 
-            var result = await Sut(Repo()).SendNotification(new { }, new List<string> { "u1" });
+            var result = await Sut(Repo()).SendNotificationAsync(new { }, new List<string> { "u1" });
 
             result.Should().BeFalse();
         }
@@ -96,6 +96,19 @@ namespace XUnitTest.Alert
             _http.Verify(h => h.MakeHttpRequest<NotificationResponse>(
                 It.IsAny<string>(), It.IsAny<string>(), HttpMethod.Post,
                 It.IsAny<object>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task HandleNotificationAlertAsync_IncludesCreatedByAndLastUpdatedByRecipients()
+        {
+            SetupHttp(new NotificationResponse { IsSuccess = true });
+            var repo = Repo(new List<ProjectPeople> { new() { UserId = "owner", TenantId = "proj" } });
+            var config = new MonitorConfiguration { Name = "Api", Url = "http://api", CreatedBy = "creator", LastUpdatedBy = "editor" };
+            var incident = new MonitorIncident { ProjectKey = "proj", MonitorUrl = "http://api", LastStatusCode = 500, IsResolved = false };
+
+            var result = await Sut(repo).HandleNotificationAlertAsync(config, incident);
+
+            result.Should().BeTrue();
         }
 
         [Fact]

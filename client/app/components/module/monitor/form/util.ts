@@ -10,11 +10,7 @@ import type {
   IUpdateHealth,
   IUpdateSingleMonitorPayload,
 } from "@/models/alerts.model";
-import type {
-  MonitorConfigurationType,
-  MonitorFormValues,
-  SourceType,
-} from "./schema";
+import type { MonitorConfigurationType, MonitorFormValues, SourceType } from "./schema";
 import { getMonitorFormDefaultValues } from "./schema";
 
 type SubmitContext = {
@@ -26,18 +22,13 @@ type SubmitContext = {
 
 const DEFAULT_REQUEST_BODY = '{"key":"value"}';
 
-export const toMonitorSourceType = (
-  sourceType: SourceType,
-): MONITOR_SOURCE_TYPES => {
+export const toMonitorSourceType = (sourceType: SourceType): MONITOR_SOURCE_TYPES => {
   if (sourceType === "deployed") return MONITOR_SOURCE_TYPES.DeployedServices;
-  if (sourceType === "my-services")
-    return MONITOR_SOURCE_TYPES.ExternalServices;
+  if (sourceType === "my-services") return MONITOR_SOURCE_TYPES.ExternalServices;
   return MONITOR_SOURCE_TYPES.OtherServices;
 };
 
-export const toSourceType = (
-  monitorSourceTypes?: number | null,
-): SourceType => {
+export const toSourceType = (monitorSourceTypes?: number | null): SourceType => {
   if (monitorSourceTypes === Number(MONITOR_SOURCE_TYPES.DeployedServices)) {
     return "deployed";
   }
@@ -47,10 +38,7 @@ export const toSourceType = (
   return "none";
 };
 
-export const toSliderStep = (
-  seconds?: number | null,
-  fallback: number = 2,
-): number => {
+export const toSliderStep = (seconds?: number | null, fallback: number = 2): number => {
   if (!seconds) return fallback;
   return REVERSE_MONITOR_INTERVAL[seconds] || fallback;
 };
@@ -108,9 +96,7 @@ const getRequestBody = (customPayload: string | null | undefined): string => {
   }
 };
 
-const getMonitorType = (
-  monitorConfigurationType?: number,
-): MonitorConfigurationType => {
+const getMonitorType = (monitorConfigurationType?: number): MonitorConfigurationType => {
   return monitorConfigurationType === 0 ? "request" : "callback";
 };
 
@@ -121,15 +107,11 @@ export const toFormValuesFromMonitorDetails = (
     return getMonitorFormDefaultValues();
   }
 
-  const { headerName, headerValue, jsonSwitcher } = getHeaderInfo(
-    monitorDetails.customHttpHeaders,
-  );
+  const { headerName, headerValue, jsonSwitcher } = getHeaderInfo(monitorDetails.customHttpHeaders);
 
   return {
     name: monitorDetails.name || "",
-    monitorConfigurationType: getMonitorType(
-      monitorDetails.monitorConfigurationType,
-    ),
+    monitorConfigurationType: getMonitorType(monitorDetails.monitorConfigurationType),
     sourceType: toSourceType(monitorDetails.monitorSourceTypes),
     selectedRepoId: monitorDetails.repoId || "",
     selectedServiceId: monitorDetails.externalServiceId || "",
@@ -169,8 +151,7 @@ export const toCreateRequestPayload = (
   intervalInSeconds: toSeconds(values.monitorSettings.monitor_interval),
   timeoutInSeconds: toSeconds(values.monitorSettings.request_timeout),
   customHttpHeaders: JSON.stringify({
-    [values.requestConfiguration.x_header_name]:
-      values.requestConfiguration.value,
+    [values.requestConfiguration.x_header_name]: values.requestConfiguration.value,
   }),
   isActive: true,
   httpMethodType: values.requestConfiguration.http_methods,
@@ -199,8 +180,7 @@ export const toUpdateRequestPayload = (
   intervalInSeconds: toSeconds(values.monitorSettings.monitor_interval),
   timeoutInSeconds: toSeconds(values.monitorSettings.request_timeout),
   customHttpHeaders: JSON.stringify({
-    [values.requestConfiguration.x_header_name]:
-      values.requestConfiguration.value,
+    [values.requestConfiguration.x_header_name]: values.requestConfiguration.value,
   }),
   isActive: true,
   httpMethodType: values.requestConfiguration.http_methods,

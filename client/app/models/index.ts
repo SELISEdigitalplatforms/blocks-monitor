@@ -1,4 +1,3 @@
-export * from "./root.model";
-export * from "./request-params.model";
-export * from "./api-response.model";
-export * from "./menu.model";
+export * from "./alerts.model";
+export * from "./deployed-logs.model";
+export * from "./github-info.model";

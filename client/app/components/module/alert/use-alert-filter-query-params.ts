@@ -3,11 +3,8 @@ import {
   type SortValue,
   paginationQueryParsers,
   sortQueryParsers,
-} from "@/components/common/filter-toolbar";
-import {
-  type HealthTabKey,
-  parseAsHealthTabKey,
-} from "@/constants/health.constant";
+} from "@seliseblocks/blocks-kit/components";
+import { type HealthTabKey, parseAsHealthTabKey } from "@/constants/health.constant";
 import { useQueryStates, parseAsString, parseAsArrayOf } from "nuqs";
 
 export type AlertFilter = {
@@ -27,9 +24,7 @@ const defaultAlertFilter: AlertFilter = {
   isDescending: false,
 };
 
-export const useAlertFilterQueryParams = (
-  initialValues: Partial<AlertFilter> = {},
-) => {
+export const useAlertFilterQueryParams = (initialValues: Partial<AlertFilter> = {}) => {
   const values: AlertFilter = {
     ...defaultAlertFilter,
     ...initialValues,
@@ -37,9 +32,7 @@ export const useAlertFilterQueryParams = (
   const [queryParams, setQueryParams] = useQueryStates({
     tab: parseAsHealthTabKey.withDefault(values.tab),
     search: parseAsString.withDefault(values.search),
-    repositories: parseAsArrayOf(parseAsString).withDefault(
-      values.repositories,
-    ),
+    repositories: parseAsArrayOf(parseAsString).withDefault(values.repositories),
     ...paginationQueryParsers({
       pageIndex: values.pageIndex,
       pageSize: values.pageSize,
