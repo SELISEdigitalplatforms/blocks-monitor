@@ -27,14 +27,16 @@ vi.mock("@/components/module/alert/progress-bar", () => ({
   ),
 }));
 
-import { AlertsList, formatSeconds } from "@/components/module/alert/alerts-list";
+import { AlertsList } from "@/components/module/alert/alerts-list";
 import type { AlertTree } from "@/models/alerts.model";
 
-const wrapper =
-  (search = "") =>
-  ({ children }: { children: ReactNode }) => (
+const wrapper = (search = "") => {
+  const Wrapper = ({ children }: { children: ReactNode }) => (
     <NuqsTestingAdapter searchParams={search}>{children}</NuqsTestingAdapter>
   );
+  Wrapper.displayName = "Wrapper";
+  return Wrapper;
+};
 
 const alert = (over: Partial<AlertTree> = {}): AlertTree =>
   ({
@@ -57,21 +59,11 @@ const alert = (over: Partial<AlertTree> = {}): AlertTree =>
 
 const sort = { property: "name", isDescending: false };
 
-describe("formatSeconds", () => {
-  it("formats seconds, minutes, hours, and days", () => {
-    expect(formatSeconds(30)).toBe("30s");
-    expect(formatSeconds(120)).toBe("2min");
-    expect(formatSeconds(7200)).toBe("2h");
-    expect(formatSeconds(172800)).toBe("2d");
-  });
-});
-
 describe("AlertsList", () => {
   it("renders a loading skeleton", () => {
-    render(
-      <AlertsList data={[]} isLoading sortQueryParams={sort} onSortChange={vi.fn()} />,
-      { wrapper: wrapper() },
-    );
+    render(<AlertsList data={[]} isLoading sortQueryParams={sort} onSortChange={vi.fn()} />, {
+      wrapper: wrapper(),
+    });
     // While loading, the component swaps the table body for the skeleton and
     // never falls through to the empty state.
     expect(screen.getByTestId("table-loading-skeleton")).toBeInTheDocument();

@@ -200,6 +200,8 @@ namespace XUnitTest.Monitor
         [InlineData("Infrastructure", "status")]
         [InlineData("DeployedServices", "tagged_service")]
         [InlineData("ExternalServices", "tagged_service")]
+        [InlineData("Infrastructure", "tagged_service")]
+        [InlineData("OtherServices", "tagged_service")]
         [InlineData("DeployedServices", "url")]
         [InlineData("DeployedServices", "uptime")]
         [InlineData("DeployedServices", "monitor_type")]
@@ -209,6 +211,47 @@ namespace XUnitTest.Monitor
             var (items, total) = await repo.GetConfigurationListAsync("t", sourceType, 0, 10, sortProperty, sortIsDescending: true);
             total.Should().Be(1);
             items.Should().ContainSingle();
+        }
+
+        [Fact]
+        public async Task GetConfigurationListAsync_TaggedServiceSortAscending_ReturnsResults()
+        {
+            var repo = Build(new List<MonitorConfiguration> { new() { ItemId = "m1", TenantId = "t" } });
+            var (items, _) = await repo.GetConfigurationListAsync("t", "ExternalServices", 0, 10, "tagged_service", sortIsDescending: false);
+            items.Should().ContainSingle();
+        }
+
+        [Fact]
+        public async Task DeleteConfigurationAsync_WhenDeleteThrows_ReturnsFalse()
+        {
+            var coll = MongoMocks.Collection(new List<MonitorConfiguration>());
+            coll.Setup(c => c.DeleteOneAsync(It.IsAny<FilterDefinition<MonitorConfiguration>>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new MongoException("boom"));
+
+            var result = await Build(coll).DeleteConfigurationAsync("m1");
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task GetConfigurationListByRepoIdAsync_WhenThrows_ReturnsEmpty()
+        {
+            var result = await Build(MongoMocks.CollectionThrowing<MonitorConfiguration>()).GetConfigurationListByRepoIdAsync("t", "r");
+            result.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetAllConfigurationListAsync_WhenThrows_ReturnsEmpty()
+        {
+            var result = await Build(MongoMocks.CollectionThrowing<MonitorConfiguration>()).GetAllConfigurationListAsync();
+            result.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetExternalServiceConfigurationAsync_WhenThrows_ReturnsNull()
+        {
+            var result = await Build(MongoMocks.CollectionThrowing<MonitorConfiguration>()).GetExternalServiceConfigurationAsync("ext");
+            result.Should().BeNull();
         }
     }
 }

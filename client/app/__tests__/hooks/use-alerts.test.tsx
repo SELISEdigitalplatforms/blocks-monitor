@@ -3,7 +3,9 @@ import { renderHook, waitFor, act } from "@testing-library/react";
 
 vi.mock("@/services/alerts.service", () => {
   const ok = (extra: object = {}) =>
-    vi.fn().mockResolvedValue({ isSuccess: true, data: { itemId: "id-1", tenantId: "t-1" }, ...extra });
+    vi
+      .fn()
+      .mockResolvedValue({ isSuccess: true, data: { itemId: "id-1", tenantId: "t-1" }, ...extra });
   return {
     alertsService: {
       addSingleMonitor: ok(),
@@ -62,19 +64,13 @@ describe("use-alerts queries", () => {
   });
 
   it("useGetMonitorListById requires both project key and repo id", async () => {
-    const { result } = renderHook(
-      () => hooks.useGetMonitorListById("p1", "r1"),
-      { wrapper },
-    );
+    const { result } = renderHook(() => hooks.useGetMonitorListById("p1", "r1"), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(alertsService.getMonitorListById).toHaveBeenCalledWith("p1", "r1");
   });
 
   it("useIsExternalServiceConfigured runs only with an id", async () => {
-    const { result } = renderHook(
-      () => hooks.useIsExternalServiceConfigured("ext1"),
-      { wrapper },
-    );
+    const { result } = renderHook(() => hooks.useIsExternalServiceConfigured("ext1"), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(alertsService.isExternalServiceConfigured).toHaveBeenCalledWith("ext1");
   });
@@ -111,48 +107,42 @@ describe("use-alerts queries", () => {
     expect(alertsService.getAllMonitorIncidentList).toHaveBeenCalled();
   });
 
-  it.each([
-    ["1h"],
-    ["24h"],
-    ["7d"],
-    ["30d"],
-    ["other"],
-  ])("useGetMonitorResponseTime computes a start time for range %s", async (range) => {
-    const { result } = renderHook(
-      () =>
-        hooks.useGetMonitorResponseTime({
-          monitorId: "m1",
-          timeRange: range,
-          interval: 60,
-        }),
-      { wrapper },
-    );
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    const arg = (alertsService.GetMonitorResponseTime as unknown as ReturnType<typeof vi.fn>).mock.calls[0][0];
-    expect(arg.monitorId).toBe("m1");
-    expect(typeof arg.startTime).toBe("string");
-  });
+  it.each([["1h"], ["24h"], ["7d"], ["30d"], ["other"]])(
+    "useGetMonitorResponseTime computes a start time for range %s",
+    async (range) => {
+      const { result } = renderHook(
+        () =>
+          hooks.useGetMonitorResponseTime({
+            monitorId: "m1",
+            timeRange: range,
+            interval: 60,
+          }),
+        { wrapper },
+      );
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      const arg = (alertsService.GetMonitorResponseTime as unknown as ReturnType<typeof vi.fn>).mock
+        .calls[0][0];
+      expect(arg.monitorId).toBe("m1");
+      expect(typeof arg.startTime).toBe("string");
+    },
+  );
 
-  it.each([
-    ["1h"],
-    ["3h"],
-    ["6h"],
-    ["12h"],
-    ["24h"],
-    ["default"],
-  ])("useGetMonitorDownTime computes a start time for range %s", async (range) => {
-    const { result } = renderHook(
-      () =>
-        hooks.useGetMonitorDownTime({
-          monitorId: "m1",
-          timeRange: range,
-          interval: 60,
-        }),
-      { wrapper },
-    );
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(alertsService.GetMonitorDownTime).toHaveBeenCalled();
-  });
+  it.each([["1h"], ["3h"], ["6h"], ["12h"], ["24h"], ["default"]])(
+    "useGetMonitorDownTime computes a start time for range %s",
+    async (range) => {
+      const { result } = renderHook(
+        () =>
+          hooks.useGetMonitorDownTime({
+            monitorId: "m1",
+            timeRange: range,
+            interval: 60,
+          }),
+        { wrapper },
+      );
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(alertsService.GetMonitorDownTime).toHaveBeenCalled();
+    },
+  );
 });
 
 describe("use-alerts mutations", () => {

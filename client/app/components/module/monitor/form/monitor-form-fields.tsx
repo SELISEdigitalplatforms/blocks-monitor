@@ -1,22 +1,7 @@
 import { InfoTooltip } from "@seliseblocks/blocks-kit/components";
-import {
-  RenderAlternatively,
-  RenderConditionally,
-} from "@seliseblocks/blocks-kit/components";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/core";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/core";
+import { RenderAlternatively, RenderConditionally } from "@seliseblocks/blocks-kit/components";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/core";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/core";
 import { Input } from "@/components/core";
 import { RadioGroup } from "@/components/core";
 import { Switch } from "@/components/core";
@@ -54,24 +39,22 @@ const MONITOR_TYPE_OPTIONS: {
   { id: "monitor-type-callback", value: "callback", label: "Heartbeat" },
 ];
 
-const SOURCE_TYPE_OPTIONS: { id: string; value: SourceType; label: string }[] =
-  [
-    { id: "monitor-source-none", value: "none", label: "None" },
-    { id: "monitor-source-deployed", value: "deployed", label: "Deployed" },
-    {
-      id: "monitor-source-my-services",
-      value: "my-services",
-      label: "My services",
-    },
-  ];
+const SOURCE_TYPE_OPTIONS: { id: string; value: SourceType; label: string }[] = [
+  { id: "monitor-source-none", value: "none", label: "None" },
+  { id: "monitor-source-deployed", value: "deployed", label: "Deployed" },
+  {
+    id: "monitor-source-my-services",
+    value: "my-services",
+    label: "My services",
+  },
+];
 
 const MONITOR_INTERVAL_TICKS = ["30s", "1min", "5min", "30min", "1h"];
 const MONITOR_INTERVAL_TOOLTIP =
   "How frequently the system will check your endpoint for availability and performance";
 const TIMEOUT_TOOLTIP =
   "Maximum time to wait for a response from your endpoint before considering it timed out";
-const REQUEST_JSON_TOOLTIP =
-  "Set Content-Type header to application/json for API requests";
+const REQUEST_JSON_TOOLTIP = "Set Content-Type header to application/json for API requests";
 
 type MonitorFormFieldsProps = {
   form: UseFormReturn<MonitorFormValues>;
@@ -124,9 +107,7 @@ export const MonitorFormFields = ({
               name="monitorConfigurationType"
               render={({ field }) => (
                 <FormItem className="flex flex-col gap-1">
-                  <FormLabel className="block text-sm font-medium">
-                    Monitor type
-                  </FormLabel>
+                  <FormLabel className="block text-sm font-medium">Monitor type</FormLabel>
                   <FormControl className="flex items-center gap-2">
                     <RadioGroup
                       value={field.value}
@@ -135,7 +116,8 @@ export const MonitorFormFields = ({
                         onMonitorTypeChange(value);
                       }}
                       className="flex items-center gap-4"
-                      disabled={isEditMode}>
+                      disabled={isEditMode}
+                    >
                       {MONITOR_TYPE_OPTIONS.map((option) => (
                         <LabeledRadioOption
                           key={option.id}
@@ -161,11 +143,7 @@ export const MonitorFormFields = ({
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Enter monitor name"
-                      disabled={isEditMode}
-                    />
+                    <Input {...field} placeholder="Enter monitor name" disabled={isEditMode} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -178,9 +156,7 @@ export const MonitorFormFields = ({
                 name="sourceType"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-1">
-                    <FormLabel className="block text-sm font-medium">
-                      Tag a Service
-                    </FormLabel>
+                    <FormLabel className="block text-sm font-medium">Tag a Service</FormLabel>
                     <FormControl className="flex items-center gap-2">
                       <RadioGroup
                         value={field.value}
@@ -189,7 +165,8 @@ export const MonitorFormFields = ({
                           onSourceTypeChange(value);
                         }}
                         className="flex flex-wrap gap-4"
-                        disabled={isEditMode}>
+                        disabled={isEditMode}
+                      >
                         {SOURCE_TYPE_OPTIONS.map((option) => (
                           <LabeledRadioOption
                             key={option.id}
@@ -212,9 +189,7 @@ export const MonitorFormFields = ({
                   control={form.control}
                   name="selectedRepoId"
                   label="Select repo"
-                  placeholder={
-                    isLoadingRepos ? "Loading repos..." : "Select a repo"
-                  }
+                  placeholder={isLoadingRepos ? "Loading repos..." : "Select a repo"}
                   disabled={isEditMode || isLoadingRepos}
                   options={deployedRepos}
                   getOptionKey={(repo) => repo.itemId}
@@ -229,11 +204,7 @@ export const MonitorFormFields = ({
                   control={form.control}
                   name="selectedServiceId"
                   label="Select service"
-                  placeholder={
-                    isLoadingServices
-                      ? "Loading services..."
-                      : "Select a service"
-                  }
+                  placeholder={isLoadingServices ? "Loading services..." : "Select a service"}
                   disabled={isEditMode || isLoadingServices}
                   options={services}
                   getOptionKey={(service) => service.serviceId}
@@ -242,9 +213,7 @@ export const MonitorFormFields = ({
                   onValueChange={onServiceChange}
                 />
               </RenderConditionally>
-              {sourceError && (
-                <p className="text-sm text-destructive">{sourceError}</p>
-              )}
+              {sourceError && <p className="text-sm text-destructive">{sourceError}</p>}
 
               {isEditMode && (
                 <p className="mt-2 text-xs text-muted-foreground">
@@ -261,11 +230,7 @@ export const MonitorFormFields = ({
                   <FormItem>
                     <FormLabel>URL to monitor</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Enter URL to monitor"
-                        disabled={isEditMode}
-                      />
+                      <Input {...field} placeholder="Enter URL to monitor" disabled={isEditMode} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -328,7 +293,8 @@ export const MonitorFormFields = ({
                           <RadioGroup
                             onValueChange={field.onChange}
                             value={field.value}
-                            className="flex flex-col gap-4">
+                            className="flex flex-col gap-4"
+                          >
                             <div className="flex gap-6">
                               {HTTP_METHODS.map((item) => (
                                 <LabeledRadioOption
@@ -385,9 +351,7 @@ export const MonitorFormFields = ({
 
                   <RenderConditionally condition={sendAsJson}>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <span className="text-lg font-semibold md:col-span-2">
-                        Request headers
-                      </span>
+                      <span className="text-lg font-semibold md:col-span-2">Request headers</span>
 
                       <FormField
                         control={form.control}
@@ -396,10 +360,7 @@ export const MonitorFormFields = ({
                           <FormItem>
                             <FormLabel>X-Header-Name</FormLabel>
                             <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="Enter header name"
-                              />
+                              <Input {...field} placeholder="Enter header name" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -428,11 +389,7 @@ export const MonitorFormFields = ({
           <FormActionsRow
             cancelLabel="Cancel"
             saveLabel="Save"
-            isSaveDisabled={
-              isSubmitting ||
-              !form.formState.isValid ||
-              Boolean(isSourceBlocked)
-            }
+            isSaveDisabled={isSubmitting || !form.formState.isValid || Boolean(isSourceBlocked)}
           />
         </div>
       </form>

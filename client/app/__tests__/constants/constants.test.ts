@@ -17,10 +17,7 @@ import {
   MIGRATION_ENDPOINTS,
 } from "@/constants/endpoint.constant";
 import { navigationMenus } from "@/constants/navigation-menus.constant";
-import {
-  HEALTH_TABS,
-  parseAsHealthTabKey,
-} from "@/constants/health.constant";
+import { HEALTH_TABS, parseAsHealthTabKey } from "@/constants/health.constant";
 
 describe("alert.constant", () => {
   it("exposes provider and method enums", () => {
@@ -75,9 +72,7 @@ describe("navigation constants", () => {
 describe("health.constant parseAsHealthTabKey", () => {
   it("has the expected tabs", () => {
     expect(Object.keys(HEALTH_TABS)).toEqual(["all", "services"]);
-    expect(HEALTH_TABS.services.monitorSourceType).toBe(
-      MONITOR_SOURCE_TYPES.BlocksServices,
-    );
+    expect(HEALTH_TABS.services.monitorSourceType).toBe(MONITOR_SOURCE_TYPES.BlocksServices);
   });
 
   it("parses a known tab key", () => {

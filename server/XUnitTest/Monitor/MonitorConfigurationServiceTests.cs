@@ -370,5 +370,144 @@ namespace XUnitTest.Monitor
             result.IsSuccess.Should().BeFalse();
             result.Message.Should().Contain("An error occurred");
         }
+
+        // ---------- cross-tenant isolation ----------
+
+        [Fact]
+        public async Task GetConfigurationByIdAsync_WhenCrossTenant_ReturnsEmptyConfig()
+        {
+            _repo.Setup(r => r.GetConfigurationAsync("m1"))
+                .ReturnsAsync(new MonitorConfiguration { ItemId = "m1", TenantId = "tenant-a" });
+            try
+            {
+                SetCaller("tenant-b");
+                var result = await CreateSut().GetConfigurationByIdAsync("m1");
+
+                result.IsSuccess.Should().BeTrue();
+                // The stored monitor is hidden from a different tenant: a fresh, empty config is returned.
+                result.Data.Should().BeOfType<MonitorConfiguration>().Which.ItemId.Should().NotBe("m1");
+            }
+            finally
+            {
+                BlocksContext.ClearContext();
+            }
+        }
+
+        [Fact]
+        public async Task UpdateConfigurationAsync_WhenCrossTenant_IsRejected()
+        {
+            _repo.Setup(r => r.GetConfigurationAsync("m1"))
+                .ReturnsAsync(new MonitorConfiguration { ItemId = "m1", TenantId = "tenant-a", MonitorSourceType = MonitorSourceTypes.DeployedServices });
+            try
+            {
+                SetCaller("tenant-b");
+                var result = await CreateSut().UpdateConfigurationAsync(new UpdateMonitorConfigurationRequest { ItemId = "m1", Url = "http://x" });
+
+                result.IsSuccess.Should().BeFalse();
+                _repo.Verify(r => r.SaveConfigurationAsync(It.IsAny<MonitorConfiguration>()), Times.Never);
+            }
+            finally
+            {
+                BlocksContext.ClearContext();
+            }
+        }
+
+        [Fact]
+        public async Task DeleteConfigurationAsync_WhenCrossTenant_IsRejected()
+        {
+            _repo.Setup(r => r.GetConfigurationAsync("m1"))
+                .ReturnsAsync(new MonitorConfiguration { ItemId = "m1", TenantId = "tenant-a", MonitorSourceType = MonitorSourceTypes.DeployedServices });
+            try
+            {
+                SetCaller("tenant-b");
+                var result = await CreateSut().DeleteConfigurationAsync("m1");
+
+                result.IsSuccess.Should().BeFalse();
+                _repo.Verify(r => r.DeleteConfigurationAsync(It.IsAny<string>()), Times.Never);
+            }
+            finally
+            {
+                BlocksContext.ClearContext();
+            }
+        }
+
+        // ---------- remaining branches ----------
+
+        [Fact]
+        public async Task GetConfigurationListByRepoIdAsync_WhenRepoThrows_ReturnsEmptySuccess()
+        {
+            _repo.Setup(r => r.GetConfigurationListByRepoIdAsync("t", "repo1")).ThrowsAsync(new Exception("db"));
+
+            var result = await CreateSut().GetConfigurationListByRepoIdAsync("t", "repo1");
+
+            result.IsSuccess.Should().BeTrue();
+            result.Data.Should().BeOfType<List<MonitorConfiguration>>().Which.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task SaveConfigurationAsync_AppliesAllOptionalFields()
+        {
+            var request = ValidSaveRequest();
+            request.MonitorType = "HTTP";
+            request.ProtocolType = "HTTPS";
+            request.HttpMethodType = "GET";
+            request.AuthorizationType = "BEARER";
+            request.IntervalInSeconds = 45;
+            request.TimeoutInSeconds = 90;
+            request.ExpectedContent = "OK";
+            request.CustomHttpHeaders = "{}";
+            request.CustomPayload = "{}";
+            request.SuccessHttpResponseCodes = new List<string> { "200" };
+            request.Regions = new List<string> { "eu" };
+            request.Emails = new List<string> { "a@test" };
+
+            var result = await CreateSut().SaveConfigurationAsync(request);
+
+            var saved = result.Data.Should().BeOfType<MonitorConfiguration>().Subject;
+            saved.MonitorType.Should().Be(MonitorTypes.HTTP);
+            saved.ProtocolType.Should().Be(ProtocolTypes.HTTPS);
+            saved.HttpMethodType.Should().Be(HttpMethodTypes.GET);
+            saved.AuthorizationType.Should().Be(AuthorizationTypes.BEARER);
+            saved.IntervalInSeconds.Should().Be(45);
+            saved.TimeoutInSeconds.Should().Be(90);
+            saved.SuccessHttpResponseCodes.Should().ContainSingle();
+            saved.Regions.Should().ContainSingle();
+            saved.Emails.Should().ContainSingle();
+        }
+
+        [Fact]
+        public async Task UpdateConfigurationAsync_WhenPublishFails_StillSucceeds()
+        {
+            _repo.Setup(r => r.GetConfigurationAsync("m1"))
+                .ReturnsAsync(new MonitorConfiguration { ItemId = "m1", MonitorSourceType = MonitorSourceTypes.DeployedServices });
+            _messageClient.Setup(m => m.SendToConsumerAsync(It.IsAny<ConsumerMessage<MonitorConfigurationUpdateQueue>>()))
+                .ThrowsAsync(new Exception("bus down"));
+
+            var result = await CreateSut().UpdateConfigurationAsync(new UpdateMonitorConfigurationRequest { ItemId = "m1", Url = "http://x" });
+
+            result.IsSuccess.Should().BeTrue();
+            _repo.Verify(r => r.SaveConfigurationAsync(It.IsAny<MonitorConfiguration>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateConfigurationAsync_WhenSaveThrows_ReturnsFailure()
+        {
+            _repo.Setup(r => r.GetConfigurationAsync("m1"))
+                .ReturnsAsync(new MonitorConfiguration { ItemId = "m1", MonitorSourceType = MonitorSourceTypes.DeployedServices });
+            _repo.Setup(r => r.SaveConfigurationAsync(It.IsAny<MonitorConfiguration>())).ThrowsAsync(new Exception("db"));
+
+            var result = await CreateSut().UpdateConfigurationAsync(new UpdateMonitorConfigurationRequest { ItemId = "m1", Url = "http://x" });
+
+            result.IsSuccess.Should().BeFalse();
+            result.Message.Should().Contain("Error saving");
+        }
+
+        private static void SetCaller(string tenantId)
+        {
+            var ctx = BlocksContext.Create(
+                tenantId, null, "user-1", true, null, null,
+                DateTime.UtcNow.AddHours(1), null, null, null, null, null, null, null);
+            BlocksContext.SetContext(ctx);
+        }
     }
 }

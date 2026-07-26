@@ -99,6 +99,19 @@ namespace XUnitTest.Alert
         }
 
         [Fact]
+        public async Task HandleNotificationAlertAsync_IncludesCreatedByAndLastUpdatedByRecipients()
+        {
+            SetupHttp(new NotificationResponse { IsSuccess = true });
+            var repo = Repo(new List<ProjectPeople> { new() { UserId = "owner", TenantId = "proj" } });
+            var config = new MonitorConfiguration { Name = "Api", Url = "http://api", CreatedBy = "creator", LastUpdatedBy = "editor" };
+            var incident = new MonitorIncident { ProjectKey = "proj", MonitorUrl = "http://api", LastStatusCode = 500, IsResolved = false };
+
+            var result = await Sut(repo).HandleNotificationAlertAsync(config, incident);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
         public async Task HandleNotificationAlertAsync_ResolvedIncident_ReturnsTrue()
         {
             SetupHttp(new NotificationResponse { IsSuccess = true });

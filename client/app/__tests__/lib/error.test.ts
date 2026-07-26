@@ -15,21 +15,17 @@ describe("getErrorMessage", () => {
   });
 
   it("collects string values", () => {
-    expect(getErrorMessage({ name: "Name required" })).toEqual([
-      "Name required",
-    ]);
+    expect(getErrorMessage({ name: "Name required" })).toEqual(["Name required"]);
   });
 
   it("joins array values with commas", () => {
-    expect(getErrorMessage({ email: ["too short", "invalid"] })).toEqual([
-      "too short, invalid",
-    ]);
+    expect(getErrorMessage({ email: ["too short", "invalid"] })).toEqual(["too short, invalid"]);
   });
 
   it("prefers a mapped message when the key is in messageMap", () => {
-    expect(
-      getErrorMessage({ email: "raw" }, { email: "Friendly email error" }),
-    ).toEqual(["Friendly email error"]);
+    expect(getErrorMessage({ email: "raw" }, { email: "Friendly email error" })).toEqual([
+      "Friendly email error",
+    ]);
   });
 
   it("skips empty arrays", () => {
@@ -59,15 +55,11 @@ describe("handleErrorMessages", () => {
   });
 
   it("delegates to getErrorMessage for an object", () => {
-    expect(handleErrorMessages({ name: "Name required" })).toEqual([
-      "Name required",
-    ]);
+    expect(handleErrorMessages({ name: "Name required" })).toEqual(["Name required"]);
   });
 
   it("passes custom messages through to getErrorMessage", () => {
-    expect(
-      handleErrorMessages({ name: "raw" }, { name: "Custom" }),
-    ).toEqual(["Custom"]);
+    expect(handleErrorMessages({ name: "raw" }, { name: "Custom" })).toEqual(["Custom"]);
   });
 
   it("returns the unexpected message for arrays and non-objects", () => {

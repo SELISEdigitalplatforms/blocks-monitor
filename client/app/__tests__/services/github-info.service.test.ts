@@ -27,9 +27,7 @@ describe("githubInfoService", () => {
 
   it("verifyAuthorization encodes code and projectKey", async () => {
     await githubInfoService.verifyAuthorization("co de", "pro/j");
-    expect(get).toHaveBeenCalledWith(
-      "/api/auth/accessToken?code=co%20de&ProjectKey=pro%2Fj",
-    );
+    expect(get).toHaveBeenCalledWith("/api/auth/accessToken?code=co%20de&ProjectKey=pro%2Fj");
   });
 
   it("checkAlreadyAuthorization GETs isAuthorized", async () => {
@@ -66,16 +64,12 @@ describe("githubInfoService", () => {
 
   it("getGithubBranches encodes repo and project", async () => {
     await githubInfoService.getGithubBranches("r/1", "p");
-    expect(get).toHaveBeenCalledWith(
-      "/api/github/branches?repo=r%2F1&ProjectKey=p",
-    );
+    expect(get).toHaveBeenCalledWith("/api/github/branches?repo=r%2F1&ProjectKey=p");
   });
 
   it("getRepoAndGitBranchMatch builds the branchExists query", async () => {
     await githubInfoService.getRepoAndGitBranchMatch("rid", "p");
-    expect(get).toHaveBeenCalledWith(
-      "/api/github/branchExists?repoId=rid&ProjectKey=p",
-    );
+    expect(get).toHaveBeenCalledWith("/api/github/branchExists?repoId=rid&ProjectKey=p");
   });
 
   it("cloneGithubRepo POSTs to build/clone", async () => {
@@ -116,9 +110,7 @@ describe("githubInfoService", () => {
 
   it("getRepoDetails encodes project and repo id", async () => {
     await githubInfoService.getRepoDetails("p", "r 1");
-    expect(get).toHaveBeenCalledWith(
-      "/api/repos/details?ProjectKey=p&RepoId=r%201",
-    );
+    expect(get).toHaveBeenCalledWith("/api/repos/details?ProjectKey=p&RepoId=r%201");
   });
 
   it("getCardRepoAndBranches builds the build query", async () => {
@@ -146,9 +138,7 @@ describe("githubInfoService", () => {
 
   it("getBuildLogs builds the run query", async () => {
     await githubInfoService.getBuildLogs("rid", "p");
-    expect(get).toHaveBeenCalledWith(
-      "/api/build/run?repoId=rid&ProjectKey=p",
-    );
+    expect(get).toHaveBeenCalledWith("/api/build/run?repoId=rid&ProjectKey=p");
   });
 
   it("getRepoCardsAndBranches hits github/repos", async () => {

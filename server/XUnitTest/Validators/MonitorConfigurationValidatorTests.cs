@@ -139,6 +139,14 @@ namespace XUnitTest.Validators
         }
 
         [Fact]
+        public async Task Validate_AbsoluteUrlWithWrongScheme_Fails()
+        {
+            // A well-formed absolute URI with a non-HTTP scheme is rejected by the scheme check.
+            var result = await Sut().ValidateAsync(new UpdateMonitorConfigurationRequest { ItemId = "m1", Url = "ftp://example.com" });
+            result.Errors.Select(e => e.ErrorMessage).Should().Contain(m => m.Contains("URL is not valid"));
+        }
+
+        [Fact]
         public async Task Validate_DuplicateUrlOwnedByAnotherMonitor_Fails()
         {
             _repo.Setup(r => r.GetByUrlAsync("https://a.test"))

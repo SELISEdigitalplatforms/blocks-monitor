@@ -19,9 +19,7 @@ test.describe("Authentication", () => {
 
     // 1. Blocks Monitor login page — a single CTA that starts the OIDC flow.
     await page.goto("/login");
-    await page
-      .getByRole("button", { name: "Log in to your account" })
-      .click();
+    await page.getByRole("button", { name: "Log in to your account" }).click();
 
     // 2. Redirected to the dev-iam OIDC login page (/oidc/login, cross-origin).
     //    Selectors come from blocks-idp oidc-login-form.tsx (stable field ids).
@@ -50,9 +48,9 @@ test.describe("Authentication", () => {
     // This repo renders <ConsolePage /> without `canCreateProject`, and the kit
     // defaults it to false, so the "Welcome to SELISE Blocks" empty state is
     // unreachable here. Only "Your Blocks Projects" can appear.
-    await expect(
-      page.getByRole("heading", { name: "Your Blocks Projects" }),
-    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("heading", { name: "Your Blocks Projects" })).toBeVisible({
+      timeout: 20_000,
+    });
 
     // Persist the authenticated session for future specs to reuse.
     await page.context().storageState({ path: "fixtures/auth.json" });
