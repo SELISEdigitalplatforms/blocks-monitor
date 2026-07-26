@@ -22,17 +22,11 @@ class AlertsService {
   private readonly httpClient = serviceInstances.monitorService;
   async addSingleMonitor(payload: IAddSingleMonitorPayload) {
     const url = ALERT_ENDPOINTS.SAVE_MONITOR;
-    return this.httpClient.post<IAlertResponse<IAddSingleMonitorResponse>>(
-      url,
-      payload,
-    );
+    return this.httpClient.post<IAlertResponse<IAddSingleMonitorResponse>>(url, payload);
   }
   async updateSingleMonitor(payload: Partial<IUpdateSingleMonitorPayload>) {
     const url = ALERT_ENDPOINTS.UPDATE_MONITOR;
-    return this.httpClient.post<IAlertResponse<IAddSingleMonitorResponse>>(
-      url,
-      payload,
-    );
+    return this.httpClient.post<IAlertResponse<IAddSingleMonitorResponse>>(url, payload);
   }
   async deleteSingleMonitor(itemId: string) {
     const url = `${ALERT_ENDPOINTS.DELETE_MONITOR}?itemId=${encodeURIComponent(itemId)}`;
@@ -97,19 +91,11 @@ class AlertsService {
     return this.httpClient.get<GetMonitorByIdResponse>(url);
   }
 
-  async GetMonitorResponseTime(payload: {
-    monitorId: string;
-    startTime: string;
-    endTime: string;
-  }) {
+  async GetMonitorResponseTime(payload: { monitorId: string; startTime: string; endTime: string }) {
     const url = `${ALERT_ENDPOINTS.GET_MONITOR_RESPONSE_TIME}?monitorId=${encodeURIComponent(payload.monitorId)}&startTime=${encodeURIComponent(payload.startTime)}&endTime=${encodeURIComponent(payload.endTime)}`;
     return this.httpClient.get<GetMonitorPingLogsResponse>(url);
   }
-  async GetMonitorDownTime(payload: {
-    monitorId: string;
-    startTime: string;
-    endTime: string;
-  }) {
+  async GetMonitorDownTime(payload: { monitorId: string; startTime: string; endTime: string }) {
     const url = `${ALERT_ENDPOINTS.GET_MONITOR_DOWN_TIME}?monitorId=${encodeURIComponent(payload.monitorId)}&startDate=${payload.startTime}&endDate=${payload.endTime}`;
     return this.httpClient.get<GetMonitorPingLogsResponse>(url);
   }
