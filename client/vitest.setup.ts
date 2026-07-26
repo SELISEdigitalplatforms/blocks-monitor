@@ -51,10 +51,8 @@ if (typeof window !== "undefined") {
       unobserve() {}
       disconnect() {}
     }
-    (window as unknown as { ResizeObserver: unknown }).ResizeObserver =
-      ResizeObserver;
-    (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver =
-      ResizeObserver;
+    (window as unknown as { ResizeObserver: unknown }).ResizeObserver = ResizeObserver;
+    (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = ResizeObserver;
   }
   if (!window.HTMLElement.prototype.hasPointerCapture) {
     window.HTMLElement.prototype.hasPointerCapture = () => false;
@@ -68,14 +66,15 @@ if (typeof window !== "undefined") {
 
 // jsdom does not implement matchMedia; several hooks/components depend on it.
 if (typeof window !== "undefined" && !window.matchMedia) {
-  window.matchMedia = (query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: () => {},
-    removeListener: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    dispatchEvent: () => false,
-  }) as unknown as MediaQueryList;
+  window.matchMedia = (query: string) =>
+    ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }) as unknown as MediaQueryList;
 }

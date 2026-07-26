@@ -54,15 +54,14 @@ const AlertAction = ({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="center"
-          className="flex pointer-events-auto gap-2 flex-col">
+        <DropdownMenuContent align="center" className="flex pointer-events-auto gap-2 flex-col">
           <DropdownMenuItem
             className="gap-2 cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               setIsUpdateDialogOpen(true);
-            }}>
+            }}
+          >
             <span>{activityState}</span>
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -70,7 +69,8 @@ const AlertAction = ({
             onClick={(e) => {
               e.stopPropagation();
               setIsDeleteDialogOpen(true);
-            }}>
+            }}
+          >
             <span>Delete</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -151,9 +151,7 @@ const UpdateMonitorDialog = ({
       toast({
         variant: "success",
         title: "Success",
-        description: isActive
-          ? "Monitor paused successfully"
-          : "Monitor resumed successfully",
+        description: isActive ? "Monitor paused successfully" : "Monitor resumed successfully",
       });
 
       onOpenChange(false);
@@ -186,10 +184,7 @@ const UpdateMonitorDialog = ({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button
-            variant="outline"
-            disabled={isLoading}
-            onClick={() => onOpenChange(false)}>
+          <Button variant="outline" disabled={isLoading} onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button onClick={handleUpdate} disabled={isLoading}>
@@ -247,21 +242,23 @@ const DeleteMonitorDialog = ({
         <DialogHeader>
           <DialogTitle>Remove monitor?</DialogTitle>
           <DialogDescription>
-            This action will permanently delete the monitor and its related
-            history. This cannot be undone.
+            This action will permanently delete the monitor and its related history. This cannot be
+            undone.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button
             variant="outline"
             disabled={deleteMutation.isPending}
-            onClick={() => onOpenChange(false)}>
+            onClick={() => onOpenChange(false)}
+          >
             Cancel
           </Button>
           <Button
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
             Confirm
           </Button>
         </DialogFooter>

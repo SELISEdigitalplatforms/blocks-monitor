@@ -223,5 +223,119 @@ namespace XUnitTest.Monitor
 
             result["7d"].Should().Be((0L, 0L));
         }
+
+        // ---------- try/catch fallbacks on the write and read paths ----------
+
+        [Fact]
+        public async Task CreateIncidentAsync_WhenInsertThrows_Swallows()
+        {
+            var coll = MongoMocks.Collection(new List<MonitorIncident>());
+            coll.Setup(c => c.InsertOneAsync(It.IsAny<MonitorIncident>(), It.IsAny<InsertOneOptions>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new MongoException("boom"));
+
+            var act = async () => await Build(coll).CreateIncidentAsync(new MonitorIncident { ItemId = "i1", MonitorId = "m1" });
+
+            await act.Should().NotThrowAsync();
+        }
+
+        [Fact]
+        public async Task UpdateIncidentAsync_WhenReplaceThrows_Swallows()
+        {
+            var coll = MongoMocks.Collection(new List<MonitorIncident>());
+            coll.Setup(c => c.ReplaceOneAsync(It.IsAny<FilterDefinition<MonitorIncident>>(), It.IsAny<MonitorIncident>(),
+                    It.IsAny<ReplaceOptions>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new MongoException("boom"));
+
+            var act = async () => await Build(coll).UpdateIncidentAsync(new MonitorIncident { ItemId = "i1", MonitorId = "m1" });
+
+            await act.Should().NotThrowAsync();
+        }
+
+        [Fact]
+        public async Task GetIncidentCountByMonitorIdAsync_WhenCountThrows_ReturnsZero()
+        {
+            var coll = MongoMocks.Collection(new List<MonitorIncident>());
+            coll.Setup(c => c.CountDocumentsAsync(It.IsAny<FilterDefinition<MonitorIncident>>(),
+                    It.IsAny<CountOptions>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new MongoException("boom"));
+
+            var count = await Build(coll).GetIncidentCountByMonitorIdAsync(Monitor());
+
+            count.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GetIncidentsByMonitorIdAsync_WhenThrows_ReturnsEmpty()
+        {
+            var result = await Build(MongoMocks.CollectionThrowing<MonitorIncident>())
+                .GetIncidentsByMonitorIdAsync(Monitor(), 1, 10);
+            result.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetIncidentsDurationByDateRangeAsync_WhenAggregateThrows_ReturnsZero()
+        {
+            var coll = MongoMocks.Collection(new List<MonitorIncident>());
+            coll.Setup(c => c.AggregateAsync(It.IsAny<PipelineDefinition<MonitorIncident, BsonDocument>>(),
+                    It.IsAny<AggregateOptions>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new MongoException("boom"));
+
+            var result = await Build(coll).GetIncidentsDurationByDateRangeAsync("m1", DateTime.UtcNow.AddDays(-1), DateTime.UtcNow);
+
+            result.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GetDowntimeByMultipleRangesAsync_WhenAggregateThrows_ReturnsZeros()
+        {
+            var coll = MongoMocks.Collection(new List<MonitorIncident>());
+            coll.Setup(c => c.Aggregate(It.IsAny<PipelineDefinition<MonitorIncident, BsonDocument>>(),
+                    It.IsAny<AggregateOptions>(), It.IsAny<CancellationToken>()))
+                .Throws(new MongoException("boom"));
+
+            var result = await Build(coll).GetDowntimeByMultipleRangesAsync("m1");
+
+            result["last7Days"].Should().Be(0);
+            result["last30Days"].Should().Be(0);
+            result["last365Days"].Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GetIncidentsWithCountByMonitorIdAsync_WhenAggregateThrows_ReturnsEmpty()
+        {
+            var coll = MongoMocks.Collection(new List<MonitorIncident>());
+            coll.Setup(c => c.Aggregate(It.IsAny<PipelineDefinition<MonitorIncident, BsonDocument>>(),
+                    It.IsAny<AggregateOptions>(), It.IsAny<CancellationToken>()))
+                .Throws(new MongoException("boom"));
+
+            var (data, total) = await Build(coll).GetIncidentsWithCountByMonitorIdAsync(Monitor(), 0, 10);
+
+            data.Should().BeEmpty();
+            total.Should().Be(0);
+        }
+
+        [Theory]
+        [InlineData("status")]
+        [InlineData("laststatuscode")]
+        [InlineData("rootcause")]
+        [InlineData("end_time")]
+        [InlineData("duration")]
+        [InlineData(null)]
+        public async Task GetIncidentsWithCountByMonitorIdAsync_BuildsSortForEachProperty(string sortProperty)
+        {
+            var coll = MongoMocks.Collection(new List<MonitorIncident>());
+            MongoMocks.SetupAggregate(coll, new List<BsonDocument>()); // no result row -> returns empty
+            var (data, total) = await Build(coll).GetIncidentsWithCountByMonitorIdAsync(Monitor(), 0, 10, sortProperty, sortIsDescending: false);
+            data.Should().BeEmpty();
+            total.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GetIncidentsListByMonitorIdsAndDateRangeAsync_WhenThrows_ReturnsEmpty()
+        {
+            var result = await Build(MongoMocks.CollectionThrowing<MonitorIncident>())
+                .GetIncidentsListByMonitorIdsAndDateRangeAsync(new List<string> { "m1" }, DateTime.UtcNow.AddDays(-1), DateTime.UtcNow);
+            result.Should().BeEmpty();
+        }
     }
 }

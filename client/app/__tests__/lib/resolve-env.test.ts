@@ -21,9 +21,7 @@ describe("resolveEnv", () => {
   it("leaves already-resolved (non-placeholder) values untouched", () => {
     win.__BLOCKS_ENV__ = { BLOCKS_MONITOR_BASE_URL: "https://real.example.com" };
     resolveEnv();
-    expect(win.__BLOCKS_ENV__?.BLOCKS_MONITOR_BASE_URL).toBe(
-      "https://real.example.com",
-    );
+    expect(win.__BLOCKS_ENV__?.BLOCKS_MONITOR_BASE_URL).toBe("https://real.example.com");
   });
 
   it("ignores values that only partially match the placeholder shape", () => {

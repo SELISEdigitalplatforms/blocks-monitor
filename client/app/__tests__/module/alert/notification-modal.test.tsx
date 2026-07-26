@@ -27,18 +27,10 @@ const baseData = {
   emails: ["a@x.com"],
 };
 
-const renderModal = (
-  overrides: Partial<React.ComponentProps<typeof NotificationModal>> = {},
-) => {
+const renderModal = (overrides: Partial<React.ComponentProps<typeof NotificationModal>> = {}) => {
   const onOpenChange = vi.fn();
   render(
-    <NotificationModal
-      open
-      onOpenChange={onOpenChange}
-      request
-      data={baseData}
-      {...overrides}
-    />,
+    <NotificationModal open onOpenChange={onOpenChange} request data={baseData} {...overrides} />,
   );
   return { onOpenChange };
 };
@@ -67,13 +59,9 @@ describe("NotificationModal", () => {
     renderModal({ data: { ...baseData, emails: ["bad"] } });
     const input = screen.getByPlaceholderText("Enter email address");
     fireEvent.change(input, { target: { value: "still-bad" } });
-    expect(
-      screen.getByText("Please enter a valid email address"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Please enter a valid email address")).toBeInTheDocument();
     fireEvent.change(input, { target: { value: "good@x.com" } });
-    expect(
-      screen.queryByText("Please enter a valid email address"),
-    ).toBeNull();
+    expect(screen.queryByText("Please enter a valid email address")).toBeNull();
   });
 
   it("shows 'Email is required' when cleared", () => {
@@ -124,9 +112,7 @@ describe("NotificationModal", () => {
     h.updateReq.mockResolvedValue({ isSuccess: false, message: "server said no" });
     renderModal();
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
-    await waitFor(() =>
-      expect(h.showError).toHaveBeenCalledWith({ errors: "server said no" }),
-    );
+    await waitFor(() => expect(h.showError).toHaveBeenCalledWith({ errors: "server said no" }));
   });
 
   it("cancel resets and closes", () => {
