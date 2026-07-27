@@ -28,9 +28,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         <div className="flex animate-pulse">
           <Loader size={size} className={`animate-spin ${color}`} />
         </div>
-        {label && (
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        )}
+        {label && <p className="text-sm font-medium text-muted-foreground">{label}</p>}
       </div>
     </div>
   );

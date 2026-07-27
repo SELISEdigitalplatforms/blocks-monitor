@@ -169,7 +169,7 @@ namespace DomainService.Health.Services
             }
         }
 
-        public async Task HandlePingEvent(string itemId)
+        public async Task HandlePingEventAsync(string itemId)
         {
             RequeueByUrl(itemId);
 

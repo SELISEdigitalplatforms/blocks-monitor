@@ -5,7 +5,7 @@ namespace DomainService.Monitor.Models
 {
     public class MonitorDetailsResponse: BaseApiResponse
     {
-        public List<MonitorDateRangeSummaryDto> DateRangeSummary { get; set; } = new List<MonitorDateRangeSummaryDto>();
+        public List<MonitorDateRangeSummaryResponse> DateRangeSummary { get; set; } = new List<MonitorDateRangeSummaryResponse>();
         public List<MonitorIncident> MonitorIncidents { get; set; } = new List<MonitorIncident>();
 
     }

@@ -19,20 +19,14 @@ import { serviceInstances } from "@/lib/http-client";
 import { ALERT_ENDPOINTS } from "@/constants/endpoint.constant";
 
 class AlertsService {
-  private readonly httpClient = serviceInstances.observabilityService;
+  private readonly httpClient = serviceInstances.monitorService;
   async addSingleMonitor(payload: IAddSingleMonitorPayload) {
     const url = ALERT_ENDPOINTS.SAVE_MONITOR;
-    return this.httpClient.post<IAlertResponse<IAddSingleMonitorResponse>>(
-      url,
-      payload,
-    );
+    return this.httpClient.post<IAlertResponse<IAddSingleMonitorResponse>>(url, payload);
   }
   async updateSingleMonitor(payload: Partial<IUpdateSingleMonitorPayload>) {
     const url = ALERT_ENDPOINTS.UPDATE_MONITOR;
-    return this.httpClient.post<IAlertResponse<IAddSingleMonitorResponse>>(
-      url,
-      payload,
-    );
+    return this.httpClient.post<IAlertResponse<IAddSingleMonitorResponse>>(url, payload);
   }
   async deleteSingleMonitor(itemId: string) {
     const url = `${ALERT_ENDPOINTS.DELETE_MONITOR}?itemId=${encodeURIComponent(itemId)}`;
@@ -40,11 +34,11 @@ class AlertsService {
   }
 
   async getMonitorList(projectKey: string) {
-    const url = `${ALERT_ENDPOINTS.GET_MONITOR_LIST}?ProjectKey=${encodeURIComponent(projectKey)}`;
+    const url = `${ALERT_ENDPOINTS.GET_MONITOR_LIST}?projectKey=${encodeURIComponent(projectKey)}`;
     return this.httpClient.get<IGetMonitorList>(url);
   }
   async getMonitorListById(projectKey: string, repoId: string) {
-    const url = `${ALERT_ENDPOINTS.GET_MONITOR_LIST_BY_REPO_ID}?ProjectKey=${encodeURIComponent(projectKey)}&repoId=${repoId}`;
+    const url = `${ALERT_ENDPOINTS.GET_MONITOR_LIST_BY_REPO_ID}?projectKey=${encodeURIComponent(projectKey)}&repoId=${repoId}`;
     return this.httpClient.get<IGetMonitorList>(url);
   }
   async getMonitorDetails(monitorId: string) {
@@ -97,19 +91,11 @@ class AlertsService {
     return this.httpClient.get<GetMonitorByIdResponse>(url);
   }
 
-  async GetMonitorResponseTime(payload: {
-    monitorId: string;
-    startTime: string;
-    endTime: string;
-  }) {
+  async GetMonitorResponseTime(payload: { monitorId: string; startTime: string; endTime: string }) {
     const url = `${ALERT_ENDPOINTS.GET_MONITOR_RESPONSE_TIME}?monitorId=${encodeURIComponent(payload.monitorId)}&startTime=${encodeURIComponent(payload.startTime)}&endTime=${encodeURIComponent(payload.endTime)}`;
     return this.httpClient.get<GetMonitorPingLogsResponse>(url);
   }
-  async GetMonitorDownTime(payload: {
-    monitorId: string;
-    startTime: string;
-    endTime: string;
-  }) {
+  async GetMonitorDownTime(payload: { monitorId: string; startTime: string; endTime: string }) {
     const url = `${ALERT_ENDPOINTS.GET_MONITOR_DOWN_TIME}?monitorId=${encodeURIComponent(payload.monitorId)}&startDate=${payload.startTime}&endDate=${payload.endTime}`;
     return this.httpClient.get<GetMonitorPingLogsResponse>(url);
   }

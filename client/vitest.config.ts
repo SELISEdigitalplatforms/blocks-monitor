@@ -30,6 +30,12 @@ const alias = {
 export default defineConfig({
   plugins: [react()],
   resolve: { alias },
+  // Pin NODE_ENV for code that reads it during module init (runtime-env,
+  // http-client). blocks-kit's framer-motion is not inlined, so this does not
+  // reach it — the `/components` alias above keeps framer out of the tests.
+  define: {
+    "process.env.NODE_ENV": JSON.stringify("test"),
+  },
   test: {
     environment: "jsdom",
     globals: true,

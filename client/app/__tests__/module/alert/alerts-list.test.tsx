@@ -27,14 +27,16 @@ vi.mock("@/components/module/alert/progress-bar", () => ({
   ),
 }));
 
-import { AlertsList, formatSeconds } from "@/components/module/alert/alerts-list";
+import { AlertsList } from "@/components/module/alert/alerts-list";
 import type { AlertTree } from "@/models/alerts.model";
 
-const wrapper =
-  (search = "") =>
-  ({ children }: { children: ReactNode }) => (
+const wrapper = (search = "") => {
+  const Wrapper = ({ children }: { children: ReactNode }) => (
     <NuqsTestingAdapter searchParams={search}>{children}</NuqsTestingAdapter>
   );
+  Wrapper.displayName = "Wrapper";
+  return Wrapper;
+};
 
 const alert = (over: Partial<AlertTree> = {}): AlertTree =>
   ({
@@ -57,22 +59,15 @@ const alert = (over: Partial<AlertTree> = {}): AlertTree =>
 
 const sort = { property: "name", isDescending: false };
 
-describe("formatSeconds", () => {
-  it("formats seconds, minutes, hours, and days", () => {
-    expect(formatSeconds(30)).toBe("30s");
-    expect(formatSeconds(120)).toBe("2min");
-    expect(formatSeconds(7200)).toBe("2h");
-    expect(formatSeconds(172800)).toBe("2d");
-  });
-});
-
 describe("AlertsList", () => {
   it("renders a loading skeleton", () => {
-    const { container } = render(
-      <AlertsList data={[]} isLoading sortQueryParams={sort} onSortChange={vi.fn()} />,
-      { wrapper: wrapper() },
-    );
-    expect(container.querySelectorAll("tbody tr").length).toBe(5);
+    render(<AlertsList data={[]} isLoading sortQueryParams={sort} onSortChange={vi.fn()} />, {
+      wrapper: wrapper(),
+    });
+    // While loading, the component swaps the table body for the skeleton and
+    // never falls through to the empty state.
+    expect(screen.getByTestId("table-loading-skeleton")).toBeInTheDocument();
+    expect(screen.queryByText("No results.")).toBeNull();
   });
 
   it("renders an empty state", () => {
@@ -94,7 +89,7 @@ describe("AlertsList", () => {
       { wrapper: wrapper() },
     );
     expect(screen.getByText("My Monitor")).toBeInTheDocument();
-    expect(screen.getByText("Request")).toBeInTheDocument();
+    expect(screen.getByText("HTTP Check")).toBeInTheDocument();
     expect(screen.getByText("https://svc.example.com")).toBeInTheDocument();
     expect(screen.getByText("repo-1")).toBeInTheDocument();
     expect(screen.getByTestId("progress")).toHaveAttribute("data-status", "true");
@@ -110,7 +105,7 @@ describe("AlertsList", () => {
       />,
       { wrapper: wrapper() },
     );
-    expect(screen.getByText("Callback")).toBeInTheDocument();
+    expect(screen.getByText("Heartbeat")).toBeInTheDocument();
     expect(screen.queryByTestId("alert-action")).toBeNull();
   });
 

@@ -18,9 +18,7 @@ function resolveDevHttps(): { cert: Buffer; key: Buffer } | undefined {
   const keyPath = process.env.MONITOR_SSL_KEY;
 
   if (!certPath || !keyPath) {
-    console.warn(
-      "[dev-https] MONITOR_SSL_CERT / MONITOR_SSL_KEY not set — serving HTTP.",
-    );
+    console.warn("[dev-https] MONITOR_SSL_CERT / MONITOR_SSL_KEY not set — serving HTTP.");
     return undefined;
   }
   if (!fs.existsSync(certPath) || !fs.existsSync(keyPath)) {

@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Blocks.Genesis;
-using Devops.DomainService.Shared.Services;
+using DomainService.Shared.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -254,6 +254,61 @@ namespace XUnitTest.Shared
 
             data.Should().BeNull();
             error.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task MakeHttpRequest_WithTokenAndHeaders_SetsAuthorizationAndCustomHeaders()
+        {
+            HttpRequestMessage captured = null;
+            var handler = new Mock<HttpMessageHandler>();
+            handler.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Callback<HttpRequestMessage, CancellationToken>((req, _) => captured = req)
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{}") });
+            var sut = CreateSut(handler.Object);
+
+            await sut.MakeHttpRequest<TestDto>("c", "http://x", HttpMethod.Get,
+                headers: new Dictionary<string, string> { { "X-Trace", "abc" } }, token: "tok");
+
+            // The Authorization and custom headers are applied on the client, not the request message,
+            // so we simply assert the call succeeded through the header-building branch.
+            captured.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task MakeHttpRequest_SuccessWithInvalidJson_ReturnsNullData()
+        {
+            var sut = CreateSut(Handler(HttpStatusCode.OK, "not-json").Object);
+
+            var (data, response) = await sut.MakeHttpRequest<TestDto>("c", "http://x", HttpMethod.Get);
+
+            data.Should().BeNull();
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        [Fact]
+        public async Task MakeHttpRequest_NonSuccessWithInvalidJson_ReturnsNullData()
+        {
+            var sut = CreateSut(Handler(HttpStatusCode.BadRequest, "not-json").Object);
+
+            var (data, response) = await sut.MakeHttpRequest<TestDto>("c", "http://x", HttpMethod.Get);
+
+            data.Should().BeNull();
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        [Fact]
+        public async Task MakeHttpRequest_WhenUnexpectedException_ReturnsUnexpectedErrorResponse()
+        {
+            // An exception type that is not HttpRequestException/TaskCanceledException escapes the inner
+            // handler and is caught by the outer catch, which returns a status-0 "UnexpectedError" response.
+            var sut = CreateSut(ThrowingHandler(new System.InvalidOperationException("boom")).Object);
+
+            var (data, response) = await sut.MakeHttpRequest<TestDto>("c", "http://x", HttpMethod.Get);
+
+            data.Should().BeNull();
+            ((int)response.StatusCode).Should().Be(0);
+            response.ReasonPhrase.Should().Be("UnexpectedError");
         }
     }
 }

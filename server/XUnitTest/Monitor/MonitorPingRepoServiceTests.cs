@@ -74,5 +74,21 @@ namespace XUnitTest.Monitor
 
             result.Should().ContainSingle().Which.StatusCode.Should().Be(200);
         }
+
+        [Fact]
+        public async Task GetPingLogsByDateRangeAsync_WhenQueryThrows_ReturnsEmpty()
+        {
+            var coll = MongoMocks.Collection(new List<MonitorPingLog>());
+            coll.Setup(c => c.FindAsync(
+                    It.IsAny<FilterDefinition<MonitorPingLog>>(),
+                    It.IsAny<FindOptions<MonitorPingLog, MonitorPingLogSummary>>(),
+                    It.IsAny<System.Threading.CancellationToken>()))
+                .ThrowsAsync(new MongoException("boom"));
+            var sut = Build(coll);
+
+            var result = await sut.GetPingLogsByDateRangeAsync("m1", "2024-01-01T00:00:00Z", "2024-01-02T00:00:00Z");
+
+            result.Should().BeEmpty();
+        }
     }
 }

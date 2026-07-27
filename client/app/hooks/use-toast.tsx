@@ -79,9 +79,7 @@ export const reducer = (state: State, action: Action): State => {
     case "UPDATE_TOAST":
       return {
         ...state,
-        toasts: state.toasts.map((t) =>
-          t.id === action.toast.id ? { ...t, ...action.toast } : t,
-        ),
+        toasts: state.toasts.map((t) => (t.id === action.toast.id ? { ...t, ...action.toast } : t)),
       };
 
     case "DISMISS_TOAST": {
@@ -178,10 +176,7 @@ type ErrorToastOptions = {
   customMessages?: Record<string, string>;
 };
 
-export const showSuccessToast = ({
-  title = "Success",
-  description,
-}: SuccessToastOptions) => {
+export const showSuccessToast = ({ title = "Success", description }: SuccessToastOptions) => {
   toast({
     variant: "success",
     title,
@@ -189,10 +184,7 @@ export const showSuccessToast = ({
   });
 };
 
-export const showInfoToast = ({
-  title = "Info",
-  description,
-}: InfoToastOptions) => {
+export const showInfoToast = ({ title = "Info", description }: InfoToastOptions) => {
   toast({
     variant: "info",
     title,
@@ -200,11 +192,7 @@ export const showInfoToast = ({
   });
 };
 
-export const showErrorToast = ({
-  title = "Failed",
-  errors,
-  customMessages,
-}: ErrorToastOptions) => {
+export const showErrorToast = ({ title = "Failed", errors, customMessages }: ErrorToastOptions) => {
   const message = handleErrorMessages(errors, customMessages);
   toast({
     variant: "destructive",

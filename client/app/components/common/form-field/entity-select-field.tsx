@@ -1,17 +1,5 @@
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/core";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/core";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/core";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/core";
 import { type Control, type FieldValues, type Path } from "react-hook-form";
 
 type EntitySelectFieldProps<TFormValues extends FieldValues, TOption> = {
@@ -53,7 +41,8 @@ export const EntitySelectField = <TFormValues extends FieldValues, TOption>({
                 field.onChange(value);
                 onValueChange(value);
               }}
-              disabled={disabled}>
+              disabled={disabled}
+            >
               <SelectTrigger>
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
@@ -65,10 +54,12 @@ export const EntitySelectField = <TFormValues extends FieldValues, TOption>({
                     <SelectItem
                       key={getOptionKey(option)}
                       value={optionValue}
-                      className="min-w-0 items-start py-2">
+                      className="min-w-0 items-start py-2"
+                    >
                       <span
                         className="block max-w-full whitespace-normal break-all leading-5"
-                        title={optionLabel}>
+                        title={optionLabel}
+                      >
                         {optionLabel}
                       </span>
                     </SelectItem>

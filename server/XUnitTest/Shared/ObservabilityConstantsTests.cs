@@ -10,11 +10,11 @@ namespace XUnitTest.Shared
         [InlineData("some-random-connection-string")]
         public void GetApiMessageConfiguration_NonAmqp_UsesAzureServiceBus(string connectionString)
         {
-            var config = ObservabilityConstants.GetApiMessageConfiguration(connectionString);
+            var config = MonitorConstants.GetApiMessageConfiguration(connectionString);
 
             config.AzureServiceBusConfiguration.Should().NotBeNull();
             config.RabbitMqConfiguration.Should().BeNull();
-            config.AzureServiceBusConfiguration.Queues.Should().Contain(ObservabilityConstants.MonitorConfigurationUpdateQueue);
+            config.AzureServiceBusConfiguration.Queues.Should().Contain(MonitorConstants.MonitorConfigurationUpdateQueue);
         }
 
         [Theory]
@@ -22,7 +22,7 @@ namespace XUnitTest.Shared
         [InlineData("amqps://user:pass@host:5671/")]
         public void GetApiMessageConfiguration_Amqp_UsesRabbitMq(string connectionString)
         {
-            var config = ObservabilityConstants.GetApiMessageConfiguration(connectionString);
+            var config = MonitorConstants.GetApiMessageConfiguration(connectionString);
 
             config.RabbitMqConfiguration.Should().NotBeNull();
             config.AzureServiceBusConfiguration.Should().BeNull();
@@ -32,20 +32,20 @@ namespace XUnitTest.Shared
         [Fact]
         public void GetWorkerMessageConfiguration_Amqp_UsesRabbitMq()
         {
-            var config = ObservabilityConstants.GetWorkerMessageConfiguration("amqp://localhost");
+            var config = MonitorConstants.GetWorkerMessageConfiguration("amqp://localhost");
 
             config.RabbitMqConfiguration.Should().NotBeNull();
             config.RabbitMqConfiguration.ConsumerSubscriptions.Should()
-                .Contain(s => s.QueueName == ObservabilityConstants.MonitorConfigurationUpdateQueue);
+                .Contain(s => s.QueueName == MonitorConstants.MonitorConfigurationUpdateQueue);
         }
 
         [Fact]
         public void GetWorkerMessageConfiguration_NonAmqp_UsesAzureServiceBus()
         {
-            var config = ObservabilityConstants.GetWorkerMessageConfiguration("azure-conn");
+            var config = MonitorConstants.GetWorkerMessageConfiguration("azure-conn");
 
             config.AzureServiceBusConfiguration.Should().NotBeNull();
-            config.AzureServiceBusConfiguration.Queues.Should().Contain(ObservabilityConstants.MonitorConfigurationUpdateQueue);
+            config.AzureServiceBusConfiguration.Queues.Should().Contain(MonitorConstants.MonitorConfigurationUpdateQueue);
         }
     }
 }
