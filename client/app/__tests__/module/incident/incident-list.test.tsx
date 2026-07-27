@@ -6,11 +6,13 @@ import type { ReactNode } from "react";
 import IncidentList from "@/components/module/incident/incident-list";
 import type { IncidentTree } from "@/models/alerts.model";
 
-const wrapper =
-  (search = "") =>
-  ({ children }: { children: ReactNode }) => (
+const wrapper = (search = "") => {
+  const Wrapper = ({ children }: { children: ReactNode }) => (
     <NuqsTestingAdapter searchParams={search}>{children}</NuqsTestingAdapter>
   );
+  Wrapper.displayName = "Wrapper";
+  return Wrapper;
+};
 
 const incident = (over: Partial<IncidentTree> = {}): IncidentTree =>
   ({
@@ -38,10 +40,13 @@ const incident = (over: Partial<IncidentTree> = {}): IncidentTree =>
 
 describe("IncidentList", () => {
   it("renders a loading skeleton while loading", () => {
-    const { container } = render(<IncidentList isLoading data={[]} />, {
+    render(<IncidentList isLoading data={[]} />, {
       wrapper: wrapper(),
     });
-    expect(container.querySelectorAll("tbody tr").length).toBe(5);
+    // While loading, the component swaps the table body for the skeleton and
+    // never falls through to the empty state.
+    expect(screen.getByTestId("table-loading-skeleton")).toBeInTheDocument();
+    expect(screen.queryByText("No results.")).toBeNull();
   });
 
   it("shows an empty state when there are no incidents", () => {
@@ -74,10 +79,7 @@ describe("IncidentList", () => {
 
   it("falls back to the raw failure reason when it is not JSON", () => {
     render(
-      <IncidentList
-        isLoading={false}
-        data={[incident({ failureReason: "Connection refused" })]}
-      />,
+      <IncidentList isLoading={false} data={[incident({ failureReason: "Connection refused" })]} />,
       { wrapper: wrapper() },
     );
     expect(screen.getByText("Connection refused")).toBeInTheDocument();
@@ -85,10 +87,7 @@ describe("IncidentList", () => {
 
   it("labels ongoing incidents when there is no end time", () => {
     render(
-      <IncidentList
-        isLoading={false}
-        data={[incident({ endTime: null as unknown as string })]}
-      />,
+      <IncidentList isLoading={false} data={[incident({ endTime: null as unknown as string })]} />,
       { wrapper: wrapper() },
     );
     expect(screen.getByText("Ongoing")).toBeInTheDocument();
@@ -96,10 +95,7 @@ describe("IncidentList", () => {
 
   it("formats the downtime duration", () => {
     render(
-      <IncidentList
-        isLoading={false}
-        data={[incident({ downtimeDurationSeconds: 3661 })]}
-      />,
+      <IncidentList isLoading={false} data={[incident({ downtimeDurationSeconds: 3661 })]} />,
       { wrapper: wrapper() },
     );
     // 3661s -> 1h 1m (first two non-zero units)
@@ -107,10 +103,9 @@ describe("IncidentList", () => {
   });
 
   it("renders the status code column when showLastStatus is set", () => {
-    render(
-      <IncidentList isLoading={false} showLastStatus data={[incident()]} />,
-      { wrapper: wrapper() },
-    );
+    render(<IncidentList isLoading={false} showLastStatus data={[incident()]} />, {
+      wrapper: wrapper(),
+    });
     expect(screen.getByText("Status Code")).toBeInTheDocument();
     expect(screen.getByText("500")).toBeInTheDocument();
   });

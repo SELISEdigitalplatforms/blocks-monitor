@@ -14,8 +14,7 @@ export const useAddSingleMonitor = () => {
 
   return useMutation({
     mutationKey: ["agent-monitor"],
-    mutationFn: (payload: IAddSingleMonitorPayload) =>
-      alertsService.addSingleMonitor(payload),
+    mutationFn: (payload: IAddSingleMonitorPayload) => alertsService.addSingleMonitor(payload),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["monitor-list-by-id", variables.projectKey],
@@ -68,9 +67,7 @@ export const useDeleteMonitor = () => {
   });
 };
 
-export const useGetHealthMonitorList = (
-  payload: IGetHealthMonitorListPayload,
-) => {
+export const useGetHealthMonitorList = (payload: IGetHealthMonitorListPayload) => {
   const {
     projectKey,
     monitorSourceType,
@@ -260,8 +257,7 @@ export const useUpdateHealth = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ["update-health"],
-    mutationFn: (payload: Partial<IUpdateHealth>) =>
-      alertsService.updateHealth(payload),
+    mutationFn: (payload: Partial<IUpdateHealth>) => alertsService.updateHealth(payload),
     onSuccess: (variables) => {
       // Invalidate ALL queries that start with these prefixes
 

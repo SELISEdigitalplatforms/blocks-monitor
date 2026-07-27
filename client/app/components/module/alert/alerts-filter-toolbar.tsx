@@ -1,8 +1,5 @@
 import { FilterToolbar } from "@seliseblocks/blocks-kit/components";
-import {
-  type AlertFilter,
-  useAlertFilterQueryParams,
-} from "./use-alert-filter-query-params";
+import { type AlertFilter, useAlertFilterQueryParams } from "./use-alert-filter-query-params";
 
 type AlertFilterToolBarProps = {
   repositories: { value: string; label: string }[];

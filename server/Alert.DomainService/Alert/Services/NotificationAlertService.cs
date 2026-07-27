@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Blocks.Genesis;
-using Devops.DomainService.Shared.Interfaces;
+using DomainService.Shared.Services;
 using DomainService.Monitor.Entity;
 using DomainService.Shared.Models;
 using Microsoft.Extensions.Configuration;
@@ -50,7 +50,7 @@ namespace DomainService.Alert.Services
                           $"Status Code: {incident.LastStatusCode}\n" +
                           $"Reason: {incident.FailureReason}\n";
             }
-            var userIds = await GetProjectPeopleIds(incident.ProjectKey);
+            var userIds = await GetProjectPeopleIdsAsync(incident.ProjectKey);
 
             if (!string.IsNullOrWhiteSpace(monitorConfiguration.CreatedBy))
                 userIds.Add(monitorConfiguration.CreatedBy);
@@ -59,7 +59,7 @@ namespace DomainService.Alert.Services
                 userIds.Add(monitorConfiguration.LastUpdatedBy);
 
             var payload = CreateNotificationPayload(title, message, userIds);
-            return await SendNotification(payload, userIds);
+            return await SendNotificationAsync(payload, userIds);
         }
 
         public static object CreateNotificationPayload(string title, string message, List<string> userIds)
@@ -83,14 +83,14 @@ namespace DomainService.Alert.Services
         }
 
 
-        public async Task<List<string>> GetProjectPeopleIds(string projectKey)
+        public async Task<List<string>> GetProjectPeopleIdsAsync(string projectKey)
         {
-            return await _alertRepoService.GetProjectPeopleList(projectKey);
+            return await _alertRepoService.GetProjectPeopleListAsync(projectKey);
         }
 
-        public async Task<bool> SendNotification(object payload, List<string> UserIds)
+        public async Task<bool> SendNotificationAsync(object payload, List<string> userIds)
         {
-            _logger.LogInformation("Sending notification to users : {UserIds}", string.Join(", ", UserIds));
+            _logger.LogInformation("Sending notification to users : {UserIds}", string.Join(", ", userIds));
 
             var blocksKey = _configuration["RootTenantId"] ?? string.Empty;
             var salt = _tenants.GetTenantByID(blocksKey)?.TenantSalt;
@@ -107,12 +107,12 @@ namespace DomainService.Alert.Services
 
             if (response is not null && response.IsSuccess)
             {
-                _logger.LogInformation("Successfully sent notification to users : {UserIds}", string.Join(", ", UserIds));
+                _logger.LogInformation("Successfully sent notification to users : {UserIds}", string.Join(", ", userIds));
                 return true;
             }
             else
             {
-                _logger.LogError("Failed to sent notification to users : {UserIds}. Error : {Error}", string.Join(", ", UserIds), httpResponse.ReasonPhrase);
+                _logger.LogError("Failed to sent notification to users : {UserIds}. Error : {Error}", string.Join(", ", userIds), httpResponse.ReasonPhrase);
                 return false;
             }
         }

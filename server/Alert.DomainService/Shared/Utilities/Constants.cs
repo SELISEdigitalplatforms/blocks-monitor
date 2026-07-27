@@ -2,7 +2,7 @@
 
 namespace DomainService.Shared.Utilities
 {
-    public class ObservabilityConstants
+    public class MonitorConstants
     {
         public static readonly string MonitorConfigurationUpdateQueue = "blocks_alert_monitor_config_update_listener";
         public List<string> HttpStatusCodes_200 = new List<string>() { "200,201,202,203,204,205,206,207,208,226" };
@@ -78,5 +78,14 @@ namespace DomainService.Shared.Utilities
 
             return DefaultProvider;
         }
+    }
+
+    /// <summary>
+    /// Backward-compatible alias for <see cref="MonitorConstants"/>. "Observability" is the retired
+    /// legacy brand; the product name is "Blocks Monitor". Kept so existing references keep compiling.
+    /// </summary>
+    [Obsolete("Renamed to MonitorConstants.")]
+    public class ObservabilityConstants : MonitorConstants
+    {
     }
 }

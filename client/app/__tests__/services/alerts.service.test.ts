@@ -6,7 +6,7 @@ const del = vi.fn();
 
 vi.mock("@/lib/http-client", () => ({
   serviceInstances: {
-    observabilityService: {
+    monitorService: {
       get: (...a: unknown[]) => get(...a),
       post: (...a: unknown[]) => post(...a),
       delete: (...a: unknown[]) => del(...a),
@@ -39,30 +39,24 @@ describe("alertsService", () => {
 
   it("deleteSingleMonitor encodes the itemId in the query", async () => {
     await alertsService.deleteSingleMonitor("a b/c");
-    expect(del).toHaveBeenCalledWith(
-      "/api/Monitor/DeleteMonitor?itemId=a%20b%2Fc",
-    );
+    expect(del).toHaveBeenCalledWith("/api/Monitor/DeleteMonitor?itemId=a%20b%2Fc");
   });
 
   it("getMonitorList encodes the project key", async () => {
     await alertsService.getMonitorList("proj key");
-    expect(get).toHaveBeenCalledWith(
-      "/api/Monitor/GetMonitorList?ProjectKey=proj%20key",
-    );
+    expect(get).toHaveBeenCalledWith("/api/Monitor/GetMonitorList?projectKey=proj%20key");
   });
 
   it("getMonitorListById includes project key and repo id", async () => {
     await alertsService.getMonitorListById("proj", "repo1");
     expect(get).toHaveBeenCalledWith(
-      "/api/Monitor/GetMonitorListByRepoId?ProjectKey=proj&repoId=repo1",
+      "/api/Monitor/GetMonitorListByRepoId?projectKey=proj&repoId=repo1",
     );
   });
 
   it("getMonitorDetails encodes the monitor id", async () => {
     await alertsService.getMonitorDetails("m1");
-    expect(get).toHaveBeenCalledWith(
-      "/api/Monitor/GetMonitorDetails?monitorId=m1",
-    );
+    expect(get).toHaveBeenCalledWith("/api/Monitor/GetMonitorDetails?monitorId=m1");
   });
 
   it("isExternalServiceConfigured builds the right query", async () => {

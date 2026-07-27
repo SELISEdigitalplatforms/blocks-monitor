@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+    --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -199,6 +199,6 @@
 
 @layer utilities {
   .blocks-gradient {
-    background: linear-gradient(135deg, #0066b2 0%, #00B2FF 100%);
+    background: linear-gradient(135deg, #0066b2 0%, #00b2ff 100%);
   }
 }

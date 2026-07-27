@@ -14,7 +14,7 @@ Blocks Monitor is a monorepo with an ASP.NET Core API, a background Worker, and 
 │  │  ├─ main.tsx
 │  │  └─ router.tsx
 │  ├─ public/
-│  ├─ .env
+│  ├─ .env.example
 │  ├─ index.html
 │  ├─ package.json
 │  └─ vite.config.ts
@@ -22,7 +22,6 @@ Blocks Monitor is a monorepo with an ASP.NET Core API, a background Worker, and 
 │  ├─ Api/
 │  │  ├─ Api.csproj
 │  │  ├─ Controllers/
-│  │  ├─ GlobalApiRoutePrefixConvention.cs
 │  │  ├─ Program.cs
 │  │  ├─ Properties/launchSettings.json
 │  │  └─ wwwroot/
@@ -35,12 +34,14 @@ Blocks Monitor is a monorepo with an ASP.NET Core API, a background Worker, and 
 │  ├─ CloudConfiguration.DomainService/
 │  ├─ Iam.DomainService/
 │  ├─ Mfa.DomainService/
+│  ├─ XUnitTest/
 │  ├─ Blocks.slnx
 │  ├─ Directory.Build.props
 │  └─ Directory.Packages.props
+├─ e2e/
+├─ scripts/
 ├─ Dockerfile
 ├─ Dockerfile.worker
-├─ LOCAL_GUIDE.md
 ├─ run.sh
 ├─ run.ps1
 └─ LICENSE
@@ -123,11 +124,11 @@ Use npm run local if you want Vite's default port from [client/vite.config.ts](c
 
 ## Local HTTPS
 
-Frontend dev server and backend API serve HTTPS on `dev-monitor.blocksdevelopers.com` when the machine env vars `MONITOR_SSL_CERT` and `MONITOR_SSL_KEY` (mkcert PEM cert + key paths) are both set and both files exist; otherwise they fall back to HTTP (no crash). No cert path is committed, and the deployed Docker artifact is unaffected. One-time setup (mkcert, hosts entry, env vars, behavior matrix): see [LOCAL_GUIDE.md](LOCAL_GUIDE.md#local-https-frontend--backend).
+Frontend dev server and backend API serve HTTPS on `dev-monitor.blocksdevelopers.com` when the machine env vars `MONITOR_SSL_CERT` and `MONITOR_SSL_KEY` (mkcert PEM cert + key paths) are both set and both files exist; otherwise they fall back to HTTP (no crash). No cert path is committed, and the deployed Docker artifact is unaffected. One-time setup: generate a certificate for the named host with mkcert, add a hosts entry pointing it at `127.0.0.1`, and set the two environment variables to the cert and key paths.
 
 ## Client environment
 
-The repo includes [client/.env](client/.env) for local development. Vite only exposes variables with the BLOCKS\_ prefix (see [client/vite.config.ts](client/vite.config.ts)). In production, the API replaces tokens in built assets and injects them into window.**BLOCKS_ENV** (see [server/Api/Program.cs](server/Api/Program.cs) and [client/index.html](client/index.html)).
+Copy [client/.env.example](client/.env.example) to `client/.env` for local development (`.env` itself is gitignored). Vite only exposes variables with the BLOCKS\_ prefix (see [client/vite.config.ts](client/vite.config.ts)). In production, the API replaces tokens in built assets and injects them into window.**BLOCKS_ENV** (see [server/Api/Program.cs](server/Api/Program.cs) and [client/index.html](client/index.html)).
 
 Variables used by the client (via [client/app/lib/runtime-env.ts](client/app/lib/runtime-env.ts)):
 
@@ -165,12 +166,47 @@ docker build -t blocks-monitor-api .
 docker build -f Dockerfile.worker -t blocks-monitor-worker .
 ```
 
+## Tests
+
+Run from the repository root. There is no `.sln`; target the test project directly.
+
+```bash
+# backend unit tests (xUnit)
+dotnet test server/XUnitTest/XUnitTest.csproj
+
+# frontend unit tests (Vitest)
+npm --prefix client run test
+
+# end-to-end tests (Playwright); needs a reachable app and e2e/.env.e2e,
+# see e2e/README.md for setup and target modes
+npm --prefix e2e run test
+```
+
+Coverage:
+
+```bash
+dotnet test server/XUnitTest/XUnitTest.csproj --collect:"XPlat Code Coverage"
+npm --prefix client run test -- --coverage
+```
+
+## Scanning and deployment
+
+- `scripts/scan.sh` is the security scan entry point (SAST, SCA and secret scanning). It is intentionally not tracked in git; internal environments provide it.
+- `scripts/deploy.sh` is the maintainer deploy script for a systemd host: it checks out the latest `inception`, builds the client, publishes the Api and Worker projects, and installs and restarts their systemd services.
+- `scripts/monitor/` holds one-off data-migration scripts for monitor configurations, in bash and mongosh variants.
+
 ## API / routing
 
 - Controllers live in [server/Api/Controllers](server/Api/Controllers).
-- A global route prefix of api is applied by [server/Api/GlobalApiRoutePrefixConvention.cs](server/Api/GlobalApiRoutePrefixConvention.cs), so controller routes like [Route("[controller]/[action]")] become /api/{Controller}/{Action}.
+- A global route prefix of api is applied by the shared Blocks.Genesis host configuration (ApplicationConfigurations.ConfigureApi in [server/Api/Program.cs](server/Api/Program.cs)), so controller routes like [Route("[controller]/[action]")] become /api/{Controller}/{Action}.
 - The API serves the SPA from wwwroot using UseDefaultFiles, UseStaticFiles, and MapFallbackToFile("/index.html") (see [server/Api/Program.cs](server/Api/Program.cs)).
 - Launch profiles are defined in [server/Api/Properties/launchSettings.json](server/Api/Properties/launchSettings.json) and [server/Worker/Properties/launchSettings.json](server/Worker/Properties/launchSettings.json). The URLs there may differ from the run scripts.
+
+## Contributing and security
+
+- Contribution conventions and workflow: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Reporting a vulnerability: [SECURITY.md](SECURITY.md)
+- Community standards: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
 ## License
 
