@@ -5,7 +5,7 @@ import { Plus, Trash } from "lucide-react";
 import { useState } from "react";
 import { useUpdateHealth, useUpdateSingleMonitor } from "@/hooks/use-alerts";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
-import { ErrorTransformer } from "@seliseblocks/blocks-kit/utils";
+import { ErrorTransformer } from "@seliseblocks/genesis-os/utils";
 import { z } from "zod";
 
 type NotificationProviderProps = {

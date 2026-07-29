@@ -1,4 +1,4 @@
-import { HttpClient, getRuntimeEnv } from "@seliseblocks/blocks-kit/lib";
+import { HttpClient, getRuntimeEnv } from "@seliseblocks/genesis-os/lib";
 
 const monitorService = new HttpClient({
   baseURL: getRuntimeEnv("BLOCKS_MONITOR_BASE_URL") || "",

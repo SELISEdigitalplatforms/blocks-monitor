@@ -30,7 +30,7 @@ vi.mock("@/hooks/use-alerts", () => ({
   useIsExternalServiceConfigured: () => ({ data: h.externalConfig }),
 }));
 
-vi.mock("@seliseblocks/blocks-kit/hooks", () => ({
+vi.mock("@seliseblocks/genesis-os/hooks", () => ({
   useGetEnvRepositories: () => ({
     data: { data: h.envRepos.data },
     isLoading: h.envRepos.isLoading,
@@ -47,8 +47,8 @@ vi.mock("@/hooks/use-toast", () => ({
   showSuccessToast: (...a: unknown[]) => h.showSuccess(...a),
 }));
 
-vi.mock("react-router-dom", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("react-router-dom")>();
+vi.mock("react-router", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-router")>();
   return { ...actual, useNavigate: () => h.navigate };
 });
 
