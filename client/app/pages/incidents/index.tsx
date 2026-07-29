@@ -1,10 +1,10 @@
-import type { SortValue } from "@seliseblocks/blocks-kit/components";
+import type { SortValue } from "@seliseblocks/genesis-os/components";
 import { Button, Card, CardContent } from "@/components/core";
 import IncidentList from "@/components/module/incident/incident-list";
 import { useIncidentFilterQueryParams } from "@/components/module/incident/use-incident-query-filter-params";
 import { useGetAllIncidentList } from "@/hooks/use-alerts";
 import { ArrowLeft } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 
 const IncidentPage = () => {
   const navigate = useNavigate();
