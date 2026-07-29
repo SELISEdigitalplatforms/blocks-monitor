@@ -1,4 +1,4 @@
-import { FilterToolbar } from "@seliseblocks/blocks-kit/components";
+import { FilterToolbar } from "@seliseblocks/genesis-os/components";
 import { type AlertFilter, useAlertFilterQueryParams } from "./use-alert-filter-query-params";
 
 type AlertFilterToolBarProps = {

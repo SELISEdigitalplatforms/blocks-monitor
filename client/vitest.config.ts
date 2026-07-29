@@ -21,7 +21,7 @@ const alias = {
   // The real subpath bundles a nested framer-motion build that fails to load
   // under jsdom (reads process.env.NODE_ENV during evaluation). The app only
   // uses tiny helpers from it, so redirect to a local stub in tests.
-  "@seliseblocks/blocks-kit/components": path.resolve(
+  "@seliseblocks/genesis-os/components": path.resolve(
     __dirname,
     "./app/__tests__/stubs/blocks-kit-components.tsx",
   ),
