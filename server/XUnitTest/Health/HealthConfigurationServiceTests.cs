@@ -291,6 +291,49 @@ namespace XUnitTest.Health
         }
 
         [Fact]
+        public async Task DeleteConfigurationAsync_WhenInfrastructure_IsRejected()
+        {
+            // Infrastructure heartbeats are platform-owned. This is the sibling guard to the
+            // BlocksServices case above and was the only one of the two left unexercised.
+            var existing = new MonitorConfiguration { ItemId = "m1", MonitorSourceType = MonitorSourceTypes.Infrastructure };
+
+            var result = await Build(configs: new List<MonitorConfiguration> { existing }).DeleteConfigurationAsync("m1");
+
+            result.IsSuccess.Should().BeFalse();
+            result.Message.Should().Contain("not found");
+        }
+
+        [Theory]
+        [InlineData(MonitorSourceTypes.DeployedServices)]
+        [InlineData(MonitorSourceTypes.ExternalServices)]
+        [InlineData(MonitorSourceTypes.OtherServices)]
+        public async Task DeleteConfigurationAsync_AllowsTheTenantOwnedSourceTypes(MonitorSourceTypes sourceType)
+        {
+            // Pins which side of the guard each source type falls on, so adding a new member to
+            // the enum cannot quietly become deletable or undeletable.
+            var existing = new MonitorConfiguration { ItemId = "m1", MonitorSourceType = sourceType };
+
+            var result = await Build(configs: new List<MonitorConfiguration> { existing }).DeleteConfigurationAsync("m1");
+
+            result.IsSuccess.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task DeleteConfigurationAsync_RefusalsAreIndistinguishableFromAbsence()
+        {
+            // All three refusal paths deliberately return the same "not found" message, so a
+            // caller cannot probe for the existence of a heartbeat it may not touch. If one of
+            // them ever starts saying "forbidden", that becomes an enumeration oracle.
+            var platformOwned = new MonitorConfiguration { ItemId = "m1", MonitorSourceType = MonitorSourceTypes.Infrastructure };
+
+            var missing = await Build().DeleteConfigurationAsync("m1");
+            var refused = await Build(configs: new List<MonitorConfiguration> { platformOwned }).DeleteConfigurationAsync("m1");
+
+            refused.Message.Should().Be(missing.Message);
+            refused.StatusCode.Should().Be(missing.StatusCode);
+        }
+
+        [Fact]
         public async Task DeleteConfigurationAsync_WhenCrossTenant_ReturnsNotFound()
         {
             var existing = new MonitorConfiguration { ItemId = "m1", TenantId = "tenant-a", MonitorSourceType = MonitorSourceTypes.DeployedServices };
