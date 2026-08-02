@@ -3,15 +3,6 @@ import { resolveEnv } from "@seliseblocks/genesis-os/lib";
 
 const win = window as unknown as { __BLOCKS_ENV__?: Record<string, string> };
 
-// `resolveEnv` now lives in `@seliseblocks/genesis-os/lib` (it moved out of this
-// app during the dev merge). It walks `window.__BLOCKS_ENV__` and, for any value
-// shaped like an `__BLOCKS_..__` placeholder, resolves it from the build-time
-// env (`import.meta.env[key] || ""`). That bundler-injected env only exists in
-// the app build; inside the externalized blocks-kit dependency under vitest
-// `import.meta.env` is absent, so the resolution branch is reachable but has no
-// env source here. These tests therefore pin down the observable, deterministic
-// behaviour: the guard that decides *which* values are treated as placeholders,
-// and the no-op cases.
 describe("resolveEnv", () => {
   afterEach(() => {
     vi.unstubAllEnvs();

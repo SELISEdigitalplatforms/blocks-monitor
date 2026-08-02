@@ -94,12 +94,14 @@ const MonitorCard = ({
                   return `+ ${emails.length - 1} more`;
                 })()}
               </span>
-              <span
+              <button
+                type="button"
+                aria-label="Edit notification recipients"
                 className="cursor-pointer text-blue-500 hover:underline"
                 onClick={() => onOpenChange(true)}
               >
                 <Pencil className="ml-1 inline h-4 w-4" />
-              </span>
+              </button>
             </div>
           </div>
         )}

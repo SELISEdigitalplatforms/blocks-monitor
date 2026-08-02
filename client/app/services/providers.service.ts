@@ -34,22 +34,6 @@ export const verifyOAuthState = (receivedState: string | null) => {
   return storedState === receivedState;
 };
 
-// export const authenticateWithGitlab = () => {
-//   console.log("GitLab authentication not yet implemented");
-//   // Placeholder for GitLab OAuth
-// };
 
-// export const authenticateWithBitbucket = () => {
-//   console.log("Bitbucket authentication not yet implemented");
-//   // Placeholder for Bitbucket OAuth
-// };
 
-// export const authenticateWithAzure = () => {
-//   console.log("Azure DevOps authentication not yet implemented");
-//   // Placeholder for Azure OAuth
-// };
 
-// export const authenticateWithAws = () => {
-//   console.log("AWS CodeCommit authentication not yet implemented");
-//   // Placeholder for AWS authentication
-// };
