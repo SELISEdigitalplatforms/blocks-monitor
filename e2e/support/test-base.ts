@@ -22,7 +22,7 @@ function pauseMs(isHeaded: boolean): number {
   return isHeaded ? 10_000 : 0;
 }
 
-export const test = base.extend<{ pauseAfterEachTest: void }>({
+export const test = base.extend<{ pauseAfterEachTest: void; openProject: void }>({
   pauseAfterEachTest: [
     async ({ page }, use, testInfo) => {
       // `--headed` flips headless to false on the resolved project config.
