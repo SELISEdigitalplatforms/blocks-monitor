@@ -1,14 +1,5 @@
 using Blocks.Genesis;
-// using Cloud.DomainService.Utilities;
-// using DomainService.Utilities;
-// using DomainService.Shared;
-// using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Http.Features;
-// using Microsoft.AspNetCore.Mvc;
-// using Cloud.LmtService.Utilities;
-// using CloudConfiguration.DomainService.Shared.Utilities;
-// using Microsoft.IdentityModel.Tokens;
-// using Cloud.LmtService.Models.Trace;
 using SeliseBlocks.ConfigurationDriver;
 using DomainService.Shared.Utilities;
 
@@ -73,12 +64,7 @@ Directory.CreateDirectory(wwwrootPath);
 ApplyFrontendRuntimeSettings(builder.Configuration, wwwrootPath);
 
 
-// services.RegisterAllServices();
-// services.AddApplicationServices();
 Alert.DomainService.ServiceRegistry.AddApplicationServices(services);
-// services.AddCloudDomainServices();
-// services.AddCloudLmtServices();
-// services.AddCloudConfigurationServices();
 
 var app = builder.Build();
 
@@ -200,75 +186,10 @@ static void ApplyFrontendRuntimeSettings(IConfiguration configuration, string we
   ["__BLOCKS_RELEASE_CLIENT_ID__"] = section["BLOCKS_RELEASE_CLIENT_ID"],
   ["__BLOCKS_MONITOR_CLIENT_ID__"] = section["BLOCKS_MONITOR_CLIENT_ID"],
   ["__BLOCKS_STUDIO_CLIENT_ID__"] = section["BLOCKS_STUDIO_CLIENT_ID"],
+  ["__BLOCKS_ALLOWED_SERVICES__"] = section["BLOCKS_ALLOWED_SERVICES"],
  };
 
- // PREVIOUS path #1 (kept for reference — flip back to this if we need to read bare
- // process env vars / .env files again instead of the appsettings section):
- //
- // DotNetEnv.Env.Load();
- //
- // var replacements = new Dictionary<string, string?>
- // {
- //     ["__BLOCKS_IAM_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_IAM_BASE_URL"),
- //     ["__BLOCKS_X_BLOCKS_KEY__"] = Environment.GetEnvironmentVariable("BLOCKS_X_BLOCKS_KEY"),
- //     ["__BLOCKS_GOOGLE_SITE_KEY__"] = Environment.GetEnvironmentVariable("BLOCKS_GOOGLE_SITE_KEY"),
- //     ["__BLOCKS_CONSTRUCT_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_CONSTRUCT_URL"),
- //     ["__BLOCKS_GITHUB_SSO_CLIENT_ID__"] = Environment.GetEnvironmentVariable("BLOCKS_GITHUB_SSO_CLIENT_ID"),
- //     ["__BLOCKS_OIDC_CLIENT_ID__"] = Environment.GetEnvironmentVariable("BLOCKS_OIDC_CLIENT_ID"),
- //     ["__BLOCKS_BASE_DOMAIN__"] = Environment.GetEnvironmentVariable("BLOCKS_BASE_DOMAIN"),
- //     ["__BLOCKS_IAM_CALLBACK_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_IAM_CALLBACK_URL"),
- //     ["__BLOCKS_LOCALIZATION_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_LOCALIZATION_BASE_URL"),
- //     ["__BLOCKS_LOCALIZATION_CALLBACK_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_LOCALIZATION_CALLBACK_URL"),
- //     ["__BLOCKS_AGENTS_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_AGENTS_BASE_URL"),
- //     ["__BLOCKS_AGENTS_CALLBACK_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_AGENTS_CALLBACK_URL"),
- //     ["__BLOCKS_DATA_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_DATA_BASE_URL"),
- //     ["__BLOCKS_DATA_CALLBACK_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_DATA_CALLBACK_URL"),
- //     ["__BLOCKS_OS_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_OS_BASE_URL"),
- //     ["__BLOCKS_OS_CALLBACK_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_OS_CALLBACK_URL"),
- //     ["__BLOCKS_UTILITIES_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_UTILITIES_BASE_URL"),
- //     ["__BLOCKS_UTILITIES_CALLBACK_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_UTILITIES_CALLBACK_URL"),
- //     ["__BLOCKS_LOGIC_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_LOGIC_BASE_URL"),
- //     ["__BLOCKS_LOGIC_CALLBACK_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_LOGIC_CALLBACK_URL"),
- //     ["__BLOCKS_MONITOR_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_MONITOR_BASE_URL"),
- //     ["__BLOCKS_MONITOR_CALLBACK_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_MONITOR_CALLBACK_URL"),
- //     ["__BLOCKS_RELEASE_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_RELEASE_BASE_URL"),
- //     ["__BLOCKS_RELEASE_CALLBACK_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_RELEASE_CALLBACK_URL"),
- //     ["__BLOCKS_STUDIO_BASE_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_STUDIO_BASE_URL"),
- //     ["__BLOCKS_STUDIO_CALLBACK_URL__"] = Environment.GetEnvironmentVariable("BLOCKS_STUDIO_CALLBACK_URL"),
- // };
 
- // PREVIOUS path #2 (kept for reference — the hardcoded dev values we used before
- // the section/env-var approach was wired up):
- //
- // var replacements = new Dictionary<string, string?>
- // {
- //     ["__BLOCKS_IAM_BASE_URL__"] = "https://dev-iam.blocksdevelopers.com",
- //     ["__BLOCKS_X_BLOCKS_KEY__"] = "f080a1bea04280a72149fd689d50a48c",
- //     ["__BLOCKS_GOOGLE_SITE_KEY__"] = "6LeE8uEqAAAAAM-9mzdFO8sajdin-DsVdxh3RT8c",
- //     ["__BLOCKS_CONSTRUCT_URL__"] = "https://dev-construct.blocksdevelopers.com",
- //     ["__BLOCKS_GITHUB_SSO_CLIENT_ID__"] = "Ov23likdyGSUHGkewKf0",
- //     ["__BLOCKS_OIDC_CLIENT_ID__"] = "a5831e15-e193-4a4f-8e10-d04a4ad1705b",
- //     ["__BLOCKS_BASE_DOMAIN__"] = "blocksdevelopers.com",
- //     ["__BLOCKS_IAM_CALLBACK_URL__"] = "https://dev-iam.blocksdevelopers.com/login/callback",
- //     ["__BLOCKS_LOCALIZATION_BASE_URL__"] = "https://dev-localization.blocksdevelopers.com",
- //     ["__BLOCKS_LOCALIZATION_CALLBACK_URL__"] = "https://dev-localization.blocksdevelopers.com/login/callback",
- //     ["__BLOCKS_AGENTS_BASE_URL__"] = "https://dev-agents.blocksdevelopers.com",
- //     ["__BLOCKS_AGENTS_CALLBACK_URL__"] = "https://dev-agents.blocksdevelopers.com/login/callback",
- //     ["__BLOCKS_DATA_BASE_URL__"] = "https://dev-data.blocksdevelopers.com",
- //     ["__BLOCKS_DATA_CALLBACK_URL__"] = "https://dev-data.blocksdevelopers.com/login/callback",
- //     ["__BLOCKS_OS_BASE_URL__"] = "https://dev-os.blocksdevelopers.com",
- //     ["__BLOCKS_OS_CALLBACK_URL__"] = "https://dev-os.blocksdevelopers.com/login/callback",
- //     ["__BLOCKS_UTILITIES_BASE_URL__"] = "https://dev-utilities.blocksdevelopers.com",
- //     ["__BLOCKS_UTILITIES_CALLBACK_URL__"] = "https://dev-utilities.blocksdevelopers.com/login/callback",
- //     ["__BLOCKS_LOGIC_BASE_URL__"] = "https://dev-logic.blocksdevelopers.com",
- //     ["__BLOCKS_LOGIC_CALLBACK_URL__"] = "https://dev-logic.blocksdevelopers.com/login/callback",
- //     ["__BLOCKS_MONITOR_BASE_URL__"] = "https://dev-monitor.blocksdevelopers.com",
- //     ["__BLOCKS_MONITOR_CALLBACK_URL__"] = "https://dev-monitor.blocksdevelopers.com/login/callback",
- //     ["__BLOCKS_RELEASE_BASE_URL__"] = "https://dev-release.blocksdevelopers.com",
- //     ["__BLOCKS_RELEASE_CALLBACK_URL__"] = "https://dev-release.blocksdevelopers.com/login/callback",
- //     ["__BLOCKS_STUDIO_BASE_URL__"] = "https://dev-studio.blocksdevelopers.com",
- //     ["__BLOCKS_STUDIO_CALLBACK_URL__"] = "https://dev-studio.blocksdevelopers.com/login/callback",
- // };
 
 
 

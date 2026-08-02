@@ -1,8 +1,8 @@
-import GitHubIcon from "/assets/github-icon.svg";
-import GitLabIcon from "/assets/gitlab-icon.svg";
-import BitbucketIcon from "/assets/bitbucket-icon.svg";
-import AzureIcon from "/assets/azure-icon.svg";
-import AwsIcon from "/assets/aws-icon.svg";
+import GitHubIcon from "@/assets/github-icon.svg?react";
+import GitLabIcon from "@/assets/gitlab-icon.svg?react";
+import BitbucketIcon from "@/assets/bitbucket-icon.svg?react";
+import AzureIcon from "@/assets/azure-icon.svg?react";
+import AwsIcon from "@/assets/aws-icon.svg?react";
 
 export interface IRepository {
   id: number;
@@ -60,7 +60,7 @@ export interface IBranchMatchResponse {
   matchedBranch?: string;
 }
 
-export const iconMap: Record<string, React.ReactNode> = {
+export const iconMap: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
   github: GitHubIcon,
   gitlab: GitLabIcon,
   bitbucket: BitbucketIcon,

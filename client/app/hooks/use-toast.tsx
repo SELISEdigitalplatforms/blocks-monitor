@@ -1,5 +1,5 @@
 import * as React from "react";
-import { handleErrorMessages } from "@seliseblocks/blocks-kit/utils";
+import { handleErrorMessages } from "@seliseblocks/genesis-os/utils";
 import { ToastActionElement, ToastProps } from "@/components/core";
 
 const TOAST_LIMIT = 1;

@@ -2,6 +2,7 @@ import fs from "fs";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig, loadEnv } from "vite";
+import svgr from "vite-plugin-svgr";
 
 // Local dev HTTPS, driven ONLY by the machine env vars MONITOR_SSL_CERT /
 // MONITOR_SSL_KEY (abs paths to an mkcert PEM cert + key). Read directly
@@ -39,7 +40,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     envPrefix: ["BLOCKS_"],
-    plugins: [react()],
+    plugins: [react(), svgr({ svgrOptions: { svgo: true, titleProp: true } })],
 
     resolve: {
       alias: {

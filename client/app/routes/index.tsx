@@ -3,17 +3,17 @@ import { HealthLayout } from "@/layouts/health-layout/health-layout";
 import HealthPage from "@/pages/health";
 import IncidentPage from "@/pages/incidents";
 import MonitorDetailsPage from "@/pages/monitor/details";
-import { AuthResolver, ProtectedGuard, PublicGuard } from "@seliseblocks/blocks-kit/guards";
-import { ConsoleLayout, DashboardRoute } from "@seliseblocks/blocks-kit/layouts";
+import { AuthResolver, ProtectedGuard, PublicGuard } from "@seliseblocks/genesis-os/guards";
+import { ConsoleLayout, DashboardRoute } from "@seliseblocks/genesis-os/layouts";
 import {
   CallbackPage,
   ConsolePage,
   DashboardOverview,
   LoginPage,
   ProfilePage,
-} from "@seliseblocks/blocks-kit/pages";
+} from "@seliseblocks/genesis-os/pages";
 
-import { Navigate, Outlet, type RouteObject } from "react-router-dom";
+import { Navigate, Outlet, type RouteObject } from "react-router";
 
 const redirectPaths: Record<string, string> = {
   "/app/health/monitor/*": "/app/health",

@@ -3,17 +3,6 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { parseAsBoolean, parseAsInteger, parseAsString } from "nuqs";
 
-// Test-only stand-in for `@seliseblocks/blocks-kit/components` (aliased in
-// vitest.config.ts). The real subpath transitively bundles a framer-motion
-// build whose module load reads `process.env.NODE_ENV` in a way jsdom can't
-// satisfy. This mirrors the public API of the barrel that this app uses:
-//   - helpers: cn, RenderConditionally, RenderAlternatively
-//   - passthrough presentational components: FilterControls (with its
-//     .SortHeader / .TablePagination compound members), FilterToolbar,
-//     InfoTooltip, TableLoadingSkeleton
-//   - nuqs parser factories re-implemented with real nuqs primitives so query
-//     defaults/behaviour are preserved: paginationQueryParsers, sortQueryParsers
-//   - types: PaginationValue, SortValue
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
