@@ -1,6 +1,6 @@
-import type { SortValue } from "@seliseblocks/blocks-kit/components";
-import { FilterControls } from "@seliseblocks/blocks-kit/components";
-import { TableLoadingSkeleton } from "@seliseblocks/blocks-kit/components";
+import type { SortValue } from "@seliseblocks/genesis-os/components";
+import { FilterControls } from "@seliseblocks/genesis-os/components";
+import { TableLoadingSkeleton } from "@seliseblocks/genesis-os/components";
 import {
   ScrollArea,
   ScrollBar,
@@ -21,7 +21,7 @@ import {
 } from "@tanstack/react-table";
 import { useCallback, useMemo } from "react";
 import { useIncidentFilterQueryParams } from "./use-incident-query-filter-params";
-import { formatDuration } from "@seliseblocks/blocks-kit/utils";
+import { formatDuration } from "@seliseblocks/genesis-os/utils";
 
 const parseFailureReason = (reason?: string | null): string | undefined => {
   if (!reason) return undefined; // instead of null

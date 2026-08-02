@@ -14,14 +14,14 @@ import {
   toUpdateCallbackPayload,
   toUpdateRequestPayload,
 } from "./util";
-import { ErrorTransformer } from "@seliseblocks/blocks-kit/utils";
-import { useGetEnvRepositories, useGetAllServices } from "@seliseblocks/blocks-kit/hooks";
+import { ErrorTransformer } from "@seliseblocks/genesis-os/utils";
+import { useGetEnvRepositories, useGetAllServices } from "@seliseblocks/genesis-os/hooks";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import { useScopedPath } from "@seliseblocks/blocks-kit/hooks";
+import { useNavigate } from "react-router";
+import { useScopedPath } from "@seliseblocks/genesis-os/hooks";
 import {
   getMonitorFormDefaultValues,
   type MonitorFormMode,

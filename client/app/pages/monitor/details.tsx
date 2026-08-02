@@ -17,11 +17,11 @@ import { EditSingleMonitorForm } from "@/components/module/monitor/form/edit-mon
 import { MonitorModal } from "@/components/module/monitor/modal/monitor-modal";
 import { useGetMonitorById, useGetMonitorDetails, useGetMonitorDownTime } from "@/hooks/use-alerts";
 import { IMonitorSummary } from "@/models/alerts.model";
-import { useScopedPath } from "@seliseblocks/blocks-kit/hooks";
-import { useProjectStore } from "@seliseblocks/blocks-kit/store";
+import { useScopedPath } from "@seliseblocks/genesis-os/hooks";
+import { useProjectStore } from "@seliseblocks/genesis-os/store";
 import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 
 interface MonitorSummaryProps {
   data: IMonitorSummary[];

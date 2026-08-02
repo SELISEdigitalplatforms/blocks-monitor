@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { MemoryRouter, Routes, Route } from "react-router";
 
 const h = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -41,18 +41,18 @@ const h = vi.hoisted(() => ({
   downtime: { data: { data: [] as unknown[] }, isLoading: false },
 }));
 
-vi.mock("react-router-dom", async (o) => {
-  const actual = await o<typeof import("react-router-dom")>();
+vi.mock("react-router", async (o) => {
+  const actual = await o<typeof import("react-router")>();
   return {
     ...actual,
     useNavigate: () => h.navigate,
     useParams: () => ({ id: "m1" }),
   };
 });
-vi.mock("@seliseblocks/blocks-kit/hooks", () => ({
+vi.mock("@seliseblocks/genesis-os/hooks", () => ({
   useScopedPath: () => (p: string) => `/scoped/${p}`,
 }));
-vi.mock("@seliseblocks/blocks-kit/store", () => ({
+vi.mock("@seliseblocks/genesis-os/store", () => ({
   useProjectStore: () => ({ selectedProject: { tenantId: "proj-1" } }),
 }));
 vi.mock("@/hooks/use-alerts", () => ({
