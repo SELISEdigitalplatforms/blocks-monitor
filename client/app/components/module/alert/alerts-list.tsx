@@ -193,7 +193,11 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
           return (
             <>
               {monitorSourceType !== 2 ? (
-                <div onClick={(e) => e.stopPropagation()} className="flex justify-center">
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  className="flex justify-center"
+                >
                   <AlertAction
                     monitorId={row.original.itemId as string}
                     isActive={row.original.isActive ?? false}
