@@ -1,5 +1,5 @@
-import { InfoTooltip } from "@seliseblocks/blocks-kit/components";
-import { RenderAlternatively, RenderConditionally } from "@seliseblocks/blocks-kit/components";
+import { InfoTooltip } from "@seliseblocks/genesis-os/components";
+import { RenderAlternatively, RenderConditionally } from "@seliseblocks/genesis-os/components";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/core";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/core";
 import { Input } from "@/components/core";

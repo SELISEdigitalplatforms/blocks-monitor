@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/core";
-import { Github, Pencil, Layers } from "lucide-react";
+import { Pencil, Layers } from "lucide-react";
+import { iconMap } from "@/models";
+import { RenderConditionally } from "@seliseblocks/genesis-os/components";
 
 type IMonitorCard = {
   onOpenChange: (value: boolean) => void;
@@ -20,6 +22,7 @@ const MonitorCard = ({
   monitorSourceType,
   onOpenChange,
 }: IMonitorCard) => {
+  const GithubIcon = iconMap["github"];
   return (
     <Card className="rounded-lg border shadow-sm">
       <CardHeader>
@@ -33,16 +36,18 @@ const MonitorCard = ({
 
         <div>
           <div className="mb-1 text-xs font-medium text-foreground">Tagged Service</div>
-          {repoName && (
+
+          <RenderConditionally condition={!!repoName}>
             <div className="flex flex-wrap items-center gap-2">
               <span className="break-all">Deployed service</span>
               <div className="flex flex-wrap items-center gap-1">
-                <Github size={16} className="text-foreground" />
+                <GithubIcon className="h-4 w-4 text-foreground" />
                 <span className="break-all font-medium text-foreground">{repoName}</span>
               </div>
             </div>
-          )}
-          {externalServiceName && (
+          </RenderConditionally>
+
+          <RenderConditionally condition={!!externalServiceName}>
             <div className="flex flex-wrap items-center gap-2">
               <span className="break-all">My service</span>
               <div className="flex flex-wrap items-center gap-1">
@@ -50,7 +55,8 @@ const MonitorCard = ({
                 <span className="break-all font-medium text-foreground">{externalServiceName}</span>
               </div>
             </div>
-          )}
+          </RenderConditionally>
+
           {!repoName && !externalServiceName && <span className="text-foreground">{"None"}</span>}
         </div>
 
@@ -88,12 +94,14 @@ const MonitorCard = ({
                   return `+ ${emails.length - 1} more`;
                 })()}
               </span>
-              <span
+              <button
+                type="button"
+                aria-label="Edit notification recipients"
                 className="cursor-pointer text-blue-500 hover:underline"
                 onClick={() => onOpenChange(true)}
               >
                 <Pencil className="ml-1 inline h-4 w-4" />
-              </span>
+              </button>
             </div>
           </div>
         )}

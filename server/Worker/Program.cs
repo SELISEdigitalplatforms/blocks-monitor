@@ -1,24 +1,8 @@
 using Blocks.Genesis;
-// using DomainService.Dtos;
-// using DomainService.Migration;
-// using DomainService.Projects;
-// using DomainService.Shared;
-// using DomainService.Shared.Dtos;
-// using DomainService.Shared.Entities;
-// using DomainService.Utilities;
-// using DomainService.Worker;
-// using Iam.DomainService.Accounts;
-// using Iam.DomainService.Dtos;
-// using Iam.DomainService.Shared.Dtos;
-// using Iam.DomainService.Users;
-// using Mfa.DomainService.Configuration;
 using Worker;
 using Worker.Configuration;
 using DomainService.Shared.Entity;
 using MonitoringWorker.Consumers;
-// using Worker.Consumers;
-// using Worker.Consumers.Identifier;
-// using Worker.Consumers.Users;
 using SeliseBlocks.ConfigurationDriver;
 using DomainService.Shared.Utilities;
 
@@ -48,39 +32,17 @@ IHostBuilder CreateHostBuilder(string[] args) =>
 
             services.Configure<VerioSystemSettings>(services.BuildServiceProvider().GetRequiredService<IConfiguration>().GetSection("VerioSystemSettings"));
 
-            // services.AddSingleton<IConsumer<RefreshTokenEvent>, RefreshTokenWorkerService>();
-            // services.AddSingleton<IConsumer<UserAuthenticationTimelineEvent>, UserAuthenticationTimelineWorkerService>();
-            // services.AddSingleton<IConsumer<MfaActionEvent>, UpdateMfaConfigurationService>();
 
-            // services.AddSingleton<IConsumer<ResourceMutationEvent>, ResourceMutationConsumer>();
-            // services.AddSingleton<IConsumer<ResourceSetToPermissionMutationEvent>, ResourceSetToPermissionMutationConsumer>();
-            // services.AddSingleton<IConsumer<UserMutationEvent>, UserMutationConsumer>();
-            // services.AddSingleton<IConsumer<AccountActivityEvent>, AccountActivityWorkerService>();
-            // services.AddSingleton<IConsumer<CreateUserByEmailEvent>, CreateUserByEmailConsumer>();
-            // services.AddSingleton<IConsumer<CreateUserRequest>, CreateUserConsumer>();
-            // services.AddSingleton<IConsumer<CreateUserViaSsoEvent>, CreateUserViaSsoConsumer>();
-            // services.AddSingleton<IConsumer<UserStatusChangedEvent>, UserStatusChangedConsumer>();
 
             services.AddHostedService<PeriodicPingBackgroundService>();
             services.AddHostedService<MonitorSchedulerBackgroundWorker>();
 
-            // services.RegisterAllServices();
 
 
 
             #region Identifier Service Consumers
-            // services.AddApplicationServices();
             Alert.DomainService.ServiceRegistry.AddApplicationServices(services);
             services.AddSingleton<IConsumer<MonitorConfigurationUpdateQueue>, MonitorConfigurationUpdateConsumer>();
-            // services.AddSingleton<IConsumer<Tenant>, ConfigureProjectConsumer>();
-            // services.AddSingleton<IConsumer<DisableDomainBindingRequest>, DisableDomainBindingConsumer>();
-            // services.AddSingleton<IConsumer<RestoreProjectRequest>, RestoreProjectConsumer>();
-            // services.AddSingleton<IConsumer<CreateUserByEmailPostEvent_Identifier>, CreateUserByEmailPostConsumer>();
-            // services.AddSingleton<IConsumer<ConfigureDomainRequest>, DomainConfigureConsumer>();
-            // services.AddSingleton<IConsumer<MigrationCompletionEvent>, MigrationCompletionConsumer>();
-            // services.AddSingleton<IConsumer<EnvironmentDataMigrationEvent>, EnvironmentDataMigrationEventConsumer>();
-            // services.AddSingleton<IConsumer<PublishScheduleCommand>, DataCleanupConsumer>();
-            // services.AddSingleton<IConsumer<UpdateResourceUsageCommand_Identifier>, UpdateResourceUsageConsumer>();
 
             ApplicationConfigurations.ConfigureWorker(services, MonitorConstants.GetWorkerMessageConfiguration(secret.MessageConnectionString));
             //ApplicationConfigurations.ConfigureWorker(services, IdentifierConstants.GetMessageConfiguration(secret.MessageConnectionString));
