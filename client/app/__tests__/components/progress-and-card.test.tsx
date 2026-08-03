@@ -2,7 +2,6 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import ProgressBar from "@/components/module/alert/progress-bar";
 import MonitorCard from "@/components/module/monitor/details/monitor-card";
-import { LoadingSkelton } from "@/components/common/table-skeleton";
 
 describe("ProgressBar", () => {
   it("shows 100% when there are no incidents and status is up", () => {
@@ -32,9 +31,7 @@ describe("ProgressBar", () => {
   });
 
   it("reveals a tooltip on hover", () => {
-    const { container } = render(
-      <ProgressBar incidents={[]} status={true} />,
-    );
+    const { container } = render(<ProgressBar incidents={[]} status={true} />);
     const bar = container.querySelector(".h-6")!;
     fireEvent.mouseEnter(bar);
     expect(screen.getByText(/Up/)).toBeInTheDocument();
@@ -55,7 +52,7 @@ describe("MonitorCard", () => {
     render(<MonitorCard {...baseProps} repoName="my-repo" />);
     expect(screen.getByText("my-repo")).toBeInTheDocument();
     expect(screen.getByText("URL to monitor")).toBeInTheDocument();
-    expect(screen.getByText("Request")).toBeInTheDocument();
+    expect(screen.getByText("HTTP Check")).toBeInTheDocument();
   });
 
   it("renders the external service name branch", () => {
@@ -64,38 +61,24 @@ describe("MonitorCard", () => {
   });
 
   it("shows None and Callback labels for a callback with no tags", () => {
-    render(
-      <MonitorCard {...baseProps} request={false} monitorSourceType={1} />,
-    );
+    render(<MonitorCard {...baseProps} request={false} monitorSourceType={1} />);
     expect(screen.getByText("None")).toBeInTheDocument();
-    expect(screen.getByText("Callback URL")).toBeInTheDocument();
-    expect(screen.getByText("Callback")).toBeInTheDocument();
+    expect(screen.getByText("Heartbeat URL")).toBeInTheDocument();
+    expect(screen.getByText("Heartbeat")).toBeInTheDocument();
   });
 
   it("shows a '+N more' recipients hint and fires onOpenChange on edit", async () => {
     const onOpenChange = vi.fn();
     render(<MonitorCard {...baseProps} onOpenChange={onOpenChange} />);
     expect(screen.getByText("+ 1 more")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("+ 1 more").parentElement!.querySelector("svg")!.closest("span")!);
+    // Selected by accessible name rather than by tag: the edit control is a real button,
+    // so keyboard users reach it too, and the test no longer depends on the markup.
+    fireEvent.click(screen.getByRole("button", { name: "Edit notification recipients" }));
     expect(onOpenChange).toHaveBeenCalledWith(true);
   });
 
   it("hides recipients for BlocksServices (monitorSourceType 2)", () => {
     render(<MonitorCard {...baseProps} monitorSourceType={2} />);
     expect(screen.queryByText("Notification recipients")).toBeNull();
-  });
-});
-
-describe("LoadingSkelton", () => {
-  it("renders five skeleton rows spanning the visible columns", () => {
-    const table = {
-      getVisibleLeafColumns: () => [{}, {}],
-    } as never;
-    const { container } = render(
-      <table>
-        <LoadingSkelton table={table} />
-      </table>,
-    );
-    expect(container.querySelectorAll("tr").length).toBe(5);
   });
 });

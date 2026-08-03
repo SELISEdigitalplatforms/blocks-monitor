@@ -1,11 +1,5 @@
-import { InfoTooltip } from "@seliseblocks/blocks-kit/components";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/core";
+import { InfoTooltip } from "@seliseblocks/genesis-os/components";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/core";
 import { Slider } from "@/components/core";
 import { type Control, type FieldValues, type Path } from "react-hook-form";
 

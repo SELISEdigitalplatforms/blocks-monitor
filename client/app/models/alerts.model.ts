@@ -2,7 +2,7 @@ import type {
   ApiPaginatedResponse,
   BaseRequestParams,
   ProjectKey,
-} from "@seliseblocks/blocks-kit/types";
+} from "@seliseblocks/genesis-os/types";
 import { MONITOR_SOURCE_TYPES } from "@/constants/alert.constant";
 
 export interface ITags {
@@ -187,10 +187,7 @@ export interface IGetAllIncidentListPayload extends BaseRequestParams {
   monitorId: string;
 }
 
-export interface IGetMonitorList extends ApiPaginatedResponse<
-  AlertTree,
-  string[] | null
-> {}
+export interface IGetMonitorList extends ApiPaginatedResponse<AlertTree, string[] | null> {}
 
 export interface IAddSingleMonitorResponse {
   tenantId: string;

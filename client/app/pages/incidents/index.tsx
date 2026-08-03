@@ -1,10 +1,10 @@
-import type { SortValue } from "@seliseblocks/blocks-kit/components";
+import type { SortValue } from "@seliseblocks/genesis-os/components";
 import { Button, Card, CardContent } from "@/components/core";
 import IncidentList from "@/components/module/incident/incident-list";
 import { useIncidentFilterQueryParams } from "@/components/module/incident/use-incident-query-filter-params";
 import { useGetAllIncidentList } from "@/hooks/use-alerts";
 import { ArrowLeft } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 
 const IncidentPage = () => {
   const navigate = useNavigate();
@@ -39,11 +39,7 @@ const IncidentPage = () => {
       <div className="hidden md:flex"></div>
       <div className="mb-[18px] md:mb-[20px]">
         <div className="flex items-center">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8"
-            onClick={() => navigate(-1)}>
+          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-6 w-6" />
           </Button>
           <span className="text-lg font-semibold md:text-2xl">Incidents</span>

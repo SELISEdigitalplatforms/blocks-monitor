@@ -1,6 +1,6 @@
-import type { SortValue } from "@seliseblocks/blocks-kit/components";
-import { FilterControls } from "@seliseblocks/blocks-kit/components";
-import { TableLoadingSkeleton } from "@seliseblocks/blocks-kit/components";
+import type { SortValue } from "@seliseblocks/genesis-os/components";
+import { FilterControls } from "@seliseblocks/genesis-os/components";
+import { TableLoadingSkeleton } from "@seliseblocks/genesis-os/components";
 import {
   ScrollArea,
   ScrollBar,
@@ -21,6 +21,7 @@ import {
 } from "@tanstack/react-table";
 import { useCallback, useMemo } from "react";
 import { useIncidentFilterQueryParams } from "./use-incident-query-filter-params";
+import { formatDuration } from "@seliseblocks/genesis-os/utils";
 
 const parseFailureReason = (reason?: string | null): string | undefined => {
   if (!reason) return undefined; // instead of null
@@ -116,9 +117,7 @@ const IncidentList = ({
             : "text-red-600 bg-red-100 px-2 py-1 rounded-full";
           return (
             <div className="ml-2 flex w-[100px] flex-row items-center gap-2 sm:ml-0">
-              <span className={statusClass}>
-                {isResolved ? "Resolved" : "Unresolved"}
-              </span>
+              <span className={statusClass}>{isResolved ? "Resolved" : "Unresolved"}</span>
             </div>
           );
         },
@@ -198,9 +197,7 @@ const IncidentList = ({
         ),
         cell: ({ row }) => {
           const startTime = new Date(row.original.startTime);
-          const endTime = row.original.endTime
-            ? new Date(row.original.endTime)
-            : null;
+          const endTime = row.original.endTime ? new Date(row.original.endTime) : null;
           const isOngoing = !endTime || endTime < startTime;
           return (
             <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
@@ -230,7 +227,7 @@ const IncidentList = ({
           }
           return (
             <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[100px]">
-              <span>{formatDuration(durationSec)}</span>
+              <span>{formatDuration(durationSec * 1000)}</span>
             </div>
           );
         },
@@ -250,19 +247,12 @@ const IncidentList = ({
       <Table className="text-sm">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow
-              key={headerGroup.id}
-              className="px-4 py-2 hover:bg-transparent">
+            <TableRow key={headerGroup.id} className="px-4 py-2 hover:bg-transparent">
               {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className="font-bold text-medium-emphasis">
+                <TableHead key={header.id} className="font-bold text-medium-emphasis">
                   {header.isPlaceholder
                     ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
+                    : flexRender(header.column.columnDef.header, header.getContext())}
                 </TableHead>
               ))}
             </TableRow>
@@ -279,13 +269,11 @@ const IncidentList = ({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   className="text-medium-emphasis"
-                  isHoverable>
+                  isHoverable
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -294,7 +282,8 @@ const IncidentList = ({
               <TableRow>
                 <TableCell
                   colSpan={table.getAllColumns().length}
-                  className="h-24 text-center text-muted-foreground">
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No results.
                 </TableCell>
               </TableRow>
@@ -319,27 +308,5 @@ const IncidentList = ({
     </ScrollArea>
   );
 };
-
-function formatDuration(seconds: number): string {
-  const days = Math.floor(seconds / (24 * 3600));
-  const hours = Math.floor((seconds % (24 * 3600)) / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-
-  const units = [
-    { value: days, label: "d" },
-    { value: hours, label: "h" },
-    { value: minutes, label: "m" },
-    { value: secs, label: "s" },
-  ];
-
-  const nonZero = units.filter((u) => u.value > 0);
-  if (!nonZero.length) return "0s";
-
-  return nonZero
-    .slice(0, 2)
-    .map((u) => `${u.value}${u.label}`)
-    .join(" ");
-}
 
 export default IncidentList;

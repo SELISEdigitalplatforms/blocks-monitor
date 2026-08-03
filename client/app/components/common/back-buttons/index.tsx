@@ -18,7 +18,8 @@ export function BackIconButton({
       variant={"ghost"}
       size={"icon"}
       onClick={onClick}
-      className={className}>
+      className={className}
+    >
       {icon}
     </Button>
   );

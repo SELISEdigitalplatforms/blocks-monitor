@@ -16,13 +16,8 @@ import {
   ALERT_ENDPOINTS,
   MIGRATION_ENDPOINTS,
 } from "@/constants/endpoint.constant";
-import { environmentOptions } from "@/constants/environment-options.constant";
 import { navigationMenus } from "@/constants/navigation-menus.constant";
-import {
-  HEALTH_TABS,
-  parseAsHealthTabKey,
-} from "@/constants/health.constant";
-import { BLOCKS_PRODUCTS } from "@/constants/blocks-products";
+import { HEALTH_TABS, parseAsHealthTabKey } from "@/constants/health.constant";
 
 describe("alert.constant", () => {
   it("exposes provider and method enums", () => {
@@ -66,13 +61,7 @@ describe("endpoint.constant", () => {
   });
 });
 
-describe("environment + navigation constants", () => {
-  it("lists 8 environment options with unique values", () => {
-    expect(environmentOptions).toHaveLength(8);
-    const values = environmentOptions.map((o) => o.value);
-    expect(new Set(values).size).toBe(8);
-  });
-
+describe("navigation constants", () => {
   it("provides navigation menu entries", () => {
     const menu = navigationMenus.find((m) => m.id === "health");
     expect(menu?.path).toBe("/app/health");
@@ -80,23 +69,10 @@ describe("environment + navigation constants", () => {
   });
 });
 
-describe("blocks-products", () => {
-  it("has products with required fields", () => {
-    expect(BLOCKS_PRODUCTS.length).toBeGreaterThan(0);
-    for (const p of BLOCKS_PRODUCTS) {
-      expect(p.name).toBeTruthy();
-      expect(p.appName).toBeTruthy();
-      expect(Array.isArray(p.keywords)).toBe(true);
-    }
-  });
-});
-
 describe("health.constant parseAsHealthTabKey", () => {
   it("has the expected tabs", () => {
     expect(Object.keys(HEALTH_TABS)).toEqual(["all", "services"]);
-    expect(HEALTH_TABS.services.monitorSourceType).toBe(
-      MONITOR_SOURCE_TYPES.BlocksServices,
-    );
+    expect(HEALTH_TABS.services.monitorSourceType).toBe(MONITOR_SOURCE_TYPES.BlocksServices);
   });
 
   it("parses a known tab key", () => {

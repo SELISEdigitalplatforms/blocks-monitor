@@ -23,14 +23,10 @@ const context = {
 
 describe("toMonitorSourceType", () => {
   it("maps deployed to DeployedServices", () => {
-    expect(toMonitorSourceType("deployed")).toBe(
-      MONITOR_SOURCE_TYPES.DeployedServices,
-    );
+    expect(toMonitorSourceType("deployed")).toBe(MONITOR_SOURCE_TYPES.DeployedServices);
   });
   it("maps my-services to ExternalServices", () => {
-    expect(toMonitorSourceType("my-services")).toBe(
-      MONITOR_SOURCE_TYPES.ExternalServices,
-    );
+    expect(toMonitorSourceType("my-services")).toBe(MONITOR_SOURCE_TYPES.ExternalServices);
   });
   it("maps none to OtherServices", () => {
     expect(toMonitorSourceType("none")).toBe(MONITOR_SOURCE_TYPES.OtherServices);
@@ -77,9 +73,7 @@ describe("toSeconds", () => {
 
 describe("toFormValuesFromMonitorDetails", () => {
   it("returns defaults when no details are supplied", () => {
-    expect(toFormValuesFromMonitorDetails(undefined)).toEqual(
-      getMonitorFormDefaultValues(),
-    );
+    expect(toFormValuesFromMonitorDetails(undefined)).toEqual(getMonitorFormDefaultValues());
   });
 
   it("maps monitor details into form values", () => {

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
-import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { MemoryRouter, Routes, Route } from "react-router";
 
 const h = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -18,8 +18,8 @@ const h = vi.hoisted(() => ({
 vi.mock("@/hooks/use-alerts", () => ({
   useGetAllIncidentList: () => h.incidentData,
 }));
-vi.mock("react-router-dom", async (o) => {
-  const actual = await o<typeof import("react-router-dom")>();
+vi.mock("react-router", async (o) => {
+  const actual = await o<typeof import("react-router")>();
   return { ...actual, useNavigate: () => h.navigate };
 });
 

@@ -69,10 +69,7 @@ export class GithubInfoService {
     return this.httpClient.get(url);
   }
 
-  async getGithubBranches(
-    repo: string,
-    projectKey: string,
-  ): Promise<IBranch[]> {
+  async getGithubBranches(repo: string, projectKey: string): Promise<IBranch[]> {
     const url = `${DEPLOYMENT_ENDPOINTS.GITHUB_BRANCHES}?repo=${encodeURIComponent(repo)}&ProjectKey=${encodeURIComponent(projectKey)}`;
     return this.httpClient.get(url);
   }
@@ -105,9 +102,7 @@ export class GithubInfoService {
     return this.httpClient.get(url);
   }
 
-  async getAllRepos(
-    projectKey: string,
-  ): Promise<CardRepoAndBranchesResponse[]> {
+  async getAllRepos(projectKey: string): Promise<CardRepoAndBranchesResponse[]> {
     const url = `${DEPLOYMENT_ENDPOINTS.REPOS}?ProjectKey=${encodeURIComponent(projectKey)}`;
     return this.httpClient.get(url);
   }
@@ -122,18 +117,12 @@ export class GithubInfoService {
     return this.httpClient.get(url);
   }
 
-  async getRepoDetails(
-    projectKey: string,
-    repoId: string,
-  ): Promise<{ message: string }> {
+  async getRepoDetails(projectKey: string, repoId: string): Promise<{ message: string }> {
     const url = `${DEPLOYMENT_ENDPOINTS.REPO_DETAILS}?ProjectKey=${encodeURIComponent(projectKey)}&RepoId=${encodeURIComponent(repoId)}`;
     return this.httpClient.get(url);
   }
 
-  async getCardRepoAndBranches(
-    buildId: string,
-    projectKey: string,
-  ): Promise<IBuildApiResponse> {
+  async getCardRepoAndBranches(buildId: string, projectKey: string): Promise<IBuildApiResponse> {
     const url = `${DEPLOYMENT_ENDPOINTS.BUILD}?buildId=${encodeURIComponent(buildId)}&ProjectKey=${encodeURIComponent(projectKey)}`;
     return this.httpClient.get(url);
   }
@@ -153,17 +142,12 @@ export class GithubInfoService {
     return this.httpClient.put(url, payload);
   }
 
-  async getBuildLogs(
-    repoId: string,
-    projectKey: string,
-  ): Promise<IBuildApiResponse> {
+  async getBuildLogs(repoId: string, projectKey: string): Promise<IBuildApiResponse> {
     const url = `${DEPLOYMENT_ENDPOINTS.RUN_BUILD}?repoId=${repoId}&ProjectKey=${encodeURIComponent(projectKey)}`;
     return this.httpClient.get(url);
   }
 
-  async getRepoCardsAndBranches(
-    projectKey: string,
-  ): Promise<CardRepoAndBranchesResponse> {
+  async getRepoCardsAndBranches(projectKey: string): Promise<CardRepoAndBranchesResponse> {
     const url = `${DEPLOYMENT_ENDPOINTS.GITHUB_REPOS}?ProjectKey=${encodeURIComponent(projectKey)}`;
     return this.httpClient.get(url);
   }

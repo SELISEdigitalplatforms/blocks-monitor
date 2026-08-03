@@ -1,4 +1,4 @@
-import type { Menu } from "@seliseblocks/blocks-kit/types";
+import type { Menu } from "@seliseblocks/genesis-os/types";
 import { Activity, Home, Package } from "lucide-react";
 
 export const navigationMenus: Menu[] = [
@@ -16,7 +16,7 @@ export const navigationMenus: Menu[] = [
   {
     id: "health",
     type: "menu",
-    name: "Health",
+    name: "Monitor",
     path: "/app/health",
     icon: Activity,
   },

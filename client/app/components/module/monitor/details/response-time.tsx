@@ -1,18 +1,6 @@
-import React, { useMemo } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/core";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/core";
+import React, { useMemo, useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/core";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/core";
 import {
   AreaChart,
   Area,
@@ -23,6 +11,7 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
+import { formatDuration } from "@seliseblocks/genesis-os/utils";
 
 type DowntimeLog = {
   startTime: string;
@@ -57,16 +46,28 @@ const TIME_RANGES: Record<string, number> = {
   "24h": 24 * 60 * 60 * 1000,
 };
 
-const formatDuration = (ms: number) => {
-  const sec = Math.floor(ms / 1000);
-  const min = Math.floor(sec / 60);
-  const hr = Math.floor(min / 60);
-  const d = Math.floor(hr / 24);
-
-  if (d > 0) return `${d}d ${hr % 24}h`;
-  if (hr > 0) return `${hr}h ${min % 60}m`;
-  if (min > 0) return `${min}m ${sec % 60}s`;
-  return `${sec}s`;
+const CustomTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { payload: ChartPoint }[];
+}) => {
+  if (!active || !payload || !payload.length) return null;
+  const d: ChartPoint = payload[0]?.payload;
+  return (
+    <div className="rounded-md border bg-white p-3 text-sm shadow">
+      <div className="mb-1 font-medium">{new Date(d.ts).toLocaleString()}</div>
+      <div
+        className={d.status === 1 ? "font-semibold text-green-600" : "font-semibold text-red-600"}
+      >
+        {d.status === 1 ? "Up" : "Down"}
+      </div>
+      {d.duration !== undefined && (
+        <div className="mt-1 text-gray-600">Duration: {formatDuration(d.duration * 1000)}</div>
+      )}
+    </div>
+  );
 };
 
 const ResponseTime = ({
@@ -78,7 +79,9 @@ const ResponseTime = ({
   currentStatus,
   request,
 }: ResponseTimeProps) => {
-  const now = Date.now();
+  // Anchor the window at mount so the render stays pure (no Date.now() call in
+  // render body). Data updates still refresh the memos via their downtimes dep.
+  const [now] = useState(() => Date.now());
   const rangeStart = now - (TIME_RANGES[timeRange] ?? TIME_RANGES["1h"]);
 
   // metrics
@@ -178,38 +181,6 @@ const ResponseTime = ({
     return final;
   }, [downtimes, rangeStart, now, currentStatus]);
 
-  // Custom tooltip component
-  const CustomTooltip = ({
-    active,
-    payload,
-  }: {
-    active?: boolean;
-    payload?: { payload: ChartPoint }[];
-  }) => {
-    if (!active || !payload || !payload.length) return null;
-    const d: ChartPoint = payload[0]?.payload;
-    return (
-      <div className="rounded-md border bg-white p-3 text-sm shadow">
-        <div className="mb-1 font-medium">
-          {new Date(d.ts).toLocaleString()}
-        </div>
-        <div
-          className={
-            d.status === 1
-              ? "font-semibold text-green-600"
-              : "font-semibold text-red-600"
-          }>
-          {d.status === 1 ? "Up" : "Down"}
-        </div>
-        {d.duration !== undefined && (
-          <div className="mt-1 text-gray-600">
-            Duration: {formatDuration(d.duration * 1000)}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <Card className="mb-6 border-none p-0 shadow-none">
       <CardHeader>
@@ -235,18 +206,14 @@ const ResponseTime = ({
         <CardDescription className="flex flex-wrap gap-6">
           <span className="flex items-baseline gap-2">
             <span className="text-sm text-gray-600">Monitor interval</span>
-            <span className="font-semibold">
-              {formatDuration(interval * 1000)}
-            </span>
+            <span className="font-semibold">{formatDuration(interval * 1000)}</span>
           </span>
 
           <span className="flex items-baseline gap-2">
             <span className="text-sm text-gray-600">
               {request ? "Request timeout" : "Grace Period"}
             </span>
-            <span className="font-semibold">
-              {formatDuration(timeout * 1000)}
-            </span>
+            <span className="font-semibold">{formatDuration(timeout * 1000)}</span>
           </span>
         </CardDescription>
       </CardHeader>
@@ -256,23 +223,17 @@ const ResponseTime = ({
         <div className="mb-6 grid grid-cols-3 gap-4">
           <div className="rounded border border-green-200 bg-green-50 p-4">
             <div className="text-sm text-gray-600">Uptime</div>
-            <div className="text-2xl font-bold text-green-700">
-              {metrics.uptimePercentage}%
-            </div>
+            <div className="text-2xl font-bold text-green-700">{metrics.uptimePercentage}%</div>
           </div>
 
           <div className="rounded border border-red-200 bg-red-50 p-4">
             <div className="text-sm text-gray-600">Total Downtime</div>
-            <div className="text-2xl font-bold text-red-700">
-              {metrics.totalDowntime}
-            </div>
+            <div className="text-2xl font-bold text-red-700">{metrics.totalDowntime}</div>
           </div>
 
           <div className="rounded border border-blue-200 bg-blue-50 p-4">
             <div className="text-sm text-gray-600">Incidents</div>
-            <div className="text-2xl font-bold text-blue-700">
-              {metrics.downtimeCount}
-            </div>
+            <div className="text-2xl font-bold text-blue-700">{metrics.downtimeCount}</div>
           </div>
         </div>
 
@@ -286,11 +247,7 @@ const ResponseTime = ({
               </linearGradient>
             </defs>
 
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-              stroke="#e5e7eb"
-            />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
 
             <XAxis
               dataKey="ts"
