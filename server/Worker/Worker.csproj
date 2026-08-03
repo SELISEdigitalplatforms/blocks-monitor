@@ -11,6 +11,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Alert.DomainService\Alert.DomainService.csproj" />
-    <ProjectReference Include="..\Iam.DomainService\Iam.DomainService.csproj" />
   </ItemGroup>
 </Project>
