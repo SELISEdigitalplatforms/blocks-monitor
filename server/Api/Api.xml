@@ -9,7 +9,7 @@
             Controller for managing health check configurations.
             </summary>
         </member>
-        <member name="M:Api.Controllers.HealthController.#ctor(DomainService.Health.Services.HealthConfigurationService,DomainService.Health.Services.HealthCheckService,DomainService.Monitor.Services.IMonitorConfigurationService)">
+        <member name="M:Api.Controllers.HealthController.#ctor(DomainService.Health.Services.HealthConfigurationService,DomainService.Health.Services.HealthCheckService)">
             <summary>
             Initializes a new instance of the <see cref="T:Api.Controllers.HealthController"/> class.
             </summary>
@@ -35,7 +35,7 @@
             <param name="monitorPingService">Service for monitor ping operations.</param>
             <param name="monitorIncidentService">Service for monitor incident operations.</param>
         </member>
-        <member name="M:Api.Controllers.MonitorController.GetMonitorList(System.String,System.String,System.Int32,System.Int32,System.String,System.Boolean)">
+        <member name="M:Api.Controllers.MonitorController.GetMonitorList(System.String,System.String,System.Int32,System.Int32,System.String,System.Boolean,System.String)">
             <summary>
             Retrieves a list of monitor configurations for a given project.
             </summary>
@@ -101,12 +101,6 @@
             <param name="startDate">The start date of the range (optional).</param>
             <param name="endDate">The end date of the range (optional).</param>
             <returns>The response time logs for the monitor.</returns>
-        </member>
-        <member name="T:BlocksTemplate.Api.GlobalApiRoutePrefixConvention">
-            <summary>Prepends a segment (e.g. <c>api</c>) to every controller’s attribute route template.</summary>
-        </member>
-        <member name="M:BlocksTemplate.Api.GlobalApiRoutePrefixConvention.#ctor(System.String)">
-            <summary>Prepends a segment (e.g. <c>api</c>) to every controller’s attribute route template.</summary>
         </member>
         <member name="T:Program">
             <summary>

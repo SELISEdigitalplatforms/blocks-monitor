@@ -1,10 +1,14 @@
-import { HttpClient, getRuntimeEnv } from "@seliseblocks/blocks-kit/lib";
+import { HttpClient, getRuntimeEnv } from "@seliseblocks/genesis-os/lib";
+
+const monitorService = new HttpClient({
+  baseURL: getRuntimeEnv("BLOCKS_MONITOR_BASE_URL") || "",
+  blocksKey: getRuntimeEnv("BLOCKS_X_BLOCKS_KEY") || "",
+});
 
 export const serviceInstances = {
-  observabilityService: new HttpClient({
-    baseURL: getRuntimeEnv("BLOCKS_MONITOR_BASE_URL") || "",
-    blocksKey: getRuntimeEnv("BLOCKS_X_BLOCKS_KEY") || "",
-  }),
+  monitorService,
+  /** @deprecated use monitorService */
+  observabilityService: monitorService,
   logicService: new HttpClient({
     baseURL: getRuntimeEnv("BLOCKS_LOGIC_BASE_URL") || "",
     blocksKey: getRuntimeEnv("BLOCKS_X_BLOCKS_KEY") || "",

@@ -1,5 +1,4 @@
-﻿using Devops.DomainService.Shared.Interfaces;
-using Devops.DomainService.Shared.Services;
+﻿using DomainService.Shared.Services;
 using DomainService.Alert.Services;
 using DomainService.Health.HealthWorkerService;
 using DomainService.Health.Services;

@@ -106,17 +106,13 @@ export const monitorFormSchema = z
       } else if (!URL_REGEX.test(data.urlMonitor)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message:
-            "Please enter a valid URL (must start with http:// or https://)",
+          message: "Please enter a valid URL (must start with http:// or https://)",
           path: ["urlMonitor"],
         });
       }
     }
 
-    if (
-      data.monitorConfigurationType === "callback" &&
-      !data.monitorSettings.grace_time
-    ) {
+    if (data.monitorConfigurationType === "callback" && !data.monitorSettings.grace_time) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Grace time is required",

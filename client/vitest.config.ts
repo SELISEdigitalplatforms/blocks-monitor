@@ -1,6 +1,7 @@
 /// <reference types="vitest/config" />
 import path from "path";
 import react from "@vitejs/plugin-react";
+import svgr from "vite-plugin-svgr";
 import { defineConfig } from "vitest/config";
 
 const alias = {
@@ -21,21 +22,30 @@ const alias = {
   // The real subpath bundles a nested framer-motion build that fails to load
   // under jsdom (reads process.env.NODE_ENV during evaluation). The app only
   // uses tiny helpers from it, so redirect to a local stub in tests.
-  "@seliseblocks/blocks-kit/components": path.resolve(
+  "@seliseblocks/genesis-os/components": path.resolve(
     __dirname,
     "./app/__tests__/stubs/blocks-kit-components.tsx",
   ),
 };
 
 export default defineConfig({
-  plugins: [react()],
+  // svgr must match vite.config.ts: "*.svg?react" imports are React components in
+  // the app build, and without this plugin the tests get the asset URL instead.
+  plugins: [react(), svgr({ svgrOptions: { svgo: true, titleProp: true } })],
   resolve: { alias },
+  // Pin NODE_ENV for code that reads it during module init (runtime-env,
+  // http-client). blocks-kit's framer-motion is not inlined, so this does not
+  // reach it — the `/components` alias above keeps framer out of the tests.
+  define: {
+    "process.env.NODE_ENV": JSON.stringify("test"),
+  },
   test: {
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
     css: false,
     coverage: {
+      reporter: ["text", "lcov"],
       all: true,
       provider: "v8",
       reporter: ["text", "text-summary"],
