@@ -18,27 +18,18 @@ vi.mock("@/hooks/use-alerts", () => ({
   useDeleteHealth: () => ({ mutateAsync: h.deleteHealth, isPending: false }),
 }));
 vi.mock("@/hooks/use-toast", () => ({ toast: (...a: unknown[]) => h.toast(...a) }));
-vi.mock("react-router-dom", async (o) => {
-  const actual = await o<typeof import("react-router-dom")>();
+vi.mock("react-router", async (o) => {
+  const actual = await o<typeof import("react-router")>();
   return { ...actual, useNavigate: () => h.navigate };
 });
 
 import AlertAction from "@/components/module/alert/alert-action";
 import { QueryWrapper } from "../../test-utils";
 
-const renderAction = (
-  props: Partial<React.ComponentProps<typeof AlertAction>> = {},
-) =>
+const renderAction = (props: Partial<React.ComponentProps<typeof AlertAction>> = {}) =>
   render(
     <QueryWrapper>
-      <AlertAction
-        monitorId="m1"
-        isActive={true}
-        name="Monitor"
-        request
-        projectKey="p1"
-        {...props}
-      >
+      <AlertAction monitorId="m1" isActive={true} name="Monitor" request projectKey="p1" {...props}>
         <button>Actions</button>
       </AlertAction>
     </QueryWrapper>,
@@ -68,9 +59,7 @@ describe("AlertAction", () => {
     await waitFor(() =>
       expect(h.updateReq).toHaveBeenCalledWith({ itemId: "m1", isActive: false }),
     );
-    expect(h.toast).toHaveBeenCalledWith(
-      expect.objectContaining({ variant: "success" }),
-    );
+    expect(h.toast).toHaveBeenCalledWith(expect.objectContaining({ variant: "success" }));
   });
 
   it("uses the health mutation for callback monitors", async () => {
@@ -110,9 +99,7 @@ describe("AlertAction", () => {
     await userEvent.click(await screen.findByText("Pause"));
     await userEvent.click(await screen.findByRole("button", { name: "Confirm" }));
     await waitFor(() =>
-      expect(h.toast).toHaveBeenCalledWith(
-        expect.objectContaining({ variant: "destructive" }),
-      ),
+      expect(h.toast).toHaveBeenCalledWith(expect.objectContaining({ variant: "destructive" })),
     );
   });
 });

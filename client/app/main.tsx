@@ -1,15 +1,12 @@
 import { Toaster, TooltipProvider } from "@/components/core";
 import QueryProvider from "@/providers/query-provider";
 import "@/styles/globals.css";
-import "@seliseblocks/blocks-kit/lib";
-import {
-  BlocksAppLayout,
-  ThemeProvider,
-} from "@seliseblocks/blocks-kit/providers";
-import { NuqsAdapter } from "nuqs/adapters/react-router/v6";
+import "@seliseblocks/genesis-os/lib";
+import { BlocksAppLayout, ThemeProvider } from "@seliseblocks/genesis-os/providers";
+import { NuqsAdapter } from "nuqs/adapters/react-router/v8";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { RouterProvider } from "react-router-dom";
+import { RouterProvider } from "react-router/dom";
 import { router } from "./router";
 
 createRoot(document.getElementById("root")!).render(
@@ -25,7 +22,8 @@ createRoot(document.getElementById("root")!).render(
                   light: "/Logo_Light.svg",
                 },
                 name: "blocks-monitor",
-              }}>
+              }}
+            >
               <RouterProvider router={router} />
             </BlocksAppLayout>
             <Toaster />

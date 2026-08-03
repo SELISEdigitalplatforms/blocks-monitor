@@ -1,16 +1,11 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/core";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/core";
 import { Button } from "@/components/core";
 import { Input } from "@/components/core";
 import { Plus, Trash } from "lucide-react";
 import { useState } from "react";
 import { useUpdateHealth, useUpdateSingleMonitor } from "@/hooks/use-alerts";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
-import { ErrorTransformer } from "@/utils/error-transform";
+import { ErrorTransformer } from "@seliseblocks/genesis-os/utils";
 import { z } from "zod";
 
 type NotificationProviderProps = {
@@ -29,12 +24,7 @@ type INotificationProps = {
   projectKey: string;
 };
 
-const NotificationModal = ({
-  open,
-  onOpenChange,
-  data,
-  request,
-}: NotificationProviderProps) => {
+const NotificationModal = ({ open, onOpenChange, data, request }: NotificationProviderProps) => {
   const updateMutation = useUpdateSingleMonitor();
   const updateHealth = useUpdateHealth();
   const [emailList, setEmailList] = useState<string[]>(data.emails || []);
@@ -49,9 +39,7 @@ const NotificationModal = ({
   const getEmailError = (email: string): string | null => {
     const result = emailSchema.safeParse(email);
     if (!result.success) {
-      return (
-        result.error.errors[0]?.message || "Please enter a valid email address"
-      );
+      return result.error.errors[0]?.message || "Please enter a valid email address";
     }
     return null;
   };
@@ -192,9 +180,7 @@ const NotificationModal = ({
     onOpenChange(false);
   };
   const hasValidEmail = (): boolean => {
-    return emailList.some(
-      (email) => email.trim() && isValidEmail(email.trim()),
-    );
+    return emailList.some((email) => email.trim() && isValidEmail(email.trim()));
   };
   const isSaveDisabled = (): boolean => {
     const hasErrors = Object.keys(emailErrors).length > 0;
@@ -236,16 +222,15 @@ const NotificationModal = ({
                         }}
                       />
                       {emailErrors[index] && (
-                        <span className="mt-1 text-xs text-red-500">
-                          {emailErrors[index]}
-                        </span>
+                        <span className="mt-1 text-xs text-red-500">{emailErrors[index]}</span>
                       )}
                     </div>
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={() => removeEmail(index)}
-                      className="h-fit w-fit p-1">
+                      className="h-fit w-fit p-1"
+                    >
                       <Trash className="h-4 w-4 text-error" />
                     </Button>
                   </div>
@@ -256,7 +241,8 @@ const NotificationModal = ({
                   type="button"
                   variant="outline"
                   onClick={addEmail}
-                  className="mt-2 self-start">
+                  className="mt-2 self-start"
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Add email
                 </Button>
@@ -269,10 +255,7 @@ const NotificationModal = ({
               Cancel
             </Button>
 
-            <Button
-              type="button"
-              onClick={handleEditClick}
-              disabled={isSaveDisabled()}>
+            <Button type="button" onClick={handleEditClick} disabled={isSaveDisabled()}>
               Save
             </Button>
           </div>

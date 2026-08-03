@@ -7,12 +7,7 @@ type LabeledRadioOptionProps = {
   disabled?: boolean;
 };
 
-export const LabeledRadioOption = ({
-  id,
-  value,
-  label,
-  disabled,
-}: LabeledRadioOptionProps) => {
+export const LabeledRadioOption = ({ id, value, label, disabled }: LabeledRadioOptionProps) => {
   return (
     <div className="flex items-center gap-2">
       <RadioGroupItem value={value} id={id} disabled={disabled} />

@@ -2,6 +2,7 @@ import fs from "fs";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig, loadEnv } from "vite";
+import svgr from "vite-plugin-svgr";
 
 // Local dev HTTPS, driven ONLY by the machine env vars MONITOR_SSL_CERT /
 // MONITOR_SSL_KEY (abs paths to an mkcert PEM cert + key). Read directly
@@ -18,9 +19,7 @@ function resolveDevHttps(): { cert: Buffer; key: Buffer } | undefined {
   const keyPath = process.env.MONITOR_SSL_KEY;
 
   if (!certPath || !keyPath) {
-    console.warn(
-      "[dev-https] MONITOR_SSL_CERT / MONITOR_SSL_KEY not set — serving HTTP.",
-    );
+    console.warn("[dev-https] MONITOR_SSL_CERT / MONITOR_SSL_KEY not set — serving HTTP.");
     return undefined;
   }
   if (!fs.existsSync(certPath) || !fs.existsSync(keyPath)) {
@@ -41,7 +40,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     envPrefix: ["BLOCKS_"],
-    plugins: [react()],
+    plugins: [react(), svgr({ svgrOptions: { svgo: true, titleProp: true } })],
 
     resolve: {
       alias: {

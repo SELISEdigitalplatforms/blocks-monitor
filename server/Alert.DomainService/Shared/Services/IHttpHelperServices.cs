@@ -1,4 +1,4 @@
-﻿namespace Devops.DomainService.Shared.Interfaces
+﻿namespace DomainService.Shared.Services
 {
     public interface IHttpHelperServices
     {
