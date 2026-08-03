@@ -3,7 +3,7 @@ import {
   getErrorMessage,
   isErrorWithErrors,
   handleErrorMessages,
-} from "@seliseblocks/blocks-kit/utils";
+} from "@seliseblocks/genesis-os/utils";
 
 describe("getErrorMessage", () => {
   it("returns the generic message for an empty error object", () => {

@@ -11,7 +11,7 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
-import { formatDuration } from "@seliseblocks/blocks-kit/utils";
+import { formatDuration } from "@seliseblocks/genesis-os/utils";
 
 type DowntimeLog = {
   startTime: string;

@@ -1,6 +1,6 @@
-import type { SortValue } from "@seliseblocks/blocks-kit/components";
-import { FilterControls } from "@seliseblocks/blocks-kit/components";
-import { TableLoadingSkeleton } from "@seliseblocks/blocks-kit/components";
+import type { SortValue } from "@seliseblocks/genesis-os/components";
+import { FilterControls } from "@seliseblocks/genesis-os/components";
+import { TableLoadingSkeleton } from "@seliseblocks/genesis-os/components";
 import {
   ScrollArea,
   ScrollBar,
@@ -14,13 +14,13 @@ import {
 import AlertAction from "@/components/module/alert/alert-action";
 import ProgressBar from "@/components/module/alert/progress-bar";
 import { AlertTree } from "@/models/alerts.model";
-import { formatDate } from "@seliseblocks/blocks-kit/utils";
-import { useProjectStore } from "@seliseblocks/blocks-kit/store";
-import { useScopedPath } from "@seliseblocks/blocks-kit/hooks";
+import { formatDate } from "@seliseblocks/genesis-os/utils";
+import { useProjectStore } from "@seliseblocks/genesis-os/store";
+import { useScopedPath } from "@seliseblocks/genesis-os/hooks";
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useAlertFilterQueryParams } from "./use-alert-filter-query-params";
 
 type AlertsListProps = {
@@ -193,7 +193,11 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
           return (
             <>
               {monitorSourceType !== 2 ? (
-                <div onClick={(e) => e.stopPropagation()} className="flex justify-center">
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  className="flex justify-center"
+                >
                   <AlertAction
                     monitorId={row.original.itemId as string}
                     isActive={row.original.isActive ?? false}

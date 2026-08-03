@@ -18,8 +18,8 @@ vi.mock("@/hooks/use-alerts", () => ({
   useDeleteHealth: () => ({ mutateAsync: h.deleteHealth, isPending: false }),
 }));
 vi.mock("@/hooks/use-toast", () => ({ toast: (...a: unknown[]) => h.toast(...a) }));
-vi.mock("react-router-dom", async (o) => {
-  const actual = await o<typeof import("react-router-dom")>();
+vi.mock("react-router", async (o) => {
+  const actual = await o<typeof import("react-router")>();
   return { ...actual, useNavigate: () => h.navigate };
 });
 
