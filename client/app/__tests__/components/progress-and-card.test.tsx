@@ -71,9 +71,9 @@ describe("MonitorCard", () => {
     const onOpenChange = vi.fn();
     render(<MonitorCard {...baseProps} onOpenChange={onOpenChange} />);
     expect(screen.getByText("+ 1 more")).toBeInTheDocument();
-    fireEvent.click(
-      screen.getByText("+ 1 more").parentElement!.querySelector("svg")!.closest("span")!,
-    );
+    // Selected by accessible name rather than by tag: the edit control is a real button,
+    // so keyboard users reach it too, and the test no longer depends on the markup.
+    fireEvent.click(screen.getByRole("button", { name: "Edit notification recipients" }));
     expect(onOpenChange).toHaveBeenCalledWith(true);
   });
 

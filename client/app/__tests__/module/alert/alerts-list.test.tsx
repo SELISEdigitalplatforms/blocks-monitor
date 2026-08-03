@@ -6,14 +6,14 @@ import type { ReactNode } from "react";
 
 const h = vi.hoisted(() => ({ navigate: vi.fn() }));
 
-vi.mock("@seliseblocks/blocks-kit", () => ({
+vi.mock("@seliseblocks/genesis-os", () => ({
   useProjectStore: () => ({ selectedProject: { tenantId: "proj-1" } }),
 }));
-vi.mock("@seliseblocks/blocks-kit/hooks", () => ({
+vi.mock("@seliseblocks/genesis-os/hooks", () => ({
   useScopedPath: () => (p: string) => `/scoped/${p}`,
 }));
-vi.mock("react-router-dom", async (o) => {
-  const actual = await o<typeof import("react-router-dom")>();
+vi.mock("react-router", async (o) => {
+  const actual = await o<typeof import("react-router")>();
   return { ...actual, useNavigate: () => h.navigate };
 });
 vi.mock("@/components/module/alert/alert-action", () => ({
