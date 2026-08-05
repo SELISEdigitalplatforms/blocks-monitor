@@ -4,11 +4,11 @@ import {
   paginationQueryParsers,
   sortQueryParsers,
 } from "@seliseblocks/genesis-os/components";
-import { type HealthTabKey, parseAsHealthTabKey } from "@/constants/health.constant";
+import { type MonitorTabKey, parseAsMonitorTabKey } from "@/constants/monitor.constant";
 import { useQueryStates, parseAsString, parseAsArrayOf } from "nuqs";
 
 export type AlertFilter = {
-  tab: HealthTabKey;
+  tab: MonitorTabKey;
   search: string;
   repositories: string[];
 } & PaginationValue &
@@ -30,7 +30,7 @@ export const useAlertFilterQueryParams = (initialValues: Partial<AlertFilter> = 
     ...initialValues,
   };
   const [queryParams, setQueryParams] = useQueryStates({
-    tab: parseAsHealthTabKey.withDefault(values.tab),
+    tab: parseAsMonitorTabKey.withDefault(values.tab),
     search: parseAsString.withDefault(values.search),
     repositories: parseAsArrayOf(parseAsString).withDefault(values.repositories),
     ...paginationQueryParsers({
