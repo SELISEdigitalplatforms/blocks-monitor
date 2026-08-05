@@ -37,16 +37,16 @@ vi.mock("@/components/module/monitor/form/add-monitor-form", () => ({
   AddSingleMonitorForm: () => <div data-testid="add-monitor-form" />,
 }));
 
-import HealthPage from "@/pages/health";
+import MonitorPage from "@/pages/monitor";
 
 const renderPage = () =>
   render(
     <NuqsTestingAdapter>
-      <HealthPage />
+      <MonitorPage />
     </NuqsTestingAdapter>,
   );
 
-describe("HealthPage", () => {
+describe("MonitorPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     h.healthData = {
