@@ -18,20 +18,20 @@ import { AlertsList } from "@/components/module/alert/alerts-list";
 import { useAlertFilterQueryParams } from "@/components/module/alert/use-alert-filter-query-params";
 import { AddSingleMonitorForm } from "@/components/module/monitor/form/add-monitor-form";
 import { MonitorModal } from "@/components/module/monitor/modal/monitor-modal";
-import { type HealthTabKey, HEALTH_TABS } from "@/constants/health.constant";
+import { type MonitorTabKey, MONITOR_TABS } from "@/constants/monitor.constant";
 import { useGetHealthMonitorList } from "@/hooks/use-alerts";
 import { getRuntimeEnv } from "@seliseblocks/genesis-os/lib";
 import { useProjectStore } from "@seliseblocks/genesis-os/store";
 import { BookOpen, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
-const HealthPage = () => {
+const MonitorPage = () => {
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
   const { queryParams, setQueryParams } = useAlertFilterQueryParams();
   const [open, setOpen] = useState(false);
 
   const monitorSourceType = useMemo(
-    () => HEALTH_TABS[queryParams.tab as HealthTabKey].monitorSourceType,
+    () => MONITOR_TABS[queryParams.tab as MonitorTabKey].monitorSourceType,
     [queryParams.tab],
   );
 
@@ -48,7 +48,7 @@ const HealthPage = () => {
     setQueryParams((params) => ({
       ...params,
       page: 0,
-      tab: tab as HealthTabKey,
+      tab: tab as MonitorTabKey,
     }));
   };
 
@@ -94,7 +94,7 @@ const HealthPage = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(HEALTH_TABS).map(([key, { label }]) => (
+                  {Object.entries(MONITOR_TABS).map(([key, { label }]) => (
                     <SelectItem key={key} value={key}>
                       {label}
                     </SelectItem>
@@ -106,7 +106,7 @@ const HealthPage = () => {
             {/* Desktop Tabs */}
             <div className="hidden md:block">
               <TabsList>
-                {Object.entries(HEALTH_TABS).map(([key, { label }]) => (
+                {Object.entries(MONITOR_TABS).map(([key, { label }]) => (
                   <TabsTrigger key={key} value={key}>
                     {label}
                   </TabsTrigger>
@@ -162,4 +162,4 @@ const HealthPage = () => {
   );
 };
 
-export default HealthPage;
+export default MonitorPage;
