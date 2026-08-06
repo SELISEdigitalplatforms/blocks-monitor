@@ -47,7 +47,10 @@ export default defineConfig({
     coverage: {
       all: true,
       provider: "v8",
-      reporter: ["text", "text-summary"],
+      // lcov must stay in this list - it is the only format SonarQube reads.
+      // A duplicate `reporter` key previously overrode it, so coverage was
+      // computed but never written and Sonar reported 0%.
+      reporter: ["text", "text-summary", "lcov"],
       include: ["app/**/*.{ts,tsx}"],
       exclude: [
         "app/**/*.test.*",
