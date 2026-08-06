@@ -17,7 +17,7 @@ import {
   MIGRATION_ENDPOINTS,
 } from "@/constants/endpoint.constant";
 import { navigationMenus } from "@/constants/navigation-menus.constant";
-import { HEALTH_TABS, parseAsHealthTabKey } from "@/constants/health.constant";
+import { MONITOR_TABS, parseAsMonitorTabKey } from "@/constants/monitor.constant";
 
 describe("alert.constant", () => {
   it("exposes provider and method enums", () => {
@@ -63,27 +63,27 @@ describe("endpoint.constant", () => {
 
 describe("navigation constants", () => {
   it("provides navigation menu entries", () => {
-    const menu = navigationMenus.find((m) => m.id === "health");
-    expect(menu?.path).toBe("/app/health");
+    const menu = navigationMenus.find((m) => m.id === "monitor");
+    expect(menu?.path).toBe("/app/monitor");
     expect(navigationMenus.some((m) => m.type === "separator")).toBe(true);
   });
 });
 
-describe("health.constant parseAsHealthTabKey", () => {
+describe("monitor.constant parseAsMonitorTabKey", () => {
   it("has the expected tabs", () => {
-    expect(Object.keys(HEALTH_TABS)).toEqual(["all", "services"]);
-    expect(HEALTH_TABS.services.monitorSourceType).toBe(MONITOR_SOURCE_TYPES.BlocksServices);
+    expect(Object.keys(MONITOR_TABS)).toEqual(["all", "services"]);
+    expect(MONITOR_TABS.services.monitorSourceType).toBe(MONITOR_SOURCE_TYPES.BlocksServices);
   });
 
   it("parses a known tab key", () => {
-    expect(parseAsHealthTabKey.parse("services")).toBe("services");
+    expect(parseAsMonitorTabKey.parse("services")).toBe("services");
   });
 
   it("falls back to 'all' for an unknown key", () => {
-    expect(parseAsHealthTabKey.parse("bogus")).toBe("all");
+    expect(parseAsMonitorTabKey.parse("bogus")).toBe("all");
   });
 
   it("serializes a tab key back to its string", () => {
-    expect(parseAsHealthTabKey.serialize("all")).toBe("all");
+    expect(parseAsMonitorTabKey.serialize("all")).toBe("all");
   });
 });

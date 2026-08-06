@@ -14,10 +14,10 @@ export const navigationMenus: Menu[] = [
     id: "separator-identity",
   },
   {
-    id: "health",
+    id: "monitor",
     type: "menu",
     name: "Monitor",
-    path: "/app/health",
+    path: "/app/monitor",
     icon: Activity,
   },
   {
