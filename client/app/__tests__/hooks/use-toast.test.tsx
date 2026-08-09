@@ -123,3 +123,85 @@ describe("toast helper variants", () => {
     expect(result.current.toasts[0].description).toBeTruthy();
   });
 });
+
+describe("toast removal queue", () => {
+  // TOAST_REMOVE_DELAY is a little over 16 minutes, so the delay has to be
+  // driven by fake timers rather than waited out.
+  const REMOVE_DELAY = 1000000;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    const { result } = renderHook(() => useToast());
+    act(() => result.current.dismiss());
+  });
+
+  it("drops a dismissed toast from the list once the remove delay elapses", () => {
+    const { result } = renderHook(() => useToast());
+    act(() => {
+      result.current.toast({ title: "Bye" });
+    });
+    const id = result.current.toasts[0].id;
+
+    act(() => result.current.dismiss(id));
+    // dismissing only closes it, the toast is still mounted so it can animate out
+    expect(result.current.toasts).toHaveLength(1);
+    expect(result.current.toasts[0].open).toBe(false);
+
+    act(() => {
+      vi.advanceTimersByTime(REMOVE_DELAY);
+    });
+
+    expect(result.current.toasts).toHaveLength(0);
+  });
+
+  it("queues a toast for removal only once", () => {
+    const { result } = renderHook(() => useToast());
+    act(() => {
+      result.current.toast({ title: "Once" });
+    });
+    const id = result.current.toasts[0].id;
+
+    // A second dismiss must not schedule a second removal for the same toast.
+    act(() => result.current.dismiss(id));
+    act(() => result.current.dismiss(id));
+
+    act(() => {
+      vi.advanceTimersByTime(REMOVE_DELAY);
+    });
+
+    expect(result.current.toasts).toHaveLength(0);
+  });
+});
+
+describe("toast onOpenChange", () => {
+  afterEach(() => {
+    const { result } = renderHook(() => useToast());
+    act(() => result.current.dismiss());
+  });
+
+  it("dismisses the toast when the ui reports it has closed", () => {
+    const { result } = renderHook(() => useToast());
+    act(() => {
+      result.current.toast({ title: "Closable" });
+    });
+
+    act(() => result.current.toasts[0].onOpenChange?.(false));
+
+    expect(result.current.toasts[0].open).toBe(false);
+  });
+
+  it("leaves the toast alone while the ui reports it still open", () => {
+    const { result } = renderHook(() => useToast());
+    act(() => {
+      result.current.toast({ title: "Staying" });
+    });
+
+    act(() => result.current.toasts[0].onOpenChange?.(true));
+
+    expect(result.current.toasts[0].open).toBe(true);
+  });
+});
