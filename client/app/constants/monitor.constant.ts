@@ -1,23 +1,23 @@
 import { createParser } from "nuqs";
 import { MONITOR_SOURCE_TYPES } from "@/constants/alert.constant";
 
-export const HEALTH_TABS = {
+export const MONITOR_TABS = {
   all: { label: "My monitors", monitorSourceType: null },
   services: {
     label: "Blocks services",
     monitorSourceType: MONITOR_SOURCE_TYPES.BlocksServices,
   },
 } as const;
-export type HealthTabKey = keyof typeof HEALTH_TABS;
+export type MonitorTabKey = keyof typeof MONITOR_TABS;
 
-export const parseAsHealthTabKey = createParser({
+export const parseAsMonitorTabKey = createParser({
   parse(value: string) {
-    if (value in HEALTH_TABS) {
-      return value as HealthTabKey;
+    if (value in MONITOR_TABS) {
+      return value as MonitorTabKey;
     }
     return "all";
   },
-  serialize(value: HealthTabKey) {
+  serialize(value: MonitorTabKey) {
     return value;
   },
 });

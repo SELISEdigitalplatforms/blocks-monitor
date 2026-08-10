@@ -10,16 +10,16 @@ vi.mock("@seliseblocks/genesis-os/lib", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@seliseblocks/genesis-os/lib")>();
   return { ...actual, getRuntimeEnv: () => "" };
 });
-import { HealthLayout } from "@/layouts/health-layout/health-layout";
+import { MonitorLayout } from "@/layouts/monitor-layout/monitor-layout";
 import { serviceInstances, HttpClient } from "@/lib/http-client";
 import * as models from "@/models";
 
-describe("HealthLayout", () => {
+describe("MonitorLayout", () => {
   it("renders the nested route via Outlet", () => {
     render(
       <MemoryRouter initialEntries={["/x"]}>
         <Routes>
-          <Route element={<HealthLayout />}>
+          <Route element={<MonitorLayout />}>
             <Route path="/x" element={<div>nested content</div>} />
           </Route>
         </Routes>
