@@ -1,6 +1,6 @@
 import { navigationMenus } from "@/constants/navigation-menus.constant";
-import { HealthLayout } from "@/layouts/health-layout/health-layout";
-import HealthPage from "@/pages/health";
+import { MonitorLayout } from "@/layouts/monitor-layout/monitor-layout";
+import MonitorPage from "@/pages/monitor";
 import IncidentPage from "@/pages/incidents";
 import MonitorDetailsPage from "@/pages/monitor/details";
 import { AuthResolver, ProtectedGuard, PublicGuard } from "@seliseblocks/genesis-os/guards";
@@ -16,8 +16,8 @@ import {
 import { Navigate, Outlet, type RouteObject } from "react-router";
 
 const redirectPaths: Record<string, string> = {
-  "/app/health/monitor/*": "/app/health",
-  "/app/health/monitor/incidents/*": "/app/health",
+  "/app/monitor/monitor/*": "/app/monitor",
+  "/app/monitor/monitor/incidents/*": "/app/monitor",
 };
 
 export const routes = [
@@ -82,13 +82,13 @@ export const routes = [
                   },
                   { path: "dashboard", element: <DashboardOverview /> },
                   {
-                    element: <HealthLayout />,
+                    element: <MonitorLayout />,
                     children: [
                       {
                         index: true,
-                        element: <Navigate to="health" replace />,
+                        element: <Navigate to="monitor" replace />,
                       },
-                      { path: "health", element: <HealthPage /> },
+                      { path: "monitor", element: <MonitorPage /> },
                       {
                         path: "monitor/:id",
                         element: <MonitorDetailsPage />,
