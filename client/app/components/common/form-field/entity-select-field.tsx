@@ -13,6 +13,7 @@ type EntitySelectFieldProps<TFormValues extends FieldValues, TOption> = {
   getOptionValue: (option: TOption) => string;
   getOptionLabel: (option: TOption) => string;
   onValueChange: (value: string) => void;
+  emptyMessage?: string;
 };
 
 export const EntitySelectField = <TFormValues extends FieldValues, TOption>({
@@ -26,6 +27,7 @@ export const EntitySelectField = <TFormValues extends FieldValues, TOption>({
   getOptionValue,
   getOptionLabel,
   onValueChange,
+  emptyMessage,
 }: EntitySelectFieldProps<TFormValues, TOption>) => {
   return (
     <FormField
@@ -47,24 +49,36 @@ export const EntitySelectField = <TFormValues extends FieldValues, TOption>({
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
               <SelectContent className="w-[min(var(--radix-select-trigger-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)]">
-                {options.map((option) => {
-                  const optionValue = getOptionValue(option);
-                  const optionLabel = getOptionLabel(option);
-                  return (
-                    <SelectItem
-                      key={getOptionKey(option)}
-                      value={optionValue}
-                      className="min-w-0 items-start py-2"
-                    >
-                      <span
-                        className="block max-w-full whitespace-normal break-all leading-5"
-                        title={optionLabel}
+                {options.length === 0 ? (
+                  <SelectItem
+                    value="__empty__"
+                    disabled
+                    className="min-w-0 items-start py-2 text-muted-foreground"
+                  >
+                    <span className="block max-w-full whitespace-normal break-all leading-5">
+                      {emptyMessage ?? "No items available."}
+                    </span>
+                  </SelectItem>
+                ) : (
+                  options.map((option) => {
+                    const optionValue = getOptionValue(option);
+                    const optionLabel = getOptionLabel(option);
+                    return (
+                      <SelectItem
+                        key={getOptionKey(option)}
+                        value={optionValue}
+                        className="min-w-0 items-start py-2"
                       >
-                        {optionLabel}
-                      </span>
-                    </SelectItem>
-                  );
-                })}
+                        <span
+                          className="block max-w-full whitespace-normal break-all leading-5"
+                          title={optionLabel}
+                        >
+                          {optionLabel}
+                        </span>
+                      </SelectItem>
+                    );
+                  })
+                )}
               </SelectContent>
             </Select>
           </FormControl>

@@ -5,6 +5,9 @@ import type {
 } from "@seliseblocks/genesis-os/types";
 import { MONITOR_SOURCE_TYPES } from "@/constants/alert.constant";
 
+interface RequestParams extends Omit<BaseRequestParams, "page"> {
+  pageNumber: number;
+}
 export interface ITags {
   ecosystem: string;
   habitat: string;
@@ -178,12 +181,12 @@ export interface IAlertResponse<T> {
   statusCode: number;
   data: T;
 }
-export interface IGetHealthMonitorListPayload extends BaseRequestParams {
+export interface IGetHealthMonitorListPayload extends RequestParams {
   projectKey: ProjectKey;
   monitorSourceType: MONITOR_SOURCE_TYPES | null;
 }
 
-export interface IGetAllIncidentListPayload extends BaseRequestParams {
+export interface IGetAllIncidentListPayload extends RequestParams {
   monitorId: string;
 }
 

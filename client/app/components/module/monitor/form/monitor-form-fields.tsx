@@ -97,6 +97,9 @@ export const MonitorFormFields = ({
   const httpMethod = form.watch("requestConfiguration.http_methods");
   const sendAsJson = form.watch("requestConfiguration.json_switcher");
 
+  const showEmptyRepos = !isLoadingRepos && deployedRepos.length === 0;
+  const showEmptyServices = !isLoadingServices && services.length === 0;
+
   return (
     <Form {...form}>
       <form onSubmit={onSubmit}>
@@ -196,7 +199,11 @@ export const MonitorFormFields = ({
                   getOptionValue={(repo) => repo.itemId}
                   getOptionLabel={(repo) => repo.repoName}
                   onValueChange={onRepoChange}
+                  emptyMessage="No items available."
                 />
+                {showEmptyRepos && (
+                  <p className="text-sm text-muted-foreground">No deployed repos available.</p>
+                )}
               </RenderConditionally>
 
               <RenderConditionally condition={sourceType === "my-services"}>
@@ -211,7 +218,11 @@ export const MonitorFormFields = ({
                   getOptionValue={(service) => service.serviceId}
                   getOptionLabel={(service) => service.name}
                   onValueChange={onServiceChange}
+                  emptyMessage="No items available."
                 />
+                {showEmptyServices && (
+                  <p className="text-sm text-muted-foreground">No services available.</p>
+                )}
               </RenderConditionally>
               {sourceError && <p className="text-sm text-destructive">{sourceError}</p>}
 
