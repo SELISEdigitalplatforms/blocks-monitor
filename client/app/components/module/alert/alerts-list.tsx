@@ -30,6 +30,37 @@ type AlertsListProps = {
   onSortChange: (params: SortValue) => void;
 };
 
+const UPTIME_DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+};
+
+const EMPTY_VALUE = "-";
+
+/**
+ * The model types the incident date as `Date`, but the API also sends an ISO
+ * string, null, and the C# `DateTime.MinValue` sentinel. Normalise all of them
+ * here and return null for anything unusable, so no caller can hand an invalid
+ * Date to `Intl.DateTimeFormat` (which throws rather than degrading).
+ */
+const toValidDate = (value: Date | string | null | undefined): Date | null => {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+/**
+ * `DateTime.MinValue` is year 0001 UTC, but a positive UTC offset pushes it back
+ * into year 0, so treat anything at or below year 1 as "no incident recorded".
+ *
+ * This is deliberately a year check rather than an exact match on the minimum
+ * date: the ticket specifies one (C1), and it stays correct however the backend
+ * serialises the sentinel. The tradeoff is that a genuine year-1 timestamp would
+ * also be read as "never" -- not a real case for uptime monitoring.
+ */
+const isNeverSentinel = (date: Date) => date.getUTCFullYear() <= 1;
+
 export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: AlertsListProps) {
   const navigate = useNavigate();
   const scoped = useScopedPath();
@@ -141,13 +172,19 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
         ),
         cell: ({ row }) => {
           const { lastIncidentAt, currentStatus, createdDate } = row.original;
-          const lastIncidentDateStr = lastIncidentAt ?? createdDate;
-          const zeroDate = new Date("0001-01-01T00:00:00Z").getTime();
-          const lastIncidentTime = new Date(lastIncidentDateStr).getTime();
-          const createdTime = new Date(createdDate).getTime();
-          const incidentTime = lastIncidentTime === zeroDate ? createdTime : lastIncidentTime;
-          const uptime = Date.now() - incidentTime;
-          const formattedDate = formatDate(uptime);
+
+          // Show the date of the last incident, or when the service was created
+          // if nothing has happened yet. This used to format `Date.now() - time`,
+          // an elapsed duration, which Intl read as a millisecond epoch and
+          // rendered as a date in 1970.
+          const incidentDate = toValidDate(lastIncidentAt as Date | string | null);
+          const uptimeDate =
+            incidentDate && !isNeverSentinel(incidentDate)
+              ? incidentDate
+              : toValidDate(createdDate);
+          const formattedDate = uptimeDate
+            ? formatDate(uptimeDate, UPTIME_DATE_FORMAT)
+            : EMPTY_VALUE;
 
           return (
             <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
