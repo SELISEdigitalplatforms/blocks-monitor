@@ -250,7 +250,17 @@ export const MonitorFormFields = ({
             </RenderConditionally>
           </div>
 
-          <Accordion type="single" collapsible className="w-full">
+          {/*
+            Add opens "Monitor settings" for you, since a new monitor almost always
+            needs these set. defaultValue rather than value keeps it uncontrolled, so
+            it is an initial state the user can still collapse. Edit is left alone.
+          */}
+          <Accordion
+            type="single"
+            collapsible
+            defaultValue={isEditMode ? undefined : "monitorSettings"}
+            className="w-full"
+          >
             <AccordionItem value="monitorSettings">
               <AccordionTrigger className="flex-row-reverse justify-end gap-4 hover:no-underline">
                 Monitor settings
