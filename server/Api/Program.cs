@@ -1,3 +1,4 @@
+using Blocks.Extensions.DependencyInjection;
 using Blocks.Genesis;
 using Microsoft.AspNetCore.Http.Features;
 using SeliseBlocks.ConfigurationDriver;
@@ -65,6 +66,14 @@ ApplyFrontendRuntimeSettings(builder.Configuration, wwwrootPath);
 
 
 Alert.DomainService.ServiceRegistry.AddApplicationServices(services);
+
+// Repository listing is served by our own API through IReleaseDriverService rather than by the
+// browser calling blocks-logic, so Monitor no longer depends on an outside service for it.
+// `vaultType` is the value already resolved above for ConfigureLogAndSecretsAsync - deliberately
+// reused so this does not introduce a second, independently-configured vault choice.
+// NOTE: this call reads the release driver's own secrets from that vault during startup, so the
+// API will not boot in an environment where those secrets are absent.
+await services.RegisterBlocksReleaseServicesAsync(vaultType);
 
 var app = builder.Build();
 

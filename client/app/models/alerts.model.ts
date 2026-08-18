@@ -437,3 +437,19 @@ export interface IMonitorSummary {
   status?: "up" | "down";
   statusDuration?: string;
 }
+
+/** One deployed repository as returned by GET /api/Monitor/repos-list. */
+export interface IRepoListItem {
+  itemId: string;
+  repoName: string;
+  customDeploymentUrl?: string | null;
+  defaultDeploymentUrl?: string | null;
+  repoUrl?: string | null;
+}
+
+export interface IGetReposListResponse {
+  isSuccess: boolean;
+  statusCode?: number;
+  message?: string | null;
+  data: IRepoListItem[] | null;
+}

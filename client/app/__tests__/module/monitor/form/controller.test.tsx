@@ -9,7 +9,10 @@ const h = vi.hoisted(() => ({
   monitorById: { data: undefined as unknown },
   repoMonitorList: { data: [] as unknown[] },
   externalConfig: { data: null as unknown },
-  envRepos: { data: [] as unknown[], isLoading: false },
+  envRepos: { data: [] as unknown[], isLoading: false, isError: false },
+  reposListSpy: vi.fn(),
+  monitorListByIdSpy: vi.fn(),
+  legacyEnvReposSpy: vi.fn(),
   services: { data: [] as unknown[], isLoading: false },
   navigate: vi.fn(),
   showError: vi.fn(),
@@ -25,16 +28,33 @@ vi.mock("@/hooks/use-alerts", () => ({
   }),
   useUpdateHealth: () => ({ mutateAsync: h.updateHealthAsync, isPending: false }),
   useGetMonitorById: () => h.monitorById,
-  // controller destructures { data } then reads `.data` again → double-nested
-  useGetMonitorListById: () => ({ data: h.repoMonitorList }),
+  // controller destructures { data } then reads `.data` again → double-nested.
+  // Arguments are recorded: without that, the duplication test cannot tell a correctly scoped call
+  // from one made with the wrong tenant or repo, since the fixture comes back either way.
+  useGetMonitorListById: (projectKey: string, repoId: string) => {
+    h.monitorListByIdSpy(projectKey, repoId);
+    return { data: h.repoMonitorList };
+  },
   useIsExternalServiceConfigured: () => ({ data: h.externalConfig }),
+  // The repository list now comes from our own API. Fed from the same h.envRepos fixture the
+  // legacy mock used, so every pre-existing test in this file exercises the new path unchanged.
+  useGetReposList: (projectKey: string) => {
+    h.reposListSpy(projectKey);
+    return {
+      data: { data: h.envRepos.data },
+      isLoading: h.envRepos.isLoading,
+      isError: h.envRepos.isError,
+    };
+  },
 }));
 
 vi.mock("@seliseblocks/genesis-os/hooks", () => ({
-  useGetEnvRepositories: () => ({
-    data: { data: h.envRepos.data },
-    isLoading: h.envRepos.isLoading,
-  }),
+  // Deliberately still mocked, and deliberately spied: the point of this ticket is that the
+  // controller NEVER reaches blocks-logic for repositories. If the import came back, this records it.
+  useGetEnvRepositories: () => {
+    h.legacyEnvReposSpy();
+    return { data: { data: h.envRepos.data }, isLoading: h.envRepos.isLoading };
+  },
   useGetAllServices: () => ({
     data: { data: h.services.data },
     isLoading: h.services.isLoading,
@@ -317,5 +337,192 @@ describe("useMonitorFormController", () => {
       await result.current.submit(getMonitorFormDefaultValues("request"));
     });
     expect(h.addAsync).not.toHaveBeenCalled();
+  });
+});
+
+describe("useMonitorFormController — repository source (#201)", () => {
+  const repo = (over: Record<string, unknown> = {}) => ({
+    itemId: "repo-123",
+    repoName: "my-app",
+    customDeploymentUrl: "https://custom.dev",
+    defaultDeploymentUrl: "https://default.internal",
+    repoUrl: "https://github.com/org/my-app",
+    ...over,
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    h.monitorById.data = undefined;
+    h.repoMonitorList.data = [];
+    h.externalConfig.data = null;
+    h.envRepos.data = [];
+    h.envRepos.isLoading = false;
+    h.envRepos.isError = false;
+    h.services.data = [];
+    h.services.isLoading = false;
+  });
+
+  it("reads repositories from our own API and never from blocks-logic", async () => {
+    // H3. The negative assertion is the ticket: it is entirely possible to add the new hook and
+    // leave the old one in place, and every other test here would still pass.
+    h.envRepos.data = [repo()];
+
+    const { result } = render({ mode: "add", projectKey: "t-1" });
+
+    expect(h.reposListSpy).toHaveBeenCalledWith("t-1");
+    expect(h.legacyEnvReposSpy).not.toHaveBeenCalled();
+    expect(result.current.deployedRepos).toHaveLength(1);
+  });
+
+  it.each([
+    ["customDeploymentUrl first", {}, "https://custom.dev"],
+    ["defaultDeploymentUrl when custom is absent", { customDeploymentUrl: null }, "https://default.internal"],
+    [
+      "repoUrl when both deployment urls are absent",
+      { customDeploymentUrl: null, defaultDeploymentUrl: null },
+      "https://github.com/org/my-app",
+    ],
+    [
+      "empty string when the repo carries no url at all",
+      { customDeploymentUrl: null, defaultDeploymentUrl: null, repoUrl: null },
+      "",
+    ],
+  ])("prefills urlMonitor with %s", async (_label, over, expected) => {
+    // H4, walked one rung at a time. A single happy-path fixture passes even if the fallback order
+    // is reversed, which is the mistake worth catching here.
+    h.envRepos.data = [repo(over)];
+
+    const { result } = render({ mode: "add", projectKey: "t-1" });
+    act(() => result.current.setSelectedRepoId("repo-123"));
+
+    await waitFor(() => expect(result.current.form.getValues("urlMonitor")).toBe(expected));
+  });
+
+  it("still flags a duplicate monitor for a repo sourced from the new endpoint", async () => {
+    // H5. The duplication check reads a separate, still-tenant-scoped query; this proves the swap
+    // did not sever it.
+    h.envRepos.data = [repo()];
+    h.repoMonitorList.data = [{ itemId: "other-monitor" }];
+
+    const { result } = render({ mode: "add", projectKey: "t-1" });
+    act(() => result.current.setSourceType("deployed"));
+    act(() => result.current.setSelectedRepoId("repo-123"));
+
+    // Asserted through the user-visible message: repoDuplicate is internal and not returned.
+    await waitFor(() =>
+      expect(result.current.sourceError).toBe("A monitor already exists for this deployed repo."),
+    );
+    // And that the check was actually scoped to this tenant and this repo - the mock returns its
+    // fixture regardless of arguments, so without this the wiring could be wrong and still pass.
+    expect(h.monitorListByIdSpy).toHaveBeenLastCalledWith("t-1", "repo-123");
+  });
+
+  it("reports the loading state from the new hook", async () => {
+    // C3. These strings already existed; what is new is that they must be driven by the NEW hook's
+    // isLoading. If the swap dropped it, this is what fails.
+    h.envRepos.isLoading = true;
+
+    const { result } = render({ mode: "add", projectKey: "t-1" });
+    act(() => result.current.setSourceType("deployed"));
+
+    await waitFor(() => expect(result.current.sourceError).toBe("Loading repos..."));
+  });
+
+  it("prompts for a selection once an empty list has loaded", async () => {
+    // C4 and ticket example 2: empty is a loaded state, not a stuck loading one.
+    h.envRepos.data = [];
+    h.envRepos.isLoading = false;
+
+    const { result } = render({ mode: "add", projectKey: "t-1" });
+    act(() => result.current.setSourceType("deployed"));
+
+    await waitFor(() => expect(result.current.sourceError).toBe("Select a deployed repo."));
+  });
+
+  it("says the fetch failed rather than pretending there are no repos", async () => {
+    // C5, client half. Before this the 400/500 the endpoint returns was indistinguishable from an
+    // empty project: the user saw "Select a deployed repo." and was invited to choose from a list
+    // that never loaded. This is the assertion that makes the error path real rather than assumed.
+    h.envRepos.data = [];
+    h.envRepos.isLoading = false;
+    h.envRepos.isError = true;
+
+    const { result } = render({ mode: "add", projectKey: "t-1" });
+    act(() => result.current.setSourceType("deployed"));
+
+    await waitFor(() => expect(result.current.sourceError).toBe("Failed to get repos."));
+  });
+
+  it("surfaces a failure that arrives after the form is already open", async () => {
+    // The case the memo's dependency array actually governs. The test above sets isError before the
+    // first render, so it passed even while isReposError was missing from the deps and the message
+    // could never appear once the form was live. Lint caught that; this pins it.
+    h.envRepos.isError = false;
+
+    const { result, rerender } = renderHook(
+      ({ scope }: { scope: string }) =>
+        useMonitorFormController({ mode: "add", projectKey: scope }),
+      { initialProps: { scope: "t-1" } },
+    );
+    act(() => result.current.setSourceType("deployed"));
+    await waitFor(() => expect(result.current.sourceError).toBe("Select a deployed repo."));
+
+    h.envRepos.isError = true;
+    rerender({ scope: "t-1" });
+
+    await waitFor(() => expect(result.current.sourceError).toBe("Failed to get repos."));
+  });
+
+  it("leaves the my-services path on its own data source", async () => {
+    // Must-not-break: my-services is out of scope and must keep using useGetAllServices.
+    h.services.isLoading = true;
+
+    const { result } = render({ mode: "add", projectKey: "t-1" });
+    act(() => result.current.setSourceType("my-services"));
+
+    await waitFor(() => expect(result.current.sourceError).toBe("Loading services..."));
+  });
+
+  it("leaves external-URL monitors unblocked by the repository source", async () => {
+    // Must-not-break: an external URL depends on neither repos nor services, so no repo state
+    // should gate it.
+    const { result } = render({ mode: "add", projectKey: "t-1" });
+    act(() => result.current.setSourceType("none"));
+
+    await waitFor(() => expect(result.current.sourceError).toBeFalsy());
+    expect(result.current.isSourceBlocked).toBe(false);
+  });
+
+  it("KNOWN PRE-EXISTING DEFECT: a tenant switch leaves the repo selection in place", async () => {
+    // Documents current behaviour, not desired behaviour.
+    //
+    // The add form's `values` memo (use-monitor-form-controller.ts:70) depends only on
+    // [isEditMode, monitorDetails?.data], so nothing reseeds the form when projectKey changes:
+    // selectedRepoId and the prefilled urlMonitor survive, sourceError only checks that an id is
+    // present, and submission then pairs the NEW tenant with the OLD repo.
+    //
+    // This predates #201 and is independent of it - the same thing happens with the legacy
+    // useGetEnvRepositories(projectKey), because the stale value is form state rather than cache.
+    // #201 deliberately did not change form-seeding semantics under a data-source ticket. Asserted
+    // so that a future fix has to flip this deliberately instead of silently.
+    h.envRepos.data = [repo()];
+
+    const { result, rerender } = renderHook(
+      ({ scope }: { scope: string }) =>
+        useMonitorFormController({ mode: "add", projectKey: scope }),
+      { initialProps: { scope: "t-1" } },
+    );
+
+    act(() => result.current.setSelectedRepoId("repo-123"));
+    await waitFor(() => expect(result.current.form.getValues("urlMonitor")).toBe("https://custom.dev"));
+
+    // Tenant B: its repositories are fetched correctly...
+    h.envRepos.data = [repo({ itemId: "repo-999", repoName: "other-tenant-app" })];
+    rerender({ scope: "t-2" });
+
+    await waitFor(() => expect(h.reposListSpy).toHaveBeenCalledWith("t-2"));
+    // ...but tenant A's selection and URL are still sitting in the form.
+    expect(result.current.form.getValues("selectedRepoId")).toBe("repo-123");
+    expect(result.current.form.getValues("urlMonitor")).toBe("https://custom.dev");
   });
 });

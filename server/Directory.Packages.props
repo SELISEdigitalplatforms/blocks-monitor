@@ -9,7 +9,17 @@
     <PackageVersion Include="FluentValidation.AspNetCore" Version="11.3.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="MongoDB.Driver" Version="3.8.0" />
+    <!--
+      Genesis stays declared at 4.0.2, but note that Api does NOT run on it: ReleaseDriver.OS 4.0.1
+      requires a newer Genesis, so NuGet lifts Api's graph to SeliseBlocks.Genesis.OS 4.0.5, while
+      Worker and Alert.DomainService still resolve 4.0.2. Recorded rather than "fixed" by bumping
+      this line, because raising it centrally would also upgrade Worker - a separate process that
+      issue #201 does not touch and whose behaviour was never assessed against 4.0.5. The split is
+      safe: Api and Worker are separate processes, and Api's whole graph (including the
+      Alert.DomainService code it loads) runs on the single higher version.
+    -->
     <PackageVersion Include="SeliseBlocks.Genesis.OS" Version="4.0.2" />
+    <PackageVersion Include="SeliseBlocks.ReleaseDriver.OS" Version="4.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.2" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="FluentAssertions" Version="8.8.0" />

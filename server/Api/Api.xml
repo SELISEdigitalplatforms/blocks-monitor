@@ -27,7 +27,7 @@
             Controller for managing monitor configurations, incidents, and response times.
             </summary>
         </member>
-        <member name="M:Api.Controllers.MonitorController.#ctor(DomainService.Monitor.Services.IMonitorConfigurationService,DomainService.Monitor.Services.IMonitorPingService,DomainService.Monitor.Services.IMonitorConfigurationRepoService,DomainService.Monitor.MonitorIncidentService.IMonitorIncidentService)">
+        <member name="M:Api.Controllers.MonitorController.#ctor(DomainService.Monitor.Services.IMonitorConfigurationService,DomainService.Monitor.Services.IMonitorPingService,DomainService.Monitor.Services.IMonitorConfigurationRepoService,DomainService.Monitor.MonitorIncidentService.IMonitorIncidentService,ReleaseDriver.IReleaseDriverService,Microsoft.Extensions.Logging.ILogger{Api.Controllers.MonitorController})">
             <summary>
             Initializes a new instance of the <see cref="T:Api.Controllers.MonitorController"/> class.
             </summary>
@@ -101,6 +101,25 @@
             <param name="startDate">The start date of the range (optional).</param>
             <param name="endDate">The end date of the range (optional).</param>
             <returns>The response time logs for the monitor.</returns>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.GetReposList">
+            <summary>
+            Retrieves the deployed repository list for the caller, sourced from this API rather than
+            from the browser calling blocks-logic.
+            </summary>
+            <returns>The repository list, or a failure response if the release driver rejects it.</returns>
+            <remarks>
+            The route escapes the controller's "[controller]/[action]" template with "~/" on purpose.
+            A relative "repos-list" template would COMBINE with it and yield
+            Monitor/GetReposList/repos-list, which is not the documented contract; the route test in
+            MonitorControllerTests reads the generated route so this cannot regress silently.
+            </remarks>
+        </member>
+        <member name="F:Api.Controllers.MonitorController.FailedToGetRepos">
+            <summary>
+            The failure message the contract specifies. Public so the tests assert the exact string
+            rather than restating it and drifting from it.
+            </summary>
         </member>
         <member name="T:Program">
             <summary>
