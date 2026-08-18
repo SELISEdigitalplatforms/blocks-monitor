@@ -14,9 +14,12 @@ vi.mock("recharts", async () => {
     ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
       <div data-testid="responsive">{children}</div>
     ),
-    AreaChart: ({ children }: { children: React.ReactNode }) => (
-      <div data-testid="area-chart">{children}</div>
-    ),
+    AreaChart: ({ children, data }: { children: React.ReactNode; data?: unknown[] }) => {
+      // Capture the plotted series so tests can assert which points the component decided to
+      // draw, not merely that a chart rendered.
+      (globalThis as { __chartPoints?: unknown[] }).__chartPoints = data ?? [];
+      return <div data-testid="area-chart">{children}</div>;
+    },
     Area: () => <div data-testid="area" />,
     CartesianGrid: () => <div />,
     ReferenceLine: () => <div />,
@@ -126,5 +129,74 @@ describe("ResponseTime", () => {
     const option = await screen.findByText("Last 24 Hours");
     await userEvent.click(option);
     expect(setTimeRange).toHaveBeenCalledWith("24h");
+  });
+});
+
+// A paused monitor is not being checked, so the chart must not assert an up/down state at "now"
+// while the page shows a Paused badge (issue #197, C1).
+describe("ResponseTime while paused", () => {
+  const points = () => (globalThis as { __chartPoints?: { ts: number; status: number }[] }).__chartPoints ?? [];
+
+  it("plots a current status point while the monitor is active", () => {
+    render(<ResponseTime {...baseProps} currentStatus={false} isActive />);
+    const last = points().at(-1)!;
+    expect(last.status).toBe(0);
+  });
+
+  it("omits the current status point while the monitor is paused", () => {
+    render(<ResponseTime {...baseProps} currentStatus={false} isActive={false} />);
+    // Only the synthetic "now" reading disappears; the historical series is untouched, which is
+    // what keeps this consistent with C2 leaving incident history alone.
+    expect(points().some((p) => p.status === 0)).toBe(false);
+  });
+
+  it("omits it for a monitor with downtime history too", () => {
+    const withHistory = [
+      {
+        startTime: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+        endTime: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+      },
+    ] as unknown as typeof baseProps.data;
+
+    // Captured BEFORE render: the component anchors its own `now` at mount, so a timestamp read
+    // afterwards is always later than the point it plots there and `ts < now` would hold even
+    // for the very point this is meant to reject.
+    const beforeRender = Date.now();
+    render(<ResponseTime {...baseProps} data={withHistory} currentStatus={false} isActive={false} />);
+    // The last plotted point is a real recovery edge, not a "currently down" assertion at now.
+    expect(points().at(-1)!.ts).toBeLessThan(beforeRender);
+  });
+
+  it("defaults to plotting the current point when isActive is not supplied", () => {
+    render(<ResponseTime {...baseProps} currentStatus={false} />);
+    expect(points().at(-1)!.status).toBe(0);
+  });
+});
+
+describe("ResponseTime with an unresolved incident", () => {
+  const points = () => (globalThis as { __chartPoints?: { ts: number; status: number }[] }).__chartPoints ?? [];
+  const openIncident = () =>
+    [
+      { startTime: new Date(Date.now() - 20 * 60 * 1000).toISOString(), endTime: null },
+    ] as unknown as typeof baseProps.data;
+
+  it("plots the ongoing outage up to now while active", () => {
+    render(<ResponseTime {...baseProps} data={openIncident()} currentStatus={false} isActive />);
+    expect(points().filter((p) => p.status === 0).length).toBeGreaterThan(1);
+  });
+
+  it("does not claim the monitor is currently down while paused", () => {
+    // An open incident normalises its end to `now`, so guarding only the synthetic final point
+    // left this one asserting a live Down beside the Paused badge.
+    const beforeRender = Date.now();
+    render(
+      <ResponseTime {...baseProps} data={openIncident()} currentStatus={false} isActive={false} />
+    );
+    const down = points().filter((p) => p.status === 0);
+    expect(down.length).toBeGreaterThan(0); // the outage itself is still shown
+    // Compared against a pre-render timestamp, not Date.now(): the component's own `now` is
+    // earlier than any reading taken after render, so the naive comparison passed even when the
+    // offending point was present.
+    expect(down.every((p) => p.ts < beforeRender)).toBe(true);
   });
 });

@@ -2,6 +2,7 @@ import type { SortValue } from "@seliseblocks/genesis-os/components";
 import { FilterControls } from "@seliseblocks/genesis-os/components";
 import { TableLoadingSkeleton } from "@seliseblocks/genesis-os/components";
 import {
+  Badge,
   ScrollArea,
   ScrollBar,
   Table,
@@ -213,9 +214,21 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
         cell: ({ row }) => {
           const incidentList = row.original.incidentSummaries;
           const status = row.original.currentStatus;
+          // Strictly `=== false`, not `!isActive`: a row whose payload omits the field must read
+          // as active. The AlertAction call below uses `?? false` for the opposite reason -- see
+          // its own comment -- so the two defaults differ on purpose.
+          const isPaused = row.original.isActive === false;
           return (
             <div className="flex justify-start mt-3">
-              <ProgressBar incidents={incidentList} status={status} />
+              {isPaused ? (
+                // Replaces the bar rather than sitting beside it: 24 hours of green/red is a
+                // health display, and health is not meaningful while a monitor is paused.
+                <Badge variant="secondary" className="w-fit">
+                  Paused
+                </Badge>
+              ) : (
+                <ProgressBar incidents={incidentList} status={status} />
+              )}
             </div>
           );
         },
