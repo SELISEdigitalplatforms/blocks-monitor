@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
+import { renderHook, render as renderComponent, act, waitFor } from "@testing-library/react";
 
 const h = vi.hoisted(() => ({
   addAsync: vi.fn(),
@@ -88,6 +88,94 @@ describe("useMonitorFormController", () => {
     const { result } = render({ mode: "edit", itemId: "m1", projectKey: "p1" });
     expect(result.current.isEditMode).toBe(true);
     expect(result.current.form.getValues("name")).toBe("existing");
+  });
+
+  /**
+   * react-hook-form seeds its state from `defaultValues` and only reconciles the
+   * `values` prop in an effect, so seeding with the add defaults makes edit mode's
+   * FIRST render show 30s before settling on the real value. Neither getValues() after
+   * renderHook nor formState.defaultValues can see that — both are post-reconciliation.
+   * Recording the value on every render is what actually catches it: with the bug the
+   * sequence is [1, 3], without it [3, 3].
+   */
+  const valuesPerRender = (params: Parameters<typeof useMonitorFormController>[0]) => {
+    const seen: unknown[] = [];
+    function Probe() {
+      const controller = useMonitorFormController(params);
+      seen.push(controller.form.getValues("monitorSettings.request_timeout"));
+      return null;
+    }
+    renderComponent(<Probe />);
+    return seen;
+  };
+
+  it("never shows the add default on the edit form's first render", () => {
+    const seen = valuesPerRender({ mode: "edit", itemId: "m1", projectKey: "p1" });
+    expect(seen[0]).toBe(3);
+    expect(seen).not.toContain(getMonitorFormDefaultValues().monitorSettings.request_timeout);
+  });
+
+  // Edit's placeholder-then-saved-value sequence is unchanged from before this ticket:
+  // the 5min fallback first, then the monitor's real 60s value. Asserted as first/last
+  // rather than an exact array, so an extra render does not fail a correct sequence.
+  it("keeps the edit form's placeholder-then-saved-value sequence", () => {
+    h.monitorById.data = {
+      data: { name: "existing", monitorConfigurationType: 0, timeoutInSeconds: 60 },
+    };
+    const seen = valuesPerRender({ mode: "edit", itemId: "m1", projectKey: "p1" });
+    expect(seen[0]).toBe(3);
+    // step 2 = 60s: neither the add default (1) nor the edit fallback (3)
+    expect(seen.at(-1)).toBe(2);
+    expect(seen).not.toContain(1);
+  });
+
+  it("never shows the edit fallback on the add form, first render or settled", () => {
+    const seen = valuesPerRender({ mode: "add", projectKey: "p1" });
+    expect(seen[0]).toBe(1);
+    expect(new Set(seen)).toEqual(new Set([1]));
+  });
+
+  /**
+   * H2/H3/H5 at the controller level. The field tests build their own form and the payload
+   * tests call getMonitorFormDefaultValues directly, so without this nothing connects the
+   * real controller's settled state to what a user submits: a controller that reconciled
+   * add mode onto the 5min fallback would pass every other test in this change.
+   */
+  it("settles the add form on 30s and submits it (H2, H3, H5)", async () => {
+    h.addAsync.mockResolvedValue({ isSuccess: true, data: { itemId: "new-1" } });
+    const { result } = render({ mode: "add", projectKey: "p1" });
+
+    expect(result.current.form.getValues("monitorSettings.request_timeout")).toBe(1);
+    expect(result.current.form.getValues("monitorSettings.grace_time")).toBe(1);
+
+    act(() => {
+      result.current.form.setValue("name", "svc");
+      result.current.form.setValue("urlMonitor", "https://svc.example.com");
+    });
+    await act(async () => {
+      await result.current.submit(result.current.form.getValues());
+    });
+
+    expect(h.addAsync).toHaveBeenCalledWith(
+      expect.objectContaining({ timeoutInSeconds: 30, intervalInSeconds: 60 }),
+    );
+  });
+
+  it("submits a 30s grace period for a callback monitor (H3, H5)", async () => {
+    h.saveHealthAsync.mockResolvedValue({ isSuccess: true, data: { itemId: "new-2" } });
+    const { result } = render({ mode: "add", projectKey: "p1" });
+
+    act(() => {
+      result.current.form.setValue("name", "svc");
+      result.current.setMonitorType("callback");
+    });
+    await act(async () => {
+      await result.current.submit(result.current.form.getValues());
+    });
+
+    expect(h.saveHealthAsync).toHaveBeenCalledWith(
+      expect.objectContaining({ gracePeriodInSeconds: 30 }),
+    );
   });
 
   it("setSourceType clears the opposing selection", () => {

@@ -63,17 +63,25 @@ export const useMonitorFormController = ({
 
   const { data: monitorDetails } = useGetMonitorById(itemId || "");
 
-  const initialValues = useMemo(() => {
+  // react-hook-form seeds its state from `defaultValues` and only reconciles `values` in
+  // an effect, so the two have to be chosen together: a single shared seed would either
+  // flash the add defaults on the edit form's first render, or flash the edit fallback on
+  // the add form's. Each mode therefore supplies its own pair.
+  const { defaultValues, values } = useMemo(() => {
     if (isEditMode) {
-      return toFormValuesFromMonitorDetails(monitorDetails?.data);
+      return {
+        defaultValues: toFormValuesFromMonitorDetails(),
+        values: toFormValuesFromMonitorDetails(monitorDetails?.data),
+      };
     }
 
-    return getMonitorFormDefaultValues();
+    const addDefaults = getMonitorFormDefaultValues();
+    return { defaultValues: addDefaults, values: addDefaults };
   }, [isEditMode, monitorDetails?.data]);
 
   const form = useForm<MonitorFormValues>({
-    defaultValues: getMonitorFormDefaultValues(),
-    values: initialValues,
+    defaultValues,
+    values,
     resolver: zodResolver(monitorFormSchema),
     mode: "onChange",
   });
