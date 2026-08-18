@@ -26,6 +26,12 @@ type ResponseTimeProps = {
   timeRange: string;
   setTimeRange: (value: string) => void;
   currentStatus: boolean;
+  /**
+   * Whether the monitor is still being checked. A paused monitor has no current health, so the
+   * chart stops at its last real observation instead of asserting an up/down state at "now".
+   * Defaults to true so existing callers are unaffected.
+   */
+  isActive?: boolean;
   request: boolean;
 };
 
@@ -77,6 +83,7 @@ const ResponseTime = ({
   interval,
   timeout,
   currentStatus,
+  isActive = true,
   request,
 }: ResponseTimeProps) => {
   // Anchor the window at mount so the render stays pure (no Date.now() call in
@@ -128,7 +135,7 @@ const ResponseTime = ({
     pts.push({ ts: rangeStart, status: 1 });
 
     if (!downtimes || !Array.isArray(downtimes) || downtimes.length === 0) {
-      pts.push({ ts: now, status: currentStatus ? 1 : 0 });
+      if (isActive) pts.push({ ts: now, status: currentStatus ? 1 : 0 });
       return pts.sort((a, b) => a.ts - b.ts);
     }
 
@@ -157,21 +164,27 @@ const ResponseTime = ({
         duration: Math.round((e - s) / 1000),
       });
 
-      // downtime end
-      pts.push({
-        ts: e,
-        status: 0,
-        startTime: s,
-        endTime: e,
-        duration: Math.round((e - s) / 1000),
-      });
+      // downtime end. An unresolved incident normalises its end to `now` above, so while paused
+      // this point would assert "currently down" just as the synthetic final point would -- the
+      // guard has to cover both. The incident's start is still plotted, so the chart shows it
+      // went down and then observation stopped.
+      if (isActive || e < now) {
+        pts.push({
+          ts: e,
+          status: 0,
+          startTime: s,
+          endTime: e,
+          duration: Math.round((e - s) / 1000),
+        });
+      }
 
       // push one tick immediately after downtime to transition back to UP
       if (e + 1 <= now) pts.push({ ts: e + 1, status: 1 });
     }
 
-    // final point at now
-    pts.push({ ts: now, status: currentStatus ? 1 : 0 });
+    // final point at now -- skipped while paused: nothing is being checked, so plotting a
+    // current up/down here would contradict the Paused badge on the same page.
+    if (isActive) pts.push({ ts: now, status: currentStatus ? 1 : 0 });
 
     // dedupe by timestamp keeping last pushed (so transitions behave correctly)
     const map = new Map<number, ChartPoint>();
@@ -179,7 +192,7 @@ const ResponseTime = ({
     const final = Array.from(map.values()).sort((a, b) => a.ts - b.ts);
 
     return final;
-  }, [downtimes, rangeStart, now, currentStatus]);
+  }, [downtimes, rangeStart, now, currentStatus, isActive]);
 
   return (
     <Card className="mb-6 border-none p-0 shadow-none">

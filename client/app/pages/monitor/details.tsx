@@ -1,6 +1,6 @@
 "use client";
 import { BackIconButton } from "@/components/common/back-buttons";
-import { Button, Skeleton } from "@/components/core";
+import { Badge, Button, Skeleton } from "@/components/core";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/core/card/card";
 import { Separator } from "@/components/core/separator/separator";
 import AlertAction from "@/components/module/alert/alert-action";
@@ -28,6 +28,13 @@ interface MonitorSummaryProps {
   status: boolean;
   incident: Date;
   createdAt: string;
+  /**
+   * Whether the monitor is running. Typed plain `boolean` on purpose: the API model declares
+   * `isActive` as the literal `true`, so a `=== false` comparison against it directly would be a
+   * no-overlap error. The call site resolves it with `?? true`, which also gives C4's default --
+   * unexpected data reads as active, never as a false "Paused".
+   */
+  isActive: boolean;
 }
 
 const MonitorDetailsSkeleton = () => {
@@ -89,7 +96,7 @@ const getBorderColorClass = (index: number) => {
   return "border-l-chart-purple";
 };
 
-const MonitorSummary = ({ data, status, incident, createdAt }: MonitorSummaryProps) => {
+const MonitorSummary = ({ data, status, incident, createdAt, isActive }: MonitorSummaryProps) => {
   const toMilliseconds = (value: string): number => Number.parseInt(value, 10) * 24 * 60 * 60 * 1000;
   const [now] = useState(() => Date.now());
   const incidentDate = new Date(incident);
@@ -102,26 +109,42 @@ const MonitorSummary = ({ data, status, incident, createdAt }: MonitorSummaryPro
     <div className="my-6 flex w-full flex-col gap-4 md:flex-row md:gap-10">
       {data.map((item, index) => {
         if (item.type === "status") {
+          // Paused monitors are not being checked, so up/down says nothing true about them.
+          // Everything that encodes health here -- the border, the text colour, the status word
+          // and the "Currently up for ..." line -- drops out together rather than leaving a
+          // green card that also says "Paused".
+          const isPaused = isActive === false;
+
           return (
             <Card
               key={`status-${index}`} //nosonar
               className={`flex flex-1 flex-col rounded-md border-0 border-l-8 shadow-none ${
-                status ? "border-l-green-500" : "border-l-red-500"
+                isPaused ? "border-l-muted" : status ? "border-l-green-500" : "border-l-red-500"
               } bg-transparent py-2 pl-4`}
             >
               <CardTitle className="text-base font-medium">Current Status</CardTitle>
               <CardContent className="mt-3 flex flex-col gap-3">
-                <span
-                  className={`text-xl font-semibold capitalize ${
-                    status ? "text-green-500" : "text-red-500"
-                  }`}
-                >
-                  {item.status}
-                </span>
-                <span className="text-xs font-medium text-medium-emphasis">
-                  {" "}
-                  Currently {status ? "up" : "down"} for {incidentDuration}
-                </span>
+                {isPaused ? (
+                  // w-fit: Badge is a block-level flex element and this column is flex-col, so
+                  // without it the badge stretches into a full-width strip.
+                  <Badge variant="secondary" className="w-fit">
+                    Paused
+                  </Badge>
+                ) : (
+                  <>
+                    <span
+                      className={`text-xl font-semibold capitalize ${
+                        status ? "text-green-500" : "text-red-500"
+                      }`}
+                    >
+                      {item.status}
+                    </span>
+                    <span className="text-xs font-medium text-medium-emphasis">
+                      {" "}
+                      Currently {status ? "up" : "down"} for {incidentDuration}
+                    </span>
+                  </>
+                )}
               </CardContent>
             </Card>
           );
@@ -258,6 +281,10 @@ const MonitorDetailsPage = () => {
             <MonitorSummary
               data={summaryData}
               status={monitorData?.data?.currentStatus ?? false}
+              // `?? true`, not `?? false`: unexpected data must read as active (C4). The
+              // AlertAction call above deliberately keeps `?? false` -- it sends `!isActive`, so
+              // that default offers to activate rather than to pause a possibly-running monitor.
+              isActive={monitorData?.data?.isActive ?? true}
               incident={
                 monitorData?.data?.lastIncidentAt
                   ? new Date(monitorData?.data?.lastIncidentAt)
@@ -275,6 +302,9 @@ const MonitorDetailsPage = () => {
               timeRange={timeRange}
               setTimeRange={setTimeRange}
               currentStatus={monitorData?.data?.currentStatus || false}
+              // Same `?? true` default as the status card: the chart must not assert a current
+              // up/down state while the page is showing "Paused".
+              isActive={monitorData?.data?.isActive ?? true}
             />
             <Separator orientation="horizontal" className="mb-6" />
             <div className="flex flex-col gap-5">

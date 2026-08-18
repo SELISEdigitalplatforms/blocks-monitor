@@ -355,3 +355,102 @@ describe("AlertsList", () => {
     expect(down.container.querySelector("svg.lucide-arrow-down")).toBeTruthy();
   });
 });
+
+// Paused/active state in the Status column (issue #197)
+describe("AlertsList paused state", () => {
+  const renderRow = (over: Partial<AlertTree> = {}) =>
+    render(
+      <AlertsList
+        data={[alert(over)]}
+        isLoading={false}
+        sortQueryParams={sort}
+        onSortChange={vi.fn()}
+      />,
+      { wrapper: wrapper() }
+    );
+
+  it("shows a Paused badge instead of the progress bar when isActive is false", () => {
+    // H1, C1
+    renderRow({ isActive: false });
+    expect(screen.getByText("Paused")).toBeInTheDocument();
+    // The 24-hour bar is a health display; leaving it beside "Paused" would imply a
+    // current up/down state, which is what C1 forbids.
+    expect(screen.queryByTestId("progress")).toBeNull();
+  });
+
+  it("badges a paused monitor whose last known status was down", () => {
+    // Every other paused case here uses a stale "up" status, so an implementation that only
+    // took the paused branch when the monitor was last seen Up would slip through.
+    renderRow({ isActive: false, currentStatus: false });
+    expect(screen.getByText("Paused")).toBeInTheDocument();
+    expect(screen.queryByTestId("progress")).toBeNull();
+  });
+
+  it("keeps the progress bar and shows no badge when isActive is true", () => {
+    // H2
+    renderRow({ isActive: true, currentStatus: true });
+    expect(screen.getByTestId("progress")).toHaveAttribute("data-status", "true");
+    expect(screen.queryByText("Paused")).toBeNull();
+  });
+
+  it("keeps a down monitor's real status on the progress bar", () => {
+    // H2 again, from the other side. Without this an implementation that hardcoded
+    // status={true} would pass, because the existing down-state test asserts the Uptime
+    // arrow rather than the bar's own prop.
+    renderRow({ isActive: true, currentStatus: false });
+    expect(screen.getByTestId("progress")).toHaveAttribute("data-status", "false");
+  });
+
+  it("treats a row with no isActive field as active", () => {
+    // C4. The neighbouring AlertAction call resolves the same missing value with `?? false`,
+    // so copying that idiom here would badge every incomplete payload as Paused.
+    const row = alert();
+    delete (row as Partial<AlertTree>).isActive;
+    render(
+      <AlertsList data={[row]} isLoading={false} sortQueryParams={sort} onSortChange={vi.fn()} />,
+      { wrapper: wrapper() }
+    );
+    expect(screen.queryByText("Paused")).toBeNull();
+    expect(screen.getByTestId("progress")).toBeInTheDocument();
+  });
+
+  it("leaves the Uptime column untouched on a paused row", () => {
+    // C2. The ticket puts the Uptime column out of scope, so a paused row keeps both its
+    // formatted date and its arrow -- asserted so a later "tidy-up" that hides them fails.
+    const created = new Date("2026-01-05T09:00:00Z");
+    const { container } = renderRow({
+      isActive: false,
+      currentStatus: true,
+      lastIncidentAt: null as unknown as Date,
+      createdDate: created.toISOString(),
+    });
+    expect(screen.getByText("Paused")).toBeInTheDocument();
+    expect(container.querySelector("svg.lucide-arrow-up")).toBeTruthy();
+  });
+
+  it("follows refetched data when a row flips between paused and active", () => {
+    // H5 at the render level: no new refetch logic, the cell just reads the new value.
+    const { rerender } = renderRow({ isActive: true });
+    expect(screen.getByTestId("progress")).toBeInTheDocument();
+
+    rerender(
+      <AlertsList
+        data={[alert({ isActive: false })]}
+        isLoading={false}
+        sortQueryParams={sort}
+        onSortChange={vi.fn()}
+      />
+    );
+    expect(screen.getByText("Paused")).toBeInTheDocument();
+
+    rerender(
+      <AlertsList
+        data={[alert({ isActive: true })]}
+        isLoading={false}
+        sortQueryParams={sort}
+        onSortChange={vi.fn()}
+      />
+    );
+    expect(screen.queryByText("Paused")).toBeNull();
+  });
+});
