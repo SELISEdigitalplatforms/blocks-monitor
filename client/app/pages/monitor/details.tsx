@@ -68,14 +68,29 @@ export const formatDuration = (ms: number) => {
   ms %= 60 * 1000;
   const seconds = Math.floor(ms / 1000);
 
-  if (days > 0) return `${days}d${hours > 0 ? ` ${hours}h` : ""}`;
-  if (hours > 0) return `${hours}h${minutes > 0 ? ` ${minutes}m` : ""}`;
-  if (minutes > 0) return `${minutes}m${seconds > 0 ? ` ${seconds}s` : ""}`;
+  if (days > 0) {
+    const hoursStr = hours > 0 ? ` ${hours}h` : "";
+    return `${days}d${hoursStr}`;
+  }
+  if (hours > 0) {
+    const minutesStr = minutes > 0 ? ` ${minutes}m` : "";
+    return `${hours}h${minutesStr}`;
+  }
+  if (minutes > 0) {
+    const secondsStr = seconds > 0 ? ` ${seconds}s` : "";
+    return `${minutes}m${secondsStr}`;
+  }
   return `${seconds}s`;
 };
 
+const getBorderColorClass = (index: number) => {
+  if (index === 1) return "border-l-blocks-secondary-500";
+  if (index === 2) return "border-l-chart-blue";
+  return "border-l-chart-purple";
+};
+
 const MonitorSummary = ({ data, status, incident, createdAt }: MonitorSummaryProps) => {
-  const toMilliseconds = (value: string): number => parseInt(value, 10) * 24 * 60 * 60 * 1000;
+  const toMilliseconds = (value: string): number => Number.parseInt(value, 10) * 24 * 60 * 60 * 1000;
   const [now] = useState(() => Date.now());
   const incidentDate = new Date(incident);
   const incidentTime =
@@ -89,7 +104,7 @@ const MonitorSummary = ({ data, status, incident, createdAt }: MonitorSummaryPro
         if (item.type === "status") {
           return (
             <Card
-              key={`status-${index}`}
+              key={`status-${index}`} //nosonar
               className={`flex flex-1 flex-col rounded-md border-0 border-l-8 shadow-none ${
                 status ? "border-l-green-500" : "border-l-red-500"
               } bg-transparent py-2 pl-4`}
@@ -119,20 +134,16 @@ const MonitorSummary = ({ data, status, incident, createdAt }: MonitorSummaryPro
         return (
           <Card
             key={item.range}
-            className={`flex flex-1 flex-col gap-2 rounded-md border-0 border-l-8 bg-transparent py-1 pl-4 shadow-none ${
-              index === 1
-                ? "border-l-blocks-secondary-500"
-                : index === 2
-                  ? "border-l-chart-blue"
-                  : "border-l-chart-purple"
-            }`}
+            className={`flex flex-1 flex-col gap-2 rounded-md border-0 border-l-8 bg-transparent py-1 pl-4 shadow-none ${getBorderColorClass(
+              index
+            )}`}
           >
             <CardTitle className="text-base font-medium">
               Last {item.range?.slice(0, -1)} days
             </CardTitle>
             <CardContent className="mt-3 flex flex-col gap-3">
               <span className="text-xl font-semibold">{uptimePercentage.toFixed(2)}%</span>
-              <span className="text-xs font-medium text-primary underline">
+              <span className="text-xs font-medium text-primary">
                 {item.incidentCount} incidents, {formatDuration(item.totalDurationMs!)} down
               </span>
             </CardContent>
