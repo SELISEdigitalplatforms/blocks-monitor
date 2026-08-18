@@ -38,6 +38,9 @@ export const useUpdateSingleMonitor = () => {
       queryClient.invalidateQueries({
         queryKey: ["monitor-list-by-id"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["health-monitor-list"],
+      });
 
       queryClient.refetchQueries({
         queryKey: ["get-monitor-by-id", variables.data.itemId],
@@ -273,6 +276,9 @@ export const useUpdateHealth = () => {
       queryClient.invalidateQueries({
         queryKey: ["monitor-list-by-id"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["health-monitor-list"],
+      });
 
       // Also try refetching specific queries
       queryClient.refetchQueries({
@@ -293,6 +299,9 @@ export const useDeleteHealth = () => {
       });
       queryClient.invalidateQueries({
         queryKey: ["get-monitor-by-id"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["health-monitor-list"],
       });
     },
   });
