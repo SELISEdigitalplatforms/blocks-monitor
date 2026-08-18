@@ -72,8 +72,26 @@ describe("toSeconds", () => {
 });
 
 describe("toFormValuesFromMonitorDetails", () => {
-  it("returns defaults when no details are supplied", () => {
-    expect(toFormValuesFromMonitorDetails(undefined)).toEqual(getMonitorFormDefaultValues());
+  // Was `toEqual(getMonitorFormDefaultValues())`. The edit form deliberately no longer
+  // inherits the add defaults for the two timeout fields, so equality with a moving
+  // target is both wrong and weaker than naming the expected shape.
+  it("returns the add defaults except for the pinned edit timeout fallbacks", () => {
+    const defaults = getMonitorFormDefaultValues();
+    expect(toFormValuesFromMonitorDetails(undefined)).toEqual({
+      ...defaults,
+      monitorSettings: {
+        ...defaults.monitorSettings,
+        request_timeout: 3,
+        grace_time: 3,
+      },
+    });
+  });
+
+  it("keeps the edit fallback at 5min even though add now defaults to 30s", () => {
+    const values = toFormValuesFromMonitorDetails(undefined);
+    expect(values.monitorSettings.request_timeout).toBe(3);
+    expect(values.monitorSettings.grace_time).toBe(3);
+    expect(getMonitorFormDefaultValues().monitorSettings.request_timeout).toBe(1);
   });
 
   it("maps monitor details into form values", () => {
@@ -103,6 +121,10 @@ describe("toFormValuesFromMonitorDetails", () => {
     expect(values.urlMonitor).toBe("https://svc.example.com");
     expect(values.monitorSettings.monitor_interval).toBe(2);
     expect(values.monitorSettings.grace_time).toBe(3);
+    // The fixture saves a 30s timeout, so this must be step 1 — asserted because the
+    // grace assertion above uses step 3, which is also the fallback and so cannot
+    // distinguish reading the saved value from ignoring it.
+    expect(values.monitorSettings.request_timeout).toBe(1);
     expect(values.monitorSettings.check_ssl_errors).toBe(true);
     expect(values.requestConfiguration.http_methods).toBe("2");
     expect(values.requestConfiguration.request_body).toBe('{"a":1}');
@@ -131,6 +153,24 @@ describe("toFormValuesFromMonitorDetails", () => {
     } as unknown as IMonitorDetails);
     expect(values.requestConfiguration.x_header_name).toBe("");
     expect(values.requestConfiguration.json_switcher).toBe(false);
+  });
+
+  // C2. 60s is step 2 — neither the add default (1) nor the edit fallback (3) — so an
+  // implementation that ignored the saved value and returned either constant fails.
+  it("hydrates a saved request timeout that is neither the add default nor the fallback", () => {
+    const values = toFormValuesFromMonitorDetails({
+      monitorConfigurationType: 0,
+      timeoutInSeconds: 60,
+    } as unknown as IMonitorDetails);
+    expect(values.monitorSettings.request_timeout).toBe(2);
+  });
+
+  it("hydrates a saved grace period that is neither the add default nor the fallback", () => {
+    const values = toFormValuesFromMonitorDetails({
+      monitorConfigurationType: 1,
+      gracePeriodInSeconds: 60,
+    } as unknown as IMonitorDetails);
+    expect(values.monitorSettings.grace_time).toBe(2);
   });
 });
 
@@ -206,5 +246,32 @@ describe("payload builders", () => {
     const payload = toUpdateCallbackPayload(values, context);
     expect(payload.itemId).toBe("item-1");
     expect(payload.monitorConfigurationType).toBe(1);
+  });
+});
+
+// H5: what a user actually saves when they add a monitor and never touch the sliders.
+// This goes through the real payload builders rather than asserting toSeconds(1) in
+// isolation, so a default that never reached the wire would still fail.
+describe("submitting untouched add-mode defaults", () => {
+  it("sends a 30 second timeout for a request monitor", () => {
+    const payload = toCreateRequestPayload(
+      {
+        ...getMonitorFormDefaultValues("request"),
+        name: "svc",
+        urlMonitor: "https://svc.example.com",
+      },
+      context,
+    );
+    expect(payload.timeoutInSeconds).toBe(30);
+    expect(payload.intervalInSeconds).toBe(60);
+  });
+
+  it("sends a 30 second grace period for a callback monitor", () => {
+    const payload = toCreateCallbackPayload(
+      { ...getMonitorFormDefaultValues("callback"), name: "svc" },
+      context,
+    );
+    expect(payload.gracePeriodInSeconds).toBe(30);
+    expect(payload.intervalInSeconds).toBe(60);
   });
 });
