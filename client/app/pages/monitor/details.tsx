@@ -114,13 +114,17 @@ const MonitorSummary = ({ data, status, incident, createdAt, isActive }: Monitor
           // and the "Currently up for ..." line -- drops out together rather than leaving a
           // green card that also says "Paused".
           const isPaused = isActive === false;
+          let statusBorderColor = "border-l-red-500";
+          if (isPaused) {
+            statusBorderColor = "border-l-muted";
+          } else if (status) {
+            statusBorderColor = "border-l-green-500";
+          }
 
           return (
             <Card
               key={`status-${index}`} //nosonar
-              className={`flex flex-1 flex-col rounded-md border-0 border-l-8 shadow-none ${
-                isPaused ? "border-l-muted" : status ? "border-l-green-500" : "border-l-red-500"
-              } bg-transparent py-2 pl-4`}
+              className={`flex flex-1 flex-col rounded-md border-0 border-l-8 shadow-none ${statusBorderColor} bg-transparent py-2 pl-4`}
             >
               <CardTitle className="text-base font-medium">Current Status</CardTitle>
               <CardContent className="mt-3 flex flex-col gap-3">

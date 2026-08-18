@@ -1,6 +1,16 @@
 import React, { useMemo, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/core";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/core";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/core";
 import {
   AreaChart,
   Area,
@@ -59,7 +69,7 @@ const CustomTooltip = ({
   active?: boolean;
   payload?: { payload: ChartPoint }[];
 }) => {
-  if (!active || !payload || !payload.length) return null;
+  if (!active || !payload?.length) return null;
   const d: ChartPoint = payload[0]?.payload;
   return (
     <div className="rounded-md border bg-white p-3 text-sm shadow">
@@ -74,6 +84,53 @@ const CustomTooltip = ({
       )}
     </div>
   );
+};
+
+type RelevantDowntime = {
+  start: number;
+  end: number;
+};
+
+const processDowntimePoints = (
+  relevant: RelevantDowntime[],
+  rangeStart: number,
+  now: number,
+  isActive: boolean,
+  pts: ChartPoint[]
+) => {
+  for (const d of relevant) {
+    const s = Math.max(d.start, rangeStart);
+    const e = Math.min(d.end, now);
+
+    // push one tick immediately before downtime to keep step visual (if within range)
+    if (s - 1 >= rangeStart) pts.push({ ts: s - 1, status: 1 });
+
+    // downtime start
+    pts.push({
+      ts: s,
+      status: 0,
+      startTime: s,
+      endTime: e,
+      duration: Math.round((e - s) / 1000),
+    });
+
+    // downtime end. An unresolved incident normalises its end to `now` above, so while paused
+    // this point would assert "currently down" just as the synthetic final point would -- the
+    // guard has to cover both. The incident's start is still plotted, so the chart shows it
+    // went down and then observation stopped.
+    if (isActive || e < now) {
+      pts.push({
+        ts: e,
+        status: 0,
+        startTime: s,
+        endTime: e,
+        duration: Math.round((e - s) / 1000),
+      });
+    }
+
+    // push one tick immediately after downtime to transition back to UP
+    if (e + 1 <= now) pts.push({ ts: e + 1, status: 1 });
+  }
 };
 
 const ResponseTime = ({
@@ -134,52 +191,17 @@ const ResponseTime = ({
     // start edge: assume UP at rangeStart (will be corrected by downtimes if overlap)
     pts.push({ ts: rangeStart, status: 1 });
 
-    if (!downtimes || !Array.isArray(downtimes) || downtimes.length === 0) {
-      if (isActive) pts.push({ ts: now, status: currentStatus ? 1 : 0 });
-      return pts.sort((a, b) => a.ts - b.ts);
-    }
+    if (downtimes && Array.isArray(downtimes) && downtimes.length > 0) {
+      // normalize and clip downtimes to range
+      const relevant = downtimes
+        .map((d) => ({
+          start: new Date(d.startTime).getTime(),
+          end: d.endTime ? new Date(d.endTime).getTime() : now,
+        }))
+        .filter((d) => d.end >= rangeStart && d.start <= now)
+        .sort((a, b) => a.start - b.start);
 
-    // normalize and clip downtimes to range
-    const relevant = downtimes
-      .map((d) => ({
-        start: new Date(d.startTime).getTime(),
-        end: d.endTime ? new Date(d.endTime).getTime() : now,
-      }))
-      .filter((d) => d.end >= rangeStart && d.start <= now)
-      .sort((a, b) => a.start - b.start);
-
-    for (const d of relevant) {
-      const s = Math.max(d.start, rangeStart);
-      const e = Math.min(d.end, now);
-
-      // push one tick immediately before downtime to keep step visual (if within range)
-      if (s - 1 >= rangeStart) pts.push({ ts: s - 1, status: 1 });
-
-      // downtime start
-      pts.push({
-        ts: s,
-        status: 0,
-        startTime: s,
-        endTime: e,
-        duration: Math.round((e - s) / 1000),
-      });
-
-      // downtime end. An unresolved incident normalises its end to `now` above, so while paused
-      // this point would assert "currently down" just as the synthetic final point would -- the
-      // guard has to cover both. The incident's start is still plotted, so the chart shows it
-      // went down and then observation stopped.
-      if (isActive || e < now) {
-        pts.push({
-          ts: e,
-          status: 0,
-          startTime: s,
-          endTime: e,
-          duration: Math.round((e - s) / 1000),
-        });
-      }
-
-      // push one tick immediately after downtime to transition back to UP
-      if (e + 1 <= now) pts.push({ ts: e + 1, status: 1 });
+      processDowntimePoints(relevant, rangeStart, now, isActive, pts);
     }
 
     // final point at now -- skipped while paused: nothing is being checked, so plotting a
@@ -189,9 +211,7 @@ const ResponseTime = ({
     // dedupe by timestamp keeping last pushed (so transitions behave correctly)
     const map = new Map<number, ChartPoint>();
     for (const p of pts) map.set(p.ts, p);
-    const final = Array.from(map.values()).sort((a, b) => a.ts - b.ts);
-
-    return final;
+    return Array.from(map.values()).sort((a, b) => a.ts - b.ts);
   }, [downtimes, rangeStart, now, currentStatus, isActive]);
 
   return (
