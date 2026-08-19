@@ -16,13 +16,12 @@ import {
   toUpdateRequestPayload,
 } from "./util";
 import { ErrorTransformer } from "@seliseblocks/genesis-os/utils";
-import { useGetAllServices } from "@seliseblocks/genesis-os/hooks";
+import { useScopedPath, useGetAllServices } from "@seliseblocks/genesis-os/hooks";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
-import { useScopedPath } from "@seliseblocks/genesis-os/hooks";
 import {
   getMonitorFormDefaultValues,
   type MonitorFormMode,
