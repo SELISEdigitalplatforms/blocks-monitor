@@ -10,15 +10,21 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="MongoDB.Driver" Version="3.8.0" />
     <!--
-      Genesis stays declared at 4.0.2, but note that Api does NOT run on it: ReleaseDriver.OS 4.0.1
-      requires a newer Genesis, so NuGet lifts Api's graph to SeliseBlocks.Genesis.OS 4.0.5, while
-      Worker and Alert.DomainService still resolve 4.0.2. Recorded rather than "fixed" by bumping
-      this line, because raising it centrally would also upgrade Worker - a separate process that
-      issue #201 does not touch and whose behaviour was never assessed against 4.0.5. The split is
-      safe: Api and Worker are separate processes, and Api's whole graph (including the
-      Alert.DomainService code it loads) runs on the single higher version.
+      Genesis is declared at 4.0.8 and every project now resolves that one version. This previously
+      sat at 4.0.2 with Api's graph lifted to 4.0.5 by ReleaseDriver.OS 4.0.1, so Api and Worker ran
+      different Genesis versions on purpose; that split is gone. Worker was deliberately left on the
+      older version at the time because issue #201 did not touch it and its behaviour had not been
+      assessed against 4.0.5 - it is now on 4.0.8 along with everything else, so Worker is the part
+      to watch if something regresses.
+
+      4.0.8 adds delegated access, which registers a startup validator that fails the host unless
+      BLOCKS_IAM_BASE_URL or BLOCKS_IAM_TOKEN_ENDPOINT resolves. Both processes get it from the
+      Secrets KeyPairs document via SeliseBlocks.ConfigurationDriver (key
+      'FrontendRuntime:BLOCKS_IAM_BASE_URL', provisioned by blocks-infra/configure.sh), so no
+      environment variable is needed - but an environment provisioned before that infra change must
+      be re-provisioned or the host will not start.
     -->
-    <PackageVersion Include="SeliseBlocks.Genesis.OS" Version="4.0.2" />
+    <PackageVersion Include="SeliseBlocks.Genesis.OS" Version="4.0.8" />
     <PackageVersion Include="SeliseBlocks.ReleaseDriver.OS" Version="4.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.2" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
