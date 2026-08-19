@@ -5,6 +5,7 @@ export type MonitorProjectFixture = {
   projectName: string
   itemId: string
   dashboardUrl: string
+  monitorUrl: string
 }
 
 const FIXTURE_PATH = path.resolve(__dirname, "../fixtures/monitor-project.json")
@@ -22,5 +23,12 @@ export function writeMonitorProject(fixture: MonitorProjectFixture) {
 
 export function clearMonitorProject() {
   if (fs.existsSync(FIXTURE_PATH)) fs.unlinkSync(FIXTURE_PATH)
+}
+
+export function clearMonitorSession() {
   if (fs.existsSync(MONITOR_SESSION_PATH)) fs.unlinkSync(MONITOR_SESSION_PATH)
+}
+
+export function monitorSessionExists(): boolean {
+  return fs.existsSync(MONITOR_SESSION_PATH)
 }

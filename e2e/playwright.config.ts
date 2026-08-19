@@ -65,7 +65,9 @@ export default defineConfig({
       dependencies: ["monitor-setup"],
       use: {
         ...devices["Desktop Chrome"],
-        storageState: "fixtures/monitor-session.json",
+        ...(fs.existsSync(monitorSessionPath)
+          ? { storageState: "fixtures/monitor-session.json" }
+          : {}),
       },
     },
     {

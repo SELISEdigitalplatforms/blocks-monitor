@@ -33,7 +33,7 @@ export async function ensureMonitorExists(page: Page) {
   }
   await page.getByTestId("add-monitor-button").click()
   await expect(page.getByRole("heading", { name: "Add monitor" })).toBeVisible()
-  await page.getByLabel("Name").fill(`e2e-pause-resume-${Date.now()}`)
+  await page.getByLabel("Name").fill(`e2e-shared-${Date.now()}`)
   await page
     .getByPlaceholder("Enter URL to monitor")
     .fill(`https://example.com/health-${Date.now()}`)
@@ -89,6 +89,13 @@ export async function openMonitorList(page: Page) {
   const fixture = readMonitorProject()
   if (!fixture) {
     throw new Error("Monitor project fixture not found. Did monitor-setup run?")
+  }
+
+  if (fixture.monitorUrl) {
+    await page.goto(fixture.monitorUrl)
+    await expect(page.getByRole("heading", { name: "Monitor" })).toBeVisible({ timeout: 30_000 })
+    await ensureMonitorExists(page)
+    return
   }
 
   if (fixture.dashboardUrl) {
