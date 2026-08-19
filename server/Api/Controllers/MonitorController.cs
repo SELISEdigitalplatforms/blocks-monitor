@@ -1,4 +1,4 @@
-﻿using DomainService.Monitor.Models;
+using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.Services;
 using DomainService.Shared.Models;
@@ -206,7 +206,7 @@ namespace Api.Controllers
         /// MonitorControllerTests reads the generated route so this cannot regress silently.
         /// </remarks>
         [Authorize]
-        [HttpGet("~/Monitor/repos-list")]
+        [HttpGet("~/api/Monitor/repos-list")]
         public async Task<IActionResult> GetReposList()
         {
             try

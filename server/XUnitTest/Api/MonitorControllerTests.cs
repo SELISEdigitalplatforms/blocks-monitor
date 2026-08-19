@@ -275,7 +275,7 @@ namespace XUnitTest.Api
                 .Cast<RouteAttribute>().Single().Template;
 
             AttributeRouteModel.CombineTemplates(controllerTemplate, template)
-                               .Should().Be("Monitor/repos-list");
+                               .Should().Be("api/Monitor/repos-list");
         }
 
         [Fact]
