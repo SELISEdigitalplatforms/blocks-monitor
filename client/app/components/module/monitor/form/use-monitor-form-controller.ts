@@ -2,6 +2,7 @@ import {
   useAddSingleMonitor,
   useGetMonitorById,
   useGetMonitorListById,
+  useGetReposList,
   useIsExternalServiceConfigured,
   useSaveHealth,
   useUpdateHealth,
@@ -15,7 +16,7 @@ import {
   toUpdateRequestPayload,
 } from "./util";
 import { ErrorTransformer } from "@seliseblocks/genesis-os/utils";
-import { useGetEnvRepositories, useGetAllServices } from "@seliseblocks/genesis-os/hooks";
+import { useGetAllServices } from "@seliseblocks/genesis-os/hooks";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo } from "react";
@@ -91,8 +92,13 @@ export const useMonitorFormController = ({
   const selectedRepoId = form.watch("selectedRepoId");
   const selectedServiceId = form.watch("selectedServiceId");
 
-  const { data: envRepositoriesResponse, isLoading: isLoadingRepos } =
-    useGetEnvRepositories(projectKey);
+  // Sourced from our own API rather than blocks-logic. Same { data: [...] } envelope, so
+  // deployedRepos, the selectedRepo lookup and the duplication check below are unchanged.
+  const {
+    data: envRepositoriesResponse,
+    isLoading: isLoadingRepos,
+    isError: isReposError,
+  } = useGetReposList(projectKey);
 
   const { data: servicesResponse, isLoading: isLoadingServices } = useGetAllServices({
     projectKey,
@@ -141,7 +147,12 @@ export const useMonitorFormController = ({
 
   const sourceError = useMemo(() => {
     if (sourceType === "deployed" && !selectedRepoId) {
-      return isLoadingRepos ? "Loading repos..." : "Select a deployed repo.";
+      if (isLoadingRepos) return "Loading repos...";
+      // A failed request must not read as "this project has no repositories": without this the
+      // 400/500 the endpoint returns is indistinguishable from an empty list, and the user is
+      // invited to pick from a list that never loaded.
+      if (isReposError) return "Failed to get repos.";
+      return "Select a deployed repo.";
     }
 
     if (sourceType === "my-services" && !selectedServiceId) {
@@ -162,6 +173,7 @@ export const useMonitorFormController = ({
     selectedRepoId,
     selectedServiceId,
     isLoadingRepos,
+    isReposError,
     isLoadingServices,
     repoDuplicate,
     serviceDuplicate,
@@ -287,6 +299,7 @@ export const useMonitorFormController = ({
     deployedRepos,
     services,
     isLoadingRepos,
+    isReposError,
     isLoadingServices,
     isEditMode,
     isSubmitting,

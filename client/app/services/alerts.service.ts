@@ -8,6 +8,7 @@ import type {
   IGetAllIncidentListPayload,
   IGetHealthMonitorListPayload,
   IGetMonitorList,
+  IGetReposListResponse,
   IIncidentSummaryResponse,
   IMonitorIncidentListResponse,
   ISaveHealth,
@@ -31,6 +32,15 @@ class AlertsService {
   async deleteSingleMonitor(itemId: string) {
     const url = `${ALERT_ENDPOINTS.DELETE_MONITOR}?itemId=${encodeURIComponent(itemId)}`;
     return this.httpClient.delete<IAlertResponse<null>>(url);
+  }
+
+  /**
+   * Deployed repositories, served by our own API via IReleaseDriverService. Takes no parameters:
+   * the caller is identified by the auth token and the driver scopes the result server-side.
+   */
+  async getReposList() {
+    const url = ALERT_ENDPOINTS.GET_REPOS_LIST;
+    return this.httpClient.get<IGetReposListResponse>(url);
   }
 
   async getMonitorList(projectKey: string) {

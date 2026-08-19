@@ -73,6 +73,29 @@ describe("MonitorFormFields", () => {
     ).toBeInTheDocument();
   });
 
+  it("says the list is empty only when it really loaded empty", () => {
+    // Baseline for the pair below: no repos, no error -> the empty note is correct.
+    render(<Harness overrides={{ sourceType: "deployed", deployedRepos: [], isLoadingRepos: false }} />);
+    expect(screen.getByText("No deployed repos available.")).toBeInTheDocument();
+  });
+
+  it("does not claim there are no repos when the fetch failed", () => {
+    // A failed request also leaves deployedRepos empty, so without the isReposError guard the form
+    // asserted "No deployed repos available." about a list it never received - alongside the
+    // controller's "Failed to get repos.", telling the user two different things at once.
+    render(
+      <Harness
+        overrides={{
+          sourceType: "deployed",
+          deployedRepos: [],
+          isLoadingRepos: false,
+          isReposError: true,
+        }}
+      />,
+    );
+    expect(screen.queryByText("No deployed repos available.")).toBeNull();
+  });
+
   it("shows the repo selector when source is deployed", () => {
     render(<Harness overrides={{ sourceType: "deployed" }} />);
     expect(screen.getByText("Select repo")).toBeInTheDocument();

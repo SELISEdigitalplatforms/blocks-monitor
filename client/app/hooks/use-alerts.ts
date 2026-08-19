@@ -111,6 +111,21 @@ export const useGetMonitorListById = (projectKey: string, repoId: string) => {
   });
 };
 
+/**
+ * Deployed repositories from our own API, replacing the browser's direct call to blocks-logic.
+ *
+ * `projectKey` (the selected tenant id) is NOT sent to the server - the driver scopes by the
+ * caller's token. It is part of the query key purely to partition the cache: QueryClient runs a
+ * 60s staleTime, so a shared key would keep serving the previous tenant's repositories for up to
+ * a minute after switching, and those would then be checked against the new tenant's monitors.
+ */
+export const useGetReposList = (projectKey: string) => {
+  return useQuery({
+    queryKey: ["repos-list", projectKey],
+    queryFn: () => alertsService.getReposList(),
+    enabled: !!projectKey,
+  });
+};
 export const useIsExternalServiceConfigured = (externalServiceId: string) => {
   return useQuery({
     queryKey: ["external-service-configured", externalServiceId],

@@ -65,6 +65,7 @@ type MonitorFormFieldsProps = {
   deployedRepos: RepoOption[];
   services: ServiceOption[];
   isLoadingRepos: boolean;
+  isReposError?: boolean;
   isLoadingServices: boolean;
   isSubmitting: boolean;
   isEditMode: boolean;
@@ -84,6 +85,7 @@ export const MonitorFormFields = ({
   deployedRepos,
   services,
   isLoadingRepos,
+  isReposError,
   isLoadingServices,
   isSubmitting,
   isEditMode,
@@ -97,7 +99,10 @@ export const MonitorFormFields = ({
   const httpMethod = form.watch("requestConfiguration.http_methods");
   const sendAsJson = form.watch("requestConfiguration.json_switcher");
 
-  const showEmptyRepos = !isLoadingRepos && deployedRepos.length === 0;
+  // A failed fetch also leaves deployedRepos empty, so without the isReposError guard the form
+  // renders "Failed to get repos." and "No deployed repos available." together - one of which is a
+  // guess. Only claim the list is empty when it actually loaded.
+  const showEmptyRepos = !isLoadingRepos && !isReposError && deployedRepos.length === 0;
   const showEmptyServices = !isLoadingServices && services.length === 0;
 
   return (
