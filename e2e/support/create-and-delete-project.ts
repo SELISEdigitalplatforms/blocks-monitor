@@ -212,7 +212,8 @@ export async function createProject(page: Page) {
     })
   })
 
-  const projectName = `Test Project ${Date.now()}`
+  const baseProjectName = process.env.PROJECT_NAME?.trim() || "Test Project"
+  const projectName = `${baseProjectName} ${Date.now()}`
   await test.step("Name the project and accept the agreements", async () => {
     const nameInput = page.locator('[placeholder="Enter your project name"]:visible')
     await nameInput.fill(projectName)
@@ -247,13 +248,18 @@ export async function createProject(page: Page) {
     await expect(page.getByText("Your project has been created.", { exact: true })).toBeVisible({
       timeout: 25_000,
     })
-    await expect(page).toHaveURL(/\/app\/project\/[^/]+\/environments$/, {
-      timeout: 15_000,
+    // Dev often lands on /project/{id}/environments; prod OS may send you
+    // straight back to /app/console after the success toast.
+    await expect(page).toHaveURL(/\/app\/(console|project\/[^/]+\/environments)\/?$/, {
+      timeout: 20_000,
     })
   })
 
   await test.step("Open project dashboard on Monitor", async () => {
+    // Prefer direct navigation over the app switcher: known destination,
+    // no ambiguous text matches, no OIDC initiate race after create.
     await page.goto(`${e2eBaseUrl()}/app/console`, { waitUntil: "domcontentloaded" })
+    await ensureAuthenticated(page)
     await ensureConsole(page, "monitor")
     await openNamedProjectDashboard(page, projectName)
   })
@@ -327,3 +333,4 @@ export async function deleteCreatedProject(
     }
   })
 }
+

@@ -92,7 +92,8 @@ npm run report        # open the last HTML report
 
 | Variable                        | Effect                                                                                             |
 | ------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `E2E_BASE_URL`                  | Host under test. No default; a missing value fails loudly.                                        |
+| `E2E_BASE_URL`                  | Blocks **Monitor** host. Dev: `https://dev-monitor.blocksdevelopers.com`. Prod: `https://monitor.seliseblocks.com`. |
+| `E2E_OS_BASE_URL`               | Blocks **OS** host (optional). Derived from Monitor when omitted: `dev-monitor`→`dev-os`, `monitor.`→`os.`. |
 | `E2E_USERNAME` / `E2E_PASSWORD` | Dev-IAM test account.                                                                              |
 | `E2E_NO_WEBSERVER=1`            | Don't auto-start the app; you manage the server.                                                   |
 | `E2E_PAUSE_MS`                  | How long the browser holds after **each** test. Defaults to 10 s headed, 0 headless; `0` disables. |
