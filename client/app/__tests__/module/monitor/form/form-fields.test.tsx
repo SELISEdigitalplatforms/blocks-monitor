@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog } from "@/components/core";
 import { MonitorFormFields } from "@/components/module/monitor/form/monitor-form-fields";
+import { MonitorModal } from "@/components/module/monitor/modal/monitor-modal";
 import {
   getMonitorFormDefaultValues,
   monitorFormSchema,
@@ -65,11 +66,34 @@ describe("MonitorFormFields", () => {
   });
 
   it("hides monitor type and shows the locked note in edit mode", () => {
-    render(<Harness overrides={{ isEditMode: true }} />);
+    render(<Harness overrides={{ mode: "edit", isEditMode: true }} />);
     expect(screen.queryByText("Monitor type")).toBeNull();
     expect(
       screen.getByText("Monitor source cannot be changed for existing monitors."),
     ).toBeInTheDocument();
+  });
+
+  it("says the list is empty only when it really loaded empty", () => {
+    // Baseline for the pair below: no repos, no error -> the empty note is correct.
+    render(<Harness overrides={{ sourceType: "deployed", deployedRepos: [], isLoadingRepos: false }} />);
+    expect(screen.getByText("No deployed repos available.")).toBeInTheDocument();
+  });
+
+  it("does not claim there are no repos when the fetch failed", () => {
+    // A failed request also leaves deployedRepos empty, so without the isReposError guard the form
+    // asserted "No deployed repos available." about a list it never received - alongside the
+    // controller's "Failed to get repos.", telling the user two different things at once.
+    render(
+      <Harness
+        overrides={{
+          sourceType: "deployed",
+          deployedRepos: [],
+          isLoadingRepos: false,
+          isReposError: true,
+        }}
+      />,
+    );
+    expect(screen.queryByText("No deployed repos available.")).toBeNull();
   });
 
   it("shows the repo selector when source is deployed", () => {
@@ -106,10 +130,11 @@ describe("MonitorFormFields", () => {
     expect(onSourceTypeChange).toHaveBeenCalledWith("deployed");
   });
 
-  it("expands the monitor settings accordion to reveal the interval slider", async () => {
+  // Was: clicked "Monitor settings" first. In add mode the accordion now starts open,
+  // so that click would collapse it and Radix would unmount the content.
+  it("shows the interval and timeout sliders in the monitor settings accordion", () => {
     render(<Harness />);
-    await userEvent.click(screen.getByRole("button", { name: /Monitor settings/ }));
-    expect(await screen.findByText("Monitor interval")).toBeInTheDocument();
+    expect(screen.getByText("Monitor interval")).toBeInTheDocument();
     expect(screen.getByText("Request timeout")).toBeInTheDocument();
   });
 
@@ -138,12 +163,132 @@ describe("MonitorFormFields", () => {
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   });
 
-  it("shows the grace-time slider for callback monitors", async () => {
+  // Was: clicked "Monitor settings" first — same inversion as above.
+  it("shows the grace-time slider for callback monitors", () => {
     render(<Harness overrides={{ monitorType: "callback" }} />);
-    await userEvent.click(screen.getByRole("button", { name: /Monitor settings/ }));
-    expect(await screen.findByText("Grace Time")).toBeInTheDocument();
+    expect(screen.getByText("Grace Time")).toBeInTheDocument();
     // request-only config accordion is absent for callbacks
     expect(screen.queryByText("Request Configuration")).toBeNull();
+  });
+});
+
+describe("MonitorFormFields monitor settings defaults", () => {
+  const settingsTrigger = () => screen.getByRole("button", { name: /Monitor settings/ });
+
+  /**
+   * The slider renders every tick label ("30s", "1min", ...) unconditionally and shows
+   * no current-value text, so asserting on "30s" would pass whatever the default is.
+   * The value lives on the Radix thumb's aria-valuenow; scope by label because both
+   * sliders in the accordion expose role="slider".
+   */
+  const sliderFor = (label: string) =>
+    within(screen.getByText(label).closest("div")!).getByRole("slider");
+
+  it("opens the accordion in add mode without any interaction (H1)", () => {
+    render(<Harness />);
+    expect(settingsTrigger()).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText("Monitor interval")).toBeInTheDocument();
+  });
+
+  it("defaults the request timeout to 30s for request monitors (H2, C3)", () => {
+    render(<Harness />);
+    expect(sliderFor("Request timeout")).toHaveAttribute("aria-valuenow", "1");
+    expect(screen.queryByText("Grace Time")).toBeNull();
+  });
+
+  it("defaults the grace time to 30s for callback monitors (H3, C4)", () => {
+    render(<Harness overrides={{ monitorType: "callback" }} />);
+    expect(sliderFor("Grace Time")).toHaveAttribute("aria-valuenow", "1");
+    expect(screen.queryByText("Request timeout")).toBeNull();
+  });
+
+  it("leaves the monitor interval at 1min (H4)", () => {
+    render(<Harness />);
+    expect(sliderFor("Monitor interval")).toHaveAttribute("aria-valuenow", "2");
+  });
+
+  it("keeps the accordion collapsed in edit mode but still toggleable (C1)", async () => {
+    render(<Harness overrides={{ mode: "edit", isEditMode: true }} />);
+
+    expect(settingsTrigger()).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText("Monitor interval")).toBeNull();
+
+    // The second half of C1: collapsed by default, but the user can still open it.
+    // Without this, an edit trigger that ignored clicks would satisfy every other
+    // assertion here, since C5 only exercises add mode where it starts open.
+    await userEvent.click(settingsTrigger());
+    expect(await screen.findByText("Monitor interval")).toBeInTheDocument();
+  });
+
+  it("shows the monitor's saved timeout in edit mode, not the add default (C2)", async () => {
+    render(
+      <Harness
+        overrides={{ mode: "edit", isEditMode: true }}
+        initialValues={{
+          monitorSettings: {
+            ...getMonitorFormDefaultValues().monitorSettings,
+            // step 2 = 60s: neither the add default (1) nor the edit fallback (3)
+            request_timeout: 2,
+          },
+        }}
+      />,
+    );
+
+    await userEvent.click(settingsTrigger());
+    expect(await screen.findByText("Request timeout")).toBeInTheDocument();
+    expect(sliderFor("Request timeout")).toHaveAttribute("aria-valuenow", "2");
+  });
+
+  it("lets the user collapse the accordion again in add mode (C5)", async () => {
+    render(<Harness />);
+    expect(settingsTrigger()).toHaveAttribute("aria-expanded", "true");
+
+    await userEvent.click(settingsTrigger());
+
+    expect(settingsTrigger()).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText("Monitor interval")).toBeNull();
+  });
+});
+
+/**
+ * Section 4 example 5: reopening "Add monitor" after fiddling with the settings shows
+ * the defaults again. Driven through the real MonitorModal rather than a bare RTL
+ * unmount, because what makes this work is that DialogContent unmounts its children
+ * when closed — a forceMount or lifted-state change would break the behaviour while a
+ * hand-rolled unmount test carried on passing.
+ */
+describe("reopening the add-monitor modal", () => {
+  function ModalHarness({ open }: { open: boolean }) {
+    return (
+      <MonitorModal open={open} onOpenChange={() => {}} itemId={null}>
+        <Harness />
+      </MonitorModal>
+    );
+  }
+
+  it("restores the open accordion and the 30s default", async () => {
+    const trigger = () => screen.getByRole("button", { name: /Monitor settings/ });
+    const timeoutSlider = () =>
+      within(screen.getByText("Request timeout").closest("div")!).getByRole("slider");
+
+    const view = render(<ModalHarness open />);
+
+    // Dirty both pieces of state first. Asserting the default without moving it off
+    // the default would prove nothing at all.
+    await userEvent.click(timeoutSlider());
+    await userEvent.keyboard("{ArrowRight}");
+    expect(timeoutSlider()).toHaveAttribute("aria-valuenow", "2");
+
+    await userEvent.click(trigger());
+    expect(trigger()).toHaveAttribute("aria-expanded", "false");
+
+    view.rerender(<ModalHarness open={false} />);
+    expect(screen.queryByRole("button", { name: /Monitor settings/ })).toBeNull();
+
+    view.rerender(<ModalHarness open />);
+
+    expect(trigger()).toHaveAttribute("aria-expanded", "true");
+    expect(timeoutSlider()).toHaveAttribute("aria-valuenow", "1");
   });
 });
 

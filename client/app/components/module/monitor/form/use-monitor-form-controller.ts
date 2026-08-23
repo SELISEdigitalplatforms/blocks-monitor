@@ -2,6 +2,7 @@ import {
   useAddSingleMonitor,
   useGetMonitorById,
   useGetMonitorListById,
+  useGetReposList,
   useIsExternalServiceConfigured,
   useSaveHealth,
   useUpdateHealth,
@@ -15,13 +16,12 @@ import {
   toUpdateRequestPayload,
 } from "./util";
 import { ErrorTransformer } from "@seliseblocks/genesis-os/utils";
-import { useGetEnvRepositories, useGetAllServices } from "@seliseblocks/genesis-os/hooks";
+import { useScopedPath, useGetAllServices } from "@seliseblocks/genesis-os/hooks";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
-import { useScopedPath } from "@seliseblocks/genesis-os/hooks";
 import {
   getMonitorFormDefaultValues,
   type MonitorFormMode,
@@ -63,17 +63,25 @@ export const useMonitorFormController = ({
 
   const { data: monitorDetails } = useGetMonitorById(itemId || "");
 
-  const initialValues = useMemo(() => {
+  // react-hook-form seeds its state from `defaultValues` and only reconciles `values` in
+  // an effect, so the two have to be chosen together: a single shared seed would either
+  // flash the add defaults on the edit form's first render, or flash the edit fallback on
+  // the add form's. Each mode therefore supplies its own pair.
+  const { defaultValues, values } = useMemo(() => {
     if (isEditMode) {
-      return toFormValuesFromMonitorDetails(monitorDetails?.data);
+      return {
+        defaultValues: toFormValuesFromMonitorDetails(),
+        values: toFormValuesFromMonitorDetails(monitorDetails?.data),
+      };
     }
 
-    return getMonitorFormDefaultValues();
+    const addDefaults = getMonitorFormDefaultValues();
+    return { defaultValues: addDefaults, values: addDefaults };
   }, [isEditMode, monitorDetails?.data]);
 
   const form = useForm<MonitorFormValues>({
-    defaultValues: getMonitorFormDefaultValues(),
-    values: initialValues,
+    defaultValues,
+    values,
     resolver: zodResolver(monitorFormSchema),
     mode: "onChange",
   });
@@ -83,8 +91,13 @@ export const useMonitorFormController = ({
   const selectedRepoId = form.watch("selectedRepoId");
   const selectedServiceId = form.watch("selectedServiceId");
 
-  const { data: envRepositoriesResponse, isLoading: isLoadingRepos } =
-    useGetEnvRepositories(projectKey);
+  // Sourced from our own API rather than blocks-logic. Same { data: [...] } envelope, so
+  // deployedRepos, the selectedRepo lookup and the duplication check below are unchanged.
+  const {
+    data: envRepositoriesResponse,
+    isLoading: isLoadingRepos,
+    isError: isReposError,
+  } = useGetReposList(projectKey);
 
   const { data: servicesResponse, isLoading: isLoadingServices } = useGetAllServices({
     projectKey,
@@ -133,7 +146,12 @@ export const useMonitorFormController = ({
 
   const sourceError = useMemo(() => {
     if (sourceType === "deployed" && !selectedRepoId) {
-      return isLoadingRepos ? "Loading repos..." : "Select a deployed repo.";
+      if (isLoadingRepos) return "Loading repos...";
+      // A failed request must not read as "this project has no repositories": without this the
+      // 400/500 the endpoint returns is indistinguishable from an empty list, and the user is
+      // invited to pick from a list that never loaded.
+      if (isReposError) return "Failed to get repos.";
+      return "Select a deployed repo.";
     }
 
     if (sourceType === "my-services" && !selectedServiceId) {
@@ -154,6 +172,7 @@ export const useMonitorFormController = ({
     selectedRepoId,
     selectedServiceId,
     isLoadingRepos,
+    isReposError,
     isLoadingServices,
     repoDuplicate,
     serviceDuplicate,
@@ -279,6 +298,7 @@ export const useMonitorFormController = ({
     deployedRepos,
     services,
     isLoadingRepos,
+    isReposError,
     isLoadingServices,
     isEditMode,
     isSubmitting,

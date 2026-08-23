@@ -13,6 +13,7 @@ vi.mock("@/services/alerts.service", () => {
       deleteSingleMonitor: ok(),
       getHealthMonitorList: ok(),
       getMonitorListById: ok(),
+      getReposList: ok(),
       isExternalServiceConfigured: ok(),
       getMonitorDetails: ok(),
       getMonitorById: ok(),
@@ -48,6 +49,36 @@ describe("use-alerts queries", () => {
     );
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(alertsService.getHealthMonitorList).toHaveBeenCalled();
+  });
+
+  it("useGetReposList fetches the repository list", async () => {
+    // H3, the half the controller test cannot show: that the hook actually reaches the service.
+    const { result } = renderHook(() => hooks.useGetReposList("t-1"), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(alertsService.getReposList).toHaveBeenCalled();
+  });
+
+  it("useGetReposList stays disabled without a scope", async () => {
+    const { result } = renderHook(() => hooks.useGetReposList(""), { wrapper });
+    expect(result.current.fetchStatus).toBe("idle");
+    expect(alertsService.getReposList).not.toHaveBeenCalled();
+  });
+
+  it("useGetReposList refetches when the tenant changes instead of serving cached repos", async () => {
+    // The reason projectKey is in the query key at all. QueryClient runs a 60s staleTime, so a
+    // scope-free key would hand tenant t-2 the repositories fetched for t-1 - which then get
+    // compared against t-2's monitor list. Asserting a SECOND call is the whole point; a test that
+    // only checked the first would pass with the leak in place.
+    const { result, rerender } = renderHook(({ scope }: { scope: string }) => hooks.useGetReposList(scope), {
+      wrapper,
+      initialProps: { scope: "t-1" },
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(alertsService.getReposList).toHaveBeenCalledTimes(1);
+
+    rerender({ scope: "t-2" });
+
+    await waitFor(() => expect(alertsService.getReposList).toHaveBeenCalledTimes(2));
   });
 
   it("useGetHealthMonitorList stays disabled without a project key", async () => {

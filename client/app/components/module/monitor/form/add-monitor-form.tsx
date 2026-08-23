@@ -26,6 +26,7 @@ export function AddSingleMonitorForm({ itemId: _itemId, onSuccess }: Props) {
       deployedRepos={controller.deployedRepos}
       services={controller.services}
       isLoadingRepos={controller.isLoadingRepos}
+      isReposError={controller.isReposError}
       isLoadingServices={controller.isLoadingServices}
       isSubmitting={controller.isSubmitting}
       isEditMode={controller.isEditMode}

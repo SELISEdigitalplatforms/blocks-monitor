@@ -30,6 +30,14 @@ describe("alertsService", () => {
     expect(post).toHaveBeenCalledWith("/api/Monitor/SaveMonitor", { name: "x" });
   });
 
+  it("getReposList GETs exactly /api/Monitor/repos-list", async () => {
+    // The only test that can catch a server/client URL disagreement: the server-side route test
+    // cannot see the /api prefix, and every controller/hook test mocks this away. Exact equality,
+    // because a substring check would also accept the wrong path.
+    await alertsService.getReposList();
+    expect(get).toHaveBeenCalledWith("/api/Monitor/repos-list");
+  });
+
   it("updateSingleMonitor POSTs to UpdateMonitor", async () => {
     await alertsService.updateSingleMonitor({ itemId: "1" } as never);
     expect(post).toHaveBeenCalledWith("/api/Monitor/UpdateMonitor", {
