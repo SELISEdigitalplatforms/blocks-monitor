@@ -21,6 +21,7 @@
     <PackageReference Include="FluentValidation.AspNetCore" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="SeliseBlocks.ConfigurationDriver" />
+    <PackageReference Include="SeliseBlocks.ReleaseDriver.OS" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Alert.DomainService\Alert.DomainService.csproj" />

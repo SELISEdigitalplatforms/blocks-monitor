@@ -65,6 +65,7 @@ type MonitorFormFieldsProps = {
   deployedRepos: RepoOption[];
   services: ServiceOption[];
   isLoadingRepos: boolean;
+  isReposError?: boolean;
   isLoadingServices: boolean;
   isSubmitting: boolean;
   isEditMode: boolean;
@@ -84,6 +85,7 @@ export const MonitorFormFields = ({
   deployedRepos,
   services,
   isLoadingRepos,
+  isReposError,
   isLoadingServices,
   isSubmitting,
   isEditMode,
@@ -96,6 +98,12 @@ export const MonitorFormFields = ({
 }: MonitorFormFieldsProps) => {
   const httpMethod = form.watch("requestConfiguration.http_methods");
   const sendAsJson = form.watch("requestConfiguration.json_switcher");
+
+  // A failed fetch also leaves deployedRepos empty, so without the isReposError guard the form
+  // renders "Failed to get repos." and "No deployed repos available." together - one of which is a
+  // guess. Only claim the list is empty when it actually loaded.
+  const showEmptyRepos = !isLoadingRepos && !isReposError && deployedRepos.length === 0;
+  const showEmptyServices = !isLoadingServices && services.length === 0;
 
   return (
     <Form {...form}>
@@ -196,7 +204,11 @@ export const MonitorFormFields = ({
                   getOptionValue={(repo) => repo.itemId}
                   getOptionLabel={(repo) => repo.repoName}
                   onValueChange={onRepoChange}
+                  emptyMessage="No items available."
                 />
+                {showEmptyRepos && (
+                  <p className="text-sm text-muted-foreground">No deployed repos available.</p>
+                )}
               </RenderConditionally>
 
               <RenderConditionally condition={sourceType === "my-services"}>
@@ -211,7 +223,11 @@ export const MonitorFormFields = ({
                   getOptionValue={(service) => service.serviceId}
                   getOptionLabel={(service) => service.name}
                   onValueChange={onServiceChange}
+                  emptyMessage="No items available."
                 />
+                {showEmptyServices && (
+                  <p className="text-sm text-muted-foreground">No services available.</p>
+                )}
               </RenderConditionally>
               {sourceError && <p className="text-sm text-destructive">{sourceError}</p>}
 
@@ -239,7 +255,17 @@ export const MonitorFormFields = ({
             </RenderConditionally>
           </div>
 
-          <Accordion type="single" collapsible className="w-full">
+          {/*
+            Add opens "Monitor settings" for you, since a new monitor almost always
+            needs these set. defaultValue rather than value keeps it uncontrolled, so
+            it is an initial state the user can still collapse. Edit is left alone.
+          */}
+          <Accordion
+            type="single"
+            collapsible
+            defaultValue={isEditMode ? undefined : "monitorSettings"}
+            className="w-full"
+          >
             <AccordionItem value="monitorSettings">
               <AccordionTrigger className="flex-row-reverse justify-end gap-4 hover:no-underline">
                 Monitor settings

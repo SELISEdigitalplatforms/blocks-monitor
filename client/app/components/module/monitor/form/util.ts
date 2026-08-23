@@ -22,6 +22,13 @@ type SubmitContext = {
 
 const DEFAULT_REQUEST_BODY = '{"key":"value"}';
 
+/**
+ * Slider step the edit form falls back to when a monitor has no saved timeout or
+ * grace value (step 3 = 5 minutes). Pinned here so that changing the *add* defaults
+ * in getMonitorFormDefaultValues cannot alter what the edit form shows.
+ */
+const EDIT_FALLBACK_TIMEOUT_STEP = 3;
+
 export const toMonitorSourceType = (sourceType: SourceType): MONITOR_SOURCE_TYPES => {
   if (sourceType === "deployed") return MONITOR_SOURCE_TYPES.DeployedServices;
   if (sourceType === "my-services") return MONITOR_SOURCE_TYPES.ExternalServices;
@@ -104,7 +111,15 @@ export const toFormValuesFromMonitorDetails = (
   monitorDetails?: IMonitorDetails,
 ): MonitorFormValues => {
   if (!monitorDetails) {
-    return getMonitorFormDefaultValues();
+    const defaults = getMonitorFormDefaultValues();
+    return {
+      ...defaults,
+      monitorSettings: {
+        ...defaults.monitorSettings,
+        request_timeout: EDIT_FALLBACK_TIMEOUT_STEP,
+        grace_time: EDIT_FALLBACK_TIMEOUT_STEP,
+      },
+    };
   }
 
   const { headerName, headerValue, jsonSwitcher } = getHeaderInfo(monitorDetails.customHttpHeaders);
@@ -118,8 +133,8 @@ export const toFormValuesFromMonitorDetails = (
     urlMonitor: monitorDetails.url || "",
     monitorSettings: {
       monitor_interval: toSliderStep(monitorDetails.intervalInSeconds, 2),
-      request_timeout: toSliderStep(monitorDetails.timeoutInSeconds, 3),
-      grace_time: toSliderStep(monitorDetails.gracePeriodInSeconds, 3),
+      request_timeout: toSliderStep(monitorDetails.timeoutInSeconds, EDIT_FALLBACK_TIMEOUT_STEP),
+      grace_time: toSliderStep(monitorDetails.gracePeriodInSeconds, EDIT_FALLBACK_TIMEOUT_STEP),
       check_ssl_errors: monitorDetails.checkSSLErrors || false,
       ssl_expiry_reminders: monitorDetails.sslExpiryReminders || false,
       domain_expiry_reminders: monitorDetails.domainExpiryReminders || false,

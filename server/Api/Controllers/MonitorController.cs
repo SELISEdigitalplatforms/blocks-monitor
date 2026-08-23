@@ -1,9 +1,14 @@
-﻿using DomainService.Monitor.Models;
+using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.Services;
 using DomainService.Shared.Models;
+using System.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+// The release driver namespace is deliberately NOT imported wholesale: it also defines a
+// `BaseApiResponse`, and importing it would make every existing `BaseApiResponse` in this file
+// ambiguous with DomainService.Shared.Models. Only the service interface is aliased in.
+using IReleaseDriverService = ReleaseDriver.IReleaseDriverService;
 
 namespace Api.Controllers
 {
@@ -18,6 +23,8 @@ namespace Api.Controllers
         private readonly IMonitorConfigurationRepoService _monitorConfigurationRepoService;
         private readonly IMonitorIncidentService _monitorIncidentService;
         private readonly IMonitorPingService _monitorPingService;
+        private readonly IReleaseDriverService _releaseDriverService;
+        private readonly ILogger<MonitorController> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MonitorController"/> class.
@@ -29,12 +36,16 @@ namespace Api.Controllers
             IMonitorConfigurationService monitorConfigurationService,
             IMonitorPingService monitorPingService,
             IMonitorConfigurationRepoService monitorConfigurationRepoService,
-            IMonitorIncidentService monitorIncidentService)
+            IMonitorIncidentService monitorIncidentService,
+            IReleaseDriverService releaseDriverService,
+            ILogger<MonitorController> logger)
         {
             _monitorConfigurationService = monitorConfigurationService;
             _monitorPingService = monitorPingService;
             _monitorConfigurationRepoService = monitorConfigurationRepoService;
             _monitorIncidentService = monitorIncidentService;
+            _releaseDriverService = releaseDriverService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -182,5 +193,66 @@ namespace Api.Controllers
                 IsSuccess = true
             });
         }
+
+        /// <summary>
+        /// Retrieves the deployed repository list for the caller, sourced from this API rather than
+        /// from the browser calling blocks-logic.
+        /// </summary>
+        /// <returns>The repository list, or a failure response if the release driver rejects it.</returns>
+        /// <remarks>
+        /// The route escapes the controller's "[controller]/[action]" template with "~/" on purpose.
+        /// A relative "repos-list" template would COMBINE with it and yield
+        /// Monitor/GetReposList/repos-list, which is not the documented contract; the route test in
+        /// MonitorControllerTests reads the generated route so this cannot regress silently.
+        /// </remarks>
+        [Authorize]
+        [HttpGet("~/api/Monitor/repos-list")]
+        public async Task<IActionResult> GetReposList()
+        {
+            try
+            {
+                var result = await _releaseDriverService.GetReposListAsync();
+
+                if (result is null || !result.IsSuccess)
+                {
+                    _logger.LogError("Release driver reported failure retrieving the repository list.");
+                    return BadRequest(new BaseApiResponse
+                    {
+                        IsSuccess = false,
+                        StatusCode = HttpStatusCode.BadRequest,
+                        Message = FailedToGetRepos
+                    });
+                }
+
+                // Returned as-is: re-mapping into this repo's BaseApiResponse would risk silently
+                // dropping fields the driver adds to its own envelope.
+                return Ok(result);
+            }
+            catch (OperationCanceledException)
+            {
+                // Cancellation is not a server fault - let it surface rather than reporting a
+                // failure the caller never caused.
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // GlobalExceptionHandlerMiddleware would already stop this from crashing the
+                // process; the catch exists to return the { isSuccess, message } shape the contract
+                // specifies instead of the middleware's generic body.
+                _logger.LogError(ex, "Unhandled failure retrieving the repository list.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new BaseApiResponse
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.InternalServerError,
+                    Message = FailedToGetRepos
+                });
+            }
+        }
+
+        /// <summary>
+        /// The failure message the contract specifies. Public so the tests assert the exact string
+        /// rather than restating it and drifting from it.
+        /// </summary>
+        public const string FailedToGetRepos = "Failed to get repos.";
     }
 }

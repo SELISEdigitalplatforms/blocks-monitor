@@ -18,6 +18,23 @@ describe("getMonitorFormDefaultValues", () => {
   it("respects an explicit configuration type", () => {
     expect(getMonitorFormDefaultValues("callback").monitorConfigurationType).toBe("callback");
   });
+
+  // Steps, not seconds: 1 = 30s, 2 = 1min, 3 = 5min.
+  it("defaults request timeout and grace time to 30s (step 1)", () => {
+    const v = getMonitorFormDefaultValues();
+    expect(v.monitorSettings.request_timeout).toBe(1);
+    expect(v.monitorSettings.grace_time).toBe(1);
+  });
+
+  it("leaves the monitor interval at 1min (step 2)", () => {
+    expect(getMonitorFormDefaultValues().monitorSettings.monitor_interval).toBe(2);
+  });
+
+  it("applies the 30s timeout defaults to callback monitors too", () => {
+    const v = getMonitorFormDefaultValues("callback");
+    expect(v.monitorSettings.grace_time).toBe(1);
+    expect(v.monitorSettings.request_timeout).toBe(1);
+  });
 });
 
 describe("monitorFormSchema", () => {

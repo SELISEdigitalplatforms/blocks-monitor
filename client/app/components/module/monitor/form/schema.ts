@@ -134,8 +134,11 @@ export const getMonitorFormDefaultValues = (
   urlMonitor: "",
   monitorSettings: {
     monitor_interval: 2,
-    request_timeout: 3,
-    grace_time: 3,
+    // Slider steps, not seconds: 1 = 30s, 2 = 1min, 3 = 5min (MONITOR_INTERVAL).
+    // Timeout and grace default to 30s because a new monitor almost always needs
+    // them set; the interval stays at 1min.
+    request_timeout: 1,
+    grace_time: 1,
     check_ssl_errors: false,
     ssl_expiry_reminders: false,
     domain_expiry_reminders: false,

@@ -37,6 +37,10 @@ export const DEPLOYMENT_ENDPOINTS = {
 } as const;
 
 export const ALERT_ENDPOINTS = {
+  // Kebab-case rather than the PascalCase action names used by its siblings: the server route
+  // escapes the controller's "[controller]/[action]" template for this one endpoint, matching the
+  // documented contract. Server-side route and this constant are each pinned by a test.
+  GET_REPOS_LIST: `${API_BASE}${MONITOR_SUBPATH}/repos-list`,
   SAVE_MONITOR: `${API_BASE}${MONITOR_SUBPATH}/SaveMonitor`,
   UPDATE_MONITOR: `${API_BASE}${MONITOR_SUBPATH}/UpdateMonitor`,
   DELETE_MONITOR: `${API_BASE}${MONITOR_SUBPATH}/DeleteMonitor`,
