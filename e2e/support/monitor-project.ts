@@ -5,7 +5,6 @@ export type MonitorProjectFixture = {
   projectName: string
   itemId: string
   dashboardUrl: string
-  monitorUrl: string
 }
 
 const FIXTURE_PATH = path.resolve(__dirname, "../fixtures/monitor-project.json")

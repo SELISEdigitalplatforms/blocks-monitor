@@ -1,19 +1,18 @@
-# Blocks Monitor; End-to-End Tests (Playwright)
+# Blocks Monitor — End-to-End Tests (Playwright)
 
-E2E tests that drive the real app through the browser, including the dev-iam
-login redirect flow.
+Follows the shared Blocks product e2e template
+([`e2e-spec/SPEC-blocks-e2e-suite-template.md`](/home/noor/Office-Projects/e2e-spec/SPEC-blocks-e2e-suite-template.md)),
+same shape as `blocks-data/e2e`, `blocks-logic/e2e`, and `blocks-utilities/e2e`.
 
 ## One-time setup
 
 1. **Configure env**: copy the template and fill in your values:
-
    ```bash
    cd e2e
    cp .env.e2e.example .env.e2e
    ```
-
-   Set `E2E_BASE_URL`, `E2E_USERNAME`, `E2E_PASSWORD`. `.env.e2e` is gitignored -
-   never commit real credentials.
+   Set `E2E_USERNAME` / `E2E_PASSWORD`. `.env.e2e` is gitignored; never commit
+   real credentials.
 
 2. **Install** Playwright + the browser:
    ```bash
@@ -27,95 +26,111 @@ login redirect flow.
 From the repo root:
 
 ```bash
-./run.sh -te      # or: run.ps1 -te
+./run.sh -te          # or: .\run.ps1 -te
 ```
 
-or from `e2e/`:
+or directly:
 
 ```bash
-npm test
+cd e2e
+npm test              # monitor-setup + feature specs + monitor-teardown
 ```
 
-Headless is the default; the post-test pause only engages with `--headed`.
+### Against remote dev (default)
 
-### Target modes
-
-**Remote dev**: drives the deployed host directly. No hosts entry, no certs, no
-port conflict:
-
-```ini
+```
 E2E_BASE_URL=https://dev-monitor.blocksdevelopers.com
 E2E_NO_WEBSERVER=1
 ```
 
-`E2E_NO_WEBSERVER=1` is required here, otherwise Playwright runs `bash run.sh -b`
-to boot a local API first. You will see this warning on every remote run; it is
-correct behaviour, not a fault:
+Reuse an existing project (recommended when console slots are limited):
 
 ```
-[e2e] index.html not found at ...server/Api/wwwroot/index.html — skipping BLOCKS_MONITOR_BASE_URL patch.
+E2E_REUSE_PROJECT_NAME=test
+# or
+E2E_PROJECT_ID=<uuid>
+E2E_KEEP_PROJECT=1
 ```
 
-`global-setup.ts` only repoints a locally built SPA; against remote dev there is
-nothing to patch.
+When reusing a non-ephemeral project, set `E2E_KEEP_PROJECT=1` so teardown does
+not delete it after a green run.
 
-> Remote dev is shared infrastructure. The login spec is effectively read-only,
-> but anything that mutates data acts on **real dev records**.
+### Against a local build
 
-**Local build on `:5001`**: omit `E2E_NO_WEBSERVER` and point at the local port:
-
-```ini
+```
 E2E_BASE_URL=https://dev-monitor.blocksdevelopers.com:5001
+# E2E_NO_WEBSERVER left unset / not 1
 ```
 
-Three preconditions cause nearly all failures here:
+Hosts entry:
 
-1. **Hosts entry**: `nslookup dev-monitor.blocksdevelopers.com` must return
-   `127.0.0.1`. Watch for a commented-out `#127.0.0.1 ...` line that looks
-   present but is not.
-2. **TLS**: `MONITOR_SSL_CERT` / `MONITOR_SSL_KEY` must be set and point at real
-   files. If not, `run.sh -b` serves HTTP while `E2E_BASE_URL` says `https://`,
-   and the run hangs until timeout.
-3. **Port 5001 is free**: sibling Blocks repos also use it; only one can run at a time.
+```
+127.0.0.1 dev-monitor.blocksdevelopers.com
+```
 
-Auto-start uses `bash run.sh -b`, so **Git Bash's `bash` must be on PATH**.
+TLS: `MONITOR_SSL_CERT` / `MONITOR_SSL_KEY` must point at real files when using
+`https://` locally; otherwise `run.sh -b` serves HTTP and Playwright hangs.
 
 ### Other run modes
 
 ```bash
-npm run test:headed   # watch it in a real browser
-npm run test:ui       # Playwright UI mode
-npm run report        # open the last HTML report
+npm run test:headed
+npm run test:ui
+npm run report
 ```
 
 ## Knobs in `.env.e2e`
 
-| Variable                        | Effect                                                                                             |
-| ------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `E2E_BASE_URL`                  | Blocks **Monitor** host. Dev: `https://dev-monitor.blocksdevelopers.com`. Prod: `https://monitor.seliseblocks.com`. |
-| `E2E_OS_BASE_URL`               | Blocks **OS** host (optional). Derived from Monitor when omitted: `dev-monitor`→`dev-os`, `monitor.`→`os.`. |
-| `E2E_USERNAME` / `E2E_PASSWORD` | Dev-IAM test account.                                                                              |
-| `E2E_NO_WEBSERVER=1`            | Don't auto-start the app; you manage the server.                                                   |
-| `E2E_PAUSE_MS`                  | How long the browser holds after **each** test. Defaults to 10 s headed, 0 headless; `0` disables. |
-| `E2E_SLOWMO`                    | Milliseconds of delay per action, to watch the steps themselves.                                   |
-| `E2E_HOLD_MS`                   | Extra hold at the end of the login spec specifically.                                              |
+| Variable | Effect |
+|---|---|
+| `E2E_BASE_URL` | Blocks **Monitor** host. Dev: `https://dev-monitor.blocksdevelopers.com`. Prod: `https://monitor.seliseblocks.com`. |
+| `E2E_OS_BASE_URL` | Blocks **OS** (optional). Derived: `dev-monitor`→`dev-os`, `monitor.`→`os.`. |
+| `E2E_USERNAME` / `E2E_PASSWORD` | OIDC test account. |
+| `PROJECT_NAME` | Optional create prefix (`${PROJECT_NAME} ${Date.now()}`). |
+| `E2E_REUSE_PROJECT_NAME` | Reuse named project instead of creating. |
+| `E2E_PROJECT_ID` | Open project by UUID — skips console card search. |
+| `E2E_KEEP_PROJECT=1` | Never delete shared project after run. |
+| `E2E_NO_WEBSERVER=1` | Don't auto-start the app (required for remote host). |
+| `E2E_PAUSE_MS` | Hold browser after each test (headed debugging). |
+| `E2E_SLOWMO` | Slow motion ms per Playwright action. |
+| `E2E_HOLD_MS` | Extra hold at the end of the login spec specifically. |
 
-## Discovering / updating selectors
+## Lifecycle
 
-The username/password fields live on the dev-iam page. To capture or verify
-selectors against the live page:
+Playwright projects: **`monitor-setup` → `monitor` → `monitor-teardown`**
 
-```bash
-npm run codegen -- <E2E_BASE_URL>/login
-```
+1. **Suite setup** (`tests/suite/suite.setup.spec.ts`) — OIDC login, reuse or create one shared project, write `monitor-project.json`, then save `monitor-session.json` **after** the dashboard is open (so localStorage keeps project/env).
+2. **Features** (`tests/monitor/*.spec.ts`) — use session; open shared dashboard via `openMonitorList` → direct `goto` `/app/{itemId}/dashboard`.
+3. **Session / context recovery** — login gate or console bounce → re-auth if needed, one env-chip open to reseed localStorage, persist session (never create a new project).
+4. **Suite teardown** (`tests/suite/suite.teardown.spec.ts`) — delete on **Blocks OS** only when every `monitor` test passed (unless `E2E_KEEP_PROJECT=1`).
+
+Monitor seeding (`ensureMonitorExists`) runs lazily in feature helpers, not in suite setup.
 
 ## Layout
 
 ```
 e2e/
-  tests/auth/login.spec.ts   # login through dev-iam -> /app/console
-  support/test-base.ts       # shared test/expect with the headed pause
-  fixtures/                  # auth storage state (gitignored; live token)
-  playwright.config.ts       # baseURL + creds from .env.e2e
-  global-setup.ts            # repoints BLOCKS_MONITOR_BASE_URL for local builds
+  tests/
+    auth/login.spec.ts            # standalone auth smoke (project "setup")
+    suite/
+      suite.setup.spec.ts         # login + shared project
+      suite.teardown.spec.ts      # OS delete when suite passed
+    monitor/                      # feature specs only
+  support/
+    env.ts                        # Monitor URL + OS derivation
+    login-helper.ts
+    create-and-delete-project.ts
+    monitor-project.ts            # monitor-session / monitor-project fixtures
+    suite-helpers.ts              # openSharedProjectDashboard
+    run-outcome.ts                # markSuiteTestFailed
+    test-base.ts                  # pause + mark failures for project "monitor"
+    monitor-helpers.ts            # feature navigation + ensureMonitorExists
+  fixtures/                       # gitignored
+  SPEC-multi-env.md
+```
+
+## Discovering / updating selectors
+
+```bash
+npm run codegen -- <E2E_BASE_URL>/login
 ```

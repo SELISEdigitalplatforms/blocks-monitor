@@ -22,8 +22,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1,
-  reporter: [["html", { open: "never" }], ["list"]],
   timeout: 120_000,
+  reporter: [["html", { open: "never" }], ["list"]],
   globalSetup: "./global-setup.ts",
   use: {
     baseURL,
@@ -54,14 +54,22 @@ export default defineConfig({
     : {}),
   projects: [
     {
+      name: "setup",
+      testMatch: /auth[\\/]login\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
       name: "monitor-setup",
-      testMatch: /monitor\.setup\.spec\.ts/,
+      testMatch: /suite\.setup\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "monitor",
       testMatch: /.*\.spec\.ts/,
-      testIgnore: /monitor\.(setup|teardown)\.spec\.ts/,
+      testIgnore: [
+        /auth[\\/]login\.spec\.ts/,
+        /suite\.(setup|teardown)\.spec\.ts/,
+      ],
       dependencies: ["monitor-setup"],
       use: {
         ...devices["Desktop Chrome"],
@@ -72,7 +80,7 @@ export default defineConfig({
     },
     {
       name: "monitor-teardown",
-      testMatch: /monitor\.teardown\.spec\.ts/,
+      testMatch: /suite\.teardown\.spec\.ts/,
       dependencies: ["monitor"],
       use: {
         ...devices["Desktop Chrome"],

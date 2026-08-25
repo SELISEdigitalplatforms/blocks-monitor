@@ -8,8 +8,8 @@ import {
 } from "../../support/monitor-project"
 import { shouldDeleteSharedProject } from "../../support/run-outcome"
 
-test.describe("monitor teardown", () => {
-  test("delete shared project when all monitor tests passed", async ({ page }) => {
+test.describe("monitor suite teardown", () => {
+  test("delete shared project when all suite tests passed", async ({ page }) => {
     test.setTimeout(120_000)
 
     const fixture = readMonitorProject()
