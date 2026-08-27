@@ -10,21 +10,27 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="MongoDB.Driver" Version="3.8.0" />
     <!--
-      Genesis is declared at 4.0.8 and every project now resolves that one version. This previously
+      Genesis is declared once here and every project resolves that one version. This previously
       sat at 4.0.2 with Api's graph lifted to 4.0.5 by ReleaseDriver.OS 4.0.1, so Api and Worker ran
       different Genesis versions on purpose; that split is gone. Worker was deliberately left on the
       older version at the time because issue #201 did not touch it and its behaviour had not been
-      assessed against 4.0.5 - it is now on 4.0.8 along with everything else, so Worker is the part
-      to watch if something regresses.
+      assessed against 4.0.5 - it is now on the same version as everything else, so Worker is the
+      part to watch if something regresses.
 
-      4.0.8 adds delegated access, which registers a startup validator that fails the host unless
+      4.0.8 added delegated access, which registers a startup validator that fails the host unless
       BLOCKS_IAM_BASE_URL or BLOCKS_IAM_TOKEN_ENDPOINT resolves. Both processes get it from the
       Secrets KeyPairs document via SeliseBlocks.ConfigurationDriver (key
       'FrontendRuntime:BLOCKS_IAM_BASE_URL', provisioned by blocks-infra/configure.sh), so no
       environment variable is needed - but an environment provisioned before that infra change must
       be re-provisioned or the host will not start.
+
+      4.1.2 is the minimum for Rollbar reporting: BlocksRollbar initialises itself from
+      ConfigureMicroserviceMiddleware and reports 5xx from the exception handler Genesis already
+      runs, so there is no application code for it here. It stays inert until 'Rollbar:AccessToken'
+      is seeded, and 4xx is never reported by design. Note that ConfigureWorker gets no
+      IConfiguration, so Worker is NOT covered - its faults reach the LMT pipeline only.
     -->
-    <PackageVersion Include="SeliseBlocks.Genesis.OS" Version="4.0.8" />
+    <PackageVersion Include="SeliseBlocks.Genesis.OS" Version="4.1.2" />
     <PackageVersion Include="SeliseBlocks.ReleaseDriver.OS" Version="4.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.2" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
