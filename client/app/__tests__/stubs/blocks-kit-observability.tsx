@@ -14,7 +14,7 @@ import type { ReactNode } from "react";
  * a real notifier or install its window handlers. Nothing here asserts on reporting.
  */
 
-export function RollbarProvider({ children }: { children?: ReactNode }) {
+export function RollbarProvider({ children }: Readonly<{ children?: ReactNode }>) {
   return <>{children}</>;
 }
 
