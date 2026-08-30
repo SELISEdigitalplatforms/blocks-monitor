@@ -30,7 +30,7 @@
       is seeded, and 4xx is never reported by design. Note that ConfigureWorker gets no
       IConfiguration, so Worker is NOT covered - its faults reach the LMT pipeline only.
     -->
-    <PackageVersion Include="SeliseBlocks.Genesis.OS" Version="4.1.2" />
+    <PackageVersion Include="SeliseBlocks.Genesis.OS" Version="4.1.4" />
     <PackageVersion Include="SeliseBlocks.ReleaseDriver.OS" Version="4.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.2" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
