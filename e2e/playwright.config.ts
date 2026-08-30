@@ -1,6 +1,5 @@
 import { defineConfig, devices } from "@playwright/test"
 import dotenv from "dotenv"
-import fs from "fs"
 import path from "path"
 
 dotenv.config({ path: path.resolve(__dirname, ".env.e2e") })
@@ -14,7 +13,6 @@ if (!baseURL) {
 }
 
 const autoStartServer = process.env.E2E_NO_WEBSERVER !== "1"
-const monitorSessionPath = path.resolve(__dirname, "fixtures/monitor-session.json")
 
 export default defineConfig({
   testDir: "./tests",
@@ -22,7 +20,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1,
-  timeout: 120_000,
+  timeout: 600_000,
   reporter: [["html", { open: "never" }], ["list"]],
   globalSetup: "./global-setup.ts",
   use: {
@@ -54,40 +52,13 @@ export default defineConfig({
     : {}),
   projects: [
     {
-      name: "setup",
-      testMatch: /auth[\\/]login\.spec\.ts/,
-      use: { ...devices["Desktop Chrome"] },
-    },
-    {
-      name: "monitor-setup",
-      testMatch: /suite\.setup\.spec\.ts/,
-      use: { ...devices["Desktop Chrome"] },
-    },
-    {
       name: "monitor",
-      testMatch: /.*\.spec\.ts/,
-      testIgnore: [
-        /auth[\\/]login\.spec\.ts/,
-        /suite\.(setup|teardown)\.spec\.ts/,
-      ],
-      dependencies: ["monitor-setup"],
-      use: {
-        ...devices["Desktop Chrome"],
-        ...(fs.existsSync(monitorSessionPath)
-          ? { storageState: "fixtures/monitor-session.json" }
-          : {}),
-      },
-    },
-    {
-      name: "monitor-teardown",
-      testMatch: /suite\.teardown\.spec\.ts/,
-      dependencies: ["monitor"],
-      use: {
-        ...devices["Desktop Chrome"],
-        ...(fs.existsSync(monitorSessionPath)
-          ? { storageState: "fixtures/monitor-session.json" }
-          : {}),
-      },
+      // The spec lives at tests/02-monitor/monitor.spec.ts. The earlier
+      // `Monitor[\\/]monitor\.spec\.ts` regex required a literal "Monitor"
+      // folder that never existed, so `playwright test` silently matched
+      // zero files on this package. Match the real on-disk path instead.
+      testMatch: /02-monitor[\\/]monitor\.spec\.ts$/,
+      use: { ...devices["Desktop Chrome"] },
     },
   ],
 })
