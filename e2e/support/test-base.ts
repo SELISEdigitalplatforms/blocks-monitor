@@ -1,8 +1,8 @@
 import { test as base, expect } from "@playwright/test"
-import { markMonitorTestFailed } from "./run-outcome"
+import { markSuiteTestFailed } from "./run-outcome"
 
 // Shared `test` for the whole suite. Specs import from here instead of
-// "@playwright/test" so the pause below applies everywhere automatically.
+// "@playwright/test" so the headed-mode pause applies everywhere.
 //
 // Headed runs hold the browser open for a moment after each test finishes, so
 // the end state is actually watchable instead of vanishing the instant the
@@ -35,7 +35,7 @@ export const test = base.extend<{ pauseAfterEachTest: void }>({
 
       if (testInfo.project.name === "monitor") {
         if (testInfo.status !== "passed" && testInfo.status !== "skipped") {
-          markMonitorTestFailed()
+          markSuiteTestFailed()
         }
       }
 

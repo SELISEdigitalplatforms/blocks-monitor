@@ -26,6 +26,16 @@ const alias = {
     __dirname,
     "./app/__tests__/stubs/blocks-kit-components.tsx",
   ),
+  // The real subpath builds a Rollbar client at import time and reads runtime env through the
+  // package's own inlined getRuntimeEnv, which `vi.mock(".../lib")` does not intercept; it then
+  // falls through to import.meta.env, undefined in the externalized dep. http-client calls
+  // getRollbar at module scope, so that broke every spec importing a service.
+  // NOTE: these are prefix matches. If a bare "@seliseblocks/genesis-os" alias is ever added it
+  // must go BELOW both subpath entries, or it swallows them.
+  "@seliseblocks/genesis-os/observability": path.resolve(
+    __dirname,
+    "./app/__tests__/stubs/blocks-kit-observability.tsx",
+  ),
 };
 
 export default defineConfig({
