@@ -1,5 +1,5 @@
 import { type Page, expect } from "@playwright/test"
-import { readMonitorProject } from "./monitor-project"
+import { openSharedProjectDashboard } from "./suite-helpers"
 
 export async function waitForRowsLoaded(page: Page) {
   await expect(page.locator(".animate-pulse").first())
@@ -85,50 +85,20 @@ export async function openFirstMonitor(page: Page) {
   }
 }
 
+/** Open the shared suite project dashboard, then navigate to the Monitor list. */
 export async function openMonitorList(page: Page) {
-  const fixture = readMonitorProject()
-  if (!fixture) {
-    throw new Error("Monitor project fixture not found. Did monitor-setup run?")
-  }
-
-  if (fixture.monitorUrl) {
-    await page.goto(fixture.monitorUrl)
-    await expect(page.getByRole("heading", { name: "Monitor" })).toBeVisible({ timeout: 30_000 })
-    await ensureMonitorExists(page)
-    return
-  }
-
-  if (fixture.dashboardUrl) {
-    await page.goto(fixture.dashboardUrl)
-  } else {
-    await page.goto("/app/console")
-    await expect(page.getByRole("heading", { name: "Your Blocks Projects" })).toBeVisible({
-      timeout: 30_000,
-    })
-    const developmentButton = page.getByRole("button", { name: /Development/ }).first()
-    await developmentButton.waitFor({ state: "visible", timeout: 30000 })
-    await developmentButton.click()
-  }
-
-  await expect(page.getByRole("heading", { name: "Project Details" }))
-    .toBeVisible({ timeout: 30000 })
-    .catch(async () => {
-      await page.reload()
-      await expect(page.getByRole("heading", { name: "Project Details" })).toBeVisible({
-        timeout: 30000,
-      })
-    })
+  await openSharedProjectDashboard(page)
 
   const monitorLink = page.getByRole("link", { name: "Monitor" })
-  await monitorLink.waitFor({ state: "visible", timeout: 30000 })
+  await monitorLink.waitFor({ state: "visible", timeout: 30_000 })
   await monitorLink.click()
 
   await expect(page.getByRole("heading", { name: "Monitor" }))
-    .toBeVisible({ timeout: 30000 })
+    .toBeVisible({ timeout: 30_000 })
     .catch(async () => {
       await monitorLink.click()
       await expect(page.getByRole("heading", { name: "Monitor" })).toBeVisible({
-        timeout: 30000,
+        timeout: 30_000,
       })
     })
 
