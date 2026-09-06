@@ -10,6 +10,14 @@ namespace XUnitTest.Worker
 {
     public class PeriodicPingBackgroundServiceTests
     {
+        /// <summary>
+        /// BackgroundService.StartAsync returns at the first await inside ExecuteAsync, so the
+        /// worker has done nothing yet when it completes. Tests therefore wait on a signal raised
+        /// by the mock they assert against instead of sleeping for a fixed period, which is what
+        /// made them flaky on loaded CI agents.
+        /// </summary>
+        private static readonly TimeSpan SignalTimeout = TimeSpan.FromSeconds(30);
+
         #region Constructor and Configuration Tests
 
         [Fact]
@@ -38,12 +46,13 @@ namespace XUnitTest.Worker
             var config = CreateConfiguration(enabled: false, url: "http://test.com", interval: 60);
             var mockHttpFactory = new Mock<IHttpClientFactory>();
             var mockLogger = new Mock<ILogger<PeriodicPingBackgroundService>>();
+            var logged = WaitForLog(mockLogger, LogLevel.Information, "Periodic ping is disabled");
             var service = new PeriodicPingBackgroundService(mockHttpFactory.Object, config, mockLogger.Object);
             var cts = new CancellationTokenSource();
 
             // Act
             await service.StartAsync(cts.Token);
-            await Task.Delay(100);
+            await logged.Task.WaitAsync(SignalTimeout);
             await service.StopAsync(cts.Token);
 
             // Assert
@@ -51,7 +60,7 @@ namespace XUnitTest.Worker
                 x => x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Periodic ping is disabled")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Periodic ping is disabled")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.Once);
@@ -67,12 +76,13 @@ namespace XUnitTest.Worker
             var config = CreateConfiguration(enabled: true, url: "", interval: 60);
             var mockHttpFactory = new Mock<IHttpClientFactory>();
             var mockLogger = new Mock<ILogger<PeriodicPingBackgroundService>>();
+            var logged = WaitForLog(mockLogger, LogLevel.Warning, "PingUrl is empty");
             var service = new PeriodicPingBackgroundService(mockHttpFactory.Object, config, mockLogger.Object);
             var cts = new CancellationTokenSource();
 
             // Act
             await service.StartAsync(cts.Token);
-            await Task.Delay(100);
+            await logged.Task.WaitAsync(SignalTimeout);
             await service.StopAsync(cts.Token);
 
             // Assert
@@ -80,7 +90,7 @@ namespace XUnitTest.Worker
                 x => x.Log(
                     LogLevel.Warning,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("PingUrl is empty")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("PingUrl is empty")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.Once);
@@ -95,12 +105,13 @@ namespace XUnitTest.Worker
             var config = CreateConfiguration(enabled: true, url: "   ", interval: 60);
             var mockHttpFactory = new Mock<IHttpClientFactory>();
             var mockLogger = new Mock<ILogger<PeriodicPingBackgroundService>>();
+            var logged = WaitForLog(mockLogger, LogLevel.Warning, "PingUrl is empty");
             var service = new PeriodicPingBackgroundService(mockHttpFactory.Object, config, mockLogger.Object);
             var cts = new CancellationTokenSource();
 
             // Act
             await service.StartAsync(cts.Token);
-            await Task.Delay(100);
+            await logged.Task.WaitAsync(SignalTimeout);
             await service.StopAsync(cts.Token);
 
             // Assert
@@ -108,7 +119,7 @@ namespace XUnitTest.Worker
                 x => x.Log(
                     LogLevel.Warning,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("PingUrl is empty")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("PingUrl is empty")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.Once);
@@ -126,12 +137,14 @@ namespace XUnitTest.Worker
             var mockHttpHandler = CreateMockHttpHandler(HttpStatusCode.OK);
             var mockHttpFactory = CreateMockHttpClientFactory(mockHttpHandler.Object);
             var mockLogger = new Mock<ILogger<PeriodicPingBackgroundService>>();
+            // "Ping success" is logged after the request completes, so it also gates the send.
+            var pinged = WaitForLog(mockLogger, LogLevel.Debug, "Ping success");
             var service = new PeriodicPingBackgroundService(mockHttpFactory.Object, config, mockLogger.Object);
             var cts = new CancellationTokenSource();
 
             // Act
             await service.StartAsync(cts.Token);
-            await Task.Delay(200); // Wait for immediate ping
+            await pinged.Task.WaitAsync(SignalTimeout);
             await service.StopAsync(cts.Token);
 
             // Assert
@@ -139,7 +152,7 @@ namespace XUnitTest.Worker
                 x => x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Pinging")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Pinging")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.AtLeastOnce);
@@ -147,7 +160,7 @@ namespace XUnitTest.Worker
             mockHttpHandler.Protected().Verify(
                 "SendAsync",
                 Times.AtLeastOnce(),
-                ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Get && req.RequestUri.ToString().StartsWith("http://test.com")),
+                ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Get && req.RequestUri!.ToString().StartsWith("http://test.com")),
                 ItExpr.IsAny<CancellationToken>());
         }
 
@@ -159,12 +172,13 @@ namespace XUnitTest.Worker
             var mockHttpHandler = CreateMockHttpHandler(HttpStatusCode.OK);
             var mockHttpFactory = CreateMockHttpClientFactory(mockHttpHandler.Object);
             var mockLogger = new Mock<ILogger<PeriodicPingBackgroundService>>();
+            var logged = WaitForLog(mockLogger, LogLevel.Debug, "Ping success");
             var service = new PeriodicPingBackgroundService(mockHttpFactory.Object, config, mockLogger.Object);
             var cts = new CancellationTokenSource();
 
             // Act
             await service.StartAsync(cts.Token);
-            await Task.Delay(200);
+            await logged.Task.WaitAsync(SignalTimeout);
             await service.StopAsync(cts.Token);
 
             // Assert
@@ -172,7 +186,7 @@ namespace XUnitTest.Worker
                 x => x.Log(
                     LogLevel.Debug,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Ping success")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Ping success")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.AtLeastOnce);
@@ -194,12 +208,13 @@ namespace XUnitTest.Worker
             var mockHttpHandler = CreateMockHttpHandler(statusCode);
             var mockHttpFactory = CreateMockHttpClientFactory(mockHttpHandler.Object);
             var mockLogger = new Mock<ILogger<PeriodicPingBackgroundService>>();
+            var logged = WaitForLog(mockLogger, LogLevel.Warning, "client error");
             var service = new PeriodicPingBackgroundService(mockHttpFactory.Object, config, mockLogger.Object);
             var cts = new CancellationTokenSource();
 
             // Act
             await service.StartAsync(cts.Token);
-            await Task.Delay(200);
+            await logged.Task.WaitAsync(SignalTimeout);
             await service.StopAsync(cts.Token);
 
             // Assert
@@ -207,7 +222,7 @@ namespace XUnitTest.Worker
                 x => x.Log(
                     LogLevel.Warning,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("client error")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("client error")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.AtLeastOnce);
@@ -225,12 +240,13 @@ namespace XUnitTest.Worker
             var mockHttpHandler = CreateMockHttpHandler(statusCode);
             var mockHttpFactory = CreateMockHttpClientFactory(mockHttpHandler.Object);
             var mockLogger = new Mock<ILogger<PeriodicPingBackgroundService>>();
+            var logged = WaitForLog(mockLogger, LogLevel.Error, "server error");
             var service = new PeriodicPingBackgroundService(mockHttpFactory.Object, config, mockLogger.Object);
             var cts = new CancellationTokenSource();
 
             // Act
             await service.StartAsync(cts.Token);
-            await Task.Delay(200);
+            await logged.Task.WaitAsync(SignalTimeout);
             await service.StopAsync(cts.Token);
 
             // Assert
@@ -238,7 +254,7 @@ namespace XUnitTest.Worker
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("server error")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("server error")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.AtLeastOnce);
@@ -263,12 +279,13 @@ namespace XUnitTest.Worker
 
             var mockHttpFactory = CreateMockHttpClientFactory(mockHttpHandler.Object);
             var mockLogger = new Mock<ILogger<PeriodicPingBackgroundService>>();
+            var logged = WaitForLog(mockLogger, LogLevel.Warning, "timed out");
             var service = new PeriodicPingBackgroundService(mockHttpFactory.Object, config, mockLogger.Object);
             var cts = new CancellationTokenSource();
 
             // Act
             await service.StartAsync(cts.Token);
-            await Task.Delay(200);
+            await logged.Task.WaitAsync(SignalTimeout);
             await service.StopAsync(cts.Token);
 
             // Assert
@@ -276,7 +293,7 @@ namespace XUnitTest.Worker
                 x => x.Log(
                     LogLevel.Warning,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("timed out")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("timed out")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.AtLeastOnce);
@@ -297,12 +314,13 @@ namespace XUnitTest.Worker
 
             var mockHttpFactory = CreateMockHttpClientFactory(mockHttpHandler.Object);
             var mockLogger = new Mock<ILogger<PeriodicPingBackgroundService>>();
+            var logged = WaitForLog(mockLogger, LogLevel.Error, "request failed");
             var service = new PeriodicPingBackgroundService(mockHttpFactory.Object, config, mockLogger.Object);
             var cts = new CancellationTokenSource();
 
             // Act
             await service.StartAsync(cts.Token);
-            await Task.Delay(200);
+            await logged.Task.WaitAsync(SignalTimeout);
             await service.StopAsync(cts.Token);
 
             // Assert
@@ -310,7 +328,7 @@ namespace XUnitTest.Worker
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("request failed")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("request failed")),
                     It.IsAny<HttpRequestException>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.AtLeastOnce);
@@ -322,6 +340,7 @@ namespace XUnitTest.Worker
             // Arrange
             var config = CreateConfiguration(enabled: true, url: "http://test.com", interval: 1);
             var callCount = 0;
+            var secondCall = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             var mockHttpHandler = new Mock<HttpMessageHandler>();
             mockHttpHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>(
@@ -330,8 +349,10 @@ namespace XUnitTest.Worker
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(() =>
                 {
-                    callCount++;
-                    if (callCount == 1)
+                    var count = Interlocked.Increment(ref callCount);
+                    if (count >= 2)
+                        secondCall.TrySetResult();
+                    if (count == 1)
                         throw new HttpRequestException("First call failed");
                     return new HttpResponseMessage(HttpStatusCode.OK);
                 });
@@ -343,7 +364,7 @@ namespace XUnitTest.Worker
 
             // Act
             await service.StartAsync(cts.Token);
-            await Task.Delay(1500); // Wait for multiple pings
+            await secondCall.Task.WaitAsync(SignalTimeout); // Wait for a ping after the failed one
             await service.StopAsync(cts.Token);
 
             // Assert
@@ -352,7 +373,7 @@ namespace XUnitTest.Worker
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Periodic ping failed")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Periodic ping failed")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.Never); // HttpRequestException is caught in PingAsync, not outer loop
@@ -370,12 +391,13 @@ namespace XUnitTest.Worker
             var mockHttpHandler = CreateMockHttpHandler(HttpStatusCode.OK);
             var mockHttpFactory = CreateMockHttpClientFactory(mockHttpHandler.Object);
             var mockLogger = new Mock<ILogger<PeriodicPingBackgroundService>>();
+            var pinged = WaitForLog(mockLogger, LogLevel.Debug, "Ping success");
             var service = new PeriodicPingBackgroundService(mockHttpFactory.Object, config, mockLogger.Object);
             var cts = new CancellationTokenSource();
 
             // Act
             await service.StartAsync(cts.Token);
-            await Task.Delay(100);
+            await pinged.Task.WaitAsync(SignalTimeout);
             await service.StopAsync(cts.Token);
 
             // Assert - Should stop without errors
@@ -394,12 +416,13 @@ namespace XUnitTest.Worker
             var mockHttpHandler = CreateMockHttpHandler(HttpStatusCode.OK);
             var mockHttpFactory = CreateMockHttpClientFactory(mockHttpHandler.Object);
             var mockLogger = new Mock<ILogger<PeriodicPingBackgroundService>>();
+            var pinged = WaitForLog(mockLogger, LogLevel.Debug, "Ping success");
             var service = new PeriodicPingBackgroundService(mockHttpFactory.Object, config, mockLogger.Object);
             var cts = new CancellationTokenSource();
 
             // Act
             await service.StartAsync(cts.Token);
-            await Task.Delay(300); // Only immediate ping should happen
+            await pinged.Task.WaitAsync(SignalTimeout); // Only the immediate ping should happen
             await service.StopAsync(cts.Token);
 
             // Assert - Should only do immediate ping, no periodic pings
@@ -418,12 +441,13 @@ namespace XUnitTest.Worker
             var mockHttpHandler = CreateMockHttpHandler(HttpStatusCode.OK);
             var mockHttpFactory = CreateMockHttpClientFactory(mockHttpHandler.Object);
             var mockLogger = new Mock<ILogger<PeriodicPingBackgroundService>>();
+            var pinged = WaitForLog(mockLogger, LogLevel.Debug, "Ping success");
             var service = new PeriodicPingBackgroundService(mockHttpFactory.Object, config, mockLogger.Object);
             var cts = new CancellationTokenSource();
 
             // Act
             await service.StartAsync(cts.Token);
-            await Task.Delay(300);
+            await pinged.Task.WaitAsync(SignalTimeout);
             await service.StopAsync(cts.Token);
 
             // Assert
@@ -437,6 +461,30 @@ namespace XUnitTest.Worker
         #endregion
 
         #region Helper Methods
+
+        /// <summary>
+        /// Signals as soon as the service logs a message at <paramref name="level"/> containing
+        /// <paramref name="messageFragment"/>, so tests can await the work instead of guessing how
+        /// long it takes.
+        /// </summary>
+        private static TaskCompletionSource WaitForLog(
+            Mock<ILogger<PeriodicPingBackgroundService>> mockLogger,
+            LogLevel level,
+            string messageFragment)
+        {
+            var signal = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            mockLogger
+                .Setup(x => x.Log(
+                    level,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(messageFragment)),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()))
+                .Callback(() => signal.TrySetResult());
+
+            return signal;
+        }
 
         private static IConfiguration CreateConfiguration(bool enabled, string url, int interval)
         {
