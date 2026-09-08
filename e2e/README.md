@@ -100,7 +100,7 @@ npm run report
 Playwright projects: **`monitor-setup` → `monitor` → `monitor-teardown`**
 
 1. **Suite setup** (`tests/suite/suite.setup.spec.ts`) — OIDC login, reuse or create one shared project, write `monitor-project.json`, then save `monitor-session.json` **after** the dashboard is open (so localStorage keeps project/env).
-2. **Features** (`tests/02-monitor/*.spec.ts`) — use session; open shared dashboard via `openMonitorList` → direct `goto` `/app/{itemId}/dashboard`.
+2. **Features** (`tests/monitor/*.spec.ts`) — use session; open shared dashboard via `openMonitorList` → direct `goto` `/app/{itemId}/dashboard`.
 3. **Session / context recovery** — login gate or console bounce → re-auth if needed, one env-chip open to reseed localStorage, persist session (never create a new project).
 4. **Suite teardown** (`tests/suite/suite.teardown.spec.ts`) — delete on **Blocks OS** only when every `monitor` test passed (unless `E2E_KEEP_PROJECT=1`).
 
@@ -115,7 +115,7 @@ e2e/
     suite/
       suite.setup.spec.ts         # login + shared project
       suite.teardown.spec.ts      # OS delete when suite passed
-    02-monitor/                   # feature specs only
+    monitor/                      # feature specs only
   support/
     env.ts                        # Monitor URL + OS derivation
     login-helper.ts

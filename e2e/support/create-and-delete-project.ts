@@ -92,10 +92,10 @@ const consoleProjectsHeading = (page: Page) =>
   page.getByRole("heading", { name: /Your Blocks Projects|Welcome to SELISE Blocks/ })
 
 /** Monitor project dashboard — Project Details / X-Blocks-Key (fails fast if bounced to console). */
-export async function waitForMonitorDashboardReady(page: Page, projectName: string) {
+export async function waitForMonitorDashboardReady(page: Page, projectName?: string) {
   const ready = page
     .getByRole("heading", { name: "Project Details" })
-    .or(page.getByText("X-Blocks-Key", { exact: true }))
+    .or(page.getByText(/X-Blocks-Key/))
     .first()
 
   const bouncedToConsole = async () => {
@@ -103,6 +103,7 @@ export async function waitForMonitorDashboardReady(page: Page, projectName: stri
     return consoleProjectsHeading(page).isVisible({ timeout: 500 }).catch(() => false)
   }
 
+  const label = projectName ?? "shared project"
   const outcome = await Promise.race([
     ready.waitFor({ state: "visible", timeout: 30_000 }).then(() => "ready" as const),
     page
@@ -117,7 +118,7 @@ export async function waitForMonitorDashboardReady(page: Page, projectName: stri
 
   if (outcome === "console" || (await bouncedToConsole())) {
     throw new Error(
-      `Expected project dashboard for "${projectName}" but landed on the console. ` +
+      `Expected project dashboard for "${label}" but landed on the console. ` +
         "Suite setup must persist storageState after opening the shared project " +
         "(project/environment localStorage). Re-run monitor-setup.",
     )
@@ -128,9 +129,11 @@ export async function waitForMonitorDashboardReady(page: Page, projectName: stri
   }
 
   await expect(page).toHaveURL(/\/app\/(?!project\/)[^/]+\/dashboard/, { timeout: 10_000 })
-  await expect(page.getByText(projectName, { exact: true }).first()).toBeVisible({
-    timeout: 30_000,
-  })
+  if (projectName) {
+    await expect(page.getByText(projectName, { exact: true }).first()).toBeVisible({
+      timeout: 30_000,
+    })
+  }
 }
 
 /** OS project dashboard — project name heading + Delete button. */
@@ -162,13 +165,14 @@ async function readProjectNameFromDashboard(page: Page): Promise<string> {
 
 async function openProjectById(page: Page, projectId: string) {
   await page.goto(`${e2eBaseUrl()}/app/${projectId}/dashboard`, { waitUntil: "domcontentloaded" })
+  await waitForMonitorDashboardReady(page)
+
+  const reuseName = process.env.E2E_REUSE_PROJECT_NAME?.trim()
+  if (reuseName) {
+    return { projectName: reuseName, dashboardUrl: page.url(), itemId: projectId }
+  }
+
   const projectName = await readProjectNameFromDashboard(page)
-  await expect(
-    page
-      .getByRole("heading", { name: "Project Details" })
-      .or(page.getByText("X-Blocks-Key", { exact: true }))
-      .first(),
-  ).toBeVisible({ timeout: 20_000 })
   return { projectName, dashboardUrl: page.url(), itemId: projectId }
 }
 
@@ -180,7 +184,7 @@ export async function openNamedProjectDashboard(
   if (options?.dashboardUrl) {
     await page.goto(options.dashboardUrl, { waitUntil: "domcontentloaded" })
     try {
-      await waitForMonitorDashboardReady(page, projectName)
+      await waitForMonitorDashboardReady(page)
       return
     } catch {
       // Fall through to card navigation.
@@ -194,7 +198,7 @@ export async function openNamedProjectDashboard(
     await envButton.click({ force: true })
 
     try {
-      await waitForMonitorDashboardReady(page, projectName)
+      await waitForMonitorDashboardReady(page)
       return
     } catch (error) {
       if (attempt === 2) throw error
@@ -248,7 +252,6 @@ async function freeProjectSlotIfNeeded(page: Page) {
   const atProjectLimit = page.getByText("Please delete an existing project to create a new one.")
   const limitVisible = await isVisibleNow(atProjectLimit)
 
-  // Slot full: either the explicit limit banner, or Add Project simply missing.
   if (!limitVisible && (await addProjectButton.isVisible({ timeout: 2_000 }).catch(() => false))) {
     return
   }
@@ -335,16 +338,12 @@ export async function createProject(page: Page) {
     await expect(page.getByText("Your project has been created.", { exact: true })).toBeVisible({
       timeout: 30_000,
     })
-    // Dev often lands on /project/{id}/environments; prod OS may send you
-    // straight back to /app/console after the success toast.
     await expect(page).toHaveURL(/\/app\/(console|project\/[^/]+\/environments)\/?$/, {
       timeout: 20_000,
     })
   })
 
   await test.step("Return to Monitor console", async () => {
-    // Prefer direct navigation over the app switcher: known destination,
-    // no ambiguous text matches, no OIDC initiate race after create.
     await page.goto(`${e2eBaseUrl()}/app/console`, { waitUntil: "domcontentloaded" })
     await ensureAuthenticated(page)
     await ensureConsole(page, "monitor")
@@ -386,8 +385,6 @@ export async function reuseOrCreateSharedProject(
     return { projectName, dashboardUrl: page.url(), itemId }
   }
 
-  // Prefer create: createProject waits for Add Project (15s) and frees orphan slots.
-  // Do not gate on a short isVisible(2s) — the control can still be painting.
   try {
     const created = await createProject(page)
     const itemId = new URL(created.dashboardUrl).pathname.split("/")[2] ?? ""

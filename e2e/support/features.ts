@@ -12,7 +12,7 @@ export type MonitorFeature = {
 export const MONITOR_FEATURES: MonitorFeature[] = [
   {
     id: "monitor",
-    name: "Monitor – full page workflow",
+    name: "Monitor – pause & resume",
     enabled: true,
     spec: "tests/02-monitor/monitor.spec.ts",
   },

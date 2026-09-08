@@ -1,4 +1,4 @@
-import { type Locator, type Page, expect } from "@playwright/test"
+import { type Page, expect } from "@playwright/test"
 import { openSharedProjectDashboard } from "./suite-helpers"
 
 export async function waitForRowsLoaded(page: Page) {
@@ -68,36 +68,6 @@ export async function getRowActionButton(page: Page) {
     }
   }
   return null
-}
-
-/**
- * Open the row ⋮ menu and wait until a menuitem is actually visible.
- *
- * List triggers are a Lucide SVG via Radix `asChild` (not a Button). The first
- * Playwright click often no-ops — menu never opens — which is why BUG-TC-0057
- * already retried. One helper so every Pause/Resume/Delete step shares that.
- */
-export async function openRowActionsMenu(page: Page, row?: Locator) {
-  if (row) {
-    await row.hover({ timeout: 1_000 }).catch(() => null)
-  }
-
-  const actionButton = row
-    ? row.locator('[aria-haspopup="menu"]').first()
-    : await getRowActionButton(page)
-
-  if (!actionButton) return null
-  if (!(await actionButton.isVisible({ timeout: 10_000 }).catch(() => false))) return null
-
-  await expect(async () => {
-    const menuItem = page.getByRole("menuitem").first()
-    if (await menuItem.isVisible().catch(() => false)) return
-    await page.keyboard.press("Escape").catch(() => null)
-    await actionButton.click({ force: true })
-    await expect(menuItem).toBeVisible({ timeout: 2_000 })
-  }).toPass({ timeout: 15_000 })
-
-  return actionButton
 }
 
 export async function openFirstMonitor(page: Page) {

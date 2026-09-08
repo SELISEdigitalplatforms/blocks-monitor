@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Run enabled monitor features in order (one login, stop on first failure).
- * Edit features.mjs or set E2E_FEATURES=monitor
+ * Edit features.mjs or set E2E_FEATURES=pause-resume,delete
  */
 import { spawnSync } from "node:child_process"
 import path from "node:path"
