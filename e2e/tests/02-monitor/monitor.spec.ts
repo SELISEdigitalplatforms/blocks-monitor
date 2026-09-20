@@ -1,52 +1,23 @@
-/**
- * Single-file Monitor page end-to-end test.
- *
- * Combines the original auth + suite-setup + monitor-pause-resume + monitor-delete
- * + monitor-delete-heartbeat-bug + suite-teardown specs into one workflow that
- * exercises the Monitor list page top-to-bottom:
- *
- *   1. Login through dev-iam
- *   2. Reuse or create the shared project (saved across runs)
- *   3. Open the Monitor list (creates one if empty)
- *   4. Pause & resume (TC-0048, TC-0049, TC-0050, TC-0051, TC-0053)
- *   5. Delete confirmations from list & details (TC-0054, TC-0055, TC-0056, TC-0058)
- *   6. Heartbeat delete bug (BUG-TC-0057)
- *   7. Delete the shared project only when every step passed
- *
- * Note: each step calls `resetToMonitorList` first to drop any leftover menu /
- * dialog / loading state from the previous step. The original split specs used
- * `beforeEach(openMonitorList)` for that — we inline the equivalent here.
- */
-import fs from "fs";
-import path from "path";
 import type { Page } from "@playwright/test";
 import { test, expect } from "../../support/test-base";
-import {
-  deleteCreatedProject,
-  ensureConsole,
-  reuseOrCreateSharedProject,
-} from "../../support/create-and-delete-project";
-import { e2eCredentials } from "../../support/env";
-import { loginThroughOidc } from "../../support/login-helper";
 import {
   getRowActionButton,
   openFirstMonitor,
   openMonitorList,
 } from "../../support/monitor-helpers";
-import {
-  clearMonitorProject,
-  clearMonitorSession,
-  MONITOR_SESSION_PATH,
-  readMonitorProject,
-  writeMonitorProject,
-} from "../../support/monitor-project";
-import { resetRunOutcome, shouldDeleteSharedProject } from "../../support/run-outcome";
 
-/**
- * Drop any leftover menu / dialog / loading state from the previous step and
- * confirm we are back on the Monitor list with at least one row to act on.
- */
 async function resetToMonitorList(page: Page) {
+  const addMonitorHeading = page.getByRole("heading", { name: "Add monitor" });
+  if (await addMonitorHeading.isVisible({ timeout: 500 }).catch(() => false)) {
+    const cancelBtn = page.getByRole("button", { name: "Cancel" });
+    if (await cancelBtn.isVisible({ timeout: 500 }).catch(() => false)) {
+      await cancelBtn.click({ force: true }).catch(() => null);
+    }
+    await page.keyboard.press("Escape").catch(() => null);
+    await expect(addMonitorHeading)
+      .toBeHidden({ timeout: 5000 })
+      .catch(() => null);
+  }
   await page.keyboard.press("Escape").catch(() => null);
   await page.reload({ waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "Monitor" })).toBeVisible({ timeout: 30_000 });
@@ -58,88 +29,11 @@ async function resetToMonitorList(page: Page) {
 test.describe("Monitor - full page workflow", () => {
   test.setTimeout(600_000);
 
-  test.beforeAll(async ({ browser }) => {
-    test.setTimeout(300_000);
-
-    // Mirror suite.setup.spec.ts: login, reuse/create shared project,
-    // persist storage state so the workflow test reuses it.
-    resetRunOutcome();
-    e2eCredentials(); // fail fast if env vars are missing
-
-    const context = await browser.newContext({ ignoreHTTPSErrors: true });
-    const page = await context.newPage();
-    try {
-      await loginThroughOidc(page);
-      await expect(
-        page.getByRole("heading", {
-          name: /Your Blocks Projects|Welcome to SELISE Blocks/,
-        }),
-      ).toBeVisible({ timeout: 30_000 });
-
-      const { projectName, dashboardUrl, itemId } = await reuseOrCreateSharedProject(page);
-      if (!itemId) {
-        throw new Error(`Could not resolve itemId from dashboard URL: ${dashboardUrl}`);
-      }
-
-      writeMonitorProject({
-        projectName,
-        itemId,
-        dashboardUrl: dashboardUrl.replace(/\?.*$/, ""),
-      });
-
-      fs.mkdirSync(path.dirname(MONITOR_SESSION_PATH), { recursive: true });
-      await context.storageState({ path: MONITOR_SESSION_PATH });
-    } finally {
-      await context.close();
-    }
-  });
-
-  test.afterAll(async ({ browser }) => {
-    test.setTimeout(120_000);
-
-    const fixture = readMonitorProject();
-    if (!fixture) return;
-
-    if (!shouldDeleteSharedProject()) {
-      console.log(
-        `[e2e] Keeping project "${fixture.projectName}" on the console ` +
-          "(a test failed or E2E_KEEP_PROJECT=1).",
-      );
-      return;
-    }
-
-    const context = await browser.newContext({
-      ignoreHTTPSErrors: true,
-      storageState: MONITOR_SESSION_PATH,
-    });
-    const page = await context.newPage();
-    try {
-      await ensureConsole(page);
-      const deleted = await deleteCreatedProject(page, fixture.projectName, {
-        itemId: fixture.itemId,
-      });
-
-      clearMonitorProject();
-      clearMonitorSession();
-
-      if (!deleted) {
-        console.log(
-          `[e2e] Project "${fixture.projectName}" was not deleted automatically — ` +
-            "remove it manually from the console if needed.",
-        );
-      }
-    } finally {
-      await context.close();
-    }
-  });
-
   test("runs the entire Monitor page flow end-to-end", async ({ page }) => {
-    // ── Section 1: open the Monitor list ─────────────────────────────────────
     await test.step("Open the Monitor list (create one if empty)", async () => {
       await openMonitorList(page);
     });
 
-    // ── Section 2: pause & resume checks (TC-0048, TC-0049, TC-0050, TC-0051, TC-0053) ──
     await test.step("Pause & resume — actions menu shows the right item (TC-0048)", async () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
@@ -212,7 +106,6 @@ test.describe("Monitor - full page workflow", () => {
       ).toBeHidden();
     });
 
-    // ── Section 3: delete checks (TC-0054, TC-0055, TC-0056, TC-0058) ───────
     await test.step("Delete — confirmation dialog copy (TC-0054)", async () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
@@ -230,7 +123,6 @@ test.describe("Monitor - full page workflow", () => {
       await page.getByRole("button", { name: "Cancel" }).click();
     });
 
-    // TC-0055 actually deletes a monitor; openMonitorList ensures one exists.
     await test.step("Delete — confirm from list removes the row (TC-0055)", async () => {
       await openMonitorList(page);
       const firstRow = page.getByRole("row").nth(1);
@@ -250,7 +142,6 @@ test.describe("Monitor - full page workflow", () => {
       await expect(page.getByRole("row", { name: new RegExp(monitorName) })).toHaveCount(0);
     });
 
-    // TC-0056 needs a monitor to open; ensureMonitorExists inside openMonitorList handles it.
     await test.step("Delete — confirm from details page navigates back (TC-0056)", async () => {
       await openMonitorList(page);
       await openFirstMonitor(page);
@@ -260,7 +151,6 @@ test.describe("Monitor - full page workflow", () => {
       await expect(page.getByRole("heading", { name: "Monitor" })).toBeVisible({ timeout: 15_000 });
     });
 
-    // TC-0058: Confirm button is disabled while pending. Also needs a monitor.
     await test.step("Delete — Confirm button is disabled while pending (TC-0058)", async () => {
       await openMonitorList(page);
       const actionButton = await getRowActionButton(page);
@@ -274,9 +164,7 @@ test.describe("Monitor - full page workflow", () => {
       await expect(cancelButton).toBeDisabled();
     });
 
-    // ── Section 4: Heartbeat delete bug (BUG-TC-0057) ───────────────────────
     await test.step("BUG-TC-0057: Deleting a newly-created Heartbeat monitor removes it from the list", async () => {
-      test.setTimeout(90_000);
       await openMonitorList(page);
 
       await page.getByTestId("add-monitor-button").click();
@@ -316,14 +204,12 @@ test.describe("Monitor - full page workflow", () => {
       await expect(page.getByText(monitorName)).not.toBeVisible({ timeout: 30_000 });
     });
 
-    // ── Section 5: Status badge after pause ──────────────────────────────────
     await test.step("Status — 'Paused' badge appears after pausing", async () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
       await actionButton!.click();
 
-      // Pause if available; otherwise monitor is already paused.
       const pauseItem = page.getByRole("menuitem", { name: "Pause" });
       if (await pauseItem.isVisible().catch(() => false)) {
         await pauseItem.click();
@@ -333,13 +219,11 @@ test.describe("Monitor - full page workflow", () => {
         });
       }
 
-      // The Status column shows a "Paused" Badge when isActive === false.
       await expect(page.getByText("Paused", { exact: true }).first()).toBeVisible({
         timeout: 5_000,
       });
     });
 
-    // ── Section 6: Tabs ─────────────────────────────────────────────────────
     await test.step("Tabs — switch to 'Blocks services'", async () => {
       await resetToMonitorList(page);
       await page.getByRole("tab", { name: "Blocks services" }).click();
@@ -355,7 +239,6 @@ test.describe("Monitor - full page workflow", () => {
       });
     });
 
-    // ── Section 7: Sort ─────────────────────────────────────────────────────
     await test.step("Sort — clicking the Name header is interactive", async () => {
       await resetToMonitorList(page);
       const nameHeader = page.getByRole("columnheader", { name: /Name/ }).first();
@@ -364,25 +247,19 @@ test.describe("Monitor - full page workflow", () => {
       await expect(page.locator(".animate-pulse").first())
         .toBeHidden({ timeout: 15_000 })
         .catch(() => null);
-      // Click again to flip sort direction.
       await nameHeader.click();
       await expect(page.locator(".animate-pulse").first())
         .toBeHidden({ timeout: 15_000 })
         .catch(() => null);
     });
 
-    // ── Section 8: Pagination controls visible ──────────────────────────────
     await test.step("Pagination — 'Rows per page' control is rendered", async () => {
       await resetToMonitorList(page);
-      // The TablePagination component renders a "Rows per page" label.
-      // Verify at least the page indicator is visible (the list is small,
-      // so navigation buttons may be disabled — that's fine).
       await expect(page.getByText("Rows per page", { exact: false }).first()).toBeVisible({
         timeout: 10_000,
       });
     });
 
-    // ── Section 9: Details page — Configure (Edit) modal ─────────────────────
     await test.step("Details — Configure button opens the edit modal", async () => {
       await openMonitorList(page);
       await openFirstMonitor(page);
@@ -390,14 +267,12 @@ test.describe("Monitor - full page workflow", () => {
       await expect(page.getByRole("heading", { name: "Configure" })).toBeVisible({
         timeout: 15_000,
       });
-      // MonitorModal uses an X icon with sr-only "Close" text — close via that.
       await page.getByRole("button", { name: "Close" }).click();
       await expect(page.getByRole("heading", { name: "Configure" })).toBeHidden({
         timeout: 5_000,
       });
     });
 
-    // ── Section 10: Details page — Notification Settings modal ──────────────
     await test.step("Details — Notification Settings opens with Add email control", async () => {
       await page.getByRole("button", { name: "Notification Settings" }).click();
       await expect(page.getByRole("heading", { name: "Notification settings" })).toBeVisible({
@@ -406,7 +281,6 @@ test.describe("Monitor - full page workflow", () => {
       await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
       await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
       await expect(page.getByRole("button", { name: "Add email" })).toBeVisible();
-      // Email input is empty by default; Save is therefore disabled.
       await expect(page.getByRole("button", { name: "Save" })).toBeDisabled();
       await page.getByRole("button", { name: "Cancel" }).click();
       await expect(page.getByRole("heading", { name: "Notification settings" })).toBeHidden({
@@ -414,14 +288,246 @@ test.describe("Monitor - full page workflow", () => {
       });
     });
 
-    // ── Section 11: Details page — Back button ──────────────────────────────
-    // NOTE: details.tsx passes `data-testid="back-button"` but the BackIconButton
-    // component (back-buttons/index.tsx) ignores that prop and only sets
-    // aria-label="Go back". We target the rendered button by its accessible name.
     await test.step("Details — Back button returns to the Monitor list", async () => {
       await page.getByRole("button", { name: "Go back" }).click();
       await expect(page.getByRole("heading", { name: "Monitor" })).toBeVisible({
         timeout: 15_000,
+      });
+    });
+
+    await test.step("List — API Docs link points to swagger", async () => {
+      await resetToMonitorList(page);
+      const apiDocsLink = page.getByRole("link", { name: "API Docs" });
+      await expect(apiDocsLink).toBeVisible();
+      const href = await apiDocsLink.getAttribute("href");
+      expect(href ?? "").toMatch(/swagger/i);
+    });
+
+    await test.step("Add Monitor — Monitor type toggle (HTTP ↔ Heartbeat)", async () => {
+      await resetToMonitorList(page);
+      await page.getByTestId("add-monitor-button").click();
+      await expect(page.getByRole("heading", { name: "Add monitor" })).toBeVisible({
+        timeout: 15_000,
+      });
+
+      await page.getByRole("radio", { name: "Heartbeat" }).click();
+      await expect(page.getByLabel("URL to monitor")).toBeHidden();
+
+      await page.getByRole("radio", { name: "HTTP Check" }).click();
+      await expect(page.getByLabel("URL to monitor")).toBeVisible();
+
+      await page.getByRole("button", { name: "Cancel" }).click();
+      await expect(page.getByRole("heading", { name: "Add monitor" })).toBeHidden();
+    });
+
+    await test.step("Add Monitor — Source type reveals Select repo / Select service", async () => {
+      await resetToMonitorList(page);
+      await page.getByTestId("add-monitor-button").click();
+      await expect(page.getByRole("heading", { name: "Add monitor" })).toBeVisible({
+        timeout: 15_000,
+      });
+
+      await expect(page.getByText("Select repo", { exact: true })).toBeHidden();
+      await expect(page.getByText("Select service", { exact: true })).toBeHidden();
+
+      await page.getByRole("radio", { name: "Deployed" }).click();
+      await expect(page.getByText("Select repo", { exact: true })).toBeVisible();
+
+      await page.getByRole("radio", { name: "My services" }).click();
+      await expect(page.getByText("Select service", { exact: true })).toBeVisible();
+
+      await page.getByRole("button", { name: "Cancel" }).click();
+      await expect(page.getByRole("heading", { name: "Add monitor" })).toBeHidden();
+    });
+
+    await test.step("Add Monitor — Monitor settings accordion exposes Interval and Timeout sliders", async () => {
+      await resetToMonitorList(page);
+      await page.getByTestId("add-monitor-button").click();
+      await expect(page.getByRole("heading", { name: "Add monitor" })).toBeVisible({
+        timeout: 15_000,
+      });
+
+      await expect(page.getByText("Monitor interval", { exact: true })).toBeVisible();
+      await expect(page.getByText("Request timeout", { exact: true })).toBeVisible();
+
+      await expect(page.getByText("30s", { exact: true }).first()).toBeVisible();
+      await expect(page.getByText("1min", { exact: true }).first()).toBeVisible();
+
+      await page.getByRole("button", { name: "Cancel" }).click();
+      await expect(page.getByRole("heading", { name: "Add monitor" })).toBeHidden();
+    });
+
+    await test.step("Add Monitor — HTTP method enables Request body when Post", async () => {
+      await resetToMonitorList(page);
+      await page.getByTestId("add-monitor-button").click();
+      await expect(page.getByRole("heading", { name: "Add monitor" })).toBeVisible({
+        timeout: 15_000,
+      });
+
+      await page.getByRole("button", { name: "Request Configuration" }).click();
+
+      const bodyArea = page.getByPlaceholder("Enter request body content...");
+      await expect(bodyArea).toBeDisabled();
+
+      await page.getByRole("radio", { name: "Post" }).click();
+      await expect(bodyArea).toBeEnabled();
+
+      await page.getByRole("button", { name: "Cancel" }).click();
+      await expect(page.getByRole("heading", { name: "Add monitor" })).toBeHidden();
+    });
+
+    await test.step("Add Monitor — Send-as-JSON switch reveals Request headers", async () => {
+      await resetToMonitorList(page);
+      await page.getByTestId("add-monitor-button").click();
+      await expect(page.getByRole("heading", { name: "Add monitor" })).toBeVisible({
+        timeout: 15_000,
+      });
+
+      const requestConfigTrigger = page.getByRole("button", { name: "Request Configuration" });
+      await expect(requestConfigTrigger).toHaveAttribute("data-state", "closed");
+      await requestConfigTrigger.click({ force: true });
+
+      await expect(page.getByText("X-Header-Name", { exact: true })).toBeHidden();
+
+      await page.getByRole("switch", { name: /Send as JSON/ }).click();
+
+      await expect(page.getByText("X-Header-Name", { exact: true })).toBeVisible();
+
+      await page.getByRole("button", { name: "Cancel" }).click();
+      await expect(page.getByRole("heading", { name: "Add monitor" })).toBeHidden();
+    });
+
+    await test.step("Add Monitor — Cancel closes the modal without saving", async () => {
+      await resetToMonitorList(page);
+      await page.getByTestId("add-monitor-button").click();
+      await expect(page.getByRole("heading", { name: "Add monitor" })).toBeVisible({
+        timeout: 15_000,
+      });
+
+      await page.getByRole("textbox", { name: "Name" }).fill("e2e-cancel-discard");
+
+      await page.getByRole("button", { name: "Cancel" }).click();
+      await expect(page.getByRole("heading", { name: "Add monitor" })).toBeHidden();
+
+      await expect(page.getByText("e2e-cancel-discard")).toHaveCount(0);
+    });
+
+    await test.step("List — Row click navigates to monitor details", async () => {
+      await openMonitorList(page);
+      const firstRow = page.getByRole("row").nth(1);
+      const monitorName = (await firstRow.locator("td").first().innerText()).trim();
+      await firstRow.locator("td").first().click();
+      await expect(page).toHaveURL(/\/monitor\/[^/]+$/, { timeout: 15_000 });
+      await expect(page.getByRole("heading", { name: monitorName, exact: true })).toBeVisible({
+        timeout: 15_000,
+      });
+    });
+
+    await test.step("Details — Current Status card shows a state", async () => {
+      await expect(page.getByRole("heading", { name: "Current Status" })).toBeVisible();
+      await expect(page.getByText(/^(Up|Down|Paused)$/).first()).toBeVisible();
+    });
+
+    await test.step("Details — Uptime cards render 'Last X days'", async () => {
+      await expect(page.getByText(/Last \d+ days/).first()).toBeVisible();
+    });
+
+    await test.step("Details — Status Overview time-range combobox lists 1h through 24h", async () => {
+      const timeRangeCombobox = page
+        .locator('div', { has: page.getByRole("heading", { name: "Status Overview" }) })
+        .locator('button[role="combobox"]');
+      await expect(timeRangeCombobox).toBeVisible();
+      await timeRangeCombobox.click();
+      await expect(page.getByRole("option", { name: "Last 1 Hour" })).toBeVisible();
+      await expect(page.getByRole("option", { name: "Last 3 Hours" })).toBeVisible();
+      await expect(page.getByRole("option", { name: "Last 6 Hours" })).toBeVisible();
+      await expect(page.getByRole("option", { name: "Last 12 Hours" })).toBeVisible();
+      await expect(page.getByRole("option", { name: "Last 24 Hours" })).toBeVisible();
+      await page.keyboard.press("Escape");
+    });
+
+    await test.step("Details — Latest incidents section renders", async () => {
+      await expect(page.getByText("Latest incidents", { exact: true })).toBeVisible();
+    });
+
+    await test.step("Details — Configure save persists HTTP method change to Post", async () => {
+      await page.getByRole("button", { name: "Configure" }).click({ force: true });
+      await expect(page.getByRole("heading", { name: "Configure" })).toBeVisible({
+        timeout: 15_000,
+      });
+
+      await page.getByRole("button", { name: "Request Configuration" }).click();
+      await page.getByRole("radio", { name: "Post" }).click();
+
+      await page.getByRole("button", { name: "Save" }).click();
+      await expect(page.getByText("Monitor successfully updated.", { exact: true })).toBeVisible({
+        timeout: 15_000,
+      });
+      await expect(page.getByRole("heading", { name: "Configure" })).toBeHidden({
+        timeout: 5_000,
+      });
+    });
+
+    await test.step("Details — Notification Settings rejects invalid email format", async () => {
+      await page.getByRole("button", { name: "Notification Settings" }).click();
+      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeVisible({
+        timeout: 15_000,
+      });
+
+      await page.getByRole("button", { name: "Add email" }).click();
+      await page.getByPlaceholder("Enter email address").first().fill("not-an-email");
+      await expect(page.getByText("Please enter a valid email address").first()).toBeVisible({
+        timeout: 5_000,
+      });
+
+      await page.getByRole("button", { name: "Cancel" }).click();
+      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeHidden({
+        timeout: 5_000,
+      });
+    });
+
+    await test.step("Details — Notification Settings adds and saves a valid email", async () => {
+      const uniqueEmail = `e2e-${Date.now()}@example.com`;
+      await page.getByRole("button", { name: "Notification Settings" }).click();
+      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeVisible({
+        timeout: 15_000,
+      });
+
+      await page.getByRole("button", { name: "Add email" }).click();
+      await page.getByPlaceholder("Enter email address").first().fill(uniqueEmail);
+      await page.getByRole("button", { name: "Save" }).click();
+
+      await expect(page.getByText("Monitor successfully updated.", { exact: true })).toBeVisible({
+        timeout: 15_000,
+      });
+      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeHidden({
+        timeout: 5_000,
+      });
+    });
+
+    await test.step("Add Monitor — HTTP Check happy path saves and opens details", async () => {
+      await page.getByRole("button", { name: "Go back" }).click();
+      await expect(page.getByRole("heading", { name: "Monitor" })).toBeVisible({
+        timeout: 15_000,
+      });
+
+      await page.getByTestId("add-monitor-button").click();
+      await expect(page.getByRole("heading", { name: "Add monitor" })).toBeVisible({
+        timeout: 15_000,
+      });
+
+      const monitorName = `e2e-http-${Date.now()}`;
+      const url = `https://example.com/health-${Date.now()}`;
+
+      await page.getByRole("radio", { name: "HTTP Check" }).click();
+      await page.getByRole("textbox", { name: "Name" }).fill(monitorName);
+      await page.getByPlaceholder("Enter URL to monitor").fill(url);
+
+      await page.getByRole("button", { name: "Save" }).click();
+
+      await expect(page).toHaveURL(/\/monitor\/[^/]+$/, { timeout: 30_000 });
+      await expect(page.getByRole("heading", { name: monitorName, exact: true })).toBeVisible({
+        timeout: 30_000,
       });
     });
   });
