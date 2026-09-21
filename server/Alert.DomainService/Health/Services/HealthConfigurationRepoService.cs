@@ -40,7 +40,8 @@ namespace DomainService.Health.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving active HealthConfigurations");
-                return new List<MonitorConfiguration>();
+                // Keep the last known heartbeat schedule when the root read fails.
+                throw;
             }
         }
 

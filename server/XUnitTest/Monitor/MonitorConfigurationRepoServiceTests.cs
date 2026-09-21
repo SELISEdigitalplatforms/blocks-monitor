@@ -241,10 +241,11 @@ namespace XUnitTest.Monitor
         }
 
         [Fact]
-        public async Task GetAllConfigurationListAsync_WhenThrows_ReturnsEmpty()
+        public async Task GetAllConfigurationListAsync_WhenRootReadFails_PropagatesFailure()
         {
-            var result = await Build(MongoMocks.CollectionThrowing<MonitorConfiguration>()).GetAllConfigurationListAsync();
-            result.Should().BeEmpty();
+            var repo = Build(MongoMocks.CollectionThrowing<MonitorConfiguration>());
+            await FluentActions.Invoking(() => repo.GetAllConfigurationListAsync())
+                .Should().ThrowAsync<MongoException>();
         }
 
         [Fact]

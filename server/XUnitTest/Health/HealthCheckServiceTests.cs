@@ -80,6 +80,26 @@ namespace XUnitTest.Health
         }
 
         [Fact]
+        public async Task LoadMonitorsFromDatabaseAsync_FailedRootPoll_KeepsHeartbeatQueueUntilSuccessfulRefresh()
+        {
+            var coll = MongoMocks.Collection(new List<MonitorConfiguration>());
+            coll.SetupSequence(c => c.FindAsync(It.IsAny<FilterDefinition<MonitorConfiguration>>(),
+                    It.IsAny<FindOptions<MonitorConfiguration, MonitorConfiguration>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(MongoMocks.Cursor(new List<MonitorConfiguration> { new() { ItemId = "a" } }).Object)
+                .ThrowsAsync(new MongoException("root unavailable"))
+                .ReturnsAsync(MongoMocks.Cursor(new List<MonitorConfiguration>()).Object);
+            var sut = Build(coll);
+
+            await sut.LoadMonitorsFromDatabaseAsync();
+            await FluentActions.Invoking(() => sut.LoadMonitorsFromDatabaseAsync())
+                .Should().ThrowAsync<MongoException>();
+            _queue.GetAll().Should().ContainSingle(t => t.Config.ItemId == "a");
+
+            await sut.LoadMonitorsFromDatabaseAsync();
+            _queue.GetAll().Should().BeEmpty();
+        }
+
+        [Fact]
         public void RequeueByUrl_WhenItemIdEmpty_DoesNothing()
         {
             var sut = Build(MongoMocks.Collection(new List<MonitorConfiguration>()));
