@@ -133,7 +133,7 @@ Copy [client/.env.example](client/.env.example) to `client/.env` for local devel
 Variables used by the client (via [client/app/lib/runtime-env.ts](client/app/lib/runtime-env.ts)):
 
 - BLOCKS_IAM_BASE_URL: IAM base URL for auth flows
-- BLOCKS_MONITOR_BASE_URL: monitor base URL used for API calls
+- BLOCKS_MONITOR_BASE_URL: external Monitor API target for the local Vite proxy; the browser uses its page origin for Monitor API calls
 - BLOCKS_LOGIC_BASE_URL: logic base URL for service registry calls
 - BLOCKS_X_BLOCKS_KEY: project key sent as X-Blocks-Key
 - BLOCKS_GOOGLE_SITE_KEY: captcha site key used on login
