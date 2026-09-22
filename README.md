@@ -224,6 +224,8 @@ Configure these secrets only on hosts that directly probe the clusters, and rest
 
 Tests cover main/dev/other outcomes, timeout/cancellation, absent optional secrets, safe failure responses, and main/root monitoring writes. Run `dotnet test server/XUnitTest/XUnitTest.csproj -c Release`. Actual deployed network access, credentials and alert ingestion still require deployment validation. Main/root failure still affects centralized monitoring and tenant discovery.
 
+Scheduler configuration reads from main/root distinguish an empty result from a failed read. If a poll fails, the worker logs the failure and keeps its last known outbound and heartbeat schedules; a later successful empty result removes them. An initial read failure still prevents the worker from starting, so deployment health and root connectivity must be checked.
+
 ## License
 
 See [LICENSE](LICENSE).

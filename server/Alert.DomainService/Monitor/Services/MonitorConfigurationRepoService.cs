@@ -235,7 +235,9 @@ namespace DomainService.Monitor.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving all MonitorConfigurations");
-                return new List<MonitorConfiguration>();
+                // An unavailable root database is not an empty configuration set. The scheduler
+                // would otherwise remove every cached monitor until the next successful poll.
+                throw;
             }
         }
 

@@ -101,7 +101,7 @@ namespace XUnitTest.Health
         }
 
         [Fact]
-        public async Task GetAllActiveConfigurationsAsync_WhenThrows_ReturnsEmpty()
+        public async Task GetAllActiveConfigurationsAsync_WhenRootReadFails_PropagatesFailure()
         {
             var db = new MongoMocks.DbBuilder()
                 .With(MongoMocks.CollectionThrowing<MonitorConfiguration>())
@@ -109,9 +109,8 @@ namespace XUnitTest.Health
             var repo = new HealthConfigurationRepoService(
                 new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
 
-            var result = await repo.GetAllActiveConfigurationsAsync();
-
-            result.Should().BeEmpty();
+            await FluentActions.Invoking(() => repo.GetAllActiveConfigurationsAsync())
+                .Should().ThrowAsync<MongoException>();
         }
 
         [Fact]
