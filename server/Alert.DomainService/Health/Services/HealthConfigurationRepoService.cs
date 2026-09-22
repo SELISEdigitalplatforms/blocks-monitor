@@ -29,19 +29,14 @@ namespace DomainService.Health.Services
 
         public async Task<List<MonitorConfiguration>> GetAllActiveConfigurationsAsync()
         {
-            try
-            {
-                var filter = Builders<MonitorConfiguration>.Filter.And(
-                    Builders<MonitorConfiguration>.Filter.Eq(m => m.IsActive, true),
-                    Builders<MonitorConfiguration>.Filter.Eq(m => m.MonitorConfigurationType, MonitorConfigurationTypes.InboundPing)
-                );
-                return await _healthConfigCollection.Find(filter).ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving active HealthConfigurations");
-                return new List<MonitorConfiguration>();
-            }
+            // Read failures propagate so the scheduler keeps the last known heartbeat schedule
+            // instead of treating an unavailable root database as an empty configuration set.
+            // The polling loop logs and handles the failure.
+            var filter = Builders<MonitorConfiguration>.Filter.And(
+                Builders<MonitorConfiguration>.Filter.Eq(m => m.IsActive, true),
+                Builders<MonitorConfiguration>.Filter.Eq(m => m.MonitorConfigurationType, MonitorConfigurationTypes.InboundPing)
+            );
+            return await _healthConfigCollection.Find(filter).ToListAsync();
         }
 
         public async Task<List<MonitorConfiguration>> GetConfigurationListAsync(string tenantId)

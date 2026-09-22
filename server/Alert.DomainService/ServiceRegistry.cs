@@ -16,6 +16,7 @@ namespace Alert.DomainService
     {
         public static void AddApplicationServices(this IServiceCollection services)
         {
+            services.AddSingleton<IDatabasePlacementDiagnostics, DatabasePlacementDiagnostics>();
 
             services.AddSingleton<IMonitorConfigurationService, MonitorConfigurationService>();
             services.AddSingleton<IMonitorConfigurationRepoService, MonitorConfigurationRepoService>();

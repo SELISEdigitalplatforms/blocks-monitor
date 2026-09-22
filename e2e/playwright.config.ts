@@ -22,7 +22,6 @@ export default defineConfig({
   workers: 1,
   timeout: 600_000,
   reporter: [["html", { open: "never" }], ["list"]],
-  globalSetup: "./global-setup.ts",
   use: {
     baseURL,
     trace: "on-first-retry",
@@ -52,6 +51,11 @@ export default defineConfig({
     : {}),
   projects: [
     {
+      name: "monitor-setup",
+      testMatch: /suite[\\/]suite\.setup\.spec\.ts$/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
       name: "monitor",
       // The spec lives at tests/02-monitor/monitor.spec.ts. The earlier
       // `Monitor[\\/]monitor\.spec\.ts` regex required a literal "Monitor"
@@ -59,6 +63,13 @@ export default defineConfig({
       // zero files on this package. Match the real on-disk path instead.
       testMatch: /02-monitor[\\/]monitor\.spec\.ts$/,
       use: { ...devices["Desktop Chrome"] },
+      dependencies: ["monitor-setup"],
+    },
+    {
+      name: "monitor-teardown",
+      testMatch: /suite[\\/]suite\.teardown\.spec\.ts$/,
+      use: { ...devices["Desktop Chrome"] },
+      dependencies: ["monitor"],
     },
   ],
 })

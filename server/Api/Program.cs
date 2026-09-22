@@ -77,6 +77,16 @@ await services.RegisterBlocksReleaseServicesAsync(vaultType);
 
 var app = builder.Build();
 
+// Infrastructure diagnostics expose safe group labels only. Keep them outside Genesis's
+// shared /ping and readiness checks so a dev outage cannot remove a healthy main API.
+app.Map("/health/databases", branch => branch.Run(async context =>
+{
+ var diagnostics = context.RequestServices.GetRequiredService<DomainService.Health.Services.IDatabasePlacementDiagnostics>();
+ var result = await diagnostics.CheckAsync(context.RequestAborted);
+ context.Response.StatusCode = result.IsHealthy ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable;
+ await context.Response.WriteAsJsonAsync(result, context.RequestAborted);
+}));
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
 

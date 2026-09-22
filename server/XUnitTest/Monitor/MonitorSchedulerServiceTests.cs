@@ -6,6 +6,7 @@ using DomainService.Monitor.Entity;
 using DomainService.Monitor.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using Moq;
 
 namespace XUnitTest.Monitor
@@ -70,6 +71,24 @@ namespace XUnitTest.Monitor
             _queue.Verify(q => q.RemoveByItemId("b"), Times.Once);
             // "a" already existed, so it is not enqueued again.
             _queue.Verify(q => q.Enqueue(It.IsAny<MonitorQueueTask>()), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task LoadMonitorsFromDatabaseAsync_FailedRootPoll_KeepsQueuedMonitorsUntilSuccessfulRefresh()
+        {
+            var sut = CreateSut();
+            _repo.SetupSequence(r => r.GetAllConfigurationListAsync())
+                .ReturnsAsync(new List<MonitorConfiguration> { new() { ItemId = "a", Url = "http://a" } })
+                .ThrowsAsync(new MongoException("root unavailable"))
+                .ReturnsAsync(new List<MonitorConfiguration>());
+
+            await sut.LoadMonitorsFromDatabaseAsync();
+            await FluentActions.Invoking(() => sut.LoadMonitorsFromDatabaseAsync())
+                .Should().ThrowAsync<MongoException>();
+            _queue.Verify(q => q.RemoveByItemId("a"), Times.Never);
+
+            await sut.LoadMonitorsFromDatabaseAsync();
+            _queue.Verify(q => q.RemoveByItemId("a"), Times.Once);
         }
 
         [Fact]
