@@ -161,13 +161,32 @@ namespace XUnitTest.Health
             _queue.Enqueue(new HealthQueueTask(config) { NextExecutionTime = System.DateTime.UtcNow.AddSeconds(-5) });
             var sut = Build(MongoMocks.Collection(new List<MonitorConfiguration>()));
             using var cts = new CancellationTokenSource();
-            cts.CancelAfter(500);
 
             var run = sut.StartAsync(cts.Token);
-            var completed = await Task.WhenAny(run, Task.Delay(5000));
 
-            completed.Should().BeSameAs(run);
+            // Workers poll every 100ms, so wait for the queue to drain instead of cancelling after a
+            // fixed delay: on a loaded CI agent the worker can be scheduled late and never see the task.
+            var drained = await WaitUntilAsync(() => !_queue.HasTasks(), TimeSpan.FromSeconds(10));
+
+            cts.Cancel();
+            await Task.WhenAny(run, Task.Delay(5000));
+
+            drained.Should().BeTrue();
             _queue.HasTasks().Should().BeFalse();
+        }
+
+        private static async Task<bool> WaitUntilAsync(Func<bool> condition, TimeSpan timeout)
+        {
+            var deadline = DateTime.UtcNow + timeout;
+            while (DateTime.UtcNow < deadline)
+            {
+                if (condition())
+                    return true;
+
+                await Task.Delay(25);
+            }
+
+            return condition();
         }
 
         [Fact]
