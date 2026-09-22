@@ -219,26 +219,19 @@ namespace DomainService.Monitor.Services
 
         public async Task<List<MonitorConfiguration>> GetAllConfigurationListAsync()
         {
-            try
-            {
-                var filter = Builders<MonitorConfiguration>.Filter.And(
-                    Builders<MonitorConfiguration>.Filter.Eq(m => m.IsActive, true),
-                    Builders<MonitorConfiguration>.Filter.Eq(m => m.MonitorConfigurationType, MonitorConfigurationTypes.OutboundPing)
-                );
+            // Read failures propagate: an unavailable root database is not an empty configuration
+            // set, and the scheduler would otherwise remove every cached monitor until the next
+            // successful poll. The polling loop logs and handles the failure.
+            var filter = Builders<MonitorConfiguration>.Filter.And(
+                Builders<MonitorConfiguration>.Filter.Eq(m => m.IsActive, true),
+                Builders<MonitorConfiguration>.Filter.Eq(m => m.MonitorConfigurationType, MonitorConfigurationTypes.OutboundPing)
+            );
 
-                var monitorConfig = await _monitorConfigurationCollection.Find(filter).ToListAsync();
-                _logger.LogInformation(
-                    "Retrieved {Count} active OutboundPing MonitorConfigurations from database.",
-                    monitorConfig.Count);
-                return monitorConfig;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving all MonitorConfigurations");
-                // An unavailable root database is not an empty configuration set. The scheduler
-                // would otherwise remove every cached monitor until the next successful poll.
-                throw;
-            }
+            var monitorConfig = await _monitorConfigurationCollection.Find(filter).ToListAsync();
+            _logger.LogInformation(
+                "Retrieved {Count} active OutboundPing MonitorConfigurations from database.",
+                monitorConfig.Count);
+            return monitorConfig;
         }
 
         public async Task<bool> SaveConfigurationAsync(MonitorConfiguration monitorConfiguration)
