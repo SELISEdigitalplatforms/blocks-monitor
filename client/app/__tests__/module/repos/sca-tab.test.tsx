@@ -82,7 +82,7 @@ describe("ScaTab", () => {
     expect(screen.queryByText(/view in dependency track/i)).not.toBeInTheDocument();
   });
 
-  it("toggles severity filter and shows No entries (H13, C14)", async () => {
+  it("toggles severity filter and shows the BR-style empty state (H13, C14)", async () => {
     const user = userEvent.setup();
     render(
       <QueryWrapper>
@@ -90,7 +90,7 @@ describe("ScaTab", () => {
       </QueryWrapper>,
     );
     await user.click(screen.getByTestId("sca-tile-low"));
-    expect(screen.getByTestId("sca-empty")).toHaveTextContent("No entries");
+    expect(screen.getByTestId("sca-empty")).toHaveTextContent("No dependencies found");
     expect(screen.getByTestId("sca-prev")).toBeDisabled();
     expect(screen.getByTestId("sca-next")).toBeDisabled();
   });
@@ -106,7 +106,7 @@ describe("ScaTab", () => {
     expect(screen.getByText("lodash")).toBeInTheDocument();
     expect(screen.getByText("CVE-2")).toBeInTheDocument();
     expect(screen.queryByText("left-pad")).not.toBeInTheDocument();
-    expect(screen.getByTestId("sca-footer")).toHaveTextContent("Showing 1–1 of 1");
+    expect(screen.getByTestId("sca-footer")).toHaveTextContent("Showing 1-1 of 1 entries");
   });
 
   it("opens dialog on row click; NVD link does not (H13)", async () => {

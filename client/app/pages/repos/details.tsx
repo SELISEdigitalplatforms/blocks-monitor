@@ -15,8 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/core";
 import { useGetRepoDetails, getHttpStatus } from "@/hooks/use-repos";
-import { LatestBuildCard, NoBuildCard } from "@/components/module/repos/latest-build-card";
-import { RepositoryCard } from "@/components/module/repos/repository-card";
+import { RepoDeploymentLogsTab } from "@/components/module/repos/repo-deployment-logs-tab";
 import { SastTab } from "@/components/module/repos/sast-tab";
 import { ScaTab } from "@/components/module/repos/sca-tab";
 import {
@@ -95,9 +94,8 @@ const RepoDetailsPage = () => {
           variant="ghost"
           className="h-9 px-0 text-muted-foreground hover:bg-transparent"
         >
-          <Link to={scoped("repos")} className="inline-flex items-center gap-1 text-sm">
+          <Link to={scoped("repos")} aria-label="Back to Repos">
             <ChevronLeft className="h-4 w-4" />
-            Repos
           </Link>
         </Button>
         <h1 className="text-lg font-semibold text-high-emphasis md:text-2xl">{shortName}</h1>
@@ -105,19 +103,19 @@ const RepoDetailsPage = () => {
 
       <TooltipProvider>
         <Tabs value={effectiveTab} onValueChange={(v) => setTab(v as TabValue)}>
-          <TabsList className="w-fit bg-blocks-primary-shades-300">
-            <TabsTrigger value="deployment-logs" className="px-4">
+          <TabsList className="h-auto w-fit rounded-lg bg-blocks-primary-shades-300 p-1">
+            <TabsTrigger value="deployment-logs" className="px-6 py-3 text-base">
               Deployment Logs
             </TabsTrigger>
             {hasBuild ? (
-              <TabsTrigger value="sast" className="px-4">
+              <TabsTrigger value="sast" className="px-6 py-3 text-base">
                 SAST
               </TabsTrigger>
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
-                    <TabsTrigger value="sast" disabled className="px-4">
+                    <TabsTrigger value="sast" disabled className="px-6 py-3 text-base">
                       SAST
                     </TabsTrigger>
                   </span>
@@ -126,14 +124,14 @@ const RepoDetailsPage = () => {
               </Tooltip>
             )}
             {hasBuild ? (
-              <TabsTrigger value="sca" className="px-4">
+              <TabsTrigger value="sca" className="px-6 py-3 text-base">
                 SCA
               </TabsTrigger>
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
-                    <TabsTrigger value="sca" disabled className="px-4">
+                    <TabsTrigger value="sca" disabled className="px-6 py-3 text-base">
                       SCA
                     </TabsTrigger>
                   </span>
@@ -144,8 +142,7 @@ const RepoDetailsPage = () => {
           </TabsList>
 
           <TabsContent value="deployment-logs" className="mt-4 space-y-4">
-            {hasBuild && latestBuild ? <LatestBuildCard build={latestBuild} /> : <NoBuildCard />}
-            {repo && <RepositoryCard repo={repo} />}
+            <RepoDeploymentLogsTab repo={repo} build={latestBuild} />
           </TabsContent>
 
           <TabsContent value="sast" className="mt-4">

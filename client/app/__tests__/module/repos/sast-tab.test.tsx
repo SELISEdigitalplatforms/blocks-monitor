@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryWrapper } from "@/__tests__/test-utils";
 
 const h = vi.hoisted(() => ({
@@ -51,7 +52,8 @@ describe("SastTab", () => {
     expect(screen.getByTestId("report-no-data")).toBeInTheDocument();
   });
 
-  it("renders mapped metrics and grades; missing → — (H11, C13)", () => {
+  it("renders mapped BR-style new-code metrics and can switch to overall code (H11, C13)", async () => {
+    const user = userEvent.setup();
     h.report.data = {
       data: {
         type: "sast",
@@ -83,14 +85,16 @@ describe("SastTab", () => {
     expect(screen.getByTestId("sast-ncloc")).toHaveTextContent("1,200");
     expect(screen.getByTestId("sast-reliability")).toHaveTextContent("3");
     expect(screen.getByTestId("grade-A")).toBeInTheDocument();
+    expect(screen.getByText("New Code")).toBeInTheDocument();
+
+    await user.click(screen.getByText("Overall Code"));
     expect(screen.getByTestId("grade-B")).toBeInTheDocument();
     expect(screen.getByTestId("sast-new-debt")).toHaveTextContent("12 min");
-    expect(screen.getByTestId("sast-hotspots-warn")).toBeInTheDocument();
-    // Must not render View in SonarQube (C15)
     expect(screen.queryByText(/view in sonarqube/i)).not.toBeInTheDocument();
   });
 
-  it("shows — for absent rating keys (C13)", () => {
+  it("shows placeholders for absent rating keys (C13)", async () => {
+    const user = userEvent.setup();
     h.report.data = {
       data: {
         type: "sast",
@@ -105,7 +109,9 @@ describe("SastTab", () => {
     );
     expect(screen.getByTestId("sast-quality-gate")).toHaveTextContent("Failed");
     expect(screen.queryByTestId("grade-A")).not.toBeInTheDocument();
-    expect(screen.getByTestId("sast-security")).toHaveTextContent("—");
+
+    await user.click(screen.getByText("Overall Code"));
+    expect(screen.getByTestId("sast-security")).toHaveTextContent("-");
   });
 
   it("shows error card on failure (C16 SPA path)", () => {

@@ -28,6 +28,18 @@ export interface IBuild {
   defaultDeploymentUrl: string | null;
   customDeploymentUrl: string | null;
   dependencyTrackProjectId: string | null;
+  events?: IBuildEvent[] | null;
+}
+
+export interface IBuildEvent {
+  id?: string | null;
+  buildId?: string | null;
+  eventType?: string | null;
+  message?: string | null;
+  eventGroup?: string | null;
+  createdAt?: string | null;
+  createdDate?: string | null;
+  lastUpdateDate?: string | null;
 }
 
 export interface IRepoDetailsResponse {

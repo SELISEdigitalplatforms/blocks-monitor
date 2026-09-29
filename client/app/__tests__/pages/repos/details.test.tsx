@@ -44,6 +44,32 @@ const sampleBuild = {
   defaultDeploymentUrl: "https://dev.example.com",
   customDeploymentUrl: null,
   dependencyTrackProjectId: null,
+  events: [
+    {
+      id: "e1",
+      buildId: "b1",
+      eventType: "EventStarted",
+      eventGroup: "Clone",
+      message: "",
+      createdAt: "2026-09-29T09:00:00Z",
+    },
+    {
+      id: "e2",
+      buildId: "b1",
+      eventType: "Log",
+      eventGroup: "Clone",
+      message: "Clone complete.",
+      createdAt: "2026-09-29T09:00:01Z",
+    },
+    {
+      id: "e3",
+      buildId: "b1",
+      eventType: "EventFinished",
+      eventGroup: "Clone",
+      message: "",
+      createdAt: "2026-09-29T09:00:02Z",
+    },
+  ],
 };
 
 vi.mock("@seliseblocks/genesis-os/store", () => ({
@@ -92,11 +118,13 @@ describe("RepoDetailsPage", () => {
     h.details.data.data.build = [sampleBuild];
   });
 
-  it("renders latest build and repository cards (H8)", () => {
+  it("renders BR-style deployment logs and general information (H8)", () => {
     renderPage();
-    expect(screen.getByTestId("latest-build-card")).toBeInTheDocument();
-    expect(screen.getByTestId("repository-card")).toBeInTheDocument();
-    expect(screen.getByTestId("repo-live")).toHaveTextContent("Yes");
+    expect(screen.getByLabelText("Back to Repos")).toBeInTheDocument();
+    expect(screen.queryByText("Repos")).not.toBeInTheDocument();
+    expect(screen.getByTestId("deployment-general-info")).toHaveTextContent("General information");
+    expect(screen.getByTestId("deployment-logs-card")).toHaveTextContent("Deployment logs");
+    expect(screen.getByText("Clone complete.")).toBeInTheDocument();
   });
 
   it("shows no-build state and disables SAST/SCA (C8)", () => {
