@@ -29,12 +29,7 @@ export function SastTab({
   buildId: string | undefined;
   isActive: boolean;
 }>) {
-  const { data, isLoading, isError, refetch } = useGetReport(
-    projectKey,
-    buildId,
-    "sast",
-    isActive,
-  );
+  const { data, isLoading, isError, refetch } = useGetReport(projectKey, buildId, "sast", isActive);
   const [scope, setScope] = useState<SastScope>("new");
 
   const details = data?.data?.details ?? null;
@@ -78,7 +73,9 @@ export function SastTab({
         <button
           type="button"
           className={`rounded-sm px-4 py-2 text-sm font-semibold ${
-            scope === "overall" ? "bg-background text-high-emphasis shadow-sm" : "text-muted-foreground"
+            scope === "overall"
+              ? "bg-background text-high-emphasis shadow-sm"
+              : "text-muted-foreground"
           }`}
           onClick={() => setScope("overall")}
         >
@@ -86,11 +83,7 @@ export function SastTab({
         </button>
       </div>
 
-      {scope === "new" ? (
-        <NewCodeView view={view} />
-      ) : (
-        <OverallCodeView view={view} />
-      )}
+      {scope === "new" ? <NewCodeView view={view} /> : <OverallCodeView view={view} />}
     </section>
   );
 }
@@ -105,7 +98,9 @@ function NewCodeView({ view }: Readonly<{ view: SastView }>) {
       <div className="rounded-sm border p-4 text-sm">
         <p className="font-semibold text-red-500">{view.failedConditions} conditions failed</p>
         <div className="mt-2 space-y-1 font-medium">
-          <p>{view.coverage} Coverage is less than {view.requiredCoverage}</p>
+          <p>
+            {view.coverage} Coverage is less than {view.requiredCoverage}
+          </p>
           <p>{view.hotspotsReviewed} Security Hotspots Reviewed is less than 100.0%</p>
           <p>{view.newIssues} Issues is greater than 0</p>
         </div>
@@ -119,7 +114,11 @@ function NewCodeView({ view }: Readonly<{ view: SastView }>) {
           helper="Required = 0"
           testId="sast-reliability"
         />
-        <MetricBlock title="Accepted issues" value={view.accepted} helper="Valid issues that were not fixed" />
+        <MetricBlock
+          title="Accepted issues"
+          value={view.accepted}
+          helper="Valid issues that were not fixed"
+        />
         <MetricBlock
           title="Coverage"
           value={view.coverage}
@@ -175,7 +174,11 @@ function OverallCodeView({ view }: Readonly<{ view: SastView }>) {
           visual={<GradeCircle letter={view.maintainabilityGrade} />}
           testId="sast-maintainability"
         />
-        <MetricBlock title="Accepted issues" value={view.accepted} helper="Valid issues that were not fixed" />
+        <MetricBlock
+          title="Accepted issues"
+          value={view.accepted}
+          helper="Valid issues that were not fixed"
+        />
         <MetricBlock
           title="Coverage"
           value={view.coverage}
@@ -275,7 +278,9 @@ function StatusPill({
 }
 
 function Chip({ children }: Readonly<{ children: ReactNode }>) {
-  return <span className="rounded-full bg-secondary px-3 py-1 text-muted-foreground">{children}</span>;
+  return (
+    <span className="rounded-full bg-secondary px-3 py-1 text-muted-foreground">{children}</span>
+  );
 }
 
 function GradeCircle({ letter }: Readonly<{ letter: RatingLetter | null }>) {
@@ -297,7 +302,15 @@ function Donut({ percent, label }: Readonly<{ percent: number | null; label: str
   const offset = c - (p / 100) * c;
   return (
     <svg width="78" height="78" viewBox="0 0 78 78" aria-label={label} data-testid="sast-donut">
-      <circle cx="39" cy="39" r={r} fill="none" stroke="currentColor" strokeWidth="9" className="text-muted" />
+      <circle
+        cx="39"
+        cy="39"
+        r={r}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="9"
+        className="text-muted"
+      />
       <circle
         cx="39"
         cy="39"
@@ -355,6 +368,13 @@ function mapSastDetails(details: Record<string, string>, scope: SastScope): Sast
   const dupNum = toNumber(dupRaw);
   const hotspotsNum = toNumber(hotspotsRaw);
   const qualityGate = qualityGateLabel(details.alert_status);
+  const technicalDebt = pick(
+    details,
+    `${prefix}technical_debt`,
+    "new_technical_debt",
+    "sqale_index",
+  );
+  const newDebt = technicalDebt === MISSING ? MISSING : `${technicalDebt} min`;
 
   return {
     qualityGate,
@@ -376,10 +396,7 @@ function mapSastDetails(details: Record<string, string>, scope: SastScope): Sast
     duplications: formatPercent(dupRaw),
     dupNum,
     duplicatedLines: formatCount(pick(details, `${prefix}duplicated_lines`, "duplicated_lines")),
-    newDebt:
-      pick(details, `${prefix}technical_debt`, "new_technical_debt", "sqale_index") !== MISSING
-        ? `${pick(details, `${prefix}technical_debt`, "new_technical_debt", "sqale_index")} min`
-        : MISSING,
+    newDebt,
     newIssues: formatCount(newIssues),
     newCodeSince: pick(details, "new_code_period", "new_code_since", ""),
     failedConditions: qualityGate === "Failed" ? "3" : "0",

@@ -1,13 +1,6 @@
 import { useMemo, useState } from "react";
 import { formatDate } from "@seliseblocks/genesis-os/utils";
-import {
-  CheckCircle2,
-  ChevronDown,
-  ChevronRight,
-  Circle,
-  Copy,
-  XCircle,
-} from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronRight, Circle, Copy, XCircle } from "lucide-react";
 import { Button } from "@/components/core";
 import type { IBuild, IBuildEvent, IRepo } from "@/models/repos.model";
 import {
@@ -46,11 +39,7 @@ export function RepoDeploymentLogsTab({
 }>) {
   return (
     <div className="space-y-4">
-      {build ? (
-        <GeneralInformationCard repo={repo} build={build} />
-      ) : (
-        <NoBuildCard />
-      )}
+      {build ? <GeneralInformationCard repo={repo} build={build} /> : <NoBuildCard />}
       <DeploymentLogsCard build={build} />
     </div>
   );
@@ -110,7 +99,10 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
     () => new Set(steps[0]?.logs.length ? [steps[0].id] : []),
   );
 
-  const wholeStatus = build?.status === "Failed" ? "Failed" : build ? "Successful" : "";
+  let wholeStatus = "";
+  if (build) {
+    wholeStatus = build.status === "Failed" ? "Failed" : "Successful";
+  }
   const totalDuration =
     build?.createdDate && build?.lastUpdatedDate
       ? formatElapsedTime(Date.parse(build.lastUpdatedDate) - Date.parse(build.createdDate))
@@ -127,7 +119,10 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
   };
 
   return (
-    <section className="rounded-sm border bg-background p-6 shadow-sm" data-testid="deployment-logs-card">
+    <section
+      className="rounded-sm border bg-background p-6 shadow-sm"
+      data-testid="deployment-logs-card"
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-high-emphasis">Deployment logs</h2>
         {build && (
@@ -150,6 +145,7 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
           {steps.map((step, index) => {
             const isExpanded = expanded.has(step.id);
             const expandable = step.logs.length > 0;
+            const ExpandIcon = isExpanded ? ChevronDown : ChevronRight;
             return (
               <div key={step.id} className={index < steps.length - 1 ? "border-b" : ""}>
                 <button
@@ -161,11 +157,7 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
                 >
                   <span className="flex items-center gap-3 text-sm font-semibold">
                     {expandable ? (
-                      isExpanded ? (
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      )
+                      <ExpandIcon className="h-4 w-4 text-muted-foreground" />
                     ) : (
                       <span className="w-4" />
                     )}
@@ -178,8 +170,8 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
                 {isExpanded && step.logs.length > 0 && (
                   <div className="bg-secondary">
                     <div className="px-4 py-2 text-xs font-medium text-muted-foreground">
-                      Started {formatEventTime(step.startedAt)} - Ended {formatEventTime(step.endedAt)} - Took{" "}
-                      {step.duration}
+                      Started {formatEventTime(step.startedAt)} - Ended{" "}
+                      {formatEventTime(step.endedAt)} - Took {step.duration}
                     </div>
                     <div className="max-h-[360px] overflow-auto pb-2 font-mono text-xs">
                       {step.logs.map((log, logIndex) => (
@@ -187,7 +179,9 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
                           <span className="w-10 shrink-0 select-none text-right text-muted-foreground">
                             {String(logIndex + 1).padStart(2, "0")}
                           </span>
-                          <span className="ml-6 min-w-0 whitespace-pre-wrap break-words">{log}</span>
+                          <span className="ml-6 min-w-0 whitespace-pre-wrap break-words">
+                            {log}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -204,7 +198,10 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
 
 function NoBuildCard() {
   return (
-    <section className="rounded-sm border bg-background p-6 text-sm text-muted-foreground" data-testid="no-build-card">
+    <section
+      className="rounded-sm border bg-background p-6 text-sm text-muted-foreground"
+      data-testid="no-build-card"
+    >
       This repository has not been deployed yet
     </section>
   );
@@ -270,7 +267,8 @@ function buildSteps(build: IBuild | null): BuildStep[] {
         .flatMap((event) => splitLogMessage(event.message));
       const status = stepStatus(ordered);
       const startedAt = ordered[0] ? eventDate(ordered[0]) : null;
-      const endedAt = ordered[ordered.length - 1] ? eventDate(ordered[ordered.length - 1]) : null;
+      const lastEvent = ordered.at(-1);
+      const endedAt = lastEvent ? eventDate(lastEvent) : null;
       return {
         id: `${build.itemId}-${group}`,
         name: group,
@@ -335,7 +333,7 @@ function displayStepName(name: string): string {
   return name === "Sast" || name === "Sca" ? name.toUpperCase() : name;
 }
 
-function StatusIcon({ status }: Readonly<{ status?: string | StepStatus | null }>) {
+function StatusIcon({ status }: Readonly<{ status?: string | null }>) {
   const normalized = (status || "").toLowerCase();
   if (normalized === "failed" || normalized === "error") {
     return <XCircle className="h-4 w-4 text-red-500" aria-hidden />;
