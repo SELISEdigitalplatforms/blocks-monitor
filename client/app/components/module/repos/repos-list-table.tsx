@@ -41,7 +41,7 @@ function shortName(repoName: string): string {
   return repoName.split("/").pop() || repoName;
 }
 
-export function ReposListTable({ rows }: { rows: RepoRow[] }) {
+export function ReposListTable({ rows }: Readonly<{ rows: RepoRow[] }>) {
   const navigate = useNavigate();
   const scoped = useScopedPath();
   const [search, setSearch] = useState("");

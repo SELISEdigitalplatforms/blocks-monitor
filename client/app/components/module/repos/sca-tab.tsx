@@ -18,11 +18,11 @@ export function ScaTab({
   projectKey,
   buildId,
   isActive,
-}: {
+}: Readonly<{
   projectKey: string;
   buildId: string | undefined;
   isActive: boolean;
-}) {
+}>) {
   const { data, isLoading, isError, refetch } = useGetReport(
     projectKey,
     buildId,

@@ -41,7 +41,7 @@ export function transformVulnerabilities(
   const transformed = vulnerabilities.map((vuln, index) => {
     const score = vuln.score;
     const cvss =
-      score != null && score !== "" ? parseFloat(String(score)) : null;
+      score != null && score !== "" ? Number.parseFloat(String(score)) : null;
     const epss =
       vuln.epssPercentile != null && Number.isFinite(vuln.epssPercentile)
         ? vuln.epssPercentile * 100

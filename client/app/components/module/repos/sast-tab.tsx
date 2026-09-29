@@ -48,7 +48,7 @@ function qualityGateLabel(status: string | undefined): string {
   return MISSING;
 }
 
-function GradeCircle({ letter }: { letter: RatingLetter | null }) {
+function GradeCircle({ letter }: Readonly<{ letter: RatingLetter | null }>) {
   if (!letter) return null;
   return (
     <span
@@ -60,7 +60,7 @@ function GradeCircle({ letter }: { letter: RatingLetter | null }) {
   );
 }
 
-function Donut({ percent, label }: { percent: number | null; label: string }) {
+function Donut({ percent, label }: Readonly<{ percent: number | null; label: string }>) {
   const p = percent == null || !Number.isFinite(percent) ? 0 : Math.max(0, Math.min(100, percent));
   const r = 16;
   const c = 2 * Math.PI * r;
@@ -88,11 +88,11 @@ export function SastTab({
   projectKey,
   buildId,
   isActive,
-}: {
+}: Readonly<{
   projectKey: string;
   buildId: string | undefined;
   isActive: boolean;
-}) {
+}>) {
   const { data, isLoading, isError, refetch } = useGetReport(
     projectKey,
     buildId,
@@ -215,14 +215,14 @@ function MetricTile({
   testId,
   warn,
   hideValue,
-}: {
+}: Readonly<{
   title: string;
   value: string;
   grade?: RatingLetter | null;
   testId: string;
   warn?: boolean;
   hideValue?: boolean;
-}) {
+}>) {
   return (
     <div className="flex items-start gap-3 rounded-lg border p-4" data-testid={testId}>
       <div className="flex-1">

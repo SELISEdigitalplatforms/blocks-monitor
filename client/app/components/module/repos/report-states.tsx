@@ -1,6 +1,6 @@
 import { Button, Card, CardContent, Skeleton } from "@/components/core";
 
-export function ReportLoadingCard({ label = "Loading report…" }: { label?: string }) {
+export function ReportLoadingCard({ label = "Loading report…" }: Readonly<{ label?: string }>) {
   return (
     <Card data-testid="report-loading">
       <CardContent className="space-y-3 p-6">
@@ -23,7 +23,7 @@ export function ReportNoDataCard() {
   );
 }
 
-export function ReportErrorCard({ onRetry }: { onRetry?: () => void }) {
+export function ReportErrorCard({ onRetry }: Readonly<{ onRetry?: () => void }>) {
   return (
     <Card data-testid="report-error">
       <CardContent className="flex flex-col items-start gap-3 p-6">
@@ -41,10 +41,10 @@ export function ReportErrorCard({ onRetry }: { onRetry?: () => void }) {
 export function PageErrorCard({
   message,
   onRetry,
-}: {
+}: Readonly<{
   message: string;
   onRetry?: () => void;
-}) {
+}>) {
   return (
     <Card data-testid="page-error">
       <CardContent className="flex flex-col items-start gap-3 p-6">
@@ -59,7 +59,7 @@ export function PageErrorCard({
   );
 }
 
-export function PageLoadingSkeleton({ testId = "page-loading" }: { testId?: string }) {
+export function PageLoadingSkeleton({ testId = "page-loading" }: Readonly<{ testId?: string }>) {
   return (
     <div data-testid={testId} className="space-y-4">
       <Skeleton className="h-8 w-48" />

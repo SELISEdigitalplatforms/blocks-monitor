@@ -4,9 +4,9 @@ const SEVERITIES: ScaSeverity[] = ["Critical", "High", "Medium", "Low", "Unassig
 
 export function ScaSummaryHeader({
   details,
-}: {
+}: Readonly<{
   details: Record<string, string>;
-}) {
+}>) {
   return (
     <div className="flex flex-wrap gap-6 text-sm" data-testid="sca-header">
       <Stat label="Total components" value={details.components} />
@@ -20,11 +20,11 @@ export function ScaSummaryTiles({
   details,
   activeSeverity,
   onToggleSeverity,
-}: {
+}: Readonly<{
   details: Record<string, string>;
   activeSeverity: ScaSeverity | null;
   onToggleSeverity: (s: ScaSeverity) => void;
-}) {
+}>) {
   const counts: Record<ScaSeverity | "Total", string> = {
     Total: details.vulnerabilities ?? "—",
     Critical: details.critical ?? "0",
@@ -60,7 +60,7 @@ export function ScaSummaryTiles({
   );
 }
 
-function Stat({ label, value }: { label: string; value?: string }) {
+function Stat({ label, value }: Readonly<{ label: string; value?: string }>) {
   return (
     <div>
       <p className="text-muted-foreground">{label}</p>

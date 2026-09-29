@@ -18,7 +18,7 @@ namespace Api.Controllers
     /// </summary>
     [ApiController]
     [Route("[controller]/[action]")]
-    public class MonitorController : ControllerBase
+    public class MonitorController : ControllerBase // NOSONAR S6960 — #222 keeps repo endpoints on MonitorController per contract
     {
         private readonly IMonitorConfigurationService _monitorConfigurationService;
         private readonly IMonitorConfigurationRepoService _monitorConfigurationRepoService;

@@ -13,15 +13,8 @@ class ReposService {
     repoId: string,
     { pageNumber = 1, pageSize = 1 }: { pageNumber?: number; pageSize?: number } = {},
   ) {
-    const params = new URLSearchParams({
-      repoId: repoId,
-      pageNumber: String(pageNumber),
-      pageSize: String(pageSize),
-    });
-    // encodeURIComponent for every query value (C11) — URLSearchParams already encodes;
-    // pin exact URL shape with encodeURIComponent for the id so tests match.
+    // encodeURIComponent for every query value (C11); pin exact URL shape so tests match.
     const url = `${ALERT_ENDPOINTS.GET_REPO_DETAILS}?repoId=${encodeURIComponent(repoId)}&pageNumber=${encodeURIComponent(String(pageNumber))}&pageSize=${encodeURIComponent(String(pageSize))}`;
-    void params;
     return this.httpClient.get<IRepoDetailsResponse>(url);
   }
 

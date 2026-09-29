@@ -28,7 +28,7 @@ function commitUrl(build: IBuild): string | null {
   return null;
 }
 
-export function LatestBuildCard({ build }: { build: IBuild }) {
+export function LatestBuildCard({ build }: Readonly<{ build: IBuild }>) {
   const durationLabel = isLiveBuildStatus(build.status)
     ? "Running…"
     : formatElapsedTime(
@@ -107,7 +107,7 @@ export function NoBuildCard() {
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({ label, children }: Readonly<{ label: string; children: ReactNode }>) {
   return (
     <div>
       <p className="text-muted-foreground">{label}</p>

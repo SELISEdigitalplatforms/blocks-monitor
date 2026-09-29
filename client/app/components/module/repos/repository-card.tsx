@@ -2,7 +2,7 @@ import { ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/core";
 import type { IRepo } from "@/models/repos.model";
 
-export function RepositoryCard({ repo }: { repo: IRepo }) {
+export function RepositoryCard({ repo }: Readonly<{ repo: IRepo }>) {
   const isLive = Boolean(repo.deployedNamespace);
   return (
     <Card data-testid="repository-card">

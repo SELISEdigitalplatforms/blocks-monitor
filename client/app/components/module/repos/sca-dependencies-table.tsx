@@ -29,10 +29,10 @@ const SEVERITY_BADGE: Record<ScaSeverity, string> = {
 export function ScaDependenciesTable({
   rows,
   severityFilter,
-}: {
+}: Readonly<{
   rows: ScaDependencyRow[];
   severityFilter: ScaSeverity | null;
-}) {
+}>) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<ScaDependencyRow | null>(null);
