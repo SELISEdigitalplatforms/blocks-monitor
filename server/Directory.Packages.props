@@ -31,6 +31,13 @@
     -->
     <PackageVersion Include="SeliseBlocks.Genesis.OS" Version="4.2.2" />
     <PackageVersion Include="SeliseBlocks.ReleaseDriver.OS" Version="4.0.3" />
+    <!--
+      ReleaseDriver.OS 4.0.3 ships Devops.DomainService with an assembly ref to
+      Blocks.Secrets 4.0.3 but does not declare SeliseBlocks.Secrets.OS in its
+      nuspec. Without this explicit pin the API crash-loops at
+      ConfigureMicroserviceMiddleware (ReflectionTypeLoadException).
+    -->
+    <PackageVersion Include="SeliseBlocks.Secrets.OS" Version="4.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.2" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="FluentAssertions" Version="8.8.0" />
