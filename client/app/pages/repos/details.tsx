@@ -2,8 +2,9 @@ import { Link, useParams } from "react-router";
 import { useQueryState, parseAsStringEnum } from "nuqs";
 import { useProjectStore } from "@seliseblocks/genesis-os/store";
 import { useScopedPath } from "@seliseblocks/genesis-os/hooks";
-import { ExternalLink } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import {
+  Button,
   Tabs,
   TabsContent,
   TabsList,
@@ -23,7 +24,7 @@ import {
   PageLoadingSkeleton,
 } from "@/components/module/repos/report-states";
 
-const TAB_VALUES = ["overview", "sast", "sca"] as const;
+const TAB_VALUES = ["deployment-logs", "sast", "sca"] as const;
 type TabValue = (typeof TAB_VALUES)[number];
 
 const RepoDetailsPage = () => {
@@ -32,7 +33,7 @@ const RepoDetailsPage = () => {
   const scoped = useScopedPath();
   const [tab, setTab] = useQueryState(
     "tab",
-    parseAsStringEnum<TabValue>([...TAB_VALUES]).withDefault("overview"),
+    parseAsStringEnum<TabValue>([...TAB_VALUES]).withDefault("deployment-logs"),
   );
 
   const { data, isLoading, isError, error, refetch } = useGetRepoDetails(projectKey, repoId);
@@ -43,9 +44,11 @@ const RepoDetailsPage = () => {
   const latestBuild = builds[0] ?? null;
   const hasBuild = !!latestBuild;
 
-  // C8: fall back to overview when SAST/SCA requested without a build
+  // C8: fall back to deployment logs when SAST/SCA is requested without a build.
   const effectiveTab: TabValue =
-    !hasBuild && (tab === "sast" || tab === "sca") ? "overview" : (tab ?? "overview");
+    !hasBuild && (tab === "sast" || tab === "sca")
+      ? "deployment-logs"
+      : (tab ?? "deployment-logs");
 
   const shortName = repo?.repoName?.split("/").pop() || repo?.repoName || repoId;
 
@@ -86,40 +89,35 @@ const RepoDetailsPage = () => {
 
   return (
     <main className="space-y-4" data-testid="repo-details-page">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-3">
-          <Link to={scoped("repos")} className="text-sm text-muted-foreground hover:underline">
-            ← Repos
+      <div className="flex items-center gap-3">
+        <Button
+          asChild
+          variant="ghost"
+          className="h-9 px-0 text-muted-foreground hover:bg-transparent"
+        >
+          <Link to={scoped("repos")} className="inline-flex items-center gap-1 text-sm">
+            <ChevronLeft className="h-4 w-4" />
+            Repos
           </Link>
-          <h1 className="text-lg font-semibold md:text-2xl">{shortName}</h1>
-        </div>
-        {repo?.repoUrl && (
-          <a
-            href={repo.repoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-sm text-primary underline"
-          >
-            {repo.repoName}
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        )}
+        </Button>
+        <h1 className="text-lg font-semibold text-high-emphasis md:text-2xl">{shortName}</h1>
       </div>
 
       <TooltipProvider>
-        <Tabs
-          value={effectiveTab}
-          onValueChange={(v) => setTab(v as TabValue)}
-        >
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
+        <Tabs value={effectiveTab} onValueChange={(v) => setTab(v as TabValue)}>
+          <TabsList className="w-fit bg-blocks-primary-shades-300">
+            <TabsTrigger value="deployment-logs" className="px-4">
+              Deployment Logs
+            </TabsTrigger>
             {hasBuild ? (
-              <TabsTrigger value="sast">SAST</TabsTrigger>
+              <TabsTrigger value="sast" className="px-4">
+                SAST
+              </TabsTrigger>
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
-                    <TabsTrigger value="sast" disabled>
+                    <TabsTrigger value="sast" disabled className="px-4">
                       SAST
                     </TabsTrigger>
                   </span>
@@ -128,12 +126,14 @@ const RepoDetailsPage = () => {
               </Tooltip>
             )}
             {hasBuild ? (
-              <TabsTrigger value="sca">SCA</TabsTrigger>
+              <TabsTrigger value="sca" className="px-4">
+                SCA
+              </TabsTrigger>
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
-                    <TabsTrigger value="sca" disabled>
+                    <TabsTrigger value="sca" disabled className="px-4">
                       SCA
                     </TabsTrigger>
                   </span>
@@ -143,12 +143,12 @@ const RepoDetailsPage = () => {
             )}
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-4">
+          <TabsContent value="deployment-logs" className="mt-4 space-y-4">
             {hasBuild && latestBuild ? <LatestBuildCard build={latestBuild} /> : <NoBuildCard />}
             {repo && <RepositoryCard repo={repo} />}
           </TabsContent>
 
-          <TabsContent value="sast">
+          <TabsContent value="sast" className="mt-4">
             <SastTab
               projectKey={projectKey}
               buildId={latestBuild?.itemId}
@@ -156,7 +156,7 @@ const RepoDetailsPage = () => {
             />
           </TabsContent>
 
-          <TabsContent value="sca">
+          <TabsContent value="sca" className="mt-4">
             <ScaTab
               projectKey={projectKey}
               buildId={latestBuild?.itemId}

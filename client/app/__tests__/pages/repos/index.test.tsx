@@ -78,6 +78,8 @@ describe("ReposPage", () => {
     renderPage();
     expect(screen.getByTestId("repos-list-table")).toBeInTheDocument();
     expect(screen.getByText("blocks-monitor")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /previous/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /next/i })).not.toBeInTheDocument();
   });
 
   it("issues no request messaging when no project (C10)", () => {

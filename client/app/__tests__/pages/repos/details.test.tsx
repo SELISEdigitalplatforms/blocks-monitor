@@ -74,9 +74,9 @@ function renderPage(search = "") {
   return render(
     <QueryWrapper>
       <NuqsTestingAdapter searchParams={search}>
-        <MemoryRouter initialEntries={[`/repos/r1${search}`]}>
+        <MemoryRouter initialEntries={[`/repo/r1${search}`]}>
           <Routes>
-            <Route path="/repos/:repoId" element={<RepoDetailsPage />} />
+            <Route path="/repo/:repoId" element={<RepoDetailsPage />} />
           </Routes>
         </MemoryRouter>
       </NuqsTestingAdapter>

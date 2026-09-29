@@ -2,9 +2,10 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useScopedPath } from "@seliseblocks/genesis-os/hooks";
 import { formatDate } from "@seliseblocks/genesis-os/utils";
-import { ExternalLink } from "lucide-react";
+import { ArrowDown, ArrowUp, ExternalLink } from "lucide-react";
 import {
-  Button,
+  Card,
+  CardContent,
   Input,
   Table,
   TableBody,
@@ -23,8 +24,6 @@ const DEPLOYMENT_DATE_FORMAT: Intl.DateTimeFormatOptions = {
   hour: "2-digit",
   minute: "2-digit",
 };
-
-const PAGE_SIZE = 10;
 
 /** List item may carry optional deployment fields when the driver widens the payload. */
 type RepoRow = IRepoListItem & {
@@ -45,7 +44,6 @@ export function ReposListTable({ rows }: Readonly<{ rows: RepoRow[] }>) {
   const navigate = useNavigate();
   const scoped = useScopedPath();
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(0);
   const [sortDesc, setSortDesc] = useState(true);
 
   const filtered = useMemo(() => {
@@ -60,123 +58,117 @@ export function ReposListTable({ rows }: Readonly<{ rows: RepoRow[] }>) {
     return list;
   }, [rows, search, sortDesc]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages - 1);
-  const pageRows = filtered.slice(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE);
-
-  const go = (repoId: string) => navigate(scoped(`repos/${encodeURIComponent(repoId)}`));
+  const go = (repoId: string) => navigate(scoped(`repo/${encodeURIComponent(repoId)}`));
 
   return (
-    <div className="space-y-3" data-testid="repos-list-table">
-      <Input
-        data-testid="repos-search"
-        placeholder="Search repositories…"
-        value={search}
-        onChange={(e) => {
-          setSearch(e.target.value);
-          setPage(0);
-        }}
-      />
+    <Card data-testid="repos-list-table">
+      <CardContent className="space-y-4">
+        <div className="w-full max-w-md md:w-[42%]">
+          <Input
+            data-testid="repos-search"
+            placeholder="Search repositories..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
 
-      <div className="overflow-x-auto rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>
-                <button
-                  type="button"
-                  className="font-medium"
-                  onClick={() => setSortDesc((d) => !d)}
-                  data-testid="sort-last-deployment"
-                >
-                  Repository {sortDesc ? "↓" : "↑"}
-                </button>
-              </TableHead>
-              <TableHead>Branch</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last deployment</TableHead>
-              <TableHead>Deploys to</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pageRows.map((row) => {
-              const url = deploysTo(row);
-              const status = row.lastDeploymentStatus || "No build";
-              return (
-                <TableRow
-                  key={row.itemId}
-                  data-testid={`repo-row-${row.itemId}`}
-                  tabIndex={0}
-                  className="cursor-pointer"
-                  onClick={() => go(row.itemId)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      go(row.itemId);
+        <div className="overflow-x-auto rounded-sm border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 font-medium"
+                    onClick={() => setSortDesc((d) => !d)}
+                    data-testid="sort-last-deployment"
+                    aria-label={
+                      sortDesc
+                        ? "Sort repositories by oldest deployment"
+                        : "Sort repositories by newest deployment"
                     }
-                  }}
-                >
-                  <TableCell>
-                    <div className="font-medium">{shortName(row.repoName)}</div>
-                    <div className="text-xs text-muted-foreground">{row.repoName}</div>
-                  </TableCell>
-                  <TableCell>{row.branch || "—"}</TableCell>
-                  <TableCell>
-                    <span className={getDeploymentLogEventBadgeClassName(status === "No build" ? "NoBuild" : status)}>
-                      {status}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {row.lastDeploymentDate
-                      ? formatDate(new Date(row.lastDeploymentDate), DEPLOYMENT_DATE_FORMAT)
-                      : "—"}
-                  </TableCell>
-                  <TableCell>
-                    {url ? (
-                      <a
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-primary underline"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {url.replace(/^https?:\/\//, "").slice(0, 40)}
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
+                  >
+                    Repository
+                    {sortDesc ? (
+                      <ArrowDown className="h-3.5 w-3.5" aria-hidden />
                     ) : (
-                      "—"
+                      <ArrowUp className="h-3.5 w-3.5" aria-hidden />
                     )}
+                  </button>
+                </TableHead>
+                <TableHead>Branch</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Last deployment</TableHead>
+                <TableHead>Deploys to</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((row) => {
+                const url = deploysTo(row);
+                const status = row.lastDeploymentStatus || "No build";
+                return (
+                  <TableRow
+                    key={row.itemId}
+                    data-testid={`repo-row-${row.itemId}`}
+                    tabIndex={0}
+                    className="cursor-pointer"
+                    onClick={() => go(row.itemId)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        go(row.itemId);
+                      }
+                    }}
+                  >
+                    <TableCell>
+                      <div className="font-medium">{shortName(row.repoName)}</div>
+                      <div className="text-xs text-muted-foreground">{row.repoName}</div>
+                    </TableCell>
+                    <TableCell>{row.branch || "-"}</TableCell>
+                    <TableCell>
+                      <span
+                        className={getDeploymentLogEventBadgeClassName(
+                          status === "No build" ? "NoBuild" : status,
+                        )}
+                      >
+                        {status}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {row.lastDeploymentDate
+                        ? formatDate(new Date(row.lastDeploymentDate), DEPLOYMENT_DATE_FORMAT)
+                        : "-"}
+                    </TableCell>
+                    <TableCell>
+                      {url ? (
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-primary underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {url.replace(/^https?:\/\//, "").slice(0, 40)}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              {filtered.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center text-sm text-muted-foreground">
+                    No repositories match your search.
                   </TableCell>
                 </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="flex items-center justify-end gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={currentPage <= 0}
-          onClick={() => setPage((p) => Math.max(0, p - 1))}
-        >
-          Previous
-        </Button>
-        <span className="text-sm text-muted-foreground">
-          {currentPage + 1} / {totalPages}
-        </span>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={currentPage >= totalPages - 1}
-          onClick={() => setPage((p) => p + 1)}
-        >
-          Next
-        </Button>
-      </div>
-    </div>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

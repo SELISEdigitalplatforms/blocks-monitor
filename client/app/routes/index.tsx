@@ -100,6 +100,7 @@ export const routes = [
                         element: <IncidentPage />,
                       },
                       { path: "repos", element: <ReposPage /> },
+                      { path: "repo/:repoId", element: <RepoDetailsPage /> },
                       { path: "repos/:repoId", element: <RepoDetailsPage /> },
                     ],
                   },
