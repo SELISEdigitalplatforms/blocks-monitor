@@ -56,6 +56,11 @@ describe("endpoint.constant", () => {
     expect(ALERT_ENDPOINTS.SAVE_HEALTH).toBe("/api/Health/SaveHealth");
   });
 
+  it("exposes repo-details and reports endpoints", () => {
+    expect(ALERT_ENDPOINTS.GET_REPO_DETAILS).toBe("/api/Monitor/repo-details");
+    expect(ALERT_ENDPOINTS.GET_REPORTS).toBe("/api/Monitor/reports");
+  });
+
   it("exposes migration endpoints", () => {
     expect(MIGRATION_ENDPOINTS.GET_STATUS).toBe("/api/migration/status");
   });
@@ -66,6 +71,15 @@ describe("navigation constants", () => {
     const menu = navigationMenus.find((m) => m.id === "monitor");
     expect(menu?.path).toBe("/app/monitor");
     expect(navigationMenus.some((m) => m.type === "separator")).toBe(true);
+  });
+
+  it("places Repos immediately after Monitor (H4)", () => {
+    const ids = navigationMenus.filter((m) => m.type === "menu").map((m) => m.id);
+    const monitorIdx = ids.indexOf("monitor");
+    expect(ids[monitorIdx + 1]).toBe("repos");
+    const repos = navigationMenus.find((m) => m.id === "repos");
+    expect(repos?.path).toBe("/app/repos");
+    expect(repos?.name).toBe("Repos");
   });
 });
 

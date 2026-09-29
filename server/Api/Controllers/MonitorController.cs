@@ -4,6 +4,7 @@ using DomainService.Monitor.Services;
 using DomainService.Shared.Models;
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc;
 // The release driver namespace is deliberately NOT imported wholesale: it also defines a
 // `BaseApiResponse`, and importing it would make every existing `BaseApiResponse` in this file
@@ -24,6 +25,7 @@ namespace Api.Controllers
         private readonly IMonitorIncidentService _monitorIncidentService;
         private readonly IMonitorPingService _monitorPingService;
         private readonly IReleaseDriverService _releaseDriverService;
+        private readonly IConfiguration _configuration;
         private readonly ILogger<MonitorController> _logger;
 
         /// <summary>
@@ -38,6 +40,7 @@ namespace Api.Controllers
             IMonitorConfigurationRepoService monitorConfigurationRepoService,
             IMonitorIncidentService monitorIncidentService,
             IReleaseDriverService releaseDriverService,
+            IConfiguration configuration,
             ILogger<MonitorController> logger)
         {
             _monitorConfigurationService = monitorConfigurationService;
@@ -45,6 +48,7 @@ namespace Api.Controllers
             _monitorConfigurationRepoService = monitorConfigurationRepoService;
             _monitorIncidentService = monitorIncidentService;
             _releaseDriverService = releaseDriverService;
+            _configuration = configuration;
             _logger = logger;
         }
 
@@ -250,9 +254,158 @@ namespace Api.Controllers
         }
 
         /// <summary>
+        /// Retrieves a repository and its latest build(s) via the release driver.
+        /// </summary>
+        /// <remarks>
+        /// Route escapes the controller template with "~/" so the documented URL resolves exactly
+        /// to api/Monitor/repo-details (same pattern as repos-list).
+        /// </remarks>
+        [Authorize]
+        [HttpGet("~/api/Monitor/repo-details")]
+        public async Task<IActionResult> GetRepoDetails(
+            [FromQuery] string repoId,
+            [FromQuery] string? branch = null,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 1)
+        {
+            if (string.IsNullOrWhiteSpace(repoId))
+            {
+                return BadRequest(new BaseApiResponse
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Message = RepoIdRequired
+                });
+            }
+
+            try
+            {
+                var result = await _releaseDriverService.GetRepoDetailsAsync(
+                    repoId, branch, pageNumber, pageSize);
+
+                if (result is not null
+                    && !result.IsSuccess
+                    && string.Equals(result.Message, RepositoryNotFoundMessage, StringComparison.Ordinal))
+                {
+                    return NotFound(result);
+                }
+
+                if (result is null || !result.IsSuccess)
+                {
+                    _logger.LogError(
+                        "Release driver reported failure retrieving repository details: {Message}",
+                        result?.Message);
+                    return BadRequest(new BaseApiResponse
+                    {
+                        IsSuccess = false,
+                        StatusCode = HttpStatusCode.BadRequest,
+                        Message = FailedToGetRepoDetails
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unhandled failure retrieving repository details.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new BaseApiResponse
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.InternalServerError,
+                    Message = FailedToGetRepoDetails
+                });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a SAST or SCA report for a build via the release driver.
+        /// </summary>
+        [Authorize]
+        [HttpGet("~/api/Monitor/reports")]
+        public async Task<IActionResult> GetReports(
+            [FromQuery] string buildId,
+            [FromQuery] string type)
+        {
+            if (string.IsNullOrWhiteSpace(buildId))
+            {
+                return BadRequest(new BaseApiResponse
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Message = BuildIdRequired
+                });
+            }
+
+            if (type is null || !SupportedReportTypes.Contains(type))
+            {
+                return BadRequest(new BaseApiResponse
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Message = UnsupportedReportType
+                });
+            }
+
+            var configKey = ReportSourceConfigKeys[type];
+            var toolUri = _configuration[configKey];
+            if (string.IsNullOrWhiteSpace(toolUri))
+            {
+                _logger.LogError("Report source is not configured: missing or blank key {ConfigKey}.", configKey);
+                return StatusCode(StatusCodes.Status500InternalServerError, new BaseApiResponse
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.InternalServerError,
+                    Message = ReportSourceNotConfigured
+                });
+            }
+
+            try
+            {
+                var result = await _releaseDriverService.GetReportsAsync(buildId, type);
+                return Ok(result);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unhandled failure retrieving report.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new BaseApiResponse
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.InternalServerError,
+                    Message = FailedToGetReport
+                });
+            }
+        }
+
+        /// <summary>
         /// The failure message the contract specifies. Public so the tests assert the exact string
         /// rather than restating it and drifting from it.
         /// </summary>
         public const string FailedToGetRepos = "Failed to get repos.";
+        public const string FailedToGetRepoDetails = "Failed to get repository details.";
+        public const string FailedToGetReport = "Failed to get report.";
+        public const string RepoIdRequired = "repoId is required.";
+        public const string BuildIdRequired = "buildId is required.";
+        public const string UnsupportedReportType = "Unsupported report type.";
+        public const string ReportSourceNotConfigured = "Report source is not configured.";
+        public const string RepositoryNotFoundMessage = "Repository not found";
+
+        public static readonly IReadOnlyDictionary<string, string> ReportSourceConfigKeys =
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["sast"] = "SastToolsApiBaseUri",
+                ["sca-libraries"] = "ScaToolsApiBaseUri",
+            };
+
+        public static readonly IReadOnlySet<string> SupportedReportTypes =
+            new HashSet<string>(StringComparer.Ordinal) { "sast", "sca-libraries" };
     }
 }
+
