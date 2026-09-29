@@ -327,6 +327,26 @@ namespace XUnitTest.Api
             registerIndex.Should().BeLessThan(buildIndex, "registration after Build() would never reach the container");
         }
 
+        [Fact]
+        public void ProgramLoadsReleaseSecretConfigurationBeforeMonitorConfiguration()
+        {
+            // Report source URLs already live in blocks-release secrets in deployed environments.
+            // Loading release config first makes those keys a fallback while keeping Monitor's own
+            // secret as the later, higher-priority provider.
+            var programPath = LocateProgramCs();
+            var program = StripCommentsOnly(File.ReadAllText(programPath));
+
+            var releaseSecretIndex = program.IndexOf("options.SecretKey = \"blocks-secret-release\"",
+                                                     StringComparison.Ordinal);
+            var monitorSecretIndex = program.IndexOf("options.SecretKey = \"blocks-secret-monitor\"",
+                                                     StringComparison.Ordinal);
+
+            releaseSecretIndex.Should().BeGreaterThan(-1);
+            monitorSecretIndex.Should().BeGreaterThan(-1);
+            releaseSecretIndex.Should().BeLessThan(monitorSecretIndex,
+                "release config must be the lower-priority fallback provider");
+        }
+
         // ---------------------------------------------------------------------------------
         // #222 — GET /Monitor/repo-details and /Monitor/reports
         // ---------------------------------------------------------------------------------
@@ -677,6 +697,40 @@ namespace XUnitTest.Api
                 }
 
                 output.Append(source[i]);
+            }
+
+            return output.ToString();
+        }
+
+        private static string StripCommentsOnly(string source)
+        {
+            var output = new System.Text.StringBuilder(source.Length);
+            var inString = false;
+
+            for (var i = 0; i < source.Length; i++)
+            {
+                if (!inString && source[i] == '/' && i + 1 < source.Length && source[i + 1] == '/')
+                {
+                    while (i < source.Length && source[i] != '\n') i++;
+                    if (i < source.Length) output.Append('\n');
+                    continue;
+                }
+
+                if (!inString && source[i] == '/' && i + 1 < source.Length && source[i + 1] == '*')
+                {
+                    i += 2;
+                    while (i + 1 < source.Length && !(source[i] == '*' && source[i + 1] == '/')) i++;
+                    i++;
+                    output.Append(' ');
+                    continue;
+                }
+
+                output.Append(source[i]);
+
+                if (source[i] == '"' && (i == 0 || source[i - 1] != '\\'))
+                {
+                    inString = !inString;
+                }
             }
 
             return output.ToString();

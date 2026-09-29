@@ -10,6 +10,16 @@ var secret = await ApplicationConfigurations.ConfigureLogAndSecretsAsync(service
 var builder = WebApplication.CreateBuilder(args);
 ApplicationConfigurations.ConfigureApiEnv(builder, args);
 
+// Report rendering uses release-owned tool URLs. Load release config first as a fallback, then
+// let Monitor's own secret override every key it owns.
+builder.Configuration.AddMongoDbConfiguration(options =>
+{
+ options.ConnectionString = secret.DatabaseConnectionString;
+ options.DatabaseName = secret.RootDatabaseName;
+ options.CollectionName = "Secrets";
+ options.SecretKey = "blocks-secret-release";
+});
+
 builder.Configuration.AddMongoDbConfiguration(options =>
 {
  options.ConnectionString = secret.DatabaseConnectionString;
