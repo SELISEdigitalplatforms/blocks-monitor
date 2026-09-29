@@ -230,10 +230,5 @@ scripts/th_transform.py
 scripts/secrets.local.ps1
 deploy.log
 
-# Loop scan artifacts
-.loop/results-*/
-.loop/*.json
-!.loop/state-*.json
-!.loop/context-*.md
-!.loop/plan-*.md
-!.loop/security-*.md
+# Loop local artifacts (never commit)
+.loop/
