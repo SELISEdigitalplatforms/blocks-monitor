@@ -120,6 +120,40 @@ jobs:
             --set-string healthCheckPolicy.default.http.host="${HOST}" \
             --wait --timeout 5m
 
+      - name: Diagnose preview workload
+        if: always()
+        run: |
+          RELEASE="${{ steps.vars.outputs.release }}"
+          HOST="${{ steps.vars.outputs.host }}"
+          {
+            echo "### preview diagnose ${RELEASE}"
+            echo "Host: https://${HOST}"
+            echo
+            echo '```'
+            kubectl get deploy,po,svc,httproute,healthcheckpolicy -n "${NAMESPACE}" -l "app.kubernetes.io/instance=${RELEASE}" -o wide || true
+            echo
+            kubectl get po -n "${NAMESPACE}" -l "app.kubernetes.io/instance=${RELEASE}" -o yaml | sed -n '1,220p' || true
+            echo
+            POD=$(kubectl get pods -n "${NAMESPACE}" -l "app.kubernetes.io/instance=${RELEASE}" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+            echo "POD=${POD}"
+            if [ -n "${POD}" ]; then
+              kubectl describe pod -n "${NAMESPACE}" "${POD}" || true
+              echo '--- logs ---'
+              kubectl logs -n "${NAMESPACE}" "${POD}" --tail=200 || true
+              echo '--- previous logs ---'
+              kubectl logs -n "${NAMESPACE}" "${POD}" --previous --tail=100 || true
+              CP=$(kubectl get pod -n "${NAMESPACE}" "${POD}" -o jsonpath='{.spec.containers[0].ports[0].containerPort}' 2>/dev/null || echo 5000)
+              echo "containerPort=${CP}"
+              kubectl exec -n "${NAMESPACE}" "${POD}" -- wget -qO- "http://127.0.0.1:${CP}/ping" || true
+              kubectl exec -n "${NAMESPACE}" "${POD}" -- wget -qO- "http://127.0.0.1:${CP}/" | head -c 200 || true
+            fi
+            echo
+            curl -sS -D- -o /tmp/ext.body -w "external_http=%{http_code}\n" --max-time 20 "https://${HOST}/" || true
+            head -c 200 /tmp/ext.body || true
+            echo
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
       - name: Register preview with IAM
         run: |
           curl -sS -f -X POST "${PREVIEW_REGISTRAR_URL}/register" \
