@@ -77,6 +77,8 @@ await services.RegisterBlocksReleaseServicesAsync(vaultType);
 
 var app = builder.Build();
 
+app.UseMiddleware<Api.Middleware.SecurityHeadersMiddleware>();
+
 // Infrastructure diagnostics expose safe group labels only. Keep them outside Genesis's
 // shared /ping and readiness checks so a dev outage cannot remove a healthy main API.
 app.Map("/health/databases", branch => branch.Run(async context =>
