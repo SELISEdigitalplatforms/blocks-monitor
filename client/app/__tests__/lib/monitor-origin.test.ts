@@ -13,15 +13,19 @@ describe("Blocks Monitor browser API origin", () => {
   it("uses the preview page origin even when the configured URL points elsewhere", () => {
     const configuredUrl = "https://shared-monitor.example.com";
     const previewOrigin = "https://preview-monitor.example.com:8443";
-    const html = readFileSync(resolve(process.cwd(), "index.html"), "utf8");
-    const servedHtml = html.replaceAll("__BLOCKS_MONITOR_BASE_URL__", configuredUrl);
-    const dom = new JSDOM(servedHtml, {
+    const runtimeConfig = readFileSync(
+      resolve(process.cwd(), "public/runtime-config.js"),
+      "utf8",
+    ).replaceAll("__BLOCKS_MONITOR_BASE_URL__", configuredUrl);
+    const dom = new JSDOM(`<!doctype html><html><body></body></html>`, {
       url: `${previewOrigin}/monitors`,
       runScripts: "dangerously",
     });
 
     vi.stubEnv("BLOCKS_MONITOR_BASE_URL", configuredUrl);
     vi.stubGlobal("window", dom.window);
+
+    dom.window.eval(runtimeConfig);
 
     const previewWindow = dom.window as typeof dom.window & {
       __BLOCKS_ENV__: Record<string, string>;
