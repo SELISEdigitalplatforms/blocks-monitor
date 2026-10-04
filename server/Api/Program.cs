@@ -10,6 +10,16 @@ var secret = await ApplicationConfigurations.ConfigureLogAndSecretsAsync(service
 var builder = WebApplication.CreateBuilder(args);
 ApplicationConfigurations.ConfigureApiEnv(builder, args);
 
+// Report rendering uses release-owned tool URLs. Load release config first as a fallback, then
+// let Monitor's own secret override every key it owns.
+builder.Configuration.AddMongoDbConfiguration(options =>
+{
+ options.ConnectionString = secret.DatabaseConnectionString;
+ options.DatabaseName = secret.RootDatabaseName;
+ options.CollectionName = "Secrets";
+ options.SecretKey = "blocks-secret-release";
+});
+
 builder.Configuration.AddMongoDbConfiguration(options =>
 {
  options.ConnectionString = secret.DatabaseConnectionString;
@@ -76,6 +86,8 @@ Alert.DomainService.ServiceRegistry.AddApplicationServices(services);
 await services.RegisterBlocksReleaseServicesAsync(vaultType);
 
 var app = builder.Build();
+
+app.UseMiddleware<Api.Middleware.SecurityHeadersMiddleware>();
 
 // Infrastructure diagnostics expose safe group labels only. Keep them outside Genesis's
 // shared /ping and readiness checks so a dev outage cannot remove a healthy main API.

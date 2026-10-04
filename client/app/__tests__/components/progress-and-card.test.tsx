@@ -26,7 +26,7 @@ describe("ProgressBar", () => {
     ];
     render(<ProgressBar incidents={incidents} status={false} />);
     // progress is < 100 because some slots have downtime
-    const pct = Number(screen.getByText(/%$/).textContent!.replace("%", ""));
+    const pct = Number(screen.getByText(/%$/).textContent!.replace(/%/g, ""));
     expect(pct).toBeLessThan(100);
   });
 

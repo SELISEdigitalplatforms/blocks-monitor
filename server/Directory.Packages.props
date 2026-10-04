@@ -10,12 +10,11 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="MongoDB.Driver" Version="3.8.0" />
     <!--
-      Genesis is declared once here and every project resolves that one version. This previously
-      sat at 4.0.2 with Api's graph lifted to 4.0.5 by ReleaseDriver.OS 4.0.1, so Api and Worker ran
-      different Genesis versions on purpose; that split is gone. Worker was deliberately left on the
-      older version at the time because issue #201 did not touch it and its behaviour had not been
-      assessed against 4.0.5 - it is now on the same version as everything else, so Worker is the
-      part to watch if something regresses.
+      Genesis is declared once here at 4.2.2. Api's graph is lifted to 4.2.3 transitively by
+      ReleaseDriver.OS 4.0.3 (which depends on Genesis 4.2.3), while Worker (and anything that
+      only sees this central pin) stays on 4.2.2. That Api/Worker split is intentional and still
+      present — aligning Worker onto 4.2.3 is out of scope for #222 and must be assessed
+      separately.
 
       4.0.8 added delegated access, which registers a startup validator that fails the host unless
       BLOCKS_IAM_BASE_URL or BLOCKS_IAM_TOKEN_ENDPOINT resolves. Both processes get it from the
@@ -31,7 +30,14 @@
       IConfiguration, so Worker is NOT covered - its faults reach the LMT pipeline only.
     -->
     <PackageVersion Include="SeliseBlocks.Genesis.OS" Version="4.2.2" />
-    <PackageVersion Include="SeliseBlocks.ReleaseDriver.OS" Version="4.0.1" />
+    <PackageVersion Include="SeliseBlocks.ReleaseDriver.OS" Version="4.0.3" />
+    <!--
+      ReleaseDriver.OS 4.0.3 ships Devops.DomainService with an assembly ref to
+      Blocks.Secrets 4.0.3 but does not declare SeliseBlocks.Secrets.OS in its
+      nuspec. Without this explicit pin the API crash-loops at
+      ConfigureMicroserviceMiddleware (ReflectionTypeLoadException).
+    -->
+    <PackageVersion Include="SeliseBlocks.Secrets.OS" Version="4.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.2" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="FluentAssertions" Version="8.8.0" />

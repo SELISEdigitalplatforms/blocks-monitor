@@ -10,14 +10,14 @@ ARG DOTNET_PUBLISH_PLATFORM=linux/amd64
 # Stage: frontend — Vite build → server/Api/wwwroot (see client/vite.config.ts)
 # -----------------------------------------------------------------------------
 FROM node:22-alpine AS client
-WORKDIR /src
+WORKDIR /src/client
 
-COPY client/package.json client/package-lock.json ./client/
-RUN cd client && npm ci --no-audit --no-fund
+COPY client/package.json client/package-lock.json ./
+RUN npm ci --no-audit --no-fund
 
-COPY client ./client
-RUN mkdir -p server/Api/wwwroot \
-    && cd client \
+COPY client ./
+# Vite outDir writes to ../server/Api/wwwroot relative to client/
+RUN mkdir -p /src/server/Api/wwwroot \
     && npm run build
 
 # -----------------------------------------------------------------------------
@@ -56,11 +56,14 @@ ENV ASPNETCORE_ENVIRONMENT=Production \
 
 EXPOSE 5000
 
-RUN apk add --no-cache icu-libs
+RUN apk add --no-cache icu-libs wget
 
 COPY --from=publish /app/publish .
 RUN chown -R app:app /app
 
 USER app
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:5000/ping || exit 1
 
 ENTRYPOINT ["dotnet", "Api.dll"]

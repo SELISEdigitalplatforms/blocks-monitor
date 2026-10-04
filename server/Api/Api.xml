@@ -27,7 +27,7 @@
             Controller for managing monitor configurations, incidents, and response times.
             </summary>
         </member>
-        <member name="M:Api.Controllers.MonitorController.#ctor(DomainService.Monitor.Services.IMonitorConfigurationService,DomainService.Monitor.Services.IMonitorPingService,DomainService.Monitor.Services.IMonitorConfigurationRepoService,DomainService.Monitor.MonitorIncidentService.IMonitorIncidentService,ReleaseDriver.IReleaseDriverService,Microsoft.Extensions.Logging.ILogger{Api.Controllers.MonitorController})">
+        <member name="M:Api.Controllers.MonitorController.#ctor(DomainService.Monitor.Services.IMonitorConfigurationService,DomainService.Monitor.Services.IMonitorPingService,DomainService.Monitor.Services.IMonitorConfigurationRepoService,DomainService.Monitor.MonitorIncidentService.IMonitorIncidentService,ReleaseDriver.IReleaseDriverService,Microsoft.Extensions.Configuration.IConfiguration,Microsoft.Extensions.Logging.ILogger{Api.Controllers.MonitorController})">
             <summary>
             Initializes a new instance of the <see cref="T:Api.Controllers.MonitorController"/> class.
             </summary>
@@ -115,10 +115,30 @@
             MonitorControllerTests reads the generated route so this cannot regress silently.
             </remarks>
         </member>
+        <member name="M:Api.Controllers.MonitorController.GetRepoDetails(System.String,System.String,System.Int32,System.Int32)">
+            <summary>
+            Retrieves a repository and its latest build(s) via the release driver.
+            </summary>
+            <remarks>
+            Route escapes the controller template with "~/" so the documented URL resolves exactly
+            to api/Monitor/repo-details (same pattern as repos-list).
+            </remarks>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.GetReports(System.String,System.String)">
+            <summary>
+            Retrieves a SAST or SCA report for a build via the release driver.
+            </summary>
+        </member>
         <member name="F:Api.Controllers.MonitorController.FailedToGetRepos">
             <summary>
             The failure message the contract specifies. Public so the tests assert the exact string
             rather than restating it and drifting from it.
+            </summary>
+        </member>
+        <member name="T:Api.Middleware.SecurityHeadersMiddleware">
+            <summary>
+            Browser security headers (ZAP DAST bar). Env bootstrap via /runtime-config.js
+            so CSP can keep script-src 'self' without unsafe-inline.
             </summary>
         </member>
         <member name="T:Program">

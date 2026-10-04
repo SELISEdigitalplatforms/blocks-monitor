@@ -39,7 +39,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout PR head
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -62,7 +62,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Azure login
-        uses: azure/login@v2
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6  # v2
         with:
           creds: ${{ secrets.AZURE_AKS_BLOCKS_CREDENTIALS }}
 
@@ -76,13 +76,13 @@ jobs:
             .
 
       - name: Get AKS context
-        uses: azure/aks-set-context@v4
+        uses: azure/aks-set-context@c7eb093e5a5d47caa333f64974d5fd1cd4bf069d  # v4
         with:
           resource-group: ${{ secrets.ClUSTER_AKS_BLOCKS_RESOURCE_GROUP }}
           cluster-name: ${{ env.CLUSTER_NAME }}
 
       - name: Setup kubelogin
-        uses: azure/use-kubelogin@v1
+        uses: azure/use-kubelogin@76597ae0fcbaace21b05e13a2cbf8daee2c6e820  # v1
         with:
           kubelogin-version: v0.0.24
 
@@ -90,10 +90,10 @@ jobs:
         run: kubelogin convert-kubeconfig -l azurecli
 
       - name: Setup Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4  # v4
 
       - name: Checkout GitOps Helm repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
         with:
           repository: ${{ env.HELM_REPO }}
           token: ${{ secrets.SELISE_GITHUB_PAT }}
@@ -120,6 +120,40 @@ jobs:
             --set-string healthCheckPolicy.default.http.host="${HOST}" \
             --wait --timeout 5m
 
+      - name: Diagnose preview workload
+        if: always()
+        run: |
+          RELEASE="${{ steps.vars.outputs.release }}"
+          HOST="${{ steps.vars.outputs.host }}"
+          {
+            echo "### preview diagnose ${RELEASE}"
+            echo "Host: https://${HOST}"
+            echo
+            echo '```'
+            kubectl get deploy,po,svc,httproute,healthcheckpolicy -n "${NAMESPACE}" -l "app.kubernetes.io/instance=${RELEASE}" -o wide || true
+            echo
+            kubectl get po -n "${NAMESPACE}" -l "app.kubernetes.io/instance=${RELEASE}" -o yaml | sed -n '1,220p' || true
+            echo
+            POD=$(kubectl get pods -n "${NAMESPACE}" -l "app.kubernetes.io/instance=${RELEASE}" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+            echo "POD=${POD}"
+            if [ -n "${POD}" ]; then
+              kubectl describe pod -n "${NAMESPACE}" "${POD}" || true
+              echo '--- logs ---'
+              kubectl logs -n "${NAMESPACE}" "${POD}" --tail=200 || true
+              echo '--- previous logs ---'
+              kubectl logs -n "${NAMESPACE}" "${POD}" --previous --tail=100 || true
+              CP=$(kubectl get pod -n "${NAMESPACE}" "${POD}" -o jsonpath='{.spec.containers[0].ports[0].containerPort}' 2>/dev/null || echo 5000)
+              echo "containerPort=${CP}"
+              kubectl exec -n "${NAMESPACE}" "${POD}" -- wget -qO- "http://127.0.0.1:${CP}/ping" || true
+              kubectl exec -n "${NAMESPACE}" "${POD}" -- wget -qO- "http://127.0.0.1:${CP}/" | head -c 200 || true
+            fi
+            echo
+            curl -sS -D- -o /tmp/ext.body -w "external_http=%{http_code}\n" --max-time 20 "https://${HOST}/" || true
+            head -c 200 /tmp/ext.body || true
+            echo
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
       - name: Register preview with IAM
         run: |
           curl -sS -f -X POST "${PREVIEW_REGISTRAR_URL}/register" \
@@ -132,7 +166,7 @@ jobs:
           kubectl rollout status deployment "${IAM_DEPLOYMENT}" -n "${NAMESPACE}" --timeout=120s
 
       - name: Comment preview URL on PR
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -179,18 +213,18 @@ jobs:
           echo "pr=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
 
       - name: Azure login
-        uses: azure/login@v2
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6  # v2
         with:
           creds: ${{ secrets.AZURE_AKS_BLOCKS_CREDENTIALS }}
 
       - name: Get AKS context
-        uses: azure/aks-set-context@v4
+        uses: azure/aks-set-context@c7eb093e5a5d47caa333f64974d5fd1cd4bf069d  # v4
         with:
           resource-group: ${{ secrets.ClUSTER_AKS_BLOCKS_RESOURCE_GROUP }}
           cluster-name: ${{ env.CLUSTER_NAME }}
 
       - name: Setup kubelogin
-        uses: azure/use-kubelogin@v1
+        uses: azure/use-kubelogin@76597ae0fcbaace21b05e13a2cbf8daee2c6e820  # v1
         with:
           kubelogin-version: v0.0.24
 
@@ -198,7 +232,7 @@ jobs:
         run: kubelogin convert-kubeconfig -l azurecli
 
       - name: Setup Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4  # v4
 
       - name: Uninstall preview release
         run: helm uninstall "${{ steps.vars.outputs.release }}" --namespace "${NAMESPACE}" --ignore-not-found
@@ -210,7 +244,7 @@ jobs:
             -d "{\"secret\":\"${{ secrets.PREVIEW_REGISTRAR_SECRET }}\",\"repoName\":\"blocks-monitor\",\"prNumber\":${{ steps.vars.outputs.pr }}}"
 
       - name: Comment teardown on PR
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
