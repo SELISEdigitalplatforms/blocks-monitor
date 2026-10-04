@@ -13,6 +13,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -25,11 +26,18 @@ namespace XUnitTest.Api
         private readonly Mock<IMonitorIncidentService> _incidentService = new();
         private readonly Mock<IMonitorPingService> _pingService = new();
         private readonly Mock<ReleaseDriver.IReleaseDriverService> _releaseDriver = new();
+        private readonly Mock<IConfiguration> _configuration = new();
         private readonly Mock<ILogger<MonitorController>> _logger = new();
 
         private MonitorController CreateSut() =>
             new(_configService.Object, _pingService.Object, _configRepo.Object, _incidentService.Object,
-                _releaseDriver.Object, _logger.Object);
+                _releaseDriver.Object, _configuration.Object, _logger.Object);
+
+        private void ConfigureReportSources(string? sastUri = "https://sonar.example", string? scaUri = "https://dt.example")
+        {
+            _configuration.Setup(c => c["SastToolsApiBaseUri"]).Returns(sastUri);
+            _configuration.Setup(c => c["ScaToolsApiBaseUri"]).Returns(scaUri);
+        }
 
         private static T Body<T>(IActionResult result) =>
             (T)result.Should().BeOfType<OkObjectResult>().Subject.Value;
@@ -319,7 +327,331 @@ namespace XUnitTest.Api
             registerIndex.Should().BeLessThan(buildIndex, "registration after Build() would never reach the container");
         }
 
-        /// <summary>
+        [Fact]
+        public void ProgramLoadsReleaseSecretConfigurationBeforeMonitorConfiguration()
+        {
+            // Report source URLs already live in blocks-release secrets in deployed environments.
+            // Loading release config first makes those keys a fallback while keeping Monitor's own
+            // secret as the later, higher-priority provider.
+            var programPath = LocateProgramCs();
+            var program = StripCommentsOnly(File.ReadAllText(programPath));
+
+            var releaseSecretIndex = program.IndexOf("options.SecretKey = \"blocks-secret-release\"",
+                                                     StringComparison.Ordinal);
+            var monitorSecretIndex = program.IndexOf("options.SecretKey = \"blocks-secret-monitor\"",
+                                                     StringComparison.Ordinal);
+
+            releaseSecretIndex.Should().BeGreaterThan(-1);
+            monitorSecretIndex.Should().BeGreaterThan(-1);
+            releaseSecretIndex.Should().BeLessThan(monitorSecretIndex,
+                "release config must be the lower-priority fallback provider");
+        }
+
+        // ---------------------------------------------------------------------------------
+        // #222 — GET /Monitor/repo-details and /Monitor/reports
+        // ---------------------------------------------------------------------------------
+
+        private static readonly System.Reflection.MethodInfo RepoDetailsAction =
+            typeof(MonitorController).GetMethod(nameof(MonitorController.GetRepoDetails))!;
+
+        private static readonly System.Reflection.MethodInfo ReportsAction =
+            typeof(MonitorController).GetMethod(nameof(MonitorController.GetReports))!;
+
+        [Fact]
+        public async Task GetRepoDetails_DelegatesToDriverWithDefaultsAndReturnsItsResponse()
+        {
+            // H1
+            var expected = new ReleaseDriver.BaseApiResponse { IsSuccess = true };
+            _releaseDriver.Setup(d => d.GetRepoDetailsAsync("r1", null, 1, 1)).ReturnsAsync(expected);
+
+            var result = await CreateSut().GetRepoDetails("r1");
+
+            result.Should().BeOfType<OkObjectResult>().Which.Value.Should().BeSameAs(expected);
+            _releaseDriver.Verify(d => d.GetRepoDetailsAsync("r1", null, 1, 1), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetRepoDetails_PassesBranchAndPaginationThrough()
+        {
+            var expected = new ReleaseDriver.BaseApiResponse { IsSuccess = true };
+            _releaseDriver.Setup(d => d.GetRepoDetailsAsync("r1", "dev", 2, 5)).ReturnsAsync(expected);
+
+            var result = await CreateSut().GetRepoDetails("r1", "dev", 2, 5);
+
+            result.Should().BeOfType<OkObjectResult>().Which.Value.Should().BeSameAs(expected);
+            _releaseDriver.Verify(d => d.GetRepoDetailsAsync("r1", "dev", 2, 5), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task GetRepoDetails_MissingRepoId_Returns400WithoutCallingDriver(string? repoId)
+        {
+            // C1
+            var result = await CreateSut().GetRepoDetails(repoId!);
+
+            var bad = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            var body = bad.Value.Should().BeOfType<BaseApiResponse>().Subject;
+            body.Message.Should().Be(MonitorController.RepoIdRequired);
+            _releaseDriver.Verify(
+                d => d.GetRepoDetailsAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task GetRepoDetails_RepositoryNotFound_Returns404WithDriverResponse()
+        {
+            // C3
+            var driver = new ReleaseDriver.BaseApiResponse
+            {
+                IsSuccess = false,
+                Message = MonitorController.RepositoryNotFoundMessage,
+                StatusCode = System.Net.HttpStatusCode.BadRequest
+            };
+            _releaseDriver.Setup(d => d.GetRepoDetailsAsync("missing", null, 1, 1)).ReturnsAsync(driver);
+
+            var result = await CreateSut().GetRepoDetails("missing");
+
+            var nf = result.Should().BeOfType<NotFoundObjectResult>().Subject;
+            nf.Value.Should().BeSameAs(driver);
+        }
+
+        [Fact]
+        public async Task GetRepoDetails_OtherDriverFailure_Returns400WithoutRawMessage()
+        {
+            // C3
+            _releaseDriver.Setup(d => d.GetRepoDetailsAsync("r1", null, 1, 1))
+                .ReturnsAsync(new ReleaseDriver.BaseApiResponse { IsSuccess = false, Message = "secret internals" });
+
+            var result = await CreateSut().GetRepoDetails("r1");
+
+            var bad = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            var body = bad.Value.Should().BeOfType<BaseApiResponse>().Subject;
+            body.Message.Should().Be(MonitorController.FailedToGetRepoDetails);
+            body.Message.Should().NotContain("secret");
+        }
+
+        [Fact]
+        public async Task GetRepoDetails_NullDriverResponse_Returns400()
+        {
+            _releaseDriver.Setup(d => d.GetRepoDetailsAsync("r1", null, 1, 1))
+                .ReturnsAsync((ReleaseDriver.BaseApiResponse)null!);
+
+            var result = await CreateSut().GetRepoDetails("r1");
+
+            var bad = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            bad.Value.Should().BeOfType<BaseApiResponse>()
+                .Which.Message.Should().Be(MonitorController.FailedToGetRepoDetails);
+        }
+
+        [Fact]
+        public async Task GetRepoDetails_WhenDriverThrows_Returns500()
+        {
+            // C4
+            _releaseDriver.Setup(d => d.GetRepoDetailsAsync("r1", null, 1, 1))
+                .ThrowsAsync(new InvalidOperationException("boom"));
+
+            var result = await CreateSut().GetRepoDetails("r1");
+
+            var obj = result.Should().BeOfType<ObjectResult>().Subject;
+            obj.StatusCode.Should().Be(500);
+            obj.Value.Should().BeOfType<BaseApiResponse>()
+                .Which.Message.Should().Be(MonitorController.FailedToGetRepoDetails);
+        }
+
+        [Fact]
+        public async Task GetRepoDetails_CancellationPropagates()
+        {
+            // C4
+            _releaseDriver.Setup(d => d.GetRepoDetailsAsync("r1", null, 1, 1))
+                .ThrowsAsync(new OperationCanceledException());
+
+            await FluentActions.Awaiting(() => CreateSut().GetRepoDetails("r1"))
+                .Should().ThrowAsync<OperationCanceledException>();
+        }
+
+        [Fact]
+        public void GetRepoDetails_RouteEscapesToApiMonitorRepoDetails()
+        {
+            // H3
+            var template = RepoDetailsAction.GetCustomAttributes(typeof(HttpGetAttribute), false)
+                .Cast<HttpGetAttribute>().Single().Template;
+            var controllerTemplate = typeof(MonitorController)
+                .GetCustomAttributes(typeof(RouteAttribute), true)
+                .Cast<RouteAttribute>().Single().Template;
+            AttributeRouteModel.CombineTemplates(controllerTemplate, template)
+                .Should().Be("api/Monitor/repo-details");
+        }
+
+        [Fact]
+        public void GetRepoDetails_RequiresAuthorization()
+        {
+            // C5
+            RepoDetailsAction.GetCustomAttributes(typeof(AuthorizeAttribute), true).Should().NotBeEmpty();
+            RepoDetailsAction.GetCustomAttributes(true).OfType<IAllowAnonymous>().Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetReports_DelegatesToDriverAndReturnsItsResponse()
+        {
+            // H2
+            ConfigureReportSources();
+            var expected = new ReleaseDriver.BaseApiResponse { IsSuccess = true, Data = null };
+            _releaseDriver.Setup(d => d.GetReportsAsync("b1", "sast")).ReturnsAsync(expected);
+
+            var result = await CreateSut().GetReports("b1", "sast");
+
+            result.Should().BeOfType<OkObjectResult>().Which.Value.Should().BeSameAs(expected);
+            _releaseDriver.Verify(d => d.GetReportsAsync("b1", "sast"), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("  ")]
+        public async Task GetReports_MissingBuildId_Returns400WithoutCallingDriver(string? buildId)
+        {
+            // C1
+            ConfigureReportSources();
+            var result = await CreateSut().GetReports(buildId!, "sast");
+
+            result.Should().BeOfType<BadRequestObjectResult>()
+                .Which.Value.Should().BeOfType<BaseApiResponse>()
+                .Which.Message.Should().Be(MonitorController.BuildIdRequired);
+            _releaseDriver.Verify(d => d.GetReportsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData("SAST")]
+        [InlineData("sca")]
+        [InlineData("dast")]
+        [InlineData("sca-container")]
+        [InlineData(null)]
+        public async Task GetReports_UnsupportedType_Returns400WithoutCallingDriver(string? type)
+        {
+            // C2
+            ConfigureReportSources();
+            var result = await CreateSut().GetReports("b1", type!);
+
+            result.Should().BeOfType<BadRequestObjectResult>()
+                .Which.Value.Should().BeOfType<BaseApiResponse>()
+                .Which.Message.Should().Be(MonitorController.UnsupportedReportType);
+            _releaseDriver.Verify(d => d.GetReportsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData("sast", "SastToolsApiBaseUri", null)]
+        [InlineData("sast", "SastToolsApiBaseUri", "")]
+        [InlineData("sast", "SastToolsApiBaseUri", "   ")]
+        [InlineData("sca-libraries", "ScaToolsApiBaseUri", null)]
+        [InlineData("sca-libraries", "ScaToolsApiBaseUri", "")]
+        public async Task GetReports_MissingToolUri_Returns500WithoutCallingDriver(
+            string type, string expectedKey, string? uri)
+        {
+            // C16
+            if (type == "sast")
+                ConfigureReportSources(sastUri: uri, scaUri: "https://dt.example");
+            else
+                ConfigureReportSources(sastUri: "https://sonar.example", scaUri: uri);
+
+            var result = await CreateSut().GetReports("b1", type);
+
+            var obj = result.Should().BeOfType<ObjectResult>().Subject;
+            obj.StatusCode.Should().Be(500);
+            obj.Value.Should().BeOfType<BaseApiResponse>()
+                .Which.Message.Should().Be(MonitorController.ReportSourceNotConfigured);
+            _releaseDriver.Verify(d => d.GetReportsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+
+            _logger.Verify(
+                l => l.Log(LogLevel.Error, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(),
+                           It.IsAny<Exception>(), (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()),
+                Times.AtLeastOnce);
+            _ = expectedKey; // documented in log message contract
+        }
+
+        [Fact]
+        public async Task GetReports_MissingSastUri_DoesNotBreakSca()
+        {
+            // C16: only the requested type's key is checked
+            ConfigureReportSources(sastUri: null, scaUri: "https://dt.example");
+            var expected = new ReleaseDriver.BaseApiResponse { IsSuccess = true };
+            _releaseDriver.Setup(d => d.GetReportsAsync("b1", "sca-libraries")).ReturnsAsync(expected);
+
+            var result = await CreateSut().GetReports("b1", "sca-libraries");
+
+            result.Should().BeOfType<OkObjectResult>().Which.Value.Should().BeSameAs(expected);
+        }
+
+        [Fact]
+        public async Task GetReports_WhenDriverThrows_Returns500()
+        {
+            // C4
+            ConfigureReportSources();
+            _releaseDriver.Setup(d => d.GetReportsAsync("b1", "sast"))
+                .ThrowsAsync(new NullReferenceException("null build"));
+
+            var result = await CreateSut().GetReports("b1", "sast");
+
+            var obj = result.Should().BeOfType<ObjectResult>().Subject;
+            obj.StatusCode.Should().Be(500);
+            obj.Value.Should().BeOfType<BaseApiResponse>()
+                .Which.Message.Should().Be(MonitorController.FailedToGetReport);
+        }
+
+        [Fact]
+        public async Task GetReports_CancellationPropagates()
+        {
+            ConfigureReportSources();
+            _releaseDriver.Setup(d => d.GetReportsAsync("b1", "sast"))
+                .ThrowsAsync(new OperationCanceledException());
+
+            await FluentActions.Awaiting(() => CreateSut().GetReports("b1", "sast"))
+                .Should().ThrowAsync<OperationCanceledException>();
+        }
+
+        [Fact]
+        public void GetReports_RouteEscapesToApiMonitorReports()
+        {
+            // H3
+            var template = ReportsAction.GetCustomAttributes(typeof(HttpGetAttribute), false)
+                .Cast<HttpGetAttribute>().Single().Template;
+            var controllerTemplate = typeof(MonitorController)
+                .GetCustomAttributes(typeof(RouteAttribute), true)
+                .Cast<RouteAttribute>().Single().Template;
+            AttributeRouteModel.CombineTemplates(controllerTemplate, template)
+                .Should().Be("api/Monitor/reports");
+        }
+
+        [Fact]
+        public void GetReports_RequiresAuthorization()
+        {
+            // C5
+            ReportsAction.GetCustomAttributes(typeof(AuthorizeAttribute), true).Should().NotBeEmpty();
+            ReportsAction.GetCustomAttributes(true).OfType<IAllowAnonymous>().Should().BeEmpty();
+        }
+
+        [Fact]
+        public void ReleaseDriverPackageIsPinnedTo403()
+        {
+            // H3 package pin
+            var propsPath = LocateDirectoryPackagesProps();
+            var props = File.ReadAllText(propsPath);
+            props.Should().Contain("Include=\"SeliseBlocks.ReleaseDriver.OS\" Version=\"4.0.3\"");
+            props.Should().Contain("Include=\"SeliseBlocks.Genesis.OS\" Version=\"4.2.2\"");
+        }
+
+        private static string LocateDirectoryPackagesProps()
+        {
+            for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
+            {
+                var candidate = Path.Combine(dir.FullName, "Directory.Packages.props");
+                if (File.Exists(candidate)) return candidate;
+            }
+            throw new FileNotFoundException("Directory.Packages.props not found above " + AppContext.BaseDirectory);
+        }
+
+                /// <summary>
         /// Blanks out comments and string literals so the search below can only match executable
         /// code. Without this the assertion is vacuous - satisfied by the call appearing solely in
         /// a comment, or assigned to a string that is never executed.
@@ -365,6 +697,40 @@ namespace XUnitTest.Api
                 }
 
                 output.Append(source[i]);
+            }
+
+            return output.ToString();
+        }
+
+        private static string StripCommentsOnly(string source)
+        {
+            var output = new System.Text.StringBuilder(source.Length);
+            var inString = false;
+
+            for (var i = 0; i < source.Length; i++)
+            {
+                if (!inString && source[i] == '/' && i + 1 < source.Length && source[i + 1] == '/')
+                {
+                    while (i < source.Length && source[i] != '\n') i++;
+                    if (i < source.Length) output.Append('\n');
+                    continue;
+                }
+
+                if (!inString && source[i] == '/' && i + 1 < source.Length && source[i + 1] == '*')
+                {
+                    i += 2;
+                    while (i + 1 < source.Length && !(source[i] == '*' && source[i + 1] == '/')) i++;
+                    i++;
+                    output.Append(' ');
+                    continue;
+                }
+
+                output.Append(source[i]);
+
+                if (source[i] == '"' && (i == 0 || source[i - 1] != '\\'))
+                {
+                    inString = !inString;
+                }
             }
 
             return output.ToString();
