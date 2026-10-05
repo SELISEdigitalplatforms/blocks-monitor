@@ -32,11 +32,26 @@ const SEVERITY_COLORS: Record<ScaSeverity | "Total", string> = {
 };
 
 const SEVERITY_TINT: Record<ScaSeverity, { hover: string; active: string }> = {
-  Critical: { hover: "hover:bg-red-50", active: "bg-red-50" },
-  High: { hover: "hover:bg-orange-50", active: "bg-orange-50" },
-  Medium: { hover: "hover:bg-yellow-50", active: "bg-yellow-50" },
-  Low: { hover: "hover:bg-green-50", active: "bg-green-50" },
-  Unassigned: { hover: "hover:bg-gray-50", active: "bg-secondary" },
+  Critical: {
+    hover: "hover:bg-red-50 dark:hover:bg-red-950/40",
+    active: "bg-red-50 dark:bg-red-950/40",
+  },
+  High: {
+    hover: "hover:bg-orange-50 dark:hover:bg-orange-950/40",
+    active: "bg-orange-50 dark:bg-orange-950/40",
+  },
+  Medium: {
+    hover: "hover:bg-yellow-50 dark:hover:bg-yellow-950/40",
+    active: "bg-yellow-50 dark:bg-yellow-950/40",
+  },
+  Low: {
+    hover: "hover:bg-green-50 dark:hover:bg-green-950/40",
+    active: "bg-green-50 dark:bg-green-950/40",
+  },
+  Unassigned: {
+    hover: "hover:bg-gray-50 dark:hover:bg-slate-800/70",
+    active: "bg-secondary dark:bg-slate-800/70",
+  },
 };
 
 export function ScaTab({
