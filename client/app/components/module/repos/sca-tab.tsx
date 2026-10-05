@@ -70,7 +70,7 @@ export function ScaTab({
   return (
     <Card data-testid="sca-tab">
       <CardHeader className="flex flex-col gap-5">
-        <CardTitle className="flex items-center">Software library package</CardTitle>
+        <CardTitle className="flex items-center text-lg">Software library package</CardTitle>
         <div
           className="flex flex-col gap-3 text-xs font-medium sm:flex-row"
           data-testid="sca-header"

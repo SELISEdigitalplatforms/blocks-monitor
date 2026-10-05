@@ -60,7 +60,7 @@ export function SastTab({
   return (
     <Card data-testid="sast-tab">
       <CardHeader className="mb-0 flex flex-col gap-4">
-        <CardTitle>Overview</CardTitle>
+        <CardTitle className="text-lg">Overview</CardTitle>
         <div className="flex flex-wrap gap-2 text-xs">
           <div>
             <span className="text-low-emphasis">Quality Gate</span>

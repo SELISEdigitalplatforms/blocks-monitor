@@ -83,7 +83,7 @@ export function ScaDependenciesTable({
               {HEADERS.map((head) => (
                 <TableHead key={head}>
                   <span className="flex items-center">
-                    <span className="font-bold text-medium-emphasis">{head}</span>
+                    <span className="font-semibold text-medium-emphasis">{head}</span>
                     <ArrowUp className="ml-2 h-4 w-4 text-medium-emphasis opacity-50" />
                   </span>
                 </TableHead>
