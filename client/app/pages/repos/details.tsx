@@ -26,6 +26,9 @@ import {
 const TAB_VALUES = ["deployment-logs", "sast", "sca"] as const;
 type TabValue = (typeof TAB_VALUES)[number];
 
+const TRIGGER_CLASS =
+  "mx-0.5 rounded-md px-4 py-2 text-sm font-medium text-medium-emphasis transition-all duration-200 hover:bg-secondary data-[state=active]:bg-background data-[state=active]:text-high-emphasis data-[state=active]:shadow-sm";
+
 const RepoDetailsPage = () => {
   const { repoId = "" } = useParams<{ repoId: string }>();
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
@@ -88,34 +91,30 @@ const RepoDetailsPage = () => {
 
   return (
     <main className="space-y-4" data-testid="repo-details-page">
-      <div className="flex items-center gap-3">
-        <Button
-          asChild
-          variant="ghost"
-          className="h-9 px-0 text-muted-foreground hover:bg-transparent"
-        >
+      <div className="flex items-center gap-2">
+        <Button asChild variant="ghost" className="pl-0">
           <Link to={scoped("repos")} aria-label="Back to Repos">
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft size={20} />
           </Link>
         </Button>
-        <h1 className="text-lg font-semibold text-high-emphasis md:text-2xl">{shortName}</h1>
+        <h1 className="text-2xl font-bold text-high-emphasis">{shortName}</h1>
       </div>
 
       <TooltipProvider>
         <Tabs value={effectiveTab} onValueChange={(v) => setTab(v as TabValue)}>
           <TabsList className="h-auto w-fit rounded-lg bg-blocks-primary-shades-300 p-1">
-            <TabsTrigger value="deployment-logs" className="px-6 py-3 text-base">
+            <TabsTrigger value="deployment-logs" className={TRIGGER_CLASS}>
               Deployment Logs
             </TabsTrigger>
             {hasBuild ? (
-              <TabsTrigger value="sast" className="px-6 py-3 text-base">
+              <TabsTrigger value="sast" className={TRIGGER_CLASS}>
                 SAST
               </TabsTrigger>
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
-                    <TabsTrigger value="sast" disabled className="px-6 py-3 text-base">
+                    <TabsTrigger value="sast" disabled className={TRIGGER_CLASS}>
                       SAST
                     </TabsTrigger>
                   </span>
@@ -124,14 +123,14 @@ const RepoDetailsPage = () => {
               </Tooltip>
             )}
             {hasBuild ? (
-              <TabsTrigger value="sca" className="px-6 py-3 text-base">
+              <TabsTrigger value="sca" className={TRIGGER_CLASS}>
                 SCA
               </TabsTrigger>
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
-                    <TabsTrigger value="sca" disabled className="px-6 py-3 text-base">
+                    <TabsTrigger value="sca" disabled className={TRIGGER_CLASS}>
                       SCA
                     </TabsTrigger>
                   </span>
