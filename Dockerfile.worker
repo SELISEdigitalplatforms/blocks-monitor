@@ -39,7 +39,8 @@ ENV DOTNET_ENVIRONMENT=Production \
     DOTNET_RUNNING_IN_CONTAINER=true \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
-RUN apk add --no-cache icu-libs procps
+# Retry: transient DNS failures reaching the Alpine CDN have broken CI builds
+RUN for i in 1 2 3 4 5; do apk add --no-cache icu-libs procps && break; [ "$i" = 5 ] && exit 1; sleep $((i * 5)); done
 
 COPY --from=publish /app/publish .
 RUN chown -R app:app /app

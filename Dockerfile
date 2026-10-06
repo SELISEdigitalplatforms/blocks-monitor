@@ -56,7 +56,8 @@ ENV ASPNETCORE_ENVIRONMENT=Production \
 
 EXPOSE 5000
 
-RUN apk add --no-cache icu-libs wget
+# Retry: transient DNS failures reaching the Alpine CDN have broken CI builds
+RUN for i in 1 2 3 4 5; do apk add --no-cache icu-libs wget && break; [ "$i" = 5 ] && exit 1; sleep $((i * 5)); done
 
 COPY --from=publish /app/publish .
 RUN chown -R app:app /app
