@@ -58,13 +58,13 @@ function GeneralInformationCard({
 
   return (
     <section
-      className="rounded-sm border bg-background p-6 shadow-sm"
+      className="flex flex-col items-start gap-4 self-stretch rounded-lg border bg-background p-4 shadow-sm sm:gap-6 sm:p-6"
       data-testid="deployment-general-info"
     >
       <h2 className="text-lg font-semibold text-high-emphasis">General information</h2>
 
-      <div className="mt-8 grid gap-8 text-sm md:grid-cols-2">
-        <div className="space-y-6">
+      <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+        <div className="space-y-4">
           <InfoField label="Repo URL">
             {repoUrl ? <ExternalValue href={repoUrl} value={repoUrl} /> : "N/A"}
           </InfoField>
@@ -76,7 +76,7 @@ function GeneralInformationCard({
           </InfoField>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <InfoField label="Deployment Status">
             <span className={getDeploymentLogEventBadgeClassName(build.status)}>
               {build.status || "Unknown"}
@@ -123,25 +123,25 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
       className="rounded-sm border bg-background p-6 shadow-sm"
       data-testid="deployment-logs-card"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-high-emphasis">Deployment logs</h2>
         {build && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
             <StatusIcon status={build.status} />
             <span>
               {wholeStatus} at {build.eventName || "Deploy"}
-              {totalDuration ? ` - ${totalDuration}` : ""}
+              {totalDuration ? ` · ${totalDuration}` : ""}
             </span>
           </div>
         )}
       </div>
 
       {steps.length === 0 ? (
-        <div className="mt-6 rounded-sm border py-10 text-center text-sm text-muted-foreground">
+        <div className="rounded-md border py-8 text-center text-sm text-muted-foreground">
           No deployment logs available for this build.
         </div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-sm border">
+        <div className="overflow-hidden rounded-md border">
           {steps.map((step, index) => {
             const isExpanded = expanded.has(step.id);
             const expandable = step.logs.length > 0;
@@ -150,36 +150,34 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
               <div key={step.id} className={index < steps.length - 1 ? "border-b" : ""}>
                 <button
                   type="button"
-                  className={`flex w-full items-center justify-between px-4 py-3 text-left ${
-                    isExpanded ? "bg-secondary" : "bg-background"
-                  } ${expandable ? "hover:bg-secondary/80" : ""}`}
+                  className={`flex w-full items-center justify-between bg-background p-3 text-left transition-colors ${
+                    expandable ? "cursor-pointer hover:bg-secondary" : "cursor-default"
+                  }`}
                   onClick={() => toggle(step)}
                 >
-                  <span className="flex items-center gap-3 text-sm font-semibold">
-                    {expandable ? (
-                      <ExpandIcon className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <span className="w-4" />
-                    )}
-                    <StatusIcon status={step.status} />
-                    {displayStepName(step.name)}
+                  <span className="flex items-center gap-3">
+                    <span className="flex items-center gap-2">
+                      {expandable && <ExpandIcon className="h-4 w-4 text-medium-emphasis" />}
+                      <StatusIcon status={step.status} />
+                    </span>
+                    <span className="text-sm font-medium">{displayStepName(step.name)}</span>
                   </span>
-                  <span className="font-mono text-xs text-muted-foreground">{step.duration}</span>
+                  <span className="font-mono text-xs text-low-emphasis">{step.duration}</span>
                 </button>
 
                 {isExpanded && step.logs.length > 0 && (
                   <div className="bg-secondary">
-                    <div className="px-4 py-2 text-xs font-medium text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-x-2 border-b bg-secondary px-3 py-1.5 text-xs text-medium-emphasis">
                       Started {formatEventTime(step.startedAt)} - Ended{" "}
                       {formatEventTime(step.endedAt)} - Took {step.duration}
                     </div>
-                    <div className="max-h-[360px] overflow-auto pb-2 font-mono text-xs">
+                    <div className="max-h-[360px] overflow-auto font-mono text-xs">
                       {step.logs.map((log, logIndex) => (
-                        <div key={`${step.id}-${logIndex}`} className="flex px-4 py-1">
-                          <span className="w-10 shrink-0 select-none text-right text-muted-foreground">
+                        <div key={`${step.id}-${logIndex}`} className="flex bg-secondary">
+                          <span className="min-w-[3rem] shrink-0 select-none px-3 py-1 text-right">
                             {String(logIndex + 1).padStart(2, "0")}
                           </span>
-                          <span className="ml-6 min-w-0 whitespace-pre-wrap break-words">
+                          <span className="min-w-0 flex-1 whitespace-pre-wrap break-words px-3 py-1">
                             {log}
                           </span>
                         </div>
@@ -215,33 +213,32 @@ function InfoField({
   children: React.ReactNode;
 }>) {
   return (
-    <div>
-      <p className="mb-3 font-semibold text-high-emphasis">{label}</p>
-      <div className="font-medium text-high-emphasis">{children}</div>
+    <div className="min-w-0">
+      <p className="mb-2 text-sm font-medium text-medium-emphasis">{label}</p>
+      <div className="text-sm font-medium">{children}</div>
     </div>
   );
 }
 
 function ExternalValue({ href, value }: Readonly<{ href: string; value: string }>) {
   return (
-    <span className="inline-flex max-w-full items-center gap-2">
+    <span className="flex max-w-full items-center gap-2">
       <a
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="truncate text-primary hover:underline"
+        className="block truncate text-sm font-normal text-blue-600 hover:underline"
       >
         {value}
       </a>
       <Button
         type="button"
         variant="ghost"
-        size="icon"
-        className="h-6 w-6 text-muted-foreground"
+        className="h-auto shrink-0 p-1 transition-colors hover:bg-gray-100"
         aria-label="Copy value"
         onClick={() => void navigator.clipboard?.writeText(value)}
       >
-        <Copy className="h-4 w-4" />
+        <Copy className="h-4 w-4 text-gray-600 hover:text-gray-800" />
       </Button>
     </span>
   );

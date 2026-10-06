@@ -72,7 +72,7 @@ export function ReposListTable({ rows }: Readonly<{ rows: RepoRow[] }>) {
           />
         </div>
 
-        <div className="overflow-x-auto rounded-sm border">
+        <div className="overflow-x-auto rounded-sm">
           <Table>
             <TableHeader>
               <TableRow>

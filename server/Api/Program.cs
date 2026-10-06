@@ -87,7 +87,10 @@ await services.RegisterBlocksReleaseServicesAsync(vaultType);
 
 var app = builder.Build();
 
-app.UseMiddleware<Api.Middleware.SecurityHeadersMiddleware>();
+// The CSP origins come from configuration (FrontendRuntime + Csp:Extra*), not from a
+// compiled-in host list -- see Api.Security.ContentSecurityPolicy.
+var contentSecurityPolicy = Api.Security.ContentSecurityPolicy.Build(app.Configuration);
+app.UseMiddleware<Api.Middleware.SecurityHeadersMiddleware>(contentSecurityPolicy);
 
 // Infrastructure diagnostics expose safe group labels only. Keep them outside Genesis's
 // shared /ping and readiness checks so a dev outage cannot remove a healthy main API.

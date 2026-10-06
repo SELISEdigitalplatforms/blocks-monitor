@@ -88,34 +88,26 @@ const RepoDetailsPage = () => {
 
   return (
     <main className="space-y-4" data-testid="repo-details-page">
-      <div className="flex items-center gap-3">
-        <Button
-          asChild
-          variant="ghost"
-          className="h-9 px-0 text-muted-foreground hover:bg-transparent"
-        >
+      <div className="flex items-center gap-2">
+        <Button asChild variant="ghost" className="pl-0">
           <Link to={scoped("repos")} aria-label="Back to Repos">
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft size={20} />
           </Link>
         </Button>
-        <h1 className="text-lg font-semibold text-high-emphasis md:text-2xl">{shortName}</h1>
+        <h1 className="text-2xl font-semibold text-high-emphasis">{shortName}</h1>
       </div>
 
       <TooltipProvider>
         <Tabs value={effectiveTab} onValueChange={(v) => setTab(v as TabValue)}>
-          <TabsList className="h-auto w-fit rounded-lg bg-blocks-primary-shades-300 p-1">
-            <TabsTrigger value="deployment-logs" className="px-6 py-3 text-base">
-              Deployment Logs
-            </TabsTrigger>
+          <TabsList>
+            <TabsTrigger value="deployment-logs">Deployment Logs</TabsTrigger>
             {hasBuild ? (
-              <TabsTrigger value="sast" className="px-6 py-3 text-base">
-                SAST
-              </TabsTrigger>
+              <TabsTrigger value="sast">SAST</TabsTrigger>
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
-                    <TabsTrigger value="sast" disabled className="px-6 py-3 text-base">
+                    <TabsTrigger value="sast" disabled>
                       SAST
                     </TabsTrigger>
                   </span>
@@ -124,14 +116,12 @@ const RepoDetailsPage = () => {
               </Tooltip>
             )}
             {hasBuild ? (
-              <TabsTrigger value="sca" className="px-6 py-3 text-base">
-                SCA
-              </TabsTrigger>
+              <TabsTrigger value="sca">SCA</TabsTrigger>
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
-                    <TabsTrigger value="sca" disabled className="px-6 py-3 text-base">
+                    <TabsTrigger value="sca" disabled>
                       SCA
                     </TabsTrigger>
                   </span>

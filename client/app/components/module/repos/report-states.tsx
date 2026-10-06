@@ -2,13 +2,27 @@ import { Button, Card, CardContent, Skeleton } from "@/components/core";
 
 export function ReportLoadingCard({ label = "Loading report…" }: Readonly<{ label?: string }>) {
   return (
-    <Card data-testid="report-loading">
-      <CardContent className="space-y-3 p-6">
-        <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-20 w-full" />
-        <Skeleton className="h-20 w-full" />
-        <span className="sr-only">{label}</span>
-      </CardContent>
+    <Card data-testid="report-loading" className="p-0">
+      <div className="px-6 py-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="mb-2 h-6 w-48" />
+          <Skeleton className="h-8 w-40" />
+        </div>
+        <div className="mt-3 flex items-center gap-6">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-4 w-40" />
+        </div>
+      </div>
+      <div className="p-6">
+        <Skeleton className="mb-4 h-8 w-64" />
+        <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+          {Array.from({ length: 6 }, (_, index) => (
+            <Skeleton key={index} className="h-12 w-full rounded-lg" />
+          ))}
+        </div>
+      </div>
+      <span className="sr-only">{label}</span>
     </Card>
   );
 }
