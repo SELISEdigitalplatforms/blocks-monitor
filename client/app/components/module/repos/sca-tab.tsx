@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/core";
 import { useGetReport } from "@/hooks/use-repos";
 import {
   hasNoReport,
@@ -22,12 +23,35 @@ const SEVERITIES: Array<ScaSeverity | "Total"> = [
 ];
 
 const SEVERITY_COLORS: Record<ScaSeverity | "Total", string> = {
-  Total: "border-red-600",
+  Total: "border-red-800",
   Critical: "border-red-500",
   High: "border-orange-500",
   Medium: "border-yellow-500",
   Low: "border-green-500",
-  Unassigned: "border-slate-500",
+  Unassigned: "border-gray-500",
+};
+
+const SEVERITY_TINT: Record<ScaSeverity, { hover: string; active: string }> = {
+  Critical: {
+    hover: "hover:bg-red-50 dark:hover:bg-red-950/40",
+    active: "bg-red-50 dark:bg-red-950/40",
+  },
+  High: {
+    hover: "hover:bg-orange-50 dark:hover:bg-orange-950/40",
+    active: "bg-orange-50 dark:bg-orange-950/40",
+  },
+  Medium: {
+    hover: "hover:bg-yellow-50 dark:hover:bg-yellow-950/40",
+    active: "bg-yellow-50 dark:bg-yellow-950/40",
+  },
+  Low: {
+    hover: "hover:bg-green-50 dark:hover:bg-green-950/40",
+    active: "bg-green-50 dark:bg-green-950/40",
+  },
+  Unassigned: {
+    hover: "hover:bg-gray-50 dark:hover:bg-slate-800/70",
+    active: "bg-secondary dark:bg-slate-800/70",
+  },
 };
 
 export function ScaTab({
@@ -59,39 +83,45 @@ export function ScaTab({
   if (!details) return <ReportNoDataCard />;
 
   return (
-    <section className="rounded-sm border bg-background p-6 shadow-sm" data-testid="sca-tab">
-      <h2 className="text-lg font-semibold text-high-emphasis">Software library package</h2>
+    <Card data-testid="sca-tab">
+      <CardHeader className="flex flex-col gap-5">
+        <CardTitle className="flex items-center text-lg">Software library package</CardTitle>
+        <div
+          className="flex flex-col gap-3 text-xs font-medium sm:flex-row"
+          data-testid="sca-header"
+        >
+          <InlineStat label="Total components" value={details.components} />
+          <InlineStat label="Vulnerable components" value={details.vulnerableComponents} />
+          <InlineStat label="Risk Score" value={details.inheritedRiskScore} />
+        </div>
+      </CardHeader>
 
-      <div className="mt-8 flex flex-wrap gap-4 text-sm" data-testid="sca-header">
-        <InlineStat label="Total components" value={details.components} />
-        <InlineStat label="Vulnerable components" value={details.vulnerableComponents} />
-        <InlineStat label="Risk Score" value={details.inheritedRiskScore} />
-      </div>
+      <CardContent>
+        <div className="border-b pb-5 transition-colors">
+          <div
+            className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-6"
+            data-testid="sca-summary-tiles"
+          >
+            {SEVERITIES.map((item) => (
+              <SeverityMetric
+                key={item}
+                label={item === "Total" ? "Total vulnerabilities" : item}
+                value={countFor(details, item)}
+                severity={item}
+                active={severity === item}
+                onClick={
+                  item === "Total"
+                    ? undefined
+                    : () => setSeverity((prev) => (prev === item ? null : item))
+                }
+              />
+            ))}
+          </div>
+        </div>
 
-      <div
-        className="mt-7 grid gap-5 md:grid-cols-3 xl:grid-cols-6"
-        data-testid="sca-summary-tiles"
-      >
-        {SEVERITIES.map((item) => (
-          <SeverityMetric
-            key={item}
-            label={item === "Total" ? "Total vulnerabilities" : item}
-            value={countFor(details, item)}
-            severity={item}
-            active={severity === item}
-            onClick={
-              item === "Total"
-                ? undefined
-                : () => setSeverity((prev) => (prev === item ? null : item))
-            }
-          />
-        ))}
-      </div>
-
-      <div className="my-6 border-t" />
-
-      <ScaDependenciesTable rows={rows} severityFilter={severity} />
-    </section>
+        <ScaDependenciesTable rows={rows} severityFilter={severity} />
+      </CardContent>
+    </Card>
   );
 }
 
@@ -103,9 +133,10 @@ function InlineStat({
   value?: string;
 }>) {
   return (
-    <span className="text-muted-foreground">
-      {label}: <span className="font-semibold text-high-emphasis">{display(value)}</span>
-    </span>
+    <div className="flex gap-2">
+      <span className="text-low-emphasis">{label}:</span>
+      <span className="font-semibold">{display(value)}</span>
+    </div>
   );
 }
 
@@ -124,16 +155,14 @@ function SeverityMetric({
 }>) {
   const content = (
     <>
-      <p className="font-semibold text-high-emphasis">{label}</p>
-      <p className="mt-3 text-2xl font-semibold text-high-emphasis">{value}</p>
+      <span className="mb-1 block text-xs font-medium text-high-emphasis">{label}</span>
+      <span className="block text-xl font-bold sm:text-2xl">{value}</span>
     </>
   );
 
-  const className = `border-l-4 ${SEVERITY_COLORS[severity]} py-1 pl-4 text-left ${
-    active ? "bg-secondary/70" : ""
-  }`;
+  const className = `border-l-4 ${SEVERITY_COLORS[severity]} pl-2 text-left sm:pl-3`;
 
-  if (!onClick) {
+  if (!onClick || severity === "Total") {
     return (
       <div className={className} data-testid="sca-tile-total">
         {content}
@@ -141,12 +170,16 @@ function SeverityMetric({
     );
   }
 
+  const tint = SEVERITY_TINT[severity];
+
   return (
     <button
       type="button"
       data-testid={`sca-tile-${severity.toLowerCase()}`}
       aria-pressed={active}
-      className={`${className} transition hover:bg-secondary/70`}
+      className={`${className} w-full cursor-pointer transition-colors ${tint.hover} ${
+        active ? tint.active : ""
+      }`}
       onClick={onClick}
     >
       {content}
