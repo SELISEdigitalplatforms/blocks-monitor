@@ -246,7 +246,7 @@ export function ScaDependenciesTable({
                   {selected?.epss == null ? "No EPSS available." : `${selected.epss.toFixed(2)}%`}
                 </DetailField>
                 <DetailField label="EPSS Score">
-                  {selected?.epssScore == null ? "No EPSS Score available." : selected.epssScore}
+                  {selected?.epssScore ?? "No EPSS Score available."}
                 </DetailField>
                 <DetailField label="CWE Name">
                   {selected?.cweName || "No CWE Name available."}
