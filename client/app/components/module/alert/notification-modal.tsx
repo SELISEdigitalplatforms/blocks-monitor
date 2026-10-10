@@ -189,7 +189,7 @@ const NotificationModal = ({ open, onOpenChange, data, request }: NotificationPr
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="md:max-w-screen-sm">
+      <DialogContent className="md:max-w-(--breakpoint-sm)">
         <DialogHeader>
           <DialogTitle>Notification settings</DialogTitle>
         </DialogHeader>

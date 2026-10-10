@@ -58,7 +58,7 @@ function GeneralInformationCard({
 
   return (
     <section
-      className="flex flex-col items-start gap-4 self-stretch rounded-lg border bg-background p-4 shadow-sm sm:gap-6 sm:p-6"
+      className="flex flex-col items-start gap-4 self-stretch rounded-lg border bg-background p-4 shadow-xs sm:gap-6 sm:p-6"
       data-testid="deployment-general-info"
     >
       <h2 className="text-lg font-semibold text-high-emphasis">General information</h2>
@@ -120,7 +120,7 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
 
   return (
     <section
-      className="rounded-sm border bg-background p-6 shadow-sm"
+      className="rounded-sm border bg-background p-6 shadow-xs"
       data-testid="deployment-logs-card"
     >
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -174,10 +174,10 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
                     <div className="max-h-[360px] overflow-auto font-mono text-xs">
                       {step.logs.map((log, logIndex) => (
                         <div key={`${step.id}-${logIndex}`} className="flex bg-secondary">
-                          <span className="min-w-[3rem] shrink-0 select-none px-3 py-1 text-right">
+                          <span className="min-w-12 shrink-0 select-none px-3 py-1 text-right">
                             {String(logIndex + 1).padStart(2, "0")}
                           </span>
-                          <span className="min-w-0 flex-1 whitespace-pre-wrap break-words px-3 py-1">
+                          <span className="min-w-0 flex-1 whitespace-pre-wrap wrap-break-word px-3 py-1">
                             {log}
                           </span>
                         </div>

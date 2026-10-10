@@ -66,7 +66,7 @@ export function ScaDependenciesTable({
         <input
           type="text"
           data-testid="sca-search"
-          className="w-full rounded-md border bg-background py-2 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded-md border bg-background py-2 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-hidden focus:ring-1 focus:ring-blue-500"
           placeholder="Search dependencies..."
           value={search}
           onChange={(e) => {
