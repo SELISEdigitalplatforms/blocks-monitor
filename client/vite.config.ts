@@ -1,4 +1,5 @@
 import fs from "fs";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig, loadEnv } from "vite";
@@ -40,7 +41,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     envPrefix: ["BLOCKS_"],
-    plugins: [react(), svgr({ svgrOptions: { svgo: true, titleProp: true } })],
+    plugins: [react(), tailwindcss(), svgr({ svgrOptions: { svgo: true, titleProp: true } })],
 
     resolve: {
       alias: {

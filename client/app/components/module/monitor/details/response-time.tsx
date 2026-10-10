@@ -72,7 +72,7 @@ const CustomTooltip = ({
   if (!active || !payload?.length) return null;
   const d: ChartPoint = payload[0]?.payload;
   return (
-    <div className="rounded-md border bg-white p-3 text-sm shadow">
+    <div className="rounded-md border bg-white p-3 text-sm shadow-[0_1px_3px_0_rgb(0_0_0/0.1),0_1px_2px_-1px_rgb(0_0_0/0.1)]">
       <div className="mb-1 font-medium">{new Date(d.ts).toLocaleString()}</div>
       <div
         className={d.status === 1 ? "font-semibold text-green-600" : "font-semibold text-red-600"}
