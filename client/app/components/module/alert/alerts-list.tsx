@@ -266,6 +266,9 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
     ],
     [onSortChange, sortQueryParams, projectKey],
   );
+  // TanStack Table returns fresh functions each render, so the React Compiler skips this
+  // component; the compiler is not enabled here, and no compiler-safe table API exists.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

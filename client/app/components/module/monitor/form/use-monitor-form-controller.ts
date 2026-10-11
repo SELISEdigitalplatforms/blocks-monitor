@@ -20,7 +20,7 @@ import { useScopedPath, useGetAllServices } from "@seliseblocks/genesis-os/hooks
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router";
 import {
   getMonitorFormDefaultValues,
@@ -86,10 +86,10 @@ export const useMonitorFormController = ({
     mode: "onChange",
   });
 
-  const monitorType = form.watch("monitorConfigurationType");
-  const sourceType = form.watch("sourceType");
-  const selectedRepoId = form.watch("selectedRepoId");
-  const selectedServiceId = form.watch("selectedServiceId");
+  const [monitorType, sourceType, selectedRepoId, selectedServiceId] = useWatch({
+    control: form.control,
+    name: ["monitorConfigurationType", "sourceType", "selectedRepoId", "selectedServiceId"],
+  });
 
   // Sourced from our own API rather than blocks-logic. Same { data: [...] } envelope, so
   // deployedRepos, the selectedRepo lookup and the duplication check below are unchanged.
