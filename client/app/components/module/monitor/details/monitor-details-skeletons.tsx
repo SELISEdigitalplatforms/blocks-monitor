@@ -11,7 +11,7 @@ export const LoadingListSkelton = ({ length }: { length: number }) => (
 
 export const MonitorCardSkeleton = () => {
   return (
-    <Card className="rounded-lg border shadow-sm">
+    <Card className="rounded-lg border shadow-xs">
       <CardHeader>
         <CardTitle className="text-base font-semibold">
           <Skeleton className="h-4 w-40" />
