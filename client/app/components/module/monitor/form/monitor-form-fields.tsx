@@ -368,7 +368,7 @@ export const MonitorFormFields = ({
                           <Switch
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                            className="!mt-0"
+                            className="mt-0!"
                           />
                         </FormControl>
                       </FormItem>
