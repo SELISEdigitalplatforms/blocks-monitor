@@ -4,7 +4,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace DomainService.Alert.Entities
 {
     [BsonIgnoreExtraElements]
-    public class AlertMailTemplate : BaseEntity
+    public class EmailTemplate : BaseEntity
     {
         public string? MailConfigurationId { get; set; }
         public string? TemplateBody { get; set; }

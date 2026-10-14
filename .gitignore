@@ -232,3 +232,5 @@ deploy.log
 
 # Loop local artifacts (never commit)
 .loop/
+
+/server/Directory.Build.local.props

@@ -81,9 +81,9 @@ namespace XUnitTest.Shared
         }
 
         [Fact]
-        public void AlertMailTemplate_StoresAllProperties()
+        public void EmailTemplate_StoresAllProperties()
         {
-            var template = new AlertMailTemplate
+            var template = new EmailTemplate
             {
                 JsonContent = "{}",
                 ImageId = "img1",
