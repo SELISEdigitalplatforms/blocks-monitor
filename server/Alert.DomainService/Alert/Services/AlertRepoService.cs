@@ -9,7 +9,7 @@ namespace DomainService.Alert.Services
     public class AlertRepoService
     {
         private readonly IMongoCollection<ProjectPeople> _projectPeopleCollection;
-        private readonly IMongoCollection<AlertMailTemplate> _alertMailTemplateCollection;
+        private readonly IMongoCollection<EmailTemplate> _emailTemplateCollection;
         private readonly IMongoCollection<MailServerConfiguration> _mailServerConfigCollection;
 
         public AlertRepoService(
@@ -19,7 +19,7 @@ namespace DomainService.Alert.Services
             var db = dbContextProvider.GetDatabase(blocksSecret.DatabaseConnectionString, blocksSecret.RootDatabaseName);
 
             _projectPeopleCollection = db.GetCollection<ProjectPeople>("ProjectPeoples");
-            _alertMailTemplateCollection = db.GetCollection<AlertMailTemplate>("AlertMailTemplates");
+            _emailTemplateCollection = db.GetCollection<EmailTemplate>("EmailTemplates");
             _mailServerConfigCollection = db.GetCollection<MailServerConfiguration>("MailServerConfigurations");
         }
 
@@ -30,10 +30,10 @@ namespace DomainService.Alert.Services
             return result.Select(p => p.UserId).ToList();
         }
 
-        public async Task<AlertMailTemplate> GetAlertMailTemplateByNameAsync(string name)
+        public async Task<EmailTemplate> GetAlertMailTemplateByNameAsync(string name)
         {
-            var filter = Builders<AlertMailTemplate>.Filter.Eq(t => t.Name, name);
-            return await _alertMailTemplateCollection.Find(filter).FirstOrDefaultAsync();
+            var filter = Builders<EmailTemplate>.Filter.Eq(t => t.Name, name);
+            return await _emailTemplateCollection.Find(filter).FirstOrDefaultAsync();
         }
 
         public async Task<MailServerConfiguration> GetMailServerConfigurationByIdAsync(string itemId)

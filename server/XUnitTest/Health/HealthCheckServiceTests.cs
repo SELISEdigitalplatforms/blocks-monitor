@@ -31,7 +31,7 @@ namespace XUnitTest.Health
                 .With(configColl)
                 .With(incidents ?? new List<MonitorIncident>())
                 .With(new List<ProjectPeople>())
-                .With(new List<AlertMailTemplate>())
+                .With(new List<EmailTemplate>())
                 .With(new List<MailServerConfiguration>());
             var secret = MongoMocks.BlocksSecret().Object;
 
@@ -198,7 +198,7 @@ namespace XUnitTest.Health
                 .With(MongoMocks.Collection(new List<MonitorConfiguration>()))
                 .With(MongoMocks.CollectionThrowing<MonitorIncident>())
                 .With(new List<ProjectPeople>())
-                .With(new List<AlertMailTemplate>())
+                .With(new List<EmailTemplate>())
                 .With(new List<MailServerConfiguration>());
             var secret = MongoMocks.BlocksSecret().Object;
             var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret);
@@ -227,7 +227,7 @@ namespace XUnitTest.Health
             var queue = new HealthQueueManager();
             var db = new MongoMocks.DbBuilder()
                 .With(new List<MonitorConfiguration>()).With(new List<MonitorIncident>())
-                .With(new List<ProjectPeople>()).With(new List<AlertMailTemplate>()).With(new List<MailServerConfiguration>());
+                .With(new List<ProjectPeople>()).With(new List<EmailTemplate>()).With(new List<MailServerConfiguration>());
             var secret = MongoMocks.BlocksSecret().Object;
             var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret);
             var alertRepo = new AlertRepoService(db.Provider, secret);

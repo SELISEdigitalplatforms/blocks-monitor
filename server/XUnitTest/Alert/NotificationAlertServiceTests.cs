@@ -36,7 +36,7 @@ namespace XUnitTest.Alert
         {
             var db = new MongoMocks.DbBuilder()
                 .With(people ?? new List<ProjectPeople>())
-                .With(new List<DomainService.Alert.Entities.AlertMailTemplate>())
+                .With(new List<DomainService.Alert.Entities.EmailTemplate>())
                 .With(new List<DomainService.Alert.Entities.MailServerConfiguration>());
             return new AlertRepoService(db.Provider, MongoMocks.BlocksSecret().Object);
         }

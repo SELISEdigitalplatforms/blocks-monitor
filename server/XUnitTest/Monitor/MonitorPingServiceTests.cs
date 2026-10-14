@@ -38,7 +38,7 @@ namespace XUnitTest.Monitor
         }
 
         [Fact]
-        public async Task MonitorPingAsync_SuccessResponse_PopulatesLogAndPersists()
+        public async Task MonitorPingAsync_SuccessResponse_PopulatesLogAndPassesItToIncidentHandler()
         {
             var config = new MonitorConfiguration { ItemId = "m1", Url = "http://svc", HttpMethodType = HttpMethodTypes.GET };
             SetupHttp(null, new HttpResponseMessage(HttpStatusCode.OK) { ReasonPhrase = "OK" });
@@ -50,8 +50,10 @@ namespace XUnitTest.Monitor
             log.IsSuccess.Should().BeTrue();
             log.MonitorId.Should().Be("m1");
             log.Url.Should().Be("http://svc");
-            _pingRepo.Verify(r => r.SavePingLogAsync(It.Is<MonitorPingLog>(l => l.StatusCode == 200)), Times.Once);
-            _incident.Verify(i => i.HandleIncidentAsync(config, It.IsAny<MonitorPingLog>()), Times.Once);
+            // H1: no ping log is written. H2: the probe result still reaches HandleIncidentAsync.
+            _pingRepo.Verify(r => r.SavePingLogAsync(It.IsAny<MonitorPingLog>()), Times.Never);
+            _incident.Verify(i => i.HandleIncidentAsync(config,
+                It.Is<MonitorPingLog>(l => l.StatusCode == 200 && l.IsSuccess && l.ResponseTimeMs >= 0)), Times.Once);
         }
 
         [Fact]
@@ -141,9 +143,10 @@ namespace XUnitTest.Monitor
             log.StatusCode.Should().Be(-1);
             log.IsSuccess.Should().BeFalse();
             log.ResponseMessage.Should().Contain("boom");
-            // Even on failure the ping is persisted and the incident pipeline is invoked.
-            _pingRepo.Verify(r => r.SavePingLogAsync(It.IsAny<MonitorPingLog>()), Times.Once);
-            _incident.Verify(i => i.HandleIncidentAsync(config, It.IsAny<MonitorPingLog>()), Times.Once);
+            // Even on failure nothing is persisted and the incident pipeline gets the failed result.
+            _pingRepo.Verify(r => r.SavePingLogAsync(It.IsAny<MonitorPingLog>()), Times.Never);
+            _incident.Verify(i => i.HandleIncidentAsync(config,
+                It.Is<MonitorPingLog>(l => l.StatusCode == -1 && !l.IsSuccess)), Times.Once);
         }
 
         [Fact]
