@@ -111,7 +111,6 @@ namespace DomainService.Monitor.Services
             }
 
             // Collection cut: ping logs are no longer saved; MonitorPingLogs is dropped by the migration.
-            // await _monitorPingRepoService.SavePingLogAsync(log);
             await _monitorIncidentService.HandleIncidentAsync(config, log);
 
             return log;
