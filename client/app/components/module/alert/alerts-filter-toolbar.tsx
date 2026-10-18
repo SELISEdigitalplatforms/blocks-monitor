@@ -1,5 +1,5 @@
 // DEADCODE 2026-07-29: unreachable from main.tsx/router tree; whole file commented pending review
-// import { FilterToolbar } from "@seliseblocks/genesis-os/components";
+// import { FilterToolbar } from "@seliseblocks/app-kit/components";
 // import { type AlertFilter, useAlertFilterQueryParams } from "./use-alert-filter-query-params";
 //
 // type AlertFilterToolBarProps = {

@@ -1,41 +1,55 @@
 import type { ReactNode } from "react";
-import { useProjectStore } from "@seliseblocks/genesis-os/store";
+import { useProjectStore } from "@seliseblocks/app-kit/store";
+import { FilterControls } from "@seliseblocks/app-kit/components";
+import { Card } from "@/components/core";
+import { PageHeader } from "@/components/common/page-header/page-header";
 import { useGetReposList } from "@/hooks/use-alerts";
-import { ReposListTable } from "@/components/module/repos/repos-list-table";
-import {
-  PageErrorCard,
-  PageLoadingSkeleton,
-} from "@/components/module/repos/report-states";
+import { ReposListEmpty, ReposListTable } from "@/components/module/repos/repos-list-table";
+import { useReposFilterQueryParams } from "@/components/module/repos/use-repos-filter-query-params";
+import { PageErrorCard } from "@/components/module/repos/report-states";
 
 const ReposPage = () => {
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
   const { data, isLoading, isError, refetch } = useGetReposList(projectKey);
+  const { queryParams, setQueryParams } = useReposFilterQueryParams();
 
   const rows = data?.data ?? [];
+  // Search only means something once there is a list to search (or a query to clear).
+  const showSearch =
+    projectKey !== "" && !isError && (isLoading || rows.length > 0 || queryParams.search !== "");
 
-  let body: ReactNode;
-  if (projectKey === "") {
-    body = (
-      <p className="text-sm text-muted-foreground">Select a project to view repositories.</p>
+  const content: ReactNode =
+    projectKey !== "" && isError ? (
+      <PageErrorCard message="Failed to load repositories." onRetry={() => refetch()} />
+    ) : (
+      <Card data-testid="repos-list-table" className="overflow-hidden p-0">
+        {projectKey === "" ? (
+          <ReposListEmpty message="Select a project to view repositories." />
+        ) : (
+          <ReposListTable rows={rows} isLoading={isLoading} />
+        )}
+      </Card>
     );
-  } else if (isLoading) {
-    body = <PageLoadingSkeleton testId="repos-list-loading" />;
-  } else if (isError) {
-    body = <PageErrorCard message="Failed to load repositories." onRetry={() => refetch()} />;
-  } else if (rows.length === 0) {
-    body = (
-      <p data-testid="repos-empty" className="text-sm text-muted-foreground">
-        No repositories deployed yet
-      </p>
-    );
-  } else {
-    body = <ReposListTable rows={rows} />;
-  }
 
   return (
-    <main className="space-y-4" data-testid="repos-page">
-      <h1 className="text-lg font-semibold md:text-2xl">Repos</h1>
-      {body}
+    <main data-testid="repos-page">
+      <PageHeader
+        title="Repos"
+        description="Repositories deployed in this project and the state of their latest build."
+        toolbar={
+          showSearch ? (
+            <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-2">
+              <FilterControls.SearchInput
+                value={queryParams.search}
+                placeholder="Search repositories..."
+                onChange={(search) => void setQueryParams({ search })}
+              />
+            </div>
+          ) : undefined
+        }
+      />
+
+      <div className="min-w-0 space-y-3">{content}</div>
     </main>
   );
 };

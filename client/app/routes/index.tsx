@@ -5,15 +5,15 @@ import IncidentPage from "@/pages/incidents";
 import MonitorDetailsPage from "@/pages/monitor/details";
 import ReposPage from "@/pages/repos";
 import RepoDetailsPage from "@/pages/repos/details";
-import { AuthResolver, ProtectedGuard, PublicGuard } from "@seliseblocks/genesis-os/guards";
-import { ConsoleLayout, DashboardRoute } from "@seliseblocks/genesis-os/layouts";
+import { AuthResolver, ProtectedGuard, PublicGuard } from "@seliseblocks/app-kit/guards";
+import { ConsoleLayout, DashboardRoute } from "@seliseblocks/app-kit/layouts";
 import {
   CallbackPage,
   ConsolePage,
   DashboardOverview,
   LoginPage,
   ProfilePage,
-} from "@seliseblocks/genesis-os/pages";
+} from "@seliseblocks/app-kit/pages";
 
 import { Navigate, Outlet, type RouteObject } from "react-router";
 

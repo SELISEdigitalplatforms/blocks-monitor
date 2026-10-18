@@ -4,14 +4,14 @@ import { Skeleton } from "@/components/core";
 export const LoadingListSkelton = ({ length }: { length: number }) => (
   <div className="grid w-full gap-2">
     {Array.from({ length: length }).map((_, index) => (
-      <Skeleton key={index} className="h-12 w-full rounded-xl" />
+      <Skeleton key={index} className="h-12 w-full rounded-sm" />
     ))}
   </div>
 );
 
 export const MonitorCardSkeleton = () => {
   return (
-    <Card className="rounded-lg border shadow-xs">
+    <Card className="border shadow-xs">
       <CardHeader>
         <CardTitle className="text-base font-semibold">
           <Skeleton className="h-4 w-40" />

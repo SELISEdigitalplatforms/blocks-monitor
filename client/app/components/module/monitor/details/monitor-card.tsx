@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/core";
 import { Pencil, Layers } from "lucide-react";
 import { iconMap } from "@/models";
-import { RenderConditionally } from "@seliseblocks/genesis-os/components";
+import { RenderConditionally } from "@seliseblocks/app-kit/components";
 
 type IMonitorCard = {
   onOpenChange: (value: boolean) => void;
@@ -24,7 +24,7 @@ const MonitorCard = ({
 }: IMonitorCard) => {
   const GithubIcon = iconMap["github"];
   return (
-    <Card className="rounded-lg border shadow-xs">
+    <Card className="border shadow-xs">
       <CardHeader>
         <CardTitle className="text-base font-semibold text-high-emphasis">
           General information

@@ -8,21 +8,23 @@ const h = vi.hoisted(() => ({
     data: { data: [{ itemId: "a1" }], totalCount: 25 },
     isLoading: false,
   },
+  isError: false,
+  refetch: vi.fn(),
 }));
 
-vi.mock("@seliseblocks/genesis-os/store", () => ({
+vi.mock("@seliseblocks/app-kit/store", () => ({
   useProjectStore: () => ({ selectedProject: { tenantId: "proj-1" } }),
 }));
 // getRuntimeEnv falls through to `import.meta.env`, which is not injected into
 // the externalized blocks-kit dependency under vitest (it throws). The page
 // only uses it to prefix the API-docs URL, so resolve it to an empty string;
 // the assertion below expects the bare "/swagger/index.html" path.
-vi.mock("@seliseblocks/genesis-os/lib", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@seliseblocks/genesis-os/lib")>();
+vi.mock("@seliseblocks/app-kit/lib", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@seliseblocks/app-kit/lib")>();
   return { ...actual, getRuntimeEnv: () => "" };
 });
 vi.mock("@/hooks/use-alerts", () => ({
-  useGetHealthMonitorList: () => h.healthData,
+  useGetHealthMonitorList: () => ({ ...h.healthData, isError: h.isError, refetch: h.refetch }),
 }));
 vi.mock("@/components/module/alert/alerts-list", () => ({
   AlertsList: (props: { data: unknown[]; isLoading: boolean }) => (
@@ -53,6 +55,7 @@ describe("MonitorPage", () => {
       data: { data: [{ itemId: "a1" }], totalCount: 25 },
       isLoading: false,
     };
+    h.isError = false;
   });
 
   it("renders the heading, tabs, and API docs link", () => {
@@ -62,6 +65,24 @@ describe("MonitorPage", () => {
     expect(screen.getAllByText("Blocks services").length).toBeGreaterThan(0);
     const docsLink = screen.getByRole("link", { name: /API Docs/ });
     expect(docsLink).toHaveAttribute("href", "/swagger/index.html");
+  });
+
+  it("renders the page description and both header actions", () => {
+    renderPage();
+    expect(
+      screen.getByText("Track uptime and health checks across your services."),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("add-monitor-button")).toHaveTextContent("Add Monitor");
+  });
+
+  it("shows an error with a retry in place of the list and pagination", async () => {
+    h.isError = true;
+    renderPage();
+    expect(screen.getByRole("alert")).toHaveTextContent("Could not load monitors.");
+    expect(screen.queryByTestId("alerts-list")).toBeNull();
+    expect(screen.queryByText(/Page 1 of/)).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(h.refetch).toHaveBeenCalledTimes(1);
   });
 
   it("passes fetched monitors down to the AlertsList", () => {

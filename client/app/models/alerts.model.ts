@@ -2,7 +2,7 @@ import type {
   ApiPaginatedResponse,
   BaseRequestParams,
   ProjectKey,
-} from "@seliseblocks/genesis-os/types";
+} from "@seliseblocks/app-kit/types";
 import { MONITOR_SOURCE_TYPES } from "@/constants/alert.constant";
 
 interface RequestParams extends Omit<BaseRequestParams, "page"> {

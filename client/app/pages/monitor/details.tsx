@@ -17,8 +17,8 @@ import { EditSingleMonitorForm } from "@/components/module/monitor/form/edit-mon
 import { MonitorModal } from "@/components/module/monitor/modal/monitor-modal";
 import { useGetMonitorById, useGetMonitorDetails, useGetMonitorDownTime } from "@/hooks/use-alerts";
 import { IMonitorSummary } from "@/models/alerts.model";
-import { useScopedPath } from "@seliseblocks/genesis-os/hooks";
-import { useProjectStore } from "@seliseblocks/genesis-os/store";
+import { useScopedPath } from "@seliseblocks/app-kit/hooks";
+import { useProjectStore } from "@seliseblocks/app-kit/store";
 import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -97,7 +97,8 @@ const getBorderColorClass = (index: number) => {
 };
 
 const MonitorSummary = ({ data, status, incident, createdAt, isActive }: MonitorSummaryProps) => {
-  const toMilliseconds = (value: string): number => Number.parseInt(value, 10) * 24 * 60 * 60 * 1000;
+  const toMilliseconds = (value: string): number =>
+    Number.parseInt(value, 10) * 24 * 60 * 60 * 1000;
   const [now] = useState(() => Date.now());
   const incidentDate = new Date(incident);
   const incidentTime =
@@ -162,7 +163,7 @@ const MonitorSummary = ({ data, status, incident, createdAt, isActive }: Monitor
           <Card
             key={item.range}
             className={`flex flex-1 flex-col gap-2 rounded-md border-0 border-l-8 bg-transparent py-1 pl-4 shadow-none ${getBorderColorClass(
-              index
+              index,
             )}`}
           >
             <CardTitle className="text-base font-medium">
@@ -193,12 +194,27 @@ const MonitorDetailsPage = () => {
 
   const monitorId = id || "";
 
-  const { data, isLoading } = useGetMonitorDetails(monitorId);
-  const { data: monitorData, isLoading: isMonitorLoading } = useGetMonitorById(monitorId);
+  const {
+    data,
+    isLoading,
+    isError: isDetailsError,
+    refetch: refetchDetails,
+  } = useGetMonitorDetails(monitorId);
+  const {
+    data: monitorData,
+    isLoading: isMonitorLoading,
+    isError: isMonitorError,
+    refetch: refetchMonitor,
+  } = useGetMonitorById(monitorId);
   const request = monitorData?.data?.monitorConfigurationType === 0;
   const interval = monitorData?.data?.intervalInSeconds || 0;
   const monitorSourceType = monitorData?.data?.monitorSourceTypes;
-  const { data: rtData, isLoading: isRTLoading } = useGetMonitorDownTime({
+  const {
+    data: rtData,
+    isLoading: isRTLoading,
+    isError: isChartError,
+    refetch: refetchChart,
+  } = useGetMonitorDownTime({
     monitorId,
     timeRange,
     interval,
@@ -211,6 +227,25 @@ const MonitorDetailsPage = () => {
 
   if (isLoading || isMonitorLoading || isRTLoading) {
     return <MonitorDetailsSkeleton />;
+  }
+
+  if (isDetailsError || isMonitorError || isChartError) {
+    return (
+      <div role="alert" className="rounded-lg border border-destructive/30 p-6 text-sm">
+        <p>Could not load this monitor.</p>
+        <Button
+          className="mt-3"
+          variant="outline"
+          onClick={() => {
+            void refetchDetails();
+            void refetchMonitor();
+            void refetchChart();
+          }}
+        >
+          Try again
+        </Button>
+      </div>
+    );
   }
 
   // Add the status card to the beginning of the array

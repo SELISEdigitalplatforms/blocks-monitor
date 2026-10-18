@@ -21,7 +21,7 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
-import { formatDuration } from "@seliseblocks/genesis-os/utils";
+import { formatDuration } from "@seliseblocks/app-kit/utils";
 
 type DowntimeLog = {
   startTime: string;
@@ -96,7 +96,7 @@ const processDowntimePoints = (
   rangeStart: number,
   now: number,
   isActive: boolean,
-  pts: ChartPoint[]
+  pts: ChartPoint[],
 ) => {
   for (const d of relevant) {
     const s = Math.max(d.start, rangeStart);
@@ -222,10 +222,10 @@ const ResponseTime = ({
 
           <div className="flex items-center gap-2">
             <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-40 rounded-sm bg-card">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-sm">
                 <SelectItem value="1h">Last 1 Hour</SelectItem>
                 <SelectItem value="3h">Last 3 Hours</SelectItem>
                 <SelectItem value="6h">Last 6 Hours</SelectItem>

@@ -1,12 +1,17 @@
-import { useMemo, useState } from "react";
+import { useMemo, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import { useNavigate } from "react-router";
-import { useScopedPath } from "@seliseblocks/genesis-os/hooks";
-import { formatDate } from "@seliseblocks/genesis-os/utils";
-import { ArrowDown, ArrowUp, ExternalLink } from "lucide-react";
+import { useScopedPath } from "@seliseblocks/app-kit/hooks";
+import { formatDate } from "@seliseblocks/app-kit/utils";
 import {
-  Card,
-  CardContent,
-  Input,
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { ArrowDown, ArrowUp, ArrowUpRight, FolderGit2, GitBranch } from "lucide-react";
+import {
+  Button,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -14,8 +19,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/core";
+import { cn } from "@/lib/utils";
 import type { IRepoListItem } from "@/models/alerts.model";
-import { getDeploymentLogEventBadgeClassName } from "@/utils/deployment-logs.utils";
+import { RepoStatusBadge } from "@/components/module/repos/repo-status-badge";
+import {
+  REPOS_SORT_PROPERTY,
+  useReposFilterQueryParams,
+} from "@/components/module/repos/use-repos-filter-query-params";
 
 const DEPLOYMENT_DATE_FORMAT: Intl.DateTimeFormatOptions = {
   month: "short",
@@ -26,7 +36,7 @@ const DEPLOYMENT_DATE_FORMAT: Intl.DateTimeFormatOptions = {
 };
 
 /** List item may carry optional deployment fields when the driver widens the payload. */
-type RepoRow = IRepoListItem & {
+export type RepoRow = IRepoListItem & {
   branch?: string | null;
   lastDeploymentDate?: string | null;
   lastDeploymentStatus?: string | null;
@@ -40,135 +50,265 @@ function shortName(repoName: string): string {
   return repoName.split("/").pop() || repoName;
 }
 
-export function ReposListTable({ rows }: Readonly<{ rows: RepoRow[] }>) {
+function deploymentTime(row: RepoRow): number {
+  return row.lastDeploymentDate ? Date.parse(row.lastDeploymentDate) || 0 : 0;
+}
+
+/** Keeps a click or key press on a control inside a row from also opening the row. */
+const stopRowNavigation = (event: MouseEvent | KeyboardEvent) => event.stopPropagation();
+
+const columnHelper = createColumnHelper<RepoRow>();
+
+const buildColumns = (sortHeader: ReactNode) => [
+  columnHelper.accessor("repoName", {
+    header: "Repository",
+    cell: (info) => (
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-surface-warm text-muted-foreground">
+          <FolderGit2 className="h-4 w-4" strokeWidth={1.7} aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-[13px] font-medium text-high-emphasis">
+            {shortName(info.getValue())}
+          </p>
+          <p className="truncate text-xs text-muted-foreground" title={info.getValue()}>
+            {info.getValue()}
+          </p>
+        </div>
+      </div>
+    ),
+  }),
+  columnHelper.accessor("branch", {
+    header: "Branch",
+    cell: (info) =>
+      info.getValue() ? (
+        <span className="inline-flex max-w-full items-center gap-1.5 font-mono text-[13px] text-muted-foreground">
+          <GitBranch className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span className="truncate">{info.getValue()}</span>
+        </span>
+      ) : (
+        <span className="text-sm text-muted-foreground">-</span>
+      ),
+  }),
+  columnHelper.accessor("lastDeploymentStatus", {
+    header: "Status",
+    cell: (info) => {
+      const status = info.getValue();
+      return status ? (
+        <RepoStatusBadge status={status} />
+      ) : (
+        <RepoStatusBadge status="NoBuild" label="No build" />
+      );
+    },
+  }),
+  columnHelper.accessor("lastDeploymentDate", {
+    header: () => sortHeader,
+    cell: (info) => {
+      const value = info.getValue();
+      return (
+        <span className="whitespace-nowrap text-sm text-muted-foreground">
+          {value ? formatDate(new Date(value), DEPLOYMENT_DATE_FORMAT) : "-"}
+        </span>
+      );
+    },
+  }),
+  columnHelper.display({
+    id: "deploysTo",
+    header: "Deploys to",
+    cell: ({ row }) => {
+      const url = deploysTo(row.original);
+      return url ? (
+        <span className="block truncate font-mono text-[13px] text-muted-foreground" title={url}>
+          {url.replace(/^https?:\/\//, "")}
+        </span>
+      ) : (
+        <span className="text-sm text-muted-foreground">-</span>
+      );
+    },
+  }),
+  columnHelper.display({
+    id: "actions",
+    header: () => <span className="sr-only">Actions</span>,
+    cell: ({ row }) => {
+      const url = deploysTo(row.original);
+      if (!url) return null;
+      const label = `Open ${shortName(row.original.repoName)} deployment`;
+      return (
+        <div className="flex items-center justify-end">
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-sm text-muted-foreground hover:bg-surface-warm hover:text-high-emphasis"
+          >
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={label}
+              title={label}
+              onClick={stopRowNavigation}
+              onKeyDown={stopRowNavigation}
+            >
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </a>
+          </Button>
+        </div>
+      );
+    },
+  }),
+];
+
+const COLUMN_CLASS: Record<string, string> = {
+  repoName: "w-[30%]",
+  branch: "w-[14%]",
+  lastDeploymentStatus: "w-[14%]",
+  lastDeploymentDate: "w-[18%]",
+  actions: "w-16 text-right",
+};
+
+/** Skeleton rows matching the real row rhythm. */
+export function ReposListLoading() {
+  return (
+    <div data-testid="repos-list-loading" className="flex flex-col divide-y divide-border/50">
+      {Array.from({ length: 8 }).map((_, index) => (
+        <div key={index} className="px-5 py-4">
+          <Skeleton className="h-8 w-full rounded-sm" />
+        </div>
+      ))}
+      <span className="sr-only">Loading repositories…</span>
+    </div>
+  );
+}
+
+/** In-card empty state: entity icon over a short muted sentence. */
+export function ReposListEmpty({
+  message,
+  testId,
+}: Readonly<{
+  message: string;
+  testId?: string;
+}>) {
+  return (
+    <div
+      data-testid={testId}
+      className="flex min-h-[420px] flex-col items-center justify-center gap-3 px-5 py-16 text-center text-sm text-muted-foreground"
+    >
+      <FolderGit2 className="h-6 w-6" aria-hidden="true" />
+      {message}
+    </div>
+  );
+}
+
+/**
+ * The body of the repos list card: skeleton rows while loading, the in-card empty state, or the
+ * kit `Table`. Search and sort are read from the URL (`useReposFilterQueryParams`).
+ */
+export function ReposListTable({
+  rows,
+  isLoading = false,
+}: Readonly<{
+  rows: RepoRow[];
+  isLoading?: boolean;
+}>) {
   const navigate = useNavigate();
   const scoped = useScopedPath();
-  const [search, setSearch] = useState("");
-  const [sortDesc, setSortDesc] = useState(true);
+  const { queryParams, setQueryParams } = useReposFilterQueryParams();
+  const { search, isDescending } = queryParams;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    let list = rows;
-    if (q) list = list.filter((r) => r.repoName.toLowerCase().includes(q));
-    list = [...list].sort((a, b) => {
-      const da = a.lastDeploymentDate ? Date.parse(a.lastDeploymentDate) : 0;
-      const db = b.lastDeploymentDate ? Date.parse(b.lastDeploymentDate) : 0;
-      return sortDesc ? db - da : da - db;
-    });
-    return list;
-  }, [rows, search, sortDesc]);
+    const list = q ? rows.filter((r) => r.repoName.toLowerCase().includes(q)) : rows;
+    return [...list].sort((a, b) =>
+      isDescending ? deploymentTime(b) - deploymentTime(a) : deploymentTime(a) - deploymentTime(b),
+    );
+  }, [rows, search, isDescending]);
 
-  const go = (repoId: string) => navigate(scoped(`repo/${encodeURIComponent(repoId)}`));
+  const SortIcon = isDescending ? ArrowDown : ArrowUp;
+  const sortHeader = (
+    <button
+      type="button"
+      data-testid="sort-last-deployment"
+      className="-mx-1 inline-flex items-center gap-2 rounded-sm px-1 text-xs font-semibold uppercase tracking-wide text-high-emphasis focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      onClick={() =>
+        void setQueryParams({ sortProperty: REPOS_SORT_PROPERTY, isDescending: !isDescending })
+      }
+      aria-label={
+        isDescending
+          ? "Sort repositories by oldest deployment"
+          : "Sort repositories by newest deployment"
+      }
+    >
+      Last deployment
+      <SortIcon className="h-4 w-4" aria-hidden="true" />
+    </button>
+  );
 
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const table = useReactTable({
+    data: filtered,
+    columns: buildColumns(sortHeader),
+    getCoreRowModel: getCoreRowModel(),
+    getRowId: (row) => row.itemId,
+  });
+
+  const open = (repoId: string) => navigate(scoped(`repo/${encodeURIComponent(repoId)}`));
+
+  if (isLoading) return <ReposListLoading />;
+
+  if (rows.length === 0) {
+    return <ReposListEmpty testId="repos-empty" message="No repositories deployed yet" />;
+  }
+
+  if (filtered.length === 0) {
+    return <ReposListEmpty testId="repos-no-match" message="No repositories match your search." />;
+  }
+
+  // The kit Table's own container scrolls wide tables inside the card.
   return (
-    <Card data-testid="repos-list-table">
-      <CardContent className="space-y-4">
-        <div className="w-full max-w-md md:w-[42%]">
-          <Input
-            data-testid="repos-search"
-            placeholder="Search repositories..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <div className="overflow-x-auto rounded-sm">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1 font-medium"
-                    onClick={() => setSortDesc((d) => !d)}
-                    data-testid="sort-last-deployment"
-                    aria-label={
-                      sortDesc
-                        ? "Sort repositories by oldest deployment"
-                        : "Sort repositories by newest deployment"
-                    }
-                  >
-                    Repository
-                    {sortDesc ? (
-                      <ArrowDown className="h-3.5 w-3.5" aria-hidden />
-                    ) : (
-                      <ArrowUp className="h-3.5 w-3.5" aria-hidden />
-                    )}
-                  </button>
+    <Table aria-label="Repositories" className="table-fixed md:min-w-[860px]">
+      <TableHeader>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <TableRow key={headerGroup.id}>
+            {headerGroup.headers.map((header) => {
+              let ariaSort: "ascending" | "descending" | undefined;
+              if (header.id === "lastDeploymentDate") {
+                ariaSort = isDescending ? "descending" : "ascending";
+              }
+              return (
+                <TableHead key={header.id} className={COLUMN_CLASS[header.id]} aria-sort={ariaSort}>
+                  {flexRender(header.column.columnDef.header, header.getContext())}
                 </TableHead>
-                <TableHead>Branch</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last deployment</TableHead>
-                <TableHead>Deploys to</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((row) => {
-                const url = deploysTo(row);
-                const status = row.lastDeploymentStatus || "No build";
-                return (
-                  <TableRow
-                    key={row.itemId}
-                    data-testid={`repo-row-${row.itemId}`}
-                    tabIndex={0}
-                    className="cursor-pointer"
-                    onClick={() => go(row.itemId)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        go(row.itemId);
-                      }
-                    }}
-                  >
-                    <TableCell>
-                      <div className="font-medium">{shortName(row.repoName)}</div>
-                      <div className="text-xs text-muted-foreground">{row.repoName}</div>
-                    </TableCell>
-                    <TableCell>{row.branch || "-"}</TableCell>
-                    <TableCell>
-                      <span
-                        className={getDeploymentLogEventBadgeClassName(
-                          status === "No build" ? "NoBuild" : status,
-                        )}
-                      >
-                        {status}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {row.lastDeploymentDate
-                        ? formatDate(new Date(row.lastDeploymentDate), DEPLOYMENT_DATE_FORMAT)
-                        : "-"}
-                    </TableCell>
-                    <TableCell>
-                      {url ? (
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-primary underline"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {url.replace(/^https?:\/\//, "").slice(0, 40)}
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      ) : (
-                        "-"
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              {filtered.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-sm text-muted-foreground">
-                    No repositories match your search.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+              );
+            })}
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {table.getRowModel().rows.map((row) => (
+          <TableRow
+            key={row.id}
+            data-testid={`repo-row-${row.id}`}
+            role="button"
+            tabIndex={0}
+            isHoverable
+            className="outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            onClick={() => open(row.original.itemId)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                open(row.original.itemId);
+              }
+            }}
+          >
+            {row.getVisibleCells().map((cell) => (
+              <TableCell key={cell.id} className={cn("min-w-0", COLUMN_CLASS[cell.column.id])}>
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }

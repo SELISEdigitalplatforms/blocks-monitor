@@ -1,12 +1,33 @@
 import { useMemo, useState } from "react";
-import { formatDate } from "@seliseblocks/genesis-os/utils";
-import { CheckCircle2, ChevronDown, ChevronRight, Circle, Copy, XCircle } from "lucide-react";
-import { Button } from "@/components/core";
-import type { IBuild, IBuildEvent, IRepo } from "@/models/repos.model";
+import { formatDate } from "@seliseblocks/app-kit/utils";
 import {
-  formatElapsedTime,
-  getDeploymentLogEventBadgeClassName,
-} from "@/utils/deployment-logs.utils";
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Circle,
+  FolderGit2,
+  Loader2,
+  Logs,
+  Network,
+  Package,
+  Rocket,
+  ShieldCheck,
+  X,
+  XCircle,
+  type LucideIcon,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { SectionHeading } from "@/components/common/section-heading/section-heading";
+import type { IBuild, IBuildEvent, IRepo } from "@/models/repos.model";
+import { formatElapsedTime } from "@/utils/deployment-logs.utils";
+import { RepoStatusBadge } from "@/components/module/repos/repo-status-badge";
+import {
+  DetailItem,
+  DetailList,
+  ExternalValue,
+  MissingValue,
+} from "@/components/module/repos/repo-detail-fields";
 
 const DEPLOYMENT_DATE_FORMAT: Intl.DateTimeFormatOptions = {
   month: "short",
@@ -18,7 +39,23 @@ const DEPLOYMENT_DATE_FORMAT: Intl.DateTimeFormatOptions = {
 
 const EVENT_GROUP_ORDER = ["Clone", "Build", "Sast", "Sca", "Deploy"];
 
+/** Each pipeline stage's icon and accent, as in console's `deployment-steps.tsx`. */
+const STEP_STYLE: Record<string, { icon: LucideIcon; tone: string }> = {
+  Clone: { icon: FolderGit2, tone: "bg-primary/[0.07] text-primary" },
+  Build: { icon: Package, tone: "bg-sunset-soft text-warn-ink" },
+  Sast: { icon: ShieldCheck, tone: "bg-lavender-soft text-lavender-ink" },
+  Sca: { icon: Network, tone: "bg-rose-soft text-rose-ink" },
+  Deploy: { icon: Rocket, tone: "bg-forest-soft text-forest-ink" },
+};
+
 type StepStatus = "success" | "error" | "running" | "pending";
+
+const STEP_STATUS_LABEL: Record<StepStatus, string> = {
+  success: "succeeded",
+  error: "failed",
+  running: "running",
+  pending: "not started",
+};
 
 interface BuildStep {
   id: string;
@@ -38,7 +75,7 @@ export function RepoDeploymentLogsTab({
   build: IBuild | null;
 }>) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       {build ? <GeneralInformationCard repo={repo} build={build} /> : <NoBuildCard />}
       <DeploymentLogsCard build={build} />
     </div>
@@ -58,36 +95,48 @@ function GeneralInformationCard({
 
   return (
     <section
-      className="flex flex-col items-start gap-4 self-stretch rounded-lg border bg-background p-4 shadow-xs sm:gap-6 sm:p-6"
+      aria-label="General information"
+      className="min-w-0 space-y-2"
       data-testid="deployment-general-info"
     >
-      <h2 className="text-lg font-semibold text-high-emphasis">General information</h2>
-
-      <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-        <div className="space-y-4">
-          <InfoField label="Repo URL">
-            {repoUrl ? <ExternalValue href={repoUrl} value={repoUrl} /> : "N/A"}
-          </InfoField>
-          <InfoField label="Deploys To">
-            {deploysTo ? <ExternalValue href={deploysTo} value={deploysTo} /> : "N/A"}
-          </InfoField>
-          <InfoField label="Custom Deployment URL">
-            {customUrl ? <ExternalValue href={customUrl} value={customUrl} /> : "N/A"}
-          </InfoField>
-        </div>
-
-        <div className="space-y-4">
-          <InfoField label="Deployment Status">
-            <span className={getDeploymentLogEventBadgeClassName(build.status)}>
-              {build.status || "Unknown"}
-            </span>
-          </InfoField>
-          <InfoField label="Latest Deployment Date">
-            {build.createdDate
-              ? formatDate(new Date(build.createdDate), DEPLOYMENT_DATE_FORMAT)
-              : "N/A"}
-          </InfoField>
-        </div>
+      <SectionHeading
+        title="General information"
+        description="Where this repository deploys and its latest deployment."
+      />
+      <div className="rounded-sm bg-card px-5 py-5 shadow-surface-ring sm:px-6">
+        <DetailList>
+          <DetailItem label="Repo URL" wide>
+            {repoUrl ? (
+              <ExternalValue href={repoUrl} value={repoUrl} copyLabel="Copy repo URL" />
+            ) : (
+              <MissingValue />
+            )}
+          </DetailItem>
+          <DetailItem label="Deploys To" wide>
+            {deploysTo ? (
+              <ExternalValue href={deploysTo} value={deploysTo} copyLabel="Copy deployment URL" />
+            ) : (
+              <MissingValue />
+            )}
+          </DetailItem>
+          <DetailItem label="Custom Deployment URL" wide>
+            {customUrl ? (
+              <ExternalValue href={customUrl} value={customUrl} copyLabel="Copy custom URL" />
+            ) : (
+              <MissingValue />
+            )}
+          </DetailItem>
+          <DetailItem label="Deployment Status">
+            <RepoStatusBadge status={build.status || "Unknown"} />
+          </DetailItem>
+          <DetailItem label="Latest Deployment Date">
+            {build.createdDate ? (
+              formatDate(new Date(build.createdDate), DEPLOYMENT_DATE_FORMAT)
+            ) : (
+              <MissingValue />
+            )}
+          </DetailItem>
+        </DetailList>
       </div>
     </section>
   );
@@ -120,76 +169,98 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
 
   return (
     <section
-      className="rounded-sm border bg-background p-6 shadow-xs"
+      aria-label="Deployment logs"
+      className="min-w-0 space-y-2"
       data-testid="deployment-logs-card"
     >
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-high-emphasis">Deployment logs</h2>
-        {build && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <StatusIcon status={build.status} />
-            <span>
-              {wholeStatus} at {build.eventName || "Deploy"}
-              {totalDuration ? ` · ${totalDuration}` : ""}
+      <SectionHeading
+        title="Deployment logs"
+        description={build ? undefined : "Logs appear here once the repository is built."}
+        actions={
+          build && (
+            <span
+              className="inline-flex items-center gap-2 text-[13px] text-muted-foreground"
+              data-testid="deployment-logs-summary"
+            >
+              <StatusIcon status={build.status} />
+              <span>
+                {wholeStatus} at {build.eventName || "Deploy"}
+                {totalDuration ? ` · ${totalDuration}` : ""}
+              </span>
             </span>
+          )
+        }
+      />
+
+      <div className="overflow-hidden rounded-sm bg-card shadow-surface-ring">
+        {steps.length === 0 ? (
+          <div className="flex min-h-[160px] flex-col items-center justify-center gap-3 px-5 py-10 text-center text-sm text-muted-foreground">
+            <Logs className="h-6 w-6" aria-hidden="true" />
+            No deployment logs available for this build.
           </div>
+        ) : (
+          <ol className="divide-y divide-border/50">
+            {steps.map((step) => {
+              const isExpanded = expanded.has(step.id);
+              const expandable = step.logs.length > 0;
+              const ExpandIcon = isExpanded ? ChevronDown : ChevronRight;
+              return (
+                <li key={step.id}>
+                  <button
+                    type="button"
+                    aria-expanded={expandable ? isExpanded : undefined}
+                    className={cn(
+                      "flex w-full items-center justify-between gap-3 px-5 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                      expandable ? "cursor-pointer hover:bg-surface-warm/40" : "cursor-default",
+                    )}
+                    onClick={() => toggle(step)}
+                  >
+                    <span className="flex min-w-0 items-center gap-3">
+                      {expandable ? (
+                        <ExpandIcon
+                          className="h-4 w-4 shrink-0 text-muted-foreground"
+                          aria-hidden
+                        />
+                      ) : (
+                        <span className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      )}
+                      <StepTile name={step.name} status={step.status} />
+                      <span className="truncate text-[13px] font-medium text-high-emphasis">
+                        {displayStepName(step.name)}
+                      </span>
+                      <span className="sr-only">{STEP_STATUS_LABEL[step.status]}</span>
+                    </span>
+                    <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
+                      {step.duration}
+                    </span>
+                  </button>
+
+                  {isExpanded && step.logs.length > 0 && (
+                    <div className="border-t border-border/50 bg-surface-warm/40">
+                      <div className="flex flex-wrap items-center gap-x-2 border-b border-border/50 px-5 py-2 text-xs text-muted-foreground">
+                        Started {formatEventTime(step.startedAt)} - Ended{" "}
+                        {formatEventTime(step.endedAt)} - Took {step.duration}
+                      </div>
+                      <div className="max-h-[360px] overflow-auto py-1 font-mono text-xs text-high-emphasis">
+                        {step.logs.map((log, logIndex) => (
+                          <div key={`${step.id}-${logIndex}`} className="flex">
+                            <span className="w-14 shrink-0 select-none px-3 py-0.5 text-right tabular-nums text-muted-foreground">
+                              {String(logIndex + 1).padStart(2, "0")}
+                            </span>
+                            <span className="min-w-0 flex-1 whitespace-pre-wrap wrap-break-word px-3 py-0.5">
+                              {log}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
         )}
       </div>
-
-      {steps.length === 0 ? (
-        <div className="rounded-md border py-8 text-center text-sm text-muted-foreground">
-          No deployment logs available for this build.
-        </div>
-      ) : (
-        <div className="overflow-hidden rounded-md border">
-          {steps.map((step, index) => {
-            const isExpanded = expanded.has(step.id);
-            const expandable = step.logs.length > 0;
-            const ExpandIcon = isExpanded ? ChevronDown : ChevronRight;
-            return (
-              <div key={step.id} className={index < steps.length - 1 ? "border-b" : ""}>
-                <button
-                  type="button"
-                  className={`flex w-full items-center justify-between bg-background p-3 text-left transition-colors ${
-                    expandable ? "cursor-pointer hover:bg-secondary" : "cursor-default"
-                  }`}
-                  onClick={() => toggle(step)}
-                >
-                  <span className="flex items-center gap-3">
-                    <span className="flex items-center gap-2">
-                      {expandable && <ExpandIcon className="h-4 w-4 text-medium-emphasis" />}
-                      <StatusIcon status={step.status} />
-                    </span>
-                    <span className="text-sm font-medium">{displayStepName(step.name)}</span>
-                  </span>
-                  <span className="font-mono text-xs text-low-emphasis">{step.duration}</span>
-                </button>
-
-                {isExpanded && step.logs.length > 0 && (
-                  <div className="bg-secondary">
-                    <div className="flex flex-wrap items-center gap-x-2 border-b bg-secondary px-3 py-1.5 text-xs text-medium-emphasis">
-                      Started {formatEventTime(step.startedAt)} - Ended{" "}
-                      {formatEventTime(step.endedAt)} - Took {step.duration}
-                    </div>
-                    <div className="max-h-[360px] overflow-auto font-mono text-xs">
-                      {step.logs.map((log, logIndex) => (
-                        <div key={`${step.id}-${logIndex}`} className="flex bg-secondary">
-                          <span className="min-w-12 shrink-0 select-none px-3 py-1 text-right">
-                            {String(logIndex + 1).padStart(2, "0")}
-                          </span>
-                          <span className="min-w-0 flex-1 whitespace-pre-wrap wrap-break-word px-3 py-1">
-                            {log}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
     </section>
   );
 }
@@ -197,49 +268,50 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
 function NoBuildCard() {
   return (
     <section
-      className="rounded-sm border bg-background p-6 text-sm text-muted-foreground"
+      className="flex min-h-60 flex-col items-center justify-center rounded-sm bg-card px-5 py-10 text-center shadow-surface-ring"
       data-testid="no-build-card"
     >
-      This repository has not been deployed yet
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-sm bg-primary/[0.07] text-primary">
+        <Rocket className="h-6 w-6" aria-hidden="true" />
+      </div>
+      <h2 className="text-base font-semibold tracking-tight text-high-emphasis">
+        No deployments yet
+      </h2>
+      <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
+        This repository has not been deployed yet
+      </p>
     </section>
   );
 }
 
-function InfoField({
-  label,
-  children,
-}: Readonly<{
-  label: string;
-  children: React.ReactNode;
-}>) {
+/** A stage's own icon in its accent, with a corner badge for its outcome. */
+function StepTile({ name, status }: Readonly<{ name: string; status: StepStatus }>) {
+  const { icon: Icon, tone } = STEP_STYLE[name] ?? STEP_STYLE.Build;
   return (
-    <div className="min-w-0">
-      <p className="mb-2 text-sm font-medium text-medium-emphasis">{label}</p>
-      <div className="text-sm font-medium">{children}</div>
-    </div>
-  );
-}
-
-function ExternalValue({ href, value }: Readonly<{ href: string; value: string }>) {
-  return (
-    <span className="flex max-w-full items-center gap-2">
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block truncate text-sm font-normal text-blue-600 hover:underline"
-      >
-        {value}
-      </a>
-      <Button
-        type="button"
-        variant="ghost"
-        className="h-auto shrink-0 p-1 transition-colors hover:bg-gray-100"
-        aria-label="Copy value"
-        onClick={() => void navigator.clipboard?.writeText(value)}
-      >
-        <Copy className="h-4 w-4 text-gray-600 hover:text-gray-800" />
-      </Button>
+    <span
+      className={cn(
+        "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-sm",
+        tone,
+        status === "pending" && "opacity-40",
+        status === "error" && "ring-1 ring-error/60",
+      )}
+    >
+      <Icon className="h-4 w-4" aria-hidden="true" />
+      {status !== "pending" && (
+        <span
+          aria-hidden="true"
+          className={cn(
+            "absolute -bottom-0.5 -right-0.5 flex h-3 w-3 items-center justify-center rounded-full ring-1 ring-card",
+            status === "success" && "bg-success text-white",
+            status === "error" && "bg-error text-white",
+            status === "running" && "bg-card text-primary",
+          )}
+        >
+          {status === "success" && <Check className="h-2 w-2" strokeWidth={4} />}
+          {status === "error" && <X className="h-2 w-2" strokeWidth={4} />}
+          {status === "running" && <Loader2 className="h-3 w-3 animate-spin" />}
+        </span>
+      )}
     </span>
   );
 }
@@ -333,13 +405,13 @@ function displayStepName(name: string): string {
 function StatusIcon({ status }: Readonly<{ status?: string | null }>) {
   const normalized = (status || "").toLowerCase();
   if (normalized === "failed" || normalized === "error") {
-    return <XCircle className="h-4 w-4 text-red-500" aria-hidden />;
+    return <XCircle className="h-4 w-4 text-error" aria-hidden />;
   }
   if (normalized === "succeeded" || normalized === "success" || normalized === "completed") {
-    return <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden />;
+    return <CheckCircle2 className="h-4 w-4 text-success" aria-hidden />;
   }
   if (normalized === "running" || normalized === "started") {
-    return <Circle className="h-4 w-4 fill-blue-500 text-blue-500" aria-hidden />;
+    return <Circle className="h-4 w-4 fill-primary text-primary" aria-hidden />;
   }
   return <Circle className="h-4 w-4 text-muted-foreground" aria-hidden />;
 }

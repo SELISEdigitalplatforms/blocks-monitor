@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { reposService } from "@/services/repos.service";
 import type { ReportType } from "@/models/repos.model";
 
-/** Extract an HTTP status from the shapes genesis HttpClient / axios may throw. */
+/** Extract an HTTP status from the shapes app-kit HttpClient / axios may throw. */
 export function getHttpStatus(error: unknown): number | undefined {
   if (!error || typeof error !== "object") return undefined;
   const e = error as Record<string, unknown>;

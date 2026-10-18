@@ -1,6 +1,6 @@
-import type { SortValue } from "@seliseblocks/genesis-os/components";
-import { FilterControls } from "@seliseblocks/genesis-os/components";
-import { TableLoadingSkeleton } from "@seliseblocks/genesis-os/components";
+import type { SortValue } from "@seliseblocks/app-kit/components";
+import { FilterControls } from "@seliseblocks/app-kit/components";
+import { TableLoadingSkeleton } from "@seliseblocks/app-kit/components";
 import {
   ScrollArea,
   ScrollBar,
@@ -21,7 +21,7 @@ import {
 } from "@tanstack/react-table";
 import { useCallback, useMemo } from "react";
 import { useIncidentFilterQueryParams } from "./use-incident-query-filter-params";
-import { formatDuration } from "@seliseblocks/genesis-os/utils";
+import { formatDuration } from "@seliseblocks/app-kit/utils";
 
 const parseFailureReason = (reason?: string | null): string | undefined => {
   if (!reason) return undefined; // instead of null
@@ -116,7 +116,7 @@ const IncidentList = ({
             ? "text-green-600 bg-green-100 px-2 py-1 rounded-full"
             : "text-red-600 bg-red-100 px-2 py-1 rounded-full";
           return (
-            <div className="ml-2 flex w-[100px] flex-row items-center gap-2 sm:ml-0">
+            <div className="flex w-[100px] flex-row items-center gap-2">
               <span className={statusClass}>{isResolved ? "Resolved" : "Unresolved"}</span>
             </div>
           );
@@ -136,7 +136,7 @@ const IncidentList = ({
                 />
               ),
               cell: (cell: CellContext<IncidentTree, string | undefined>) => (
-                <div className="ml-2 flex items-center sm:ml-0 sm:w-[100px]">
+                <div className="flex items-center sm:w-[100px]">
                   <span>{cell.row.original.lastStatusCode}</span>
                 </div>
               ),
@@ -156,7 +156,7 @@ const IncidentList = ({
           />
         ),
         cell: ({ row }) => (
-          <div className="ml-2 flex items-center sm:ml-0 sm:w-[100px]">
+          <div className="flex items-center sm:w-[100px]">
             <span>{parseFailureReason(row.original.failureReason)}</span>
           </div>
         ),
@@ -177,7 +177,7 @@ const IncidentList = ({
         cell: ({ row }) => {
           const started = new Date(row.original.startTime).toLocaleString();
           return (
-            <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
+            <div className="flex w-[180px] items-center sm:w-[150px]">
               <span>{started}</span>
             </div>
           );
@@ -200,7 +200,7 @@ const IncidentList = ({
           const endTime = row.original.endTime ? new Date(row.original.endTime) : null;
           const isOngoing = !endTime || endTime < startTime;
           return (
-            <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
+            <div className="flex w-[180px] items-center sm:w-[150px]">
               <span>{isOngoing ? "Ongoing" : endTime?.toLocaleString()}</span>
             </div>
           );
@@ -226,7 +226,7 @@ const IncidentList = ({
             durationSec = Math.floor((now - start) / 1000);
           }
           return (
-            <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[100px]">
+            <div className="flex w-[180px] items-center sm:w-[100px]">
               <span>{formatDuration(durationSec * 1000)}</span>
             </div>
           );
@@ -250,9 +250,12 @@ const IncidentList = ({
       <Table className="text-sm">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="px-4 py-2 hover:bg-transparent">
+            <TableRow key={headerGroup.id} className="hover:bg-transparent">
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id} className="font-bold text-medium-emphasis">
+                <TableHead
+                  key={header.id}
+                  className="text-xs font-semibold uppercase tracking-wide text-high-emphasis"
+                >
                   {header.isPlaceholder
                     ? null
                     : flexRender(header.column.columnDef.header, header.getContext())}
@@ -295,7 +298,7 @@ const IncidentList = ({
         )}
       </Table>
       {totalCount > pageSize && (
-        <div className="mt-5 flex items-center justify-end">
+        <div className="flex items-center justify-end border-t border-border/60 px-5 py-3">
           <FilterControls.TablePagination
             pageIndex={pageNumber}
             pageSize={pageSize}

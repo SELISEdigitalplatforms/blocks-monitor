@@ -1,5 +1,5 @@
-import { InfoTooltip } from "@seliseblocks/genesis-os/components";
-import { RenderAlternatively, RenderConditionally } from "@seliseblocks/genesis-os/components";
+import { InfoTooltip } from "@seliseblocks/app-kit/components";
+import { RenderAlternatively, RenderConditionally } from "@seliseblocks/app-kit/components";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/core";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/core";
 import { Input } from "@/components/core";
@@ -151,7 +151,12 @@ export const MonitorFormFields = ({
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Enter monitor name" disabled={isEditMode} />
+                    <Input
+                      {...field}
+                      className="rounded-sm bg-card"
+                      placeholder="Enter monitor name"
+                      disabled={isEditMode}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -246,7 +251,12 @@ export const MonitorFormFields = ({
                   <FormItem>
                     <FormLabel>URL to monitor</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Enter URL to monitor" disabled={isEditMode} />
+                      <Input
+                        {...field}
+                        className="rounded-sm bg-card"
+                        placeholder="Enter URL to monitor"
+                        disabled={isEditMode}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -345,6 +355,7 @@ export const MonitorFormFields = ({
                         <FormLabel>Request body</FormLabel>
                         <FormControl>
                           <Textarea
+                            className="rounded-sm"
                             placeholder="Enter request body content..."
                             rows={3}
                             disabled={httpMethod !== "2"}
@@ -386,7 +397,11 @@ export const MonitorFormFields = ({
                           <FormItem>
                             <FormLabel>X-Header-Name</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="Enter header name" />
+                              <Input
+                                {...field}
+                                className="rounded-sm bg-card"
+                                placeholder="Enter header name"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -399,7 +414,11 @@ export const MonitorFormFields = ({
                           <FormItem>
                             <FormLabel>Value</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="Enter value" />
+                              <Input
+                                {...field}
+                                className="rounded-sm bg-card"
+                                placeholder="Enter value"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

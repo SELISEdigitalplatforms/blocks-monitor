@@ -1,26 +1,18 @@
-import { Button, Card, CardContent, Skeleton } from "@/components/core";
+import { AlertTriangle, FileSearch } from "lucide-react";
+import { Button, Card, Skeleton } from "@/components/core";
 
+/** Skeleton for a SAST / SCA report card: a header row, then a grid of metric tiles. */
 export function ReportLoadingCard({ label = "Loading report…" }: Readonly<{ label?: string }>) {
   return (
-    <Card data-testid="report-loading" className="p-0">
-      <div className="px-6 py-4">
-        <div className="flex items-center justify-between">
-          <Skeleton className="mb-2 h-6 w-48" />
-          <Skeleton className="h-8 w-40" />
-        </div>
-        <div className="mt-3 flex items-center gap-6">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-4 w-40" />
-          <Skeleton className="h-4 w-40" />
-        </div>
+    <Card data-testid="report-loading" className="overflow-hidden p-0">
+      <div className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-3">
+        <Skeleton className="h-4 w-40 rounded-sm" />
+        <Skeleton className="h-6 w-32 rounded-full" />
       </div>
-      <div className="p-6">
-        <Skeleton className="mb-4 h-8 w-64" />
-        <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-          {Array.from({ length: 6 }, (_, index) => (
-            <Skeleton key={index} className="h-12 w-full rounded-lg" />
-          ))}
-        </div>
+      <div className="grid w-full grid-cols-1 gap-4 px-5 py-5 sm:grid-cols-2 md:grid-cols-3">
+        {Array.from({ length: 6 }, (_, index) => (
+          <Skeleton key={index} className="h-16 w-full rounded-sm" />
+        ))}
       </div>
       <span className="sr-only">{label}</span>
     </Card>
@@ -29,27 +21,46 @@ export function ReportLoadingCard({ label = "Loading report…" }: Readonly<{ la
 
 export function ReportNoDataCard() {
   return (
-    <Card data-testid="report-no-data">
-      <CardContent className="p-6 text-sm text-muted-foreground">
-        No report available for this build
-      </CardContent>
+    <Card
+      data-testid="report-no-data"
+      className="flex min-h-[240px] flex-col items-center justify-center gap-3 px-5 py-12 text-center text-sm text-muted-foreground"
+    >
+      <FileSearch className="h-6 w-6" aria-hidden="true" />
+      No report available for this build
     </Card>
   );
 }
 
-export function ReportErrorCard({ onRetry }: Readonly<{ onRetry?: () => void }>) {
+function ErrorCard({
+  testId,
+  message,
+  onRetry,
+}: Readonly<{
+  testId: string;
+  message: string;
+  onRetry?: () => void;
+}>) {
   return (
-    <Card data-testid="report-error">
-      <CardContent className="flex flex-col items-start gap-3 p-6">
-        <p className="text-sm text-destructive">Failed to load report.</p>
+    <Card data-testid={testId} className="flex items-start gap-3 px-5 py-4">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-rose-soft text-rose-ink">
+        <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+      </span>
+      <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-3">
+        <p role="alert" className="text-sm font-medium text-high-emphasis">
+          {message}
+        </p>
         {onRetry && (
           <Button type="button" variant="outline" size="sm" onClick={onRetry}>
             Retry
           </Button>
         )}
-      </CardContent>
+      </div>
     </Card>
   );
+}
+
+export function ReportErrorCard({ onRetry }: Readonly<{ onRetry?: () => void }>) {
+  return <ErrorCard testId="report-error" message="Failed to load report." onRetry={onRetry} />;
 }
 
 export function PageErrorCard({
@@ -59,26 +70,20 @@ export function PageErrorCard({
   message: string;
   onRetry?: () => void;
 }>) {
-  return (
-    <Card data-testid="page-error">
-      <CardContent className="flex flex-col items-start gap-3 p-6">
-        <p className="text-sm text-destructive">{message}</p>
-        {onRetry && (
-          <Button type="button" variant="outline" size="sm" onClick={onRetry}>
-            Retry
-          </Button>
-        )}
-      </CardContent>
-    </Card>
-  );
+  return <ErrorCard testId="page-error" message={message} onRetry={onRetry} />;
 }
 
+/** Detail-page skeleton: header, tab row, then a content card. */
 export function PageLoadingSkeleton({ testId = "page-loading" }: Readonly<{ testId?: string }>) {
   return (
-    <div data-testid={testId} className="space-y-4">
-      <Skeleton className="h-8 w-48" />
-      <Skeleton className="h-40 w-full" />
-      <Skeleton className="h-40 w-full" />
+    <div data-testid={testId} className="space-y-5">
+      <div className="space-y-2">
+        <Skeleton className="h-7 w-48 rounded-sm" />
+        <Skeleton className="h-4 w-72 rounded-sm" />
+      </div>
+      <Skeleton className="h-9 w-72 rounded-sm" />
+      <Skeleton className="h-40 w-full rounded-sm" />
+      <Skeleton className="h-64 w-full rounded-sm" />
     </div>
   );
 }

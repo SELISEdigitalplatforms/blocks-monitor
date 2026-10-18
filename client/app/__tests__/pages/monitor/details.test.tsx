@@ -39,6 +39,8 @@ const h = vi.hoisted(() => ({
     isLoading: false,
   },
   downtime: { data: { data: [] as unknown[] }, isLoading: false },
+  errors: { details: false, monitor: false, downtime: false },
+  refetch: { details: vi.fn(), monitor: vi.fn(), downtime: vi.fn() },
 }));
 
 vi.mock("react-router", async (o) => {
@@ -49,16 +51,28 @@ vi.mock("react-router", async (o) => {
     useParams: () => ({ id: "m1" }),
   };
 });
-vi.mock("@seliseblocks/genesis-os/hooks", () => ({
+vi.mock("@seliseblocks/app-kit/hooks", () => ({
   useScopedPath: () => (p: string) => `/scoped/${p}`,
 }));
-vi.mock("@seliseblocks/genesis-os/store", () => ({
+vi.mock("@seliseblocks/app-kit/store", () => ({
   useProjectStore: () => ({ selectedProject: { tenantId: "proj-1" } }),
 }));
 vi.mock("@/hooks/use-alerts", () => ({
-  useGetMonitorDetails: () => h.details,
-  useGetMonitorById: () => h.monitor,
-  useGetMonitorDownTime: () => h.downtime,
+  useGetMonitorDetails: () => ({
+    ...h.details,
+    isError: h.errors.details,
+    refetch: h.refetch.details,
+  }),
+  useGetMonitorById: () => ({
+    ...h.monitor,
+    isError: h.errors.monitor,
+    refetch: h.refetch.monitor,
+  }),
+  useGetMonitorDownTime: () => ({
+    ...h.downtime,
+    isError: h.errors.downtime,
+    refetch: h.refetch.downtime,
+  }),
 }));
 
 // Heavy children are covered by their own suites; stub them so this page test
@@ -152,7 +166,22 @@ describe("MonitorDetailsPage", () => {
     // makes the active-state assertions order-dependent.
     h.monitor.data.data.isActive = true;
     lastIncidentListData = [];
+    h.errors = { details: false, monitor: false, downtime: false };
   });
+
+  it.each(["details", "monitor", "downtime"] as const)(
+    "shows an error with a retry that refetches every query when %s fails",
+    async (failing) => {
+      h.errors[failing] = true;
+      renderPage();
+      expect(screen.getByRole("alert")).toHaveTextContent("Could not load this monitor.");
+      expect(screen.queryByText("API monitor")).toBeNull();
+      await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+      expect(h.refetch.details).toHaveBeenCalledTimes(1);
+      expect(h.refetch.monitor).toHaveBeenCalledTimes(1);
+      expect(h.refetch.downtime).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it("renders the skeleton while any query is loading", () => {
     h.monitor.isLoading = true;
@@ -321,7 +350,7 @@ describe("MonitorDetailsPage paused state", () => {
           <Routes>
             <Route path="/app/:itemId/monitor/:id" element={<MonitorDetailsPage />} />
           </Routes>
-        </MemoryRouter>
+        </MemoryRouter>,
       );
 
     h.monitor.data.data.isActive = false;

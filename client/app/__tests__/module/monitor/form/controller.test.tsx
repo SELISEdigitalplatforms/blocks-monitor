@@ -48,7 +48,7 @@ vi.mock("@/hooks/use-alerts", () => ({
   },
 }));
 
-vi.mock("@seliseblocks/genesis-os/hooks", () => ({
+vi.mock("@seliseblocks/app-kit/hooks", () => ({
   // Deliberately still mocked, and deliberately spied: the point of this ticket is that the
   // controller NEVER reaches blocks-logic for repositories. If the import came back, this records it.
   useGetEnvRepositories: () => {
@@ -376,7 +376,11 @@ describe("useMonitorFormController — repository source (#201)", () => {
 
   it.each([
     ["customDeploymentUrl first", {}, "https://custom.dev"],
-    ["defaultDeploymentUrl when custom is absent", { customDeploymentUrl: null }, "https://default.internal"],
+    [
+      "defaultDeploymentUrl when custom is absent",
+      { customDeploymentUrl: null },
+      "https://default.internal",
+    ],
     [
       "repoUrl when both deployment urls are absent",
       { customDeploymentUrl: null, defaultDeploymentUrl: null },
@@ -514,7 +518,9 @@ describe("useMonitorFormController — repository source (#201)", () => {
     );
 
     act(() => result.current.setSelectedRepoId("repo-123"));
-    await waitFor(() => expect(result.current.form.getValues("urlMonitor")).toBe("https://custom.dev"));
+    await waitFor(() =>
+      expect(result.current.form.getValues("urlMonitor")).toBe("https://custom.dev"),
+    );
 
     // Tenant B: its repositories are fetched correctly...
     h.envRepos.data = [repo({ itemId: "repo-999", repoName: "other-tenant-app" })];

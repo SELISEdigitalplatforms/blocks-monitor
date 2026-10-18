@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
 
 /**
- * Test stub for `@seliseblocks/genesis-os/observability`.
+ * Test stub for `@seliseblocks/app-kit/observability`.
  *
  * The real subpath builds a Rollbar client at import time, and its config reads runtime env
  * through the package's own inlined copy of `getRuntimeEnv` -- not the one behind the `/lib`
- * entry point. Specs that `vi.mock("@seliseblocks/genesis-os/lib")` therefore do not cover it,
+ * entry point. Specs that `vi.mock("@seliseblocks/app-kit/lib")` therefore do not cover it,
  * and the real getter falls through to `import.meta.env`, which is undefined in the externalized
  * dependency under vitest: `TypeError: Cannot read properties of undefined`. Since `http-client`
  * calls `getRollbar` at module scope, that took down every spec importing a service.

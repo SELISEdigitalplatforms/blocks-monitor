@@ -5,7 +5,7 @@ import { Plus, Trash } from "lucide-react";
 import { useState } from "react";
 import { useUpdateHealth, useUpdateSingleMonitor } from "@/hooks/use-alerts";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
-import { ErrorTransformer } from "@seliseblocks/genesis-os/utils";
+import { ErrorTransformer } from "@seliseblocks/app-kit/utils";
 import { z } from "zod";
 
 type NotificationProviderProps = {
@@ -204,7 +204,7 @@ const NotificationModal = ({ open, onOpenChange, data, request }: NotificationPr
                     <div className="flex flex-1 flex-col">
                       <Input
                         type="email"
-                        className={`focus-visible:ring-2 focus-visible:ring-offset-0 ${
+                        className={`rounded-sm bg-card focus-visible:ring-2 focus-visible:ring-offset-0 ${
                           emailErrors[index]
                             ? "border-destructive focus-visible:ring-destructive"
                             : "focus-visible:ring-primary"

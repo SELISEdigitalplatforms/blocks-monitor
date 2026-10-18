@@ -3,7 +3,7 @@
 @plugin "tailwindcss-animate";
 
 @source "../../index.html";
-@source "../../node_modules/@seliseblocks/genesis-os/dist/**/*.{js,jsx,ts,tsx}";
+@source "../../node_modules/@seliseblocks/app-kit/dist/**/*.{js,jsx,ts,tsx}";
 /* Carried over from the v3 blocklist: never emit this arbitrary-property candidate. */
 @source not inline("[-:=]");
 
@@ -20,6 +20,25 @@
 }
 
 @theme {
+  /* Console design tokens (blocks-console app/styles/globals.css). */
+  --color-surface-warm: hsl(var(--surface-warm));
+  --color-border-soft: hsl(var(--border-soft));
+  --color-primary-hover: hsl(var(--primary-hover));
+  --color-sunset: hsl(var(--sunset));
+  --color-sunset-soft: hsl(var(--sunset-soft));
+  --color-forest: hsl(var(--forest));
+  --color-forest-soft: hsl(var(--forest-soft));
+  --color-lavender: hsl(var(--lavender));
+  --color-lavender-soft: hsl(var(--lavender-soft));
+  --color-lavender-ink: hsl(var(--lavender-ink));
+  --color-rose: hsl(var(--rose));
+  --color-rose-soft: hsl(var(--rose-soft));
+  --color-rose-ink: hsl(var(--rose-ink));
+  --color-success-ink: hsl(var(--success-ink));
+  --color-warn-ink: hsl(var(--warn-ink));
+  --color-danger-ink: hsl(var(--danger-ink));
+  --color-forest-ink: hsl(var(--success-ink));
+  --shadow-surface-ring: 0 0 0 1px hsl(var(--border));
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
@@ -348,14 +367,20 @@
 
   /* App code was renamed to the v4 scale (shadow-sm -> shadow-xs, backdrop-blur-sm ->
      backdrop-blur-xs) and does not use shadow-sm or blur-sm any more. The prebuilt
-     @seliseblocks/genesis-os components still ship the v3 names, so these two keep their
+     @seliseblocks/app-kit components still ship the v3 names, so these two keep their
      v3 values for them. */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --blur-sm: 4px;
 
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  /* Console's 8/12/16/24 corner scale (blocks-console tailwind.config.ts): rounded-sm is the
+     default for cards, inputs, buttons and rows. */
+  --radius: 0.5rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-pill: 9999px;
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
@@ -421,6 +446,24 @@
 
 @layer base {
   :root {
+    /* Console design tokens. */
+    --surface-warm: 213 32% 95%;
+    --border-soft: 214 30% 94%;
+    --primary-hover: 206 100% 30%;
+    --sunset: 27 87% 67%;
+    --sunset-soft: 27 92% 90%;
+    --forest: 154 15% 49%;
+    --forest-soft: 150 26% 88%;
+    --lavender: 268 23% 73%;
+    --lavender-soft: 267 30% 93%;
+    --lavender-ink: 268 30% 45%;
+    --rose: 358 60% 75%;
+    --rose-soft: 357 68% 94%;
+    --rose-ink: 340 45% 45%;
+    --success-ink: 154 25% 35%;
+    --warn-ink: 32 60% 35%;
+    --danger-ink: 12 45% 43%;
+
     /* Also read by the font-sans utility and the base font. The tail is Tailwind's default
        sans stack, which v3 appended through the JS config. */
     --font-sans:
@@ -518,6 +561,24 @@
   }
 
   :root[class~="dark"] {
+    /* Console design tokens. */
+    --surface-warm: 215 32% 18%;
+    --border-soft: 216 28% 20%;
+    --primary-hover: 204 86% 64%;
+    --sunset: 27 80% 67%;
+    --sunset-soft: 27 25% 22%;
+    --forest: 154 22% 60%;
+    --forest-soft: 150 25% 22%;
+    --lavender: 268 23% 73%;
+    --lavender-soft: 267 25% 22%;
+    --lavender-ink: 268 40% 78%;
+    --rose: 358 60% 75%;
+    --rose-soft: 357 25% 22%;
+    --rose-ink: 340 55% 76%;
+    --success-ink: 154 30% 68%;
+    --warn-ink: 32 60% 70%;
+    --danger-ink: 12 55% 70%;
+
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -615,5 +676,96 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Console table kit: one card, continuous rows, uppercase column labels, warm hover
+   (blocks-console app/styles/globals.css). */
+@layer components {
+  /* Match the Domains table: one card, continuous rows, and plain column labels. */
+  table[data-table] > thead > tr > th {
+    @apply border-b border-border-default;
+  }
+
+  table[data-table] > tbody > tr > td {
+    @apply border-t border-border/50 transition-colors;
+  }
+
+  /* Table cards embedded in an existing card share its outline. */
+  .shadow-surface-ring [data-table-container],
+  .border.bg-card [data-table-container] {
+    box-shadow: none;
+  }
+
+  /* An opaque cell base keeps sticky columns readable while the tint shows hover. */
+  table[data-table] > tbody > tr:not([data-details="true"]):hover > td,
+  table[data-table] > tbody > tr:focus-within > td,
+  table[data-table] > tbody > tr[data-expanded="true"]:hover + tr[data-details="true"] > td,
+  table[data-table] > tbody > tr[data-expanded="true"]:has(+ tr[data-details="true"]:hover) > td,
+  table[data-table] > tbody > tr[data-details="true"]:hover > td {
+    background-image: linear-gradient(
+      hsl(var(--surface-warm) / 0.4),
+      hsl(var(--surface-warm) / 0.4)
+    );
+  }
+
+  table[data-table] > tbody > tr[data-state="selected"] > td,
+  table[data-table]
+    > tbody
+    > tr[data-expanded="true"][data-state="selected"]
+    + tr[data-details="true"]
+    > td {
+    @apply bg-muted;
+    background-image: none;
+  }
+
+  /* Expanded content belongs to the preceding item, with no artificial row gap. */
+  table[data-table] > tbody > tr[data-expanded="true"] + tr[data-details="true"] > td {
+    @apply border-t-0;
+  }
+
+  /* Row cards: each row is its own outlined card, with a gap between rows (the console's
+     project list). Opt in with `data-layout="row-cards"` on the table. Declared after the
+     shared rules above and one attribute more specific, so it replaces their single-card
+     look instead of mixing with it. */
+  [data-table-container]:has(> table[data-layout="row-cards"]) {
+    @apply bg-transparent p-px shadow-none;
+  }
+
+  table[data-table][data-layout="row-cards"] {
+    border-collapse: separate;
+    border-spacing: 0 0.5rem;
+    margin-block: -0.5rem;
+  }
+
+  table[data-table][data-layout="row-cards"] > tbody > tr > td {
+    @apply border-y border-border bg-card transition-colors duration-200;
+  }
+
+  table[data-table][data-layout="row-cards"] > tbody > tr > td:first-child {
+    @apply rounded-l-sm border-l;
+  }
+
+  table[data-table][data-layout="row-cards"] > tbody > tr > td:last-child {
+    @apply rounded-r-sm border-r;
+  }
+
+  table[data-table][data-layout="row-cards"] > tbody > tr:hover > td,
+  table[data-table][data-layout="row-cards"] > tbody > tr:focus-within > td {
+    @apply border-primary/25;
+    background-image: linear-gradient(hsl(var(--primary) / 0.05), hsl(var(--primary) / 0.05));
+  }
+
+  /* Match OIDC headings, including labels wrapped by sortable table controls.
+     Root specificity keeps older per-table typography from overriding this style. */
+  :root table thead th,
+  :root table thead th :where(div, span, button, a) {
+    @apply text-xs font-semibold uppercase tracking-wide text-high-emphasis;
+  }
+
+  /* Header search fields and select values retain normal input typography. */
+  :root table thead th :is(input, textarea, [role="combobox"]),
+  :root table thead th [role="combobox"] :where(div, span) {
+    @apply text-sm font-normal normal-case tracking-normal;
   }
 }

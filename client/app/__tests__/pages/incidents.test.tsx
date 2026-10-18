@@ -13,10 +13,12 @@ const h = vi.hoisted(() => ({
     },
     isLoading: false,
   },
+  isError: false,
+  refetch: vi.fn(),
 }));
 
 vi.mock("@/hooks/use-alerts", () => ({
-  useGetAllIncidentList: () => h.incidentData,
+  useGetAllIncidentList: () => ({ ...h.incidentData, isError: h.isError, refetch: h.refetch }),
 }));
 vi.mock("react-router", async (o) => {
   const actual = await o<typeof import("react-router")>();
@@ -37,7 +39,19 @@ const renderPage = () =>
   );
 
 describe("IncidentPage", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    h.isError = false;
+  });
+
+  it("shows an error with a retry in place of the incident list", async () => {
+    h.isError = true;
+    renderPage();
+    expect(screen.getByRole("alert")).toHaveTextContent("Could not load incidents.");
+    expect(screen.queryByText("No results.")).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(h.refetch).toHaveBeenCalledTimes(1);
+  });
 
   it("renders the incidents heading and an empty list", () => {
     renderPage();

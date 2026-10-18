@@ -3,7 +3,7 @@ import {
   type SortValue,
   paginationQueryParsers,
   sortQueryParsers,
-} from "@seliseblocks/genesis-os/components";
+} from "@seliseblocks/app-kit/components";
 import { type MonitorTabKey, parseAsMonitorTabKey } from "@/constants/monitor.constant";
 import { useQueryStates, parseAsString, parseAsArrayOf } from "nuqs";
 

@@ -2,6 +2,17 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach } from "vitest";
 
+// @seliseblocks/app-kit runs `window.process = { env: window.__BLOCKS_ENV__ }` when it loads.
+// In a browser that only adds a shim, but under jsdom `window` is the Node global, so it replaces
+// Node's own process (process.cwd, process.env.NODE_ENV) for every module loaded after it. Keep
+// the real one in place and ignore that assignment; app-kit reads its env from process.env.
+const nodeProcess = globalThis.process;
+Object.defineProperty(globalThis, "process", {
+  configurable: true,
+  get: () => nodeProcess,
+  set: () => {},
+});
+
 // Ensure the DOM is reset between tests.
 afterEach(() => {
   cleanup();

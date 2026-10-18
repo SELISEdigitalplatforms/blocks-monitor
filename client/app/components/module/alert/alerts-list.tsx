@@ -1,6 +1,6 @@
-import type { SortValue } from "@seliseblocks/genesis-os/components";
-import { FilterControls } from "@seliseblocks/genesis-os/components";
-import { TableLoadingSkeleton } from "@seliseblocks/genesis-os/components";
+import type { SortValue } from "@seliseblocks/app-kit/components";
+import { FilterControls } from "@seliseblocks/app-kit/components";
+import { TableLoadingSkeleton } from "@seliseblocks/app-kit/components";
 import {
   Badge,
   ScrollArea,
@@ -15,9 +15,9 @@ import {
 import AlertAction from "@/components/module/alert/alert-action";
 import ProgressBar from "@/components/module/alert/progress-bar";
 import { AlertTree } from "@/models/alerts.model";
-import { formatDate } from "@seliseblocks/genesis-os/utils";
-import { useProjectStore } from "@seliseblocks/genesis-os/store";
-import { useScopedPath } from "@seliseblocks/genesis-os/hooks";
+import { formatDate } from "@seliseblocks/app-kit/utils";
+import { useProjectStore } from "@seliseblocks/app-kit/store";
+import { useScopedPath } from "@seliseblocks/app-kit/hooks";
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useMemo } from "react";
@@ -86,7 +86,7 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
         cell: ({ row }) => {
           const name = row.original?.name || row.original.operationName || "N/A";
           return (
-            <div className="ml-2 flex flex-row items-center sm:ml-0 w-[180px] sm:w-[150px]">
+            <div className="flex w-[180px] items-center sm:w-[150px]">
               <span className="break-all">{name}</span>
             </div>
           );
@@ -108,7 +108,7 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
           const monitorType =
             row.original.monitorConfigurationType === 0 ? "HTTP Check" : "Heartbeat";
           return (
-            <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
+            <div className="flex w-[180px] items-center sm:w-[150px]">
               <span className="break-all">{monitorType}</span>
             </div>
           );
@@ -129,7 +129,7 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
         cell: ({ row }) => {
           const url = row.original.url || row.original.request?.url || "N/A";
           return (
-            <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
+            <div className="flex w-[180px] items-center sm:w-[150px]">
               <span className="break-all">{url}</span>
             </div>
           );
@@ -152,7 +152,7 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
           const value = row.original.repoName || row.original.externalServiceName || "-";
 
           return (
-            <div className="flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
+            <div className="flex w-[180px] items-center sm:w-[150px]">
               <span className="break-all">{value}</span>
             </div>
           );
@@ -188,7 +188,7 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
             : EMPTY_VALUE;
 
           return (
-            <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
+            <div className="flex w-[180px] items-center sm:w-[150px]">
               <span>{formattedDate}</span>
               {currentStatus ? (
                 <ArrowUp className="ml-1 h-4 w-4 text-green-500" />
@@ -219,7 +219,7 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
           // its own comment -- so the two defaults differ on purpose.
           const isPaused = row.original.isActive === false;
           return (
-            <div className="flex justify-start mt-3">
+            <div className="flex items-center justify-start">
               {isPaused ? (
                 // Replaces the bar rather than sitting beside it: 24 hours of green/red is a
                 // health display, and health is not meaningful while a monitor is paused.
@@ -287,12 +287,15 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
 
   return (
     <ScrollArea className="w-full">
-      <Table className="text-sm">
+      <Table aria-label="Monitors" className="min-w-[1080px] text-sm">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="px-4 py-2 hover:bg-transparent">
+            <TableRow key={headerGroup.id} className="hover:bg-transparent">
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id} className="font-bold text-medium-emphasis">
+                <TableHead
+                  key={header.id}
+                  className="text-xs font-semibold uppercase tracking-wide text-high-emphasis"
+                >
                   {header.isPlaceholder
                     ? null
                     : flexRender(header.column.columnDef.header, header.getContext())}
