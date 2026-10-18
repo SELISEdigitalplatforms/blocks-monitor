@@ -1,6 +1,11 @@
-import type { ContributionDay } from "@/components/ui/contribution-skyline";
 import type { IncidentTree } from "@/models/alerts.model";
 import { alertsService } from "./alerts.service";
+
+/** One UTC day (`YYYY-MM-DD`) and its value. */
+export interface ActivityDay {
+  date: string;
+  count: number;
+}
 
 /** One incident as the calendar and its selected-day panel read it. */
 export interface ActivityIncident {
@@ -16,7 +21,7 @@ export interface ActivityIncident {
 
 export interface MonitorIncidentActivity {
   /** Per-day downtime in minutes, or incidents per day when `unit` is "incident". */
-  days: ContributionDay[];
+  days: ActivityDay[];
   incidents: ActivityIncident[];
   unit: "minute" | "incident";
   /** The endpoint stopped advancing before the full history could be read. */

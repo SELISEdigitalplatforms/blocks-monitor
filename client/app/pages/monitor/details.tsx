@@ -372,8 +372,8 @@ const MonitorDetailsPage = () => {
               ) : undefined
             }
           />
-          {/* A year of downtime per day above the latest incidents; paused monitors keep their
-              history, so it is shown whatever the monitor's state. */}
+          {/* Downtime per day (last 7 / 30 / 90 days) above the latest incidents; paused monitors
+              keep their history, so it is shown whatever the monitor's state. */}
           <div className={SURFACE_TILE_CLASS}>
             <IncidentActivity monitorId={monitorId} />
           </div>
