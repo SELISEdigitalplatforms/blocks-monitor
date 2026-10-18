@@ -109,7 +109,7 @@ namespace DomainService.Health.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError("[MonitorScheduler] Polling failed: {ErrorMessage}", ex.Message);
+                    _logger.LogError(ex, "[MonitorScheduler] Polling failed");
                 }
 
                 try

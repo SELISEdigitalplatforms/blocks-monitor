@@ -6,6 +6,7 @@ using DomainService.Monitor.Entity;
 using DomainService.Monitor.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using Moq;
 
 namespace XUnitTest.Monitor
@@ -73,14 +74,40 @@ namespace XUnitTest.Monitor
         }
 
         [Fact]
+        public async Task LoadMonitorsFromDatabaseAsync_FailedRootPoll_KeepsQueuedMonitorsUntilSuccessfulRefresh()
+        {
+            var sut = CreateSut();
+            _repo.SetupSequence(r => r.GetAllConfigurationListAsync())
+                .ReturnsAsync(new List<MonitorConfiguration> { new() { ItemId = "a", Url = "http://a" } })
+                .ThrowsAsync(new MongoException("root unavailable"))
+                .ReturnsAsync(new List<MonitorConfiguration>());
+
+            await sut.LoadMonitorsFromDatabaseAsync();
+            await FluentActions.Invoking(() => sut.LoadMonitorsFromDatabaseAsync())
+                .Should().ThrowAsync<MongoException>();
+            _queue.Verify(q => q.RemoveByItemId("a"), Times.Never);
+
+            await sut.LoadMonitorsFromDatabaseAsync();
+            _queue.Verify(q => q.RemoveByItemId("a"), Times.Once);
+        }
+
+        [Fact]
         public async Task StartAsync_RunsWorkerLoopAndProcessesDueTasks()
         {
             // A task that is already due should be dequeued and pinged by a worker.
             var dueConfig = new MonitorConfiguration { ItemId = "a", Url = "http://a" };
             var dueTask = new MonitorQueueTask(dueConfig) { NextExecutionTime = DateTime.UtcNow.AddSeconds(-1) };
             _repo.Setup(r => r.GetAllConfigurationListAsync()).ReturnsAsync(new List<MonitorConfiguration> { dueConfig });
-            _queue.Setup(q => q.Peek()).Returns(dueTask);
-            _queue.Setup(q => q.Dequeue()).Returns(dueTask);
+            // Behave like a real queue: the task is due once, then the queue is empty. A Peek that
+            // always returns a due task keeps the worker in a hot loop that never yields, which can
+            // starve the thread pool on a busy CI runner before the fire-and-forget ping runs.
+            var dequeued = 0;
+            _queue.Setup(q => q.Peek()).Returns(() => Volatile.Read(ref dequeued) == 0 ? dueTask : null);
+            _queue.Setup(q => q.Dequeue()).Returns(() =>
+            {
+                Interlocked.Exchange(ref dequeued, 1);
+                return dueTask;
+            });
             var pinged = new TaskCompletionSource();
             _ping.Setup(p => p.MonitorPingAsync(It.IsAny<MonitorConfiguration>()))
                 .Callback(() => pinged.TrySetResult())
@@ -88,7 +115,7 @@ namespace XUnitTest.Monitor
 
             using var cts = new CancellationTokenSource();
             var run = CreateSut().StartAsync(cts.Token);
-            await Task.WhenAny(pinged.Task, Task.Delay(3000));
+            await Task.WhenAny(pinged.Task, Task.Delay(TimeSpan.FromSeconds(10)));
             cts.Cancel();
 
             pinged.Task.IsCompletedSuccessfully.Should().BeTrue();

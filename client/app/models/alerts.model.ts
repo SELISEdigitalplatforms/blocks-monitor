@@ -445,6 +445,10 @@ export interface IRepoListItem {
   customDeploymentUrl?: string | null;
   defaultDeploymentUrl?: string | null;
   repoUrl?: string | null;
+  /** Optional fields returned by newer driver payloads; used by the Repos list. */
+  branch?: string | null;
+  lastDeploymentDate?: string | null;
+  lastDeploymentStatus?: string | null;
 }
 
 export interface IGetReposListResponse {

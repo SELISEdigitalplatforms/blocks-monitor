@@ -39,11 +39,15 @@ ENV DOTNET_ENVIRONMENT=Production \
     DOTNET_RUNNING_IN_CONTAINER=true \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
-RUN apk add --no-cache icu-libs
+RUN apk add --no-cache icu-libs procps
 
 COPY --from=publish /app/publish .
 RUN chown -R app:app /app
 
 USER app
+
+# Worker has no HTTP port; check the dotnet process stays healthy.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD pgrep -x dotnet >/dev/null || exit 1
 
 ENTRYPOINT ["dotnet", "Worker.dll"]

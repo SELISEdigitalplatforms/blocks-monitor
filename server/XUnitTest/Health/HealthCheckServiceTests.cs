@@ -31,7 +31,7 @@ namespace XUnitTest.Health
                 .With(configColl)
                 .With(incidents ?? new List<MonitorIncident>())
                 .With(new List<ProjectPeople>())
-                .With(new List<AlertMailTemplate>())
+                .With(new List<EmailTemplate>())
                 .With(new List<MailServerConfiguration>());
             var secret = MongoMocks.BlocksSecret().Object;
 
@@ -77,6 +77,26 @@ namespace XUnitTest.Health
             await sut.LoadMonitorsFromDatabaseAsync();
 
             _queue.GetAll().Should().ContainSingle(t => t.Config.ItemId == "a");
+        }
+
+        [Fact]
+        public async Task LoadMonitorsFromDatabaseAsync_FailedRootPoll_KeepsHeartbeatQueueUntilSuccessfulRefresh()
+        {
+            var coll = MongoMocks.Collection(new List<MonitorConfiguration>());
+            coll.SetupSequence(c => c.FindAsync(It.IsAny<FilterDefinition<MonitorConfiguration>>(),
+                    It.IsAny<FindOptions<MonitorConfiguration, MonitorConfiguration>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(MongoMocks.Cursor(new List<MonitorConfiguration> { new() { ItemId = "a" } }).Object)
+                .ThrowsAsync(new MongoException("root unavailable"))
+                .ReturnsAsync(MongoMocks.Cursor(new List<MonitorConfiguration>()).Object);
+            var sut = Build(coll);
+
+            await sut.LoadMonitorsFromDatabaseAsync();
+            await FluentActions.Invoking(() => sut.LoadMonitorsFromDatabaseAsync())
+                .Should().ThrowAsync<MongoException>();
+            _queue.GetAll().Should().ContainSingle(t => t.Config.ItemId == "a");
+
+            await sut.LoadMonitorsFromDatabaseAsync();
+            _queue.GetAll().Should().BeEmpty();
         }
 
         [Fact]
@@ -141,13 +161,32 @@ namespace XUnitTest.Health
             _queue.Enqueue(new HealthQueueTask(config) { NextExecutionTime = System.DateTime.UtcNow.AddSeconds(-5) });
             var sut = Build(MongoMocks.Collection(new List<MonitorConfiguration>()));
             using var cts = new CancellationTokenSource();
-            cts.CancelAfter(500);
 
             var run = sut.StartAsync(cts.Token);
-            var completed = await Task.WhenAny(run, Task.Delay(5000));
 
-            completed.Should().BeSameAs(run);
+            // Workers poll every 100ms, so wait for the queue to drain instead of cancelling after a
+            // fixed delay: on a loaded CI agent the worker can be scheduled late and never see the task.
+            var drained = await WaitUntilAsync(() => !_queue.HasTasks(), TimeSpan.FromSeconds(10));
+
+            cts.Cancel();
+            await Task.WhenAny(run, Task.Delay(5000));
+
+            drained.Should().BeTrue();
             _queue.HasTasks().Should().BeFalse();
+        }
+
+        private static async Task<bool> WaitUntilAsync(Func<bool> condition, TimeSpan timeout)
+        {
+            var deadline = DateTime.UtcNow + timeout;
+            while (DateTime.UtcNow < deadline)
+            {
+                if (condition())
+                    return true;
+
+                await Task.Delay(25);
+            }
+
+            return condition();
         }
 
         [Fact]
@@ -159,7 +198,7 @@ namespace XUnitTest.Health
                 .With(MongoMocks.Collection(new List<MonitorConfiguration>()))
                 .With(MongoMocks.CollectionThrowing<MonitorIncident>())
                 .With(new List<ProjectPeople>())
-                .With(new List<AlertMailTemplate>())
+                .With(new List<EmailTemplate>())
                 .With(new List<MailServerConfiguration>());
             var secret = MongoMocks.BlocksSecret().Object;
             var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret);
@@ -188,7 +227,7 @@ namespace XUnitTest.Health
             var queue = new HealthQueueManager();
             var db = new MongoMocks.DbBuilder()
                 .With(new List<MonitorConfiguration>()).With(new List<MonitorIncident>())
-                .With(new List<ProjectPeople>()).With(new List<AlertMailTemplate>()).With(new List<MailServerConfiguration>());
+                .With(new List<ProjectPeople>()).With(new List<EmailTemplate>()).With(new List<MailServerConfiguration>());
             var secret = MongoMocks.BlocksSecret().Object;
             var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret);
             var alertRepo = new AlertRepoService(db.Provider, secret);

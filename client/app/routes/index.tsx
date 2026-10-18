@@ -3,6 +3,8 @@ import { MonitorLayout } from "@/layouts/monitor-layout/monitor-layout";
 import MonitorPage from "@/pages/monitor";
 import IncidentPage from "@/pages/incidents";
 import MonitorDetailsPage from "@/pages/monitor/details";
+import ReposPage from "@/pages/repos";
+import RepoDetailsPage from "@/pages/repos/details";
 import { AuthResolver, ProtectedGuard, PublicGuard } from "@seliseblocks/genesis-os/guards";
 import { ConsoleLayout, DashboardRoute } from "@seliseblocks/genesis-os/layouts";
 import {
@@ -97,6 +99,9 @@ export const routes = [
                         path: "monitor/incidents/:id",
                         element: <IncidentPage />,
                       },
+                      { path: "repos", element: <ReposPage /> },
+                      { path: "repo/:repoId", element: <RepoDetailsPage /> },
+                      { path: "repos/:repoId", element: <RepoDetailsPage /> },
                     ],
                   },
                 ],

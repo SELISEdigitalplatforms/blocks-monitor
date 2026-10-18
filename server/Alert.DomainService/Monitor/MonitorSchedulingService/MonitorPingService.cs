@@ -110,7 +110,7 @@ namespace DomainService.Monitor.Services
                 _logger.LogError(ex, "Monitor failed for {Url}", config.Url);
             }
 
-            await _monitorPingRepoService.SavePingLogAsync(log);
+            // Collection cut: ping logs are no longer saved; MonitorPingLogs is dropped by the migration.
             await _monitorIncidentService.HandleIncidentAsync(config, log);
 
             return log;

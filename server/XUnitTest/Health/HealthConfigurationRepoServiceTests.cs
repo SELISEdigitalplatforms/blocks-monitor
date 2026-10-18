@@ -14,12 +14,10 @@ namespace XUnitTest.Health
     public class HealthConfigurationRepoServiceTests
     {
         private static HealthConfigurationRepoService Build(
-            IEnumerable<MonitorConfiguration> configs = null,
-            IEnumerable<MonitorIncident> incidents = null)
+            IEnumerable<MonitorConfiguration> configs = null)
         {
             var db = new MongoMocks.DbBuilder()
-                .With(configs ?? new List<MonitorConfiguration>())
-                .With(incidents ?? new List<MonitorIncident>());
+                .With(configs ?? new List<MonitorConfiguration>());
             return new HealthConfigurationRepoService(
                 new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
         }
@@ -70,48 +68,15 @@ namespace XUnitTest.Health
         }
 
         [Fact]
-        public async Task GetActiveIncidentAsync_ReturnsMatch()
-        {
-            var repo = Build(incidents: new List<MonitorIncident> { new() { ItemId = "i1", MonitorId = "m1", IsResolved = false } });
-            var result = await repo.GetActiveIncidentAsync("m1");
-            result.Should().NotBeNull();
-        }
-
-        [Fact]
-        public async Task CreateIncidentAsync_ReturnsIncident()
-        {
-            var incident = new MonitorIncident { ItemId = "i1", MonitorId = "m1" };
-            var result = await Build().CreateIncidentAsync(incident);
-            result.Should().BeSameAs(incident);
-        }
-
-        [Fact]
-        public async Task ResolveIncidentAsync_WhenActiveIncidentExists_ResolvesAndReturnsTrue()
-        {
-            var repo = Build(incidents: new List<MonitorIncident> { new() { ItemId = "i1", MonitorId = "m1", IsResolved = false } });
-            var result = await repo.ResolveIncidentAsync("m1");
-            result.Should().BeTrue();
-        }
-
-        [Fact]
-        public async Task ResolveIncidentAsync_WhenNoActiveIncident_ReturnsFalse()
-        {
-            var result = await Build(incidents: new List<MonitorIncident>()).ResolveIncidentAsync("m1");
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public async Task GetAllActiveConfigurationsAsync_WhenThrows_ReturnsEmpty()
+        public async Task GetAllActiveConfigurationsAsync_WhenRootReadFails_PropagatesFailure()
         {
             var db = new MongoMocks.DbBuilder()
-                .With(MongoMocks.CollectionThrowing<MonitorConfiguration>())
-                .With(new List<MonitorIncident>());
+                .With(MongoMocks.CollectionThrowing<MonitorConfiguration>());
             var repo = new HealthConfigurationRepoService(
                 new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
 
-            var result = await repo.GetAllActiveConfigurationsAsync();
-
-            result.Should().BeEmpty();
+            await FluentActions.Invoking(() => repo.GetAllActiveConfigurationsAsync())
+                .Should().ThrowAsync<MongoException>();
         }
 
         [Fact]
@@ -121,7 +86,7 @@ namespace XUnitTest.Health
             coll.Setup(c => c.ReplaceOneAsync(It.IsAny<FilterDefinition<MonitorConfiguration>>(), It.IsAny<MonitorConfiguration>(),
                     It.IsAny<ReplaceOptions>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new MongoException("boom"));
-            var db = new MongoMocks.DbBuilder().With(coll).With(new List<MonitorIncident>());
+            var db = new MongoMocks.DbBuilder().With(coll);
             var repo = new HealthConfigurationRepoService(
                 new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
 
@@ -134,8 +99,7 @@ namespace XUnitTest.Health
         public async Task GetConfigurationAsync_WhenThrows_ReturnsNull()
         {
             var db = new MongoMocks.DbBuilder()
-                .With(MongoMocks.CollectionThrowing<MonitorConfiguration>())
-                .With(new List<MonitorIncident>());
+                .With(MongoMocks.CollectionThrowing<MonitorConfiguration>());
             var repo = new HealthConfigurationRepoService(
                 new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
 
@@ -146,37 +110,11 @@ namespace XUnitTest.Health
         public async Task GetConfigurationListAsync_WhenThrows_ReturnsEmpty()
         {
             var db = new MongoMocks.DbBuilder()
-                .With(MongoMocks.CollectionThrowing<MonitorConfiguration>())
-                .With(new List<MonitorIncident>());
+                .With(MongoMocks.CollectionThrowing<MonitorConfiguration>());
             var repo = new HealthConfigurationRepoService(
                 new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
 
             (await repo.GetConfigurationListAsync("t")).Should().BeEmpty();
-        }
-
-        [Fact]
-        public async Task GetActiveIncidentAsync_WhenThrows_ReturnsNull()
-        {
-            var db = new MongoMocks.DbBuilder()
-                .With(new List<MonitorConfiguration>())
-                .With(MongoMocks.CollectionThrowing<MonitorIncident>());
-            var repo = new HealthConfigurationRepoService(
-                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
-
-            (await repo.GetActiveIncidentAsync("m1")).Should().BeNull();
-        }
-
-        [Fact]
-        public async Task CreateIncidentAsync_WhenInsertThrows_ReturnsNull()
-        {
-            var incidentColl = MongoMocks.Collection(new List<MonitorIncident>());
-            incidentColl.Setup(c => c.InsertOneAsync(It.IsAny<MonitorIncident>(), It.IsAny<InsertOneOptions>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new MongoException("boom"));
-            var db = new MongoMocks.DbBuilder().With(new List<MonitorConfiguration>()).With(incidentColl);
-            var repo = new HealthConfigurationRepoService(
-                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
-
-            (await repo.CreateIncidentAsync(new MonitorIncident { ItemId = "i1" })).Should().BeNull();
         }
 
         [Fact]
@@ -185,31 +123,11 @@ namespace XUnitTest.Health
             var coll = MongoMocks.Collection(new List<MonitorConfiguration>());
             coll.Setup(c => c.DeleteOneAsync(It.IsAny<FilterDefinition<MonitorConfiguration>>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new MongoException("boom"));
-            var db = new MongoMocks.DbBuilder().With(coll).With(new List<MonitorIncident>());
+            var db = new MongoMocks.DbBuilder().With(coll);
             var repo = new HealthConfigurationRepoService(
                 new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
 
             var result = await repo.DeleteConfigurationAsync("m1");
-
-            result.Should().BeFalse();
-        }
-
-        [Fact]
-        public async Task ResolveIncidentAsync_WhenUpdateThrows_ReturnsFalse()
-        {
-            // Active incident is found, but the resolving update fails, exercising the catch path.
-            var incidentColl = MongoMocks.Collection(new List<MonitorIncident>
-            {
-                new() { ItemId = "i1", MonitorId = "m1", IsResolved = false }
-            });
-            incidentColl.Setup(c => c.UpdateOneAsync(It.IsAny<FilterDefinition<MonitorIncident>>(), It.IsAny<UpdateDefinition<MonitorIncident>>(),
-                    It.IsAny<UpdateOptions>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new MongoException("boom"));
-            var db = new MongoMocks.DbBuilder().With(new List<MonitorConfiguration>()).With(incidentColl);
-            var repo = new HealthConfigurationRepoService(
-                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
-
-            var result = await repo.ResolveIncidentAsync("m1");
 
             result.Should().BeFalse();
         }
@@ -221,7 +139,7 @@ namespace XUnitTest.Health
             coll.Setup(c => c.UpdateOneAsync(It.IsAny<FilterDefinition<MonitorConfiguration>>(), It.IsAny<UpdateDefinition<MonitorConfiguration>>(),
                     It.IsAny<UpdateOptions>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new MongoException("boom"));
-            var db = new MongoMocks.DbBuilder().With(coll).With(new List<MonitorIncident>());
+            var db = new MongoMocks.DbBuilder().With(coll);
             var repo = new HealthConfigurationRepoService(
                 new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
 

@@ -27,7 +27,7 @@
             Controller for managing monitor configurations, incidents, and response times.
             </summary>
         </member>
-        <member name="M:Api.Controllers.MonitorController.#ctor(DomainService.Monitor.Services.IMonitorConfigurationService,DomainService.Monitor.Services.IMonitorPingService,DomainService.Monitor.Services.IMonitorConfigurationRepoService,DomainService.Monitor.MonitorIncidentService.IMonitorIncidentService,ReleaseDriver.IReleaseDriverService,Microsoft.Extensions.Logging.ILogger{Api.Controllers.MonitorController})">
+        <member name="M:Api.Controllers.MonitorController.#ctor(DomainService.Monitor.Services.IMonitorConfigurationService,DomainService.Monitor.Services.IMonitorPingService,DomainService.Monitor.Services.IMonitorConfigurationRepoService,DomainService.Monitor.MonitorIncidentService.IMonitorIncidentService,ReleaseDriver.IReleaseDriverService,Microsoft.Extensions.Configuration.IConfiguration,Microsoft.Extensions.Logging.ILogger{Api.Controllers.MonitorController})">
             <summary>
             Initializes a new instance of the <see cref="T:Api.Controllers.MonitorController"/> class.
             </summary>
@@ -115,11 +115,82 @@
             MonitorControllerTests reads the generated route so this cannot regress silently.
             </remarks>
         </member>
+        <member name="M:Api.Controllers.MonitorController.GetRepoDetails(System.String,System.String,System.Int32,System.Int32)">
+            <summary>
+            Retrieves a repository and its latest build(s) via the release driver.
+            </summary>
+            <remarks>
+            Route escapes the controller template with "~/" so the documented URL resolves exactly
+            to api/Monitor/repo-details (same pattern as repos-list).
+            </remarks>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.GetReports(System.String,System.String)">
+            <summary>
+            Retrieves a SAST or SCA report for a build via the release driver.
+            </summary>
+        </member>
         <member name="F:Api.Controllers.MonitorController.FailedToGetRepos">
             <summary>
             The failure message the contract specifies. Public so the tests assert the exact string
             rather than restating it and drifting from it.
             </summary>
+        </member>
+        <member name="T:Api.Middleware.SecurityHeadersMiddleware">
+            <summary>
+            Browser security headers (ZAP DAST bar). Env bootstrap via /runtime-config.js
+            so CSP can keep script-src 'self' without unsafe-inline. The policy itself is built from
+            configuration once at startup -- see <see cref="T:Api.Security.ContentSecurityPolicy"/>.
+            </summary>
+        </member>
+        <member name="T:Api.Security.ContentSecurityPolicy">
+            <summary>
+            Builds the SPA's Content-Security-Policy from configuration.
+            <para>
+            Same pattern as blocks-iam and blocks-os (<c>server/Api/Security/ContentSecurityPolicy.cs</c>).
+            The origins come from the <c>FrontendRuntime</c> section that fills /runtime-config.js, so the
+            policy follows the environment the host runs in. The first version hardcoded <c>dev-*</c>
+            hosts, which blocked stg and prod from calling their own IAM.
+            </para>
+            </summary>
+        </member>
+        <member name="F:Api.Security.ContentSecurityPolicy.ConnectOriginKeys">
+            <summary>
+            <c>FrontendRuntime</c> keys holding an origin the SPA makes requests to. Anything not
+            derivable from these (a CDN, a third-party service) goes in <c>Csp:ExtraConnectSrc</c> /
+            <c>Csp:ExtraImgSrc</c> rather than back into code.
+            </summary>
+        </member>
+        <member name="F:Api.Security.ContentSecurityPolicy.WebSocketOriginKeys">
+            <summary>
+            Origins the SPA opens a WebSocket to. A CSP source is scheme-sensitive, so
+            <c>https://host</c> does not permit <c>wss://host</c>.
+            </summary>
+        </member>
+        <member name="F:Api.Security.ContentSecurityPolicy.FormActionOriginKeys">
+            <summary>Where a login POST may be sent: the identity host and the portal.</summary>
+        </member>
+        <member name="M:Api.Security.ContentSecurityPolicy.BuildPolicy(System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String})">
+            <summary>The policy itself, separated from configuration so it can be asserted directly.</summary>
+        </member>
+        <member name="M:Api.Security.ContentSecurityPolicy.Normalize(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>Reduce configured values to distinct, sorted origins.</summary>
+        </member>
+        <member name="M:Api.Security.ContentSecurityPolicy.ToOrigin(System.String)">
+            <summary>
+            A CSP source is an origin, so any path, query or trailing slash is dropped. A value that
+            is not an absolute http(s)/ws(s) URL is ignored rather than emitted verbatim, so a
+            malformed secret cannot inject a directive.
+            </summary>
+        </member>
+        <member name="M:Api.Security.ContentSecurityPolicy.ToWebSocketOrigin(System.String)">
+            <summary>
+            The wss origin a browser uses to open a socket to an https host, or null. Plain http and
+            ws hosts get no socket allowance: an unencrypted socket would carry the session token and
+            notification payloads in clear text.
+            </summary>
+        </member>
+        <member name="M:Api.Security.ContentSecurityPolicy.Split(System.String)">
+            <summary>Space- or comma-separated list, for origins no runtime key describes.</summary>
         </member>
         <member name="T:Program">
             <summary>

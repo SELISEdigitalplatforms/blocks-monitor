@@ -3,7 +3,8 @@ using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.Services;
 using DomainService.Shared.Models;
 using System.Net;
-using Microsoft.AspNetCore.Authorization;
+using Blocks.Genesis;
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc;
 // The release driver namespace is deliberately NOT imported wholesale: it also defines a
 // `BaseApiResponse`, and importing it would make every existing `BaseApiResponse` in this file
@@ -17,13 +18,14 @@ namespace Api.Controllers
     /// </summary>
     [ApiController]
     [Route("[controller]/[action]")]
-    public class MonitorController : ControllerBase
+    public class MonitorController : ControllerBase // NOSONAR S6960 — #222 keeps repo endpoints on MonitorController per contract
     {
         private readonly IMonitorConfigurationService _monitorConfigurationService;
         private readonly IMonitorConfigurationRepoService _monitorConfigurationRepoService;
         private readonly IMonitorIncidentService _monitorIncidentService;
         private readonly IMonitorPingService _monitorPingService;
         private readonly IReleaseDriverService _releaseDriverService;
+        private readonly IConfiguration _configuration;
         private readonly ILogger<MonitorController> _logger;
 
         /// <summary>
@@ -38,6 +40,7 @@ namespace Api.Controllers
             IMonitorConfigurationRepoService monitorConfigurationRepoService,
             IMonitorIncidentService monitorIncidentService,
             IReleaseDriverService releaseDriverService,
+            IConfiguration configuration,
             ILogger<MonitorController> logger)
         {
             _monitorConfigurationService = monitorConfigurationService;
@@ -45,6 +48,7 @@ namespace Api.Controllers
             _monitorConfigurationRepoService = monitorConfigurationRepoService;
             _monitorIncidentService = monitorIncidentService;
             _releaseDriverService = releaseDriverService;
+            _configuration = configuration;
             _logger = logger;
         }
 
@@ -53,7 +57,7 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="projectKey">The project key to filter monitor configurations.</param>
         /// <returns>A list of monitor configurations.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> GetMonitorList([FromQuery] string projectKey, [FromQuery] string? monitorSourceType, [FromQuery] int pageNumber = 0, [FromQuery] int pageSize = 10, [FromQuery] string? sortProperty = null, [FromQuery] bool sortIsDescending = false, [FromQuery] string? monitorSourcetype = null)
         {
@@ -70,7 +74,7 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="projectKey">The project key to filter monitor configurations.</param>
         /// <returns>A list of monitor configurations.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> GetMonitorListByRepoId([FromQuery] string projectKey, string repoId)
         {
@@ -83,7 +87,7 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="projectKey">The project key to filter monitor configurations.</param>
         /// <returns>A list of monitor configurations.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> GetMonitorById([FromQuery] string monitorId)
         {
@@ -96,7 +100,7 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="request">The request containing monitor configuration details.</param>
         /// <returns>The result of the save operation.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::manage")]
         [HttpPost]
         public async Task<IActionResult> SaveMonitor([FromBody] SaveMonitorConfigurationRequest request)
         {
@@ -109,7 +113,7 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="request">The request containing updated monitor configuration details.</param>
         /// <returns>The result of the update operation.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::manage")]
         [HttpPost]
         public async Task<IActionResult> UpdateMonitor([FromBody] UpdateMonitorConfigurationRequest request)
         {
@@ -122,7 +126,7 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="itemId">The ID of the monitor configuration to delete.</param>
         /// <returns>The result of the delete operation.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::manage")]
         [HttpDelete]
         public async Task<IActionResult> DeleteMonitor([FromQuery] string itemId)
         {
@@ -137,7 +141,7 @@ namespace Api.Controllers
         /// <param name="pageNumber">The page number for pagination.</param>
         /// <param name="pageSize">The number of items per page.</param>
         /// <returns>A paginated list of incidents.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> GetIncidentList([FromQuery] string monitorId, int pageNumber = 0, int pageSize = 10, [FromQuery] string? sortProperty = null, [FromQuery] bool sortIsDescending = true)
         {
@@ -150,7 +154,7 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="monitorId">The ID of the monitor.</param>
         /// <returns>Details of incidents for the monitor.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> GetMonitorDetails([FromQuery] string monitorId)
         {
@@ -165,7 +169,7 @@ namespace Api.Controllers
         /// <param name="startDate">The start date of the range (optional).</param>
         /// <param name="endDate">The end date of the range (optional).</param>
         /// <returns>The response time logs for the monitor.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> GetMonitorResponseTime([FromQuery] string monitorId, string? startDate, string? endDate)
         {
@@ -173,7 +177,7 @@ namespace Api.Controllers
             return Ok(result);
         }
 
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> GetMonitorDownTime([FromQuery] string monitorId, string? startDate, string? endDate)
         {
@@ -181,7 +185,7 @@ namespace Api.Controllers
             return Ok(result);
         }
 
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> IsExternalServiceConfigured([FromQuery] string externalServiceId)
         {
@@ -205,7 +209,7 @@ namespace Api.Controllers
         /// Monitor/GetReposList/repos-list, which is not the documented contract; the route test in
         /// MonitorControllerTests reads the generated route so this cannot regress silently.
         /// </remarks>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet("~/api/Monitor/repos-list")]
         public async Task<IActionResult> GetReposList()
         {
@@ -250,9 +254,158 @@ namespace Api.Controllers
         }
 
         /// <summary>
+        /// Retrieves a repository and its latest build(s) via the release driver.
+        /// </summary>
+        /// <remarks>
+        /// Route escapes the controller template with "~/" so the documented URL resolves exactly
+        /// to api/Monitor/repo-details (same pattern as repos-list).
+        /// </remarks>
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
+        [HttpGet("~/api/Monitor/repo-details")]
+        public async Task<IActionResult> GetRepoDetails(
+            [FromQuery] string repoId,
+            [FromQuery] string? branch = null,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 1)
+        {
+            if (string.IsNullOrWhiteSpace(repoId))
+            {
+                return BadRequest(new BaseApiResponse
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Message = RepoIdRequired
+                });
+            }
+
+            try
+            {
+                var result = await _releaseDriverService.GetRepoDetailsAsync(
+                    repoId, branch, pageNumber, pageSize);
+
+                if (result is not null
+                    && !result.IsSuccess
+                    && string.Equals(result.Message, RepositoryNotFoundMessage, StringComparison.Ordinal))
+                {
+                    return NotFound(result);
+                }
+
+                if (result is null || !result.IsSuccess)
+                {
+                    _logger.LogError(
+                        "Release driver reported failure retrieving repository details: {Message}",
+                        result?.Message);
+                    return BadRequest(new BaseApiResponse
+                    {
+                        IsSuccess = false,
+                        StatusCode = HttpStatusCode.BadRequest,
+                        Message = FailedToGetRepoDetails
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unhandled failure retrieving repository details.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new BaseApiResponse
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.InternalServerError,
+                    Message = FailedToGetRepoDetails
+                });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a SAST or SCA report for a build via the release driver.
+        /// </summary>
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
+        [HttpGet("~/api/Monitor/reports")]
+        public async Task<IActionResult> GetReports(
+            [FromQuery] string buildId,
+            [FromQuery] string type)
+        {
+            if (string.IsNullOrWhiteSpace(buildId))
+            {
+                return BadRequest(new BaseApiResponse
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Message = BuildIdRequired
+                });
+            }
+
+            if (type is null || !SupportedReportTypes.Contains(type))
+            {
+                return BadRequest(new BaseApiResponse
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Message = UnsupportedReportType
+                });
+            }
+
+            var configKey = ReportSourceConfigKeys[type];
+            var toolUri = _configuration[configKey];
+            if (string.IsNullOrWhiteSpace(toolUri))
+            {
+                _logger.LogError("Report source is not configured: missing or blank key {ConfigKey}.", configKey);
+                return StatusCode(StatusCodes.Status500InternalServerError, new BaseApiResponse
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.InternalServerError,
+                    Message = ReportSourceNotConfigured
+                });
+            }
+
+            try
+            {
+                var result = await _releaseDriverService.GetReportsAsync(buildId, type);
+                return Ok(result);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unhandled failure retrieving report.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new BaseApiResponse
+                {
+                    IsSuccess = false,
+                    StatusCode = HttpStatusCode.InternalServerError,
+                    Message = FailedToGetReport
+                });
+            }
+        }
+
+        /// <summary>
         /// The failure message the contract specifies. Public so the tests assert the exact string
         /// rather than restating it and drifting from it.
         /// </summary>
         public const string FailedToGetRepos = "Failed to get repos.";
+        public const string FailedToGetRepoDetails = "Failed to get repository details.";
+        public const string FailedToGetReport = "Failed to get report.";
+        public const string RepoIdRequired = "repoId is required.";
+        public const string BuildIdRequired = "buildId is required.";
+        public const string UnsupportedReportType = "Unsupported report type.";
+        public const string ReportSourceNotConfigured = "Report source is not configured.";
+        public const string RepositoryNotFoundMessage = "Repository not found";
+
+        public static readonly IReadOnlyDictionary<string, string> ReportSourceConfigKeys =
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["sast"] = "SastToolsApiBaseUri",
+                ["sca-libraries"] = "ScaToolsApiBaseUri",
+            };
+
+        public static readonly IReadOnlySet<string> SupportedReportTypes =
+            new HashSet<string>(StringComparer.Ordinal) { "sast", "sca-libraries" };
     }
 }
+

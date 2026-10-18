@@ -22,7 +22,6 @@ export default defineConfig({
   workers: 1,
   timeout: 600_000,
   reporter: [["html", { open: "never" }], ["list"]],
-  globalSetup: "./global-setup.ts",
   use: {
     baseURL,
     trace: "on-first-retry",

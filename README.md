@@ -133,7 +133,7 @@ Copy [client/.env.example](client/.env.example) to `client/.env` for local devel
 Variables used by the client (via [client/app/lib/runtime-env.ts](client/app/lib/runtime-env.ts)):
 
 - BLOCKS_IAM_BASE_URL: IAM base URL for auth flows
-- BLOCKS_MONITOR_BASE_URL: monitor base URL used for API calls
+- BLOCKS_MONITOR_BASE_URL: external Monitor API target for the local Vite proxy; the browser uses its page origin for Monitor API calls
 - BLOCKS_LOGIC_BASE_URL: logic base URL for service registry calls
 - BLOCKS_X_BLOCKS_KEY: project key sent as X-Blocks-Key
 - BLOCKS_GOOGLE_SITE_KEY: captcha site key used on login
@@ -207,6 +207,24 @@ npm --prefix client run test -- --coverage
 - Contribution conventions and workflow: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Reporting a vulnerability: [SECURITY.md](SECURITY.md)
 - Community standards: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+
+## Database placement diagnostics (Genesis 4.2.2)
+
+API and Worker use the published Genesis 4.2.2 package. Monitoring configurations, incidents, ping logs, health records and alert data stay in the configured main/root database. Tenant placement does not relocate monitoring collections.
+
+The API exposes `GET /health/databases` as a separate infrastructure diagnostic. It runs read-only MongoDB pings for `main`, `dev` and `other` in parallel, with a three-second timeout per configured group. Responses contain only group status, never connection strings, hostnames or driver errors:
+
+```json
+{"isHealthy":false,"placements":{"main":"healthy","dev":"unhealthy","other":"healthy"}}
+```
+
+A configured group failure returns HTTP 503; healthy configured groups return 200. Missing optional dev/other connections are `not_configured`; missing main is unhealthy. Main uses `DatabaseConnectionString`; the optional probes use `DevDatabaseConnectionString` and `OtherDatabaseConnectionString`. Azure vault names match these properties. On-premises keys are `BlocksSecret__DevDatabaseConnectionString` and `BlocksSecret__OtherDatabaseConnectionString`.
+
+Configure these secrets only on hosts that directly probe the clusters, and restart after changing startup secrets. Configure infrastructure monitoring to call this endpoint and alert using its group labels. This endpoint is deliberately separate from Genesis's shared `/ping` and readiness checks: a dev outage must not evict a backend still serving main. A blank optional group does not independently probe tenants that fell back to main.
+
+Tests cover main/dev/other outcomes, timeout/cancellation, absent optional secrets, safe failure responses, and main/root monitoring writes. Run `dotnet test server/XUnitTest/XUnitTest.csproj -c Release`. Actual deployed network access, credentials and alert ingestion still require deployment validation. Main/root failure still affects centralized monitoring and tenant discovery.
+
+Scheduler configuration reads from main/root distinguish an empty result from a failed read. If a poll fails, the worker logs the failure and keeps its last known outbound and heartbeat schedules; a later successful empty result removes them. An initial read failure still prevents the worker from starting, so deployment health and root connectivity must be checked.
 
 ## License
 

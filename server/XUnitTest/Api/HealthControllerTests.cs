@@ -29,7 +29,7 @@ namespace XUnitTest.Api
                 .With(configs ?? new List<MonitorConfiguration>())
                 .With(new List<MonitorIncident>())
                 .With(new List<ProjectPeople>())
-                .With(new List<AlertMailTemplate>())
+                .With(new List<EmailTemplate>())
                 .With(new List<MailServerConfiguration>());
             var secret = MongoMocks.BlocksSecret().Object;
 
@@ -102,6 +102,30 @@ namespace XUnitTest.Api
 
             var body = (BaseApiResponse)result.Should().BeOfType<OkObjectResult>().Subject.Value;
             body.IsSuccess.Should().BeFalse();
+        }
+
+        // Owner decision 2026-10-14: health changes need blocks-monitor::health::manage.
+        [Theory]
+        [InlineData(nameof(HealthController.SaveHealth))]
+        [InlineData(nameof(HealthController.UpdateHealth))]
+        [InlineData(nameof(HealthController.DeleteHealth))]
+        public void HealthChange_IsProtectedByHealthManage(string methodName)
+        {
+            var method = typeof(HealthController).GetMethod(methodName)!;
+
+            var guard = (ProtectedEndPointAttribute?)System.Attribute.GetCustomAttribute(method, typeof(ProtectedEndPointAttribute));
+            guard.Should().NotBeNull();
+            guard!.ResourceName.Should().Be("blocks-monitor::health::manage");
+        }
+
+        [Fact]
+        public void Ping_StaysOpen()
+        {
+            // Heartbeat from monitored apps; they send no token.
+            var method = typeof(HealthController).GetMethod(nameof(HealthController.Ping))!;
+
+            method.GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), true)
+                .Should().BeEmpty();
         }
     }
 }

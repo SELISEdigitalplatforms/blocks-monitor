@@ -29,7 +29,7 @@ namespace XUnitTest.Health
                 .With(configs ?? new List<MonitorConfiguration>())
                 .With(incidents ?? new List<MonitorIncident>())
                 .With(new List<ProjectPeople>())
-                .With(new List<AlertMailTemplate>())
+                .With(new List<EmailTemplate>())
                 .With(new List<MailServerConfiguration>());
             var secret = MongoMocks.BlocksSecret().Object;
 
@@ -59,7 +59,7 @@ namespace XUnitTest.Health
                 .With(configs ?? new List<MonitorConfiguration>())
                 .With(incidentColl)
                 .With(new List<ProjectPeople>())
-                .With(new List<AlertMailTemplate>())
+                .With(new List<EmailTemplate>())
                 .With(new List<MailServerConfiguration>());
             var secret = MongoMocks.BlocksSecret().Object;
 

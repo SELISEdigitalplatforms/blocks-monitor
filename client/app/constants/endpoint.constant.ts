@@ -41,6 +41,8 @@ export const ALERT_ENDPOINTS = {
   // escapes the controller's "[controller]/[action]" template for this one endpoint, matching the
   // documented contract. Server-side route and this constant are each pinned by a test.
   GET_REPOS_LIST: `${API_BASE}${MONITOR_SUBPATH}/repos-list`,
+  GET_REPO_DETAILS: `${API_BASE}${MONITOR_SUBPATH}/repo-details`,
+  GET_REPORTS: `${API_BASE}${MONITOR_SUBPATH}/reports`,
   SAVE_MONITOR: `${API_BASE}${MONITOR_SUBPATH}/SaveMonitor`,
   UPDATE_MONITOR: `${API_BASE}${MONITOR_SUBPATH}/UpdateMonitor`,
   DELETE_MONITOR: `${API_BASE}${MONITOR_SUBPATH}/DeleteMonitor`,

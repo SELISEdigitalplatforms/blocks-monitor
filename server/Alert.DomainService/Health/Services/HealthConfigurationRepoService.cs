@@ -9,7 +9,6 @@ namespace DomainService.Health.Services
     {
         private readonly ILogger<HealthConfigurationRepoService> _logger;
         private readonly IMongoCollection<MonitorConfiguration> _healthConfigCollection;
-        private readonly IMongoCollection<MonitorIncident> _incidentCollection;
 
         public HealthConfigurationRepoService(
             ILogger<HealthConfigurationRepoService> logger,
@@ -20,7 +19,6 @@ namespace DomainService.Health.Services
             
             _logger = logger;
             _healthConfigCollection = db.GetCollection<MonitorConfiguration>("MonitorConfigurations");
-            _incidentCollection = db.GetCollection<MonitorIncident>("HealthIncidents");
         }
 
         // =====================================================
@@ -29,19 +27,14 @@ namespace DomainService.Health.Services
 
         public async Task<List<MonitorConfiguration>> GetAllActiveConfigurationsAsync()
         {
-            try
-            {
-                var filter = Builders<MonitorConfiguration>.Filter.And(
-                    Builders<MonitorConfiguration>.Filter.Eq(m => m.IsActive, true),
-                    Builders<MonitorConfiguration>.Filter.Eq(m => m.MonitorConfigurationType, MonitorConfigurationTypes.InboundPing)
-                );
-                return await _healthConfigCollection.Find(filter).ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving active HealthConfigurations");
-                return new List<MonitorConfiguration>();
-            }
+            // Read failures propagate so the scheduler keeps the last known heartbeat schedule
+            // instead of treating an unavailable root database as an empty configuration set.
+            // The polling loop logs and handles the failure.
+            var filter = Builders<MonitorConfiguration>.Filter.And(
+                Builders<MonitorConfiguration>.Filter.Eq(m => m.IsActive, true),
+                Builders<MonitorConfiguration>.Filter.Eq(m => m.MonitorConfigurationType, MonitorConfigurationTypes.InboundPing)
+            );
+            return await _healthConfigCollection.Find(filter).ToListAsync();
         }
 
         public async Task<List<MonitorConfiguration>> GetConfigurationListAsync(string tenantId)
@@ -124,64 +117,6 @@ namespace DomainService.Health.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating incident state for MonitorConfiguration {ConfigId}", configId);
-                return false;
-            }
-        }
-
-        // =====================================================
-        // ================= INCIDENT METHODS =================
-        // =====================================================
-
-        public async Task<MonitorIncident?> GetActiveIncidentAsync(string configId)
-        {
-            try
-            {
-                var filter = Builders<MonitorIncident>.Filter.And(
-                    Builders<MonitorIncident>.Filter.Eq(i => i.MonitorId, configId),
-                    Builders<MonitorIncident>.Filter.Eq(i => i.IsResolved, false));
-
-                return await _incidentCollection.Find(filter).FirstOrDefaultAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving active incident for MonitorConfiguration {ConfigId}", configId);
-                return null;
-            }
-        }
-
-        public async Task<MonitorIncident?> CreateIncidentAsync(MonitorIncident incident)
-        {
-            try
-            {
-                await _incidentCollection.InsertOneAsync(incident);
-                return incident;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating MonitorIncident for ConfigId {ConfigId}", incident.MonitorId);
-                return null;
-            }
-        }
-
-        public async Task<bool> ResolveIncidentAsync(string configId)
-        {
-            try
-            {
-                var activeIncident = await GetActiveIncidentAsync(configId);
-                if (activeIncident == null)
-                    return false;
-
-                var filter = Builders<MonitorIncident>.Filter.Eq(i => i.ItemId, activeIncident.ItemId);
-                var update = Builders<MonitorIncident>.Update
-                    .Set(i => i.IsResolved, true)
-                    .Set(i => i.EndTime, DateTime.UtcNow);
-
-                var result = await _incidentCollection.UpdateOneAsync(filter, update);
-                return result.ModifiedCount > 0;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error resolving MonitorIncident for ConfigId {ConfigId}", configId);
                 return false;
             }
         }
