@@ -25,7 +25,11 @@ export function useMonitorNavigation(): PaletteNavSection[] {
           ]
         : [],
     );
-    // One flat list: Monitor and Repos sit beside Overview rather than under a "Monitor" group.
-    return items.length ? [{ id: "monitor", items }] : [];
+    // Overview, a separator, then Monitor, Repos and Environments as plain items. Unlabeled
+    // sections render flat (no "Monitor" group); globals.css merges their borders into one line.
+    return [
+      { id: "overview", items: items.filter((item) => item.id === "overview-project") },
+      { id: "monitor", items: items.filter((item) => item.id !== "overview-project") },
+    ].filter((section) => section.items.length > 0);
   }, [itemId, menus]);
 }

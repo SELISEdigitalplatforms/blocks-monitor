@@ -811,3 +811,10 @@
   background-size: 64px 64px;
   mask-image: linear-gradient(100deg, transparent, #000 65%);
 }
+
+/* app-kit's sidebar draws each unlabeled section with a top and bottom border. Between two
+   adjacent sections that would be a double line; drop the second's top border so the first's
+   bottom border is the single separator after Overview. */
+nav[aria-label="Application navigation"] > div + div {
+  border-top-width: 0;
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router";
 
@@ -100,6 +100,11 @@ vi.mock("@/components/module/incident/incident-list", () => ({
 }));
 
 let lastIncidentListData: unknown[] = [];
+vi.mock("@/components/module/monitor/details/incident-activity", () => ({
+  default: (props: { monitorId: string }) => (
+    <div data-testid="incident-activity" data-monitor-id={props.monitorId} />
+  ),
+}));
 vi.mock("@/components/module/alert/alert-action", () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="alert-action">{children}</div>
@@ -274,6 +279,17 @@ describe("MonitorDetailsPage", () => {
     expect(screen.queryByText("View all incidents")).toBeNull();
   });
 
+  it("puts the downtime calendar inside Latest incidents, above the table", () => {
+    renderPage();
+    const section = screen.getByRole("region", { name: "Latest incidents" });
+    const activity = within(section).getByTestId("incident-activity");
+    expect(activity).toHaveAttribute("data-monitor-id", "m1");
+    expect(
+      activity.compareDocumentPosition(within(section).getByTestId("incident-list")) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it("hides the action buttons for an external (source type 2) monitor", () => {
     h.monitor.data.data.monitorSourceTypes = 2;
     renderPage();
@@ -381,6 +397,7 @@ describe("MonitorDetailsPage paused state", () => {
 
     expect(screen.getByText("Paused")).toBeInTheDocument();
     expect(lastIncidentListData).toEqual(incidents);
+    expect(screen.getByTestId("incident-activity")).toBeInTheDocument();
   });
 
   it("tells the Status Overview chart the monitor is paused", () => {

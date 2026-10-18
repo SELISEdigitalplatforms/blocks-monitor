@@ -147,9 +147,13 @@ describe("Monitor command palette integration", () => {
         "/app/project/environments",
       ],
     );
-    // One flat, unlabeled section: Monitor and Repos are not nested under a "Monitor" group.
-    expect(h.props?.sections).toHaveLength(1);
-    expect(h.props?.sections?.[0]?.label).toBeUndefined();
+    // Overview alone, then a separator, then the rest. Both sections are unlabeled, so Monitor
+    // and Repos are not nested under a "Monitor" group.
+    expect(h.props?.sections?.map((section) => section.items.map((item) => item.id))).toEqual([
+      ["overview-project"],
+      ["monitor", "repos", "environments"],
+    ]);
+    expect(h.props?.sections?.every((section) => section.label === undefined)).toBe(true);
     expect(h.props?.projectGroups).toBeUndefined();
   });
 

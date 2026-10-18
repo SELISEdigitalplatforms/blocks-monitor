@@ -6,6 +6,7 @@ import { SectionHeading } from "@/components/common/section-heading/section-head
 import AlertAction from "@/components/module/alert/alert-action";
 import NotificationModal from "@/components/module/alert/notification-modal";
 import IncidentList from "@/components/module/incident/incident-list";
+import IncidentActivity from "@/components/module/monitor/details/incident-activity";
 import MonitorCard from "@/components/module/monitor/details/monitor-card";
 import {
   LoadingListSkelton,
@@ -371,6 +372,11 @@ const MonitorDetailsPage = () => {
               ) : undefined
             }
           />
+          {/* A year of downtime per day above the latest incidents; paused monitors keep their
+              history, so it is shown whatever the monitor's state. */}
+          <div className={SURFACE_TILE_CLASS}>
+            <IncidentActivity monitorId={monitorId} />
+          </div>
           <IncidentList
             data={data?.monitorIncidents || []}
             showLastStatus={request}
