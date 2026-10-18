@@ -1,5 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/core";
 import { Skeleton } from "@/components/core";
+import {
+  SECTION_CLASS,
+  SURFACE_TILE_CLASS,
+} from "@/components/module/monitor/details/surface-styles";
 
 export const LoadingListSkelton = ({ length }: { length: number }) => (
   <div className="grid w-full gap-2">
@@ -11,14 +14,9 @@ export const LoadingListSkelton = ({ length }: { length: number }) => (
 
 export const MonitorCardSkeleton = () => {
   return (
-    <Card className="border shadow-xs">
-      <CardHeader>
-        <CardTitle className="text-base font-semibold">
-          <Skeleton className="h-4 w-40" />
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+    <div className={SECTION_CLASS}>
+      <Skeleton className="h-4 w-44" />
+      <div className={`${SURFACE_TILE_CLASS} grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2`}>
         {/* Deploys from */}
         <div>
           <div className="mb-1">
@@ -44,22 +42,31 @@ export const MonitorCardSkeleton = () => {
           <Skeleton className="h-4 w-32" />
         </div>
         {/* Notification recipients */}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
+
+/** Mirrors the Response time section: heading and range select, three tiles, the chart card. */
 export const ResponseSkeletonLoader = () => {
   return (
-    <div className="mb-6">
-      <div className="mb-4 flex items-center justify-between">
-        <Skeleton className="h-6 w-32" />
-        <Skeleton className="h-8 w-20" />
+    <div className={SECTION_CLASS}>
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-4 w-48" />
+        <Skeleton className="h-9 w-40 rounded-sm" />
       </div>
-      <div className="mb-4 flex gap-4">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-4 w-24" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <Skeleton key={index} className="h-[116px] w-full rounded-sm" />
+        ))}
       </div>
-      <Skeleton className="h-[200px] w-full rounded" />
+      <div className={SURFACE_TILE_CLASS}>
+        <div className="mb-4 flex gap-6">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <Skeleton className="h-[260px] w-full rounded-sm" />
+      </div>
     </div>
   );
 };

@@ -1,8 +1,8 @@
 "use client";
 import { BackIconButton } from "@/components/common/back-buttons";
-import { Badge, Button, Skeleton } from "@/components/core";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/core/card/card";
-import { Separator } from "@/components/core/separator/separator";
+import { Button, Skeleton } from "@/components/core";
+import { PageHeader } from "@/components/common/page-header/page-header";
+import { SectionHeading } from "@/components/common/section-heading/section-heading";
 import AlertAction from "@/components/module/alert/alert-action";
 import NotificationModal from "@/components/module/alert/notification-modal";
 import IncidentList from "@/components/module/incident/incident-list";
@@ -13,13 +13,23 @@ import {
   ResponseSkeletonLoader,
 } from "@/components/module/monitor/details/monitor-details-skeletons";
 import ResponseTime from "@/components/module/monitor/details/response-time";
+import { StatusPill } from "@/components/module/monitor/details/status-pill";
+import {
+  SECTION_CLASS,
+  STAT_GRID_CLASS,
+  STAT_LABEL_CLASS,
+  STAT_SUB_CLASS,
+  STAT_VALUE_CLASS,
+  SURFACE_TILE_CLASS,
+  TABLE_CARD_CLASS,
+} from "@/components/module/monitor/details/surface-styles";
 import { EditSingleMonitorForm } from "@/components/module/monitor/form/edit-monitor-form";
 import { MonitorModal } from "@/components/module/monitor/modal/monitor-modal";
 import { useGetMonitorById, useGetMonitorDetails, useGetMonitorDownTime } from "@/hooks/use-alerts";
 import { IMonitorSummary } from "@/models/alerts.model";
 import { useScopedPath } from "@seliseblocks/app-kit/hooks";
 import { useProjectStore } from "@seliseblocks/app-kit/store";
-import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
+import { ArrowLeft, ArrowRight, BellRing, EllipsisVertical, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
@@ -40,28 +50,33 @@ interface MonitorSummaryProps {
 const MonitorDetailsSkeleton = () => {
   return (
     <main>
-      <div className="flex flex-col gap-4">
+      <div className="mb-4 flex items-center gap-2 sm:mb-6">
+        <Skeleton className="h-8 w-8 rounded-sm" />
+        <Skeleton className="h-7 w-56" />
+      </div>
+      <div className="flex flex-col gap-6">
         <MonitorCardSkeleton />
 
-        <Card className="flex flex-col p-6">
-          <CardHeader className="text-lg font-semibold">
-            {/* Summary Cards Skeleton */}
-            <div className="my-2 flex w-full gap-10">
-              <Skeleton className="h-24 flex-1 rounded-md" />
-              <Skeleton className="h-24 flex-1 rounded-md" />
-              <Skeleton className="h-24 flex-1 rounded-md" />
-              <Skeleton className="h-24 flex-1 rounded-md" />
-            </div>
-          </CardHeader>
+        {/* Status overview skeleton: heading over four stat tiles. */}
+        <div className={SECTION_CLASS}>
+          <Skeleton className="h-4 w-40" />
+          <div className={STAT_GRID_CLASS}>
+            {Array.from({ length: 4 }).map((_, index) => (
+              <Skeleton key={index} className="h-[116px] w-full rounded-sm" />
+            ))}
+          </div>
+        </div>
 
-          <CardContent>
-            {/* Response Time Chart Skeleton */}
-            <ResponseSkeletonLoader />
-            <Separator orientation="horizontal" className="mb-6" />
-            {/* Incident List Skeleton */}
+        {/* Response time chart skeleton */}
+        <ResponseSkeletonLoader />
+
+        {/* Incident list skeleton */}
+        <div className={SECTION_CLASS}>
+          <Skeleton className="h-4 w-48" />
+          <div className={`${TABLE_CARD_CLASS} p-5`}>
             <LoadingListSkelton length={5} />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </main>
   );
@@ -90,12 +105,6 @@ export const formatDuration = (ms: number) => {
   return `${seconds}s`;
 };
 
-const getBorderColorClass = (index: number) => {
-  if (index === 1) return "border-l-blocks-secondary-500";
-  if (index === 2) return "border-l-chart-blue";
-  return "border-l-chart-purple";
-};
-
 const MonitorSummary = ({ data, status, incident, createdAt, isActive }: MonitorSummaryProps) => {
   const toMilliseconds = (value: string): number =>
     Number.parseInt(value, 10) * 24 * 60 * 60 * 1000;
@@ -107,78 +116,63 @@ const MonitorSummary = ({ data, status, incident, createdAt, isActive }: Monitor
   const incidentDuration = formatDuration(now - incidentTime);
 
   return (
-    <div className="my-6 flex w-full flex-col gap-4 md:flex-row md:gap-10">
-      {data.map((item, index) => {
-        if (item.type === "status") {
-          // Paused monitors are not being checked, so up/down says nothing true about them.
-          // Everything that encodes health here -- the border, the text colour, the status word
-          // and the "Currently up for ..." line -- drops out together rather than leaving a
-          // green card that also says "Paused".
-          const isPaused = isActive === false;
-          let statusBorderColor = "border-l-red-500";
-          if (isPaused) {
-            statusBorderColor = "border-l-muted";
-          } else if (status) {
-            statusBorderColor = "border-l-green-500";
+    <section aria-label="Status overview" className={SECTION_CLASS}>
+      <SectionHeading
+        title="Status overview"
+        description="Current health and uptime over recent periods"
+      />
+      <div className={STAT_GRID_CLASS}>
+        {data.map((item, index) => {
+          if (item.type === "status") {
+            // Paused monitors are not being checked, so up/down says nothing true about them.
+            // Everything that encodes health here -- the pill's tone, the status word and the
+            // "Currently up for ..." line -- drops out together rather than leaving a green
+            // tile that also says "Paused".
+            const isPaused = isActive === false;
+            let tone: "up" | "down" | "paused" = "down";
+            if (isPaused) {
+              tone = "paused";
+            } else if (status) {
+              tone = "up";
+            }
+
+            return (
+              <div
+                key={`status-${index}`} //nosonar
+                data-testid="status-tile"
+                className={SURFACE_TILE_CLASS}
+              >
+                <p className={STAT_LABEL_CLASS}>Current status</p>
+                <div className={STAT_VALUE_CLASS}>
+                  <StatusPill tone={tone} size="lg" className="capitalize">
+                    {isPaused ? "Paused" : item.status}
+                  </StatusPill>
+                </div>
+                <p className={STAT_SUB_CLASS}>
+                  {isPaused
+                    ? "Checks are paused until resumed"
+                    : `Currently ${status ? "up" : "down"} for ${incidentDuration}`}
+                </p>
+              </div>
+            );
           }
 
+          const totalPossibleMs = toMilliseconds(item.range!);
+          const uptimePercentage =
+            ((totalPossibleMs - item.totalDurationMs!) / totalPossibleMs) * 100;
+
           return (
-            <Card
-              key={`status-${index}`} //nosonar
-              className={`flex flex-1 flex-col rounded-md border-0 border-l-8 shadow-none ${statusBorderColor} bg-transparent py-2 pl-4`}
-            >
-              <CardTitle className="text-base font-medium">Current Status</CardTitle>
-              <CardContent className="mt-3 flex flex-col gap-3">
-                {isPaused ? (
-                  // w-fit: Badge is a block-level flex element and this column is flex-col, so
-                  // without it the badge stretches into a full-width strip.
-                  <Badge variant="secondary" className="w-fit">
-                    Paused
-                  </Badge>
-                ) : (
-                  <>
-                    <span
-                      className={`text-xl font-semibold capitalize ${
-                        status ? "text-green-500" : "text-red-500"
-                      }`}
-                    >
-                      {item.status}
-                    </span>
-                    <span className="text-xs font-medium text-medium-emphasis">
-                      {" "}
-                      Currently {status ? "up" : "down"} for {incidentDuration}
-                    </span>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          );
-        }
-
-        const totalPossibleMs = toMilliseconds(item.range!);
-        const uptimePercentage =
-          ((totalPossibleMs - item.totalDurationMs!) / totalPossibleMs) * 100;
-
-        return (
-          <Card
-            key={item.range}
-            className={`flex flex-1 flex-col gap-2 rounded-md border-0 border-l-8 bg-transparent py-1 pl-4 shadow-none ${getBorderColorClass(
-              index,
-            )}`}
-          >
-            <CardTitle className="text-base font-medium">
-              Last {item.range?.slice(0, -1)} days
-            </CardTitle>
-            <CardContent className="mt-3 flex flex-col gap-3">
-              <span className="text-xl font-semibold">{uptimePercentage.toFixed(2)}%</span>
-              <span className="text-xs font-medium text-primary">
+            <div key={item.range} className={SURFACE_TILE_CLASS}>
+              <p className={STAT_LABEL_CLASS}>Last {item.range?.slice(0, -1)} days</p>
+              <p className={STAT_VALUE_CLASS}>{uptimePercentage.toFixed(2)}%</p>
+              <p className={STAT_SUB_CLASS}>
                 {item.incidentCount} incidents, {formatDuration(item.totalDurationMs!)} down
-              </span>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 };
 
@@ -259,53 +253,67 @@ const MonitorDetailsPage = () => {
   ];
 
   return (
-    <div>
-      <div className="mb-[18px] flex items-center justify-between md:mb-[24px]">
-        <div className="flex items-center gap-1">
-          <BackIconButton
-            data-testid="back-button"
-            icon={<ArrowLeft className="h-6 w-6" />}
-            onClick={() => navigate(-1)}
-            className="h-8 w-8"
-          />
-          <h1 className="text-lg font-semibold md:text-2xl break-all max-w-[40vw]">
-            {monitorData?.data?.name}
-          </h1>
-        </div>
-        {monitorSourceType !== 2 && (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="flex-1 sm:flex-none"
-              onClick={() => setOpenNotificationSettings((open) => !open)}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Notification Settings
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1 sm:flex-none"
-              onClick={() => setOpen((open) => !open)}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Configure
-            </Button>
-            <AlertAction
-              monitorId={monitorId as string}
-              isActive={monitorData?.data?.isActive ?? false}
-              name={monitorData?.data?.name || ""}
-              request={request}
-              projectKey={projectKey}
-              monitorSourceType={monitorSourceType}
-            >
-              <Button variant="outline" size="icon" aria-label="Actions">
-                <EllipsisVertical className="h-4 w-4" />
-              </Button>
-            </AlertAction>
-          </div>
-        )}
+    <main>
+      <div className="mb-4 flex items-start gap-1 sm:mb-6">
+        <BackIconButton
+          data-testid="back-button"
+          icon={<ArrowLeft className="h-6 w-6" />}
+          onClick={() => navigate(-1)}
+          className="h-8 w-8 shrink-0"
+        />
+        <PageHeader
+          // The back button sits beside the header, so the header gives up its own bottom margin
+          // to the row; `break-all` keeps an unbroken monitor name inside the page.
+          className="mb-0 min-w-0 flex-1 sm:mb-0 [&_h1]:break-all"
+          title={monitorData?.data?.name || ""}
+          description="Health, uptime and incidents for this monitor."
+          actions={
+            monitorSourceType !== 2 ? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setOpenNotificationSettings((open) => !open)}
+                >
+                  <BellRing className="h-4 w-4" />
+                  Notification Settings
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setOpen((open) => !open)}
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  Configure
+                </Button>
+                <AlertAction
+                  monitorId={monitorId as string}
+                  isActive={monitorData?.data?.isActive ?? false}
+                  name={monitorData?.data?.name || ""}
+                  request={request}
+                  projectKey={projectKey}
+                  monitorSourceType={monitorSourceType}
+                >
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-9 px-0"
+                    aria-label="Actions"
+                  >
+                    <EllipsisVertical className="h-4 w-4" />
+                  </Button>
+                </AlertAction>
+              </>
+            ) : undefined
+          }
+        />
       </div>
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-6">
         <MonitorCard
           onOpenChange={setOpenNotificationSettings}
           repoName={monitorData?.data?.repoName}
@@ -315,77 +323,80 @@ const MonitorDetailsPage = () => {
           emails={monitorData?.data?.emails || []}
           monitorSourceType={monitorData?.data?.monitorSourceTypes ?? 0}
         />
-        <Card className="flex flex-col px-6 py-2">
-          <CardHeader className="text-lg font-semibold">
-            <MonitorSummary
-              data={summaryData}
-              status={monitorData?.data?.currentStatus ?? false}
-              // `?? true`, not `?? false`: unexpected data must read as active (C4). The
-              // AlertAction call above deliberately keeps `?? false` -- it sends `!isActive`, so
-              // that default offers to activate rather than to pause a possibly-running monitor.
-              isActive={monitorData?.data?.isActive ?? true}
-              incident={
-                monitorData?.data?.lastIncidentAt
-                  ? new Date(monitorData?.data?.lastIncidentAt)
-                  : new Date()
-              }
-              createdAt={monitorData?.data?.createdDate as string}
-            />
-          </CardHeader>
-          <CardContent>
-            <ResponseTime
-              request={request}
-              interval={intervalInSeconds || 30}
-              timeout={timePeriod || 60}
-              data={rtData?.data || []}
-              timeRange={timeRange}
-              setTimeRange={setTimeRange}
-              currentStatus={monitorData?.data?.currentStatus || false}
-              // Same `?? true` default as the status card: the chart must not assert a current
-              // up/down state while the page is showing "Paused".
-              isActive={monitorData?.data?.isActive ?? true}
-            />
-            <Separator orientation="horizontal" className="mb-6" />
-            <div className="flex flex-col gap-5">
-              <div className="flex w-full justify-between">
-                <span className="text-lg font-semibold">Latest incidents</span>
-                {data?.monitorIncidents && data.monitorIncidents.length > 4 && (
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate(scoped(`monitor/incidents/${monitorId}`))}
-                  >
-                    View all incidents
-                  </Button>
-                )}
-              </div>
-              <IncidentList
-                data={data?.monitorIncidents || []}
-                showLastStatus={request}
-                isLoading={isLoading || isMonitorLoading || isRTLoading}
-              />
-            </div>
-          </CardContent>
-
-          <MonitorModal open={open} onOpenChange={setOpen} itemId={monitorId}>
-            <EditSingleMonitorForm itemId={monitorId} onSuccess={() => setOpen(false)} />
-          </MonitorModal>
-          <NotificationModal
-            open={openNotificationSettings}
-            onOpenChange={setOpenNotificationSettings}
-            data={{
-              name: monitorData?.data?.name || "",
-              repoId: monitorData?.data?.repoId || "",
-              repoName: monitorData?.data?.repoName || "",
-              itemId: monitorId || "",
-              emails: monitorData?.data?.emails || [],
-              isActive: monitorData?.data?.isActive || false,
-              projectKey: projectKey,
-            }}
-            request={request}
+        <MonitorSummary
+          data={summaryData}
+          status={monitorData?.data?.currentStatus ?? false}
+          // `?? true`, not `?? false`: unexpected data must read as active (C4). The
+          // AlertAction call above deliberately keeps `?? false` -- it sends `!isActive`, so
+          // that default offers to activate rather than to pause a possibly-running monitor.
+          isActive={monitorData?.data?.isActive ?? true}
+          incident={
+            monitorData?.data?.lastIncidentAt
+              ? new Date(monitorData?.data?.lastIncidentAt)
+              : new Date()
+          }
+          createdAt={monitorData?.data?.createdDate as string}
+        />
+        <ResponseTime
+          request={request}
+          interval={intervalInSeconds || 30}
+          timeout={timePeriod || 60}
+          data={rtData?.data || []}
+          timeRange={timeRange}
+          setTimeRange={setTimeRange}
+          currentStatus={monitorData?.data?.currentStatus || false}
+          // Same `?? true` default as the status tile: the chart must not assert a current
+          // up/down state while the page is showing "Paused".
+          isActive={monitorData?.data?.isActive ?? true}
+        />
+        {/* Same treatment as the release "Monitoring" table: small caps title with an inline
+            description, the action on the right, and a table that draws its own card. */}
+        <section aria-label="Latest incidents" className={SECTION_CLASS}>
+          <SectionHeading
+            className="items-center"
+            title="Latest incidents"
+            description="Recent downtime for this monitor"
+            actions={
+              data?.monitorIncidents && data.monitorIncidents.length > 4 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => navigate(scoped(`monitor/incidents/${monitorId}`))}
+                >
+                  View all incidents
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              ) : undefined
+            }
           />
-        </Card>
+          <IncidentList
+            data={data?.monitorIncidents || []}
+            showLastStatus={request}
+            isLoading={isLoading || isMonitorLoading || isRTLoading}
+          />
+        </section>
       </div>
-    </div>
+
+      <MonitorModal open={open} onOpenChange={setOpen} itemId={monitorId}>
+        <EditSingleMonitorForm itemId={monitorId} onSuccess={() => setOpen(false)} />
+      </MonitorModal>
+      <NotificationModal
+        open={openNotificationSettings}
+        onOpenChange={setOpenNotificationSettings}
+        data={{
+          name: monitorData?.data?.name || "",
+          repoId: monitorData?.data?.repoId || "",
+          repoName: monitorData?.data?.repoName || "",
+          itemId: monitorId || "",
+          emails: monitorData?.data?.emails || [],
+          isActive: monitorData?.data?.isActive || false,
+          projectKey: projectKey,
+        }}
+        request={request}
+      />
+    </main>
   );
 };
 

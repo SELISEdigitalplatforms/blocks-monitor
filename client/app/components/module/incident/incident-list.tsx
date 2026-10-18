@@ -1,16 +1,7 @@
 import type { SortValue } from "@seliseblocks/app-kit/components";
 import { FilterControls } from "@seliseblocks/app-kit/components";
 import { TableLoadingSkeleton } from "@seliseblocks/app-kit/components";
-import {
-  ScrollArea,
-  ScrollBar,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/core";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/core";
 import { IncidentTree } from "@/models/alerts.model";
 import {
   CellContext,
@@ -22,6 +13,9 @@ import {
 import { useCallback, useMemo } from "react";
 import { useIncidentFilterQueryParams } from "./use-incident-query-filter-params";
 import { formatDuration } from "@seliseblocks/app-kit/utils";
+import { ShieldCheck } from "lucide-react";
+import { StatusPill } from "@/components/module/monitor/details/status-pill";
+import { TABLE_CARD_CLASS } from "@/components/module/monitor/details/surface-styles";
 
 const parseFailureReason = (reason?: string | null): string | undefined => {
   if (!reason) return undefined; // instead of null
@@ -112,12 +106,11 @@ const IncidentList = ({
         ),
         cell: ({ row }) => {
           const isResolved = row.original.isResolved;
-          const statusClass = isResolved
-            ? "text-green-600 bg-green-100 px-2 py-1 rounded-full"
-            : "text-red-600 bg-red-100 px-2 py-1 rounded-full";
           return (
             <div className="flex w-[100px] flex-row items-center gap-2">
-              <span className={statusClass}>{isResolved ? "Resolved" : "Unresolved"}</span>
+              <StatusPill tone={isResolved ? "up" : "down"}>
+                {isResolved ? "Resolved" : "Unresolved"}
+              </StatusPill>
             </div>
           );
         },
@@ -246,16 +239,17 @@ const IncidentList = ({
   });
 
   return (
-    <ScrollArea className="w-full">
-      <Table className="text-sm">
+    // The table draws its own card (the release "Monitoring" table), with the pagination footer
+    // inside it. The kit Table and the global table CSS already give the uppercase `h-10 px-5`
+    // headers, `px-5 py-4` cells, faint row dividers and warm hover, and the kit table's own
+    // ring is dropped inside this card, so wide tables still scroll sideways within it.
+    <div className={TABLE_CARD_CLASS}>
+      <Table aria-label="Incidents" className="w-full min-w-[760px]">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="hover:bg-transparent">
+            <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className="text-xs font-semibold uppercase tracking-wide text-high-emphasis"
-                >
+                <TableHead key={header.id}>
                   {header.isPlaceholder
                     ? null
                     : flexRender(header.column.columnDef.header, header.getContext())}
@@ -274,7 +268,7 @@ const IncidentList = ({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="text-medium-emphasis"
+                  className="cursor-auto text-medium-emphasis"
                   isHoverable
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -286,11 +280,11 @@ const IncidentList = ({
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={table.getAllColumns().length}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  No results.
+                <TableCell colSpan={table.getAllColumns().length} className="h-40">
+                  <div className="flex flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
+                    <ShieldCheck className="h-6 w-6" aria-hidden="true" />
+                    <span>No incidents found.</span>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -309,9 +303,7 @@ const IncidentList = ({
           />
         </div>
       )}
-
-      <ScrollBar orientation="horizontal" />
-    </ScrollArea>
+    </div>
   );
 };
 

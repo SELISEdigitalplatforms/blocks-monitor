@@ -1,4 +1,4 @@
-import { EllipsisVertical } from "lucide-react";
+import { EllipsisVertical, Pause, Play, Trash2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import {
   DropdownMenu,
@@ -54,23 +54,29 @@ const AlertAction = ({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-        <DropdownMenuContent align="center" className="flex pointer-events-auto gap-2 flex-col">
+        <DropdownMenuContent align="center" className="pointer-events-auto min-w-40 rounded-sm">
           <DropdownMenuItem
-            className="gap-2 cursor-pointer"
+            className="cursor-pointer gap-2 text-[13px]"
             onClick={(e) => {
               e.stopPropagation();
               setIsUpdateDialogOpen(true);
             }}
           >
+            {isActive ? (
+              <Pause className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Play className="h-4 w-4" aria-hidden="true" />
+            )}
             <span>{activityState}</span>
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="gap-2 cursor-pointer text-destructive"
+            className="cursor-pointer gap-2 text-[13px] text-destructive focus:bg-destructive/10 focus:text-destructive"
             onClick={(e) => {
               e.stopPropagation();
               setIsDeleteDialogOpen(true);
             }}
           >
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
             <span>Delete</span>
           </DropdownMenuItem>
         </DropdownMenuContent>

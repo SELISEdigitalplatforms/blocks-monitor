@@ -195,8 +195,8 @@ describe("MonitorDetailsPage", () => {
     expect(screen.getByText("API monitor")).toBeInTheDocument();
     expect(screen.getByText("Notification Settings")).toBeInTheDocument();
     expect(screen.getByText("Configure")).toBeInTheDocument();
-    // Status card
-    expect(screen.getByText("Current Status")).toBeInTheDocument();
+    // Status tile
+    expect(screen.getByText("Current status")).toBeInTheDocument();
     expect(screen.getByText(/Currently up for/)).toBeInTheDocument();
     // Range card renders an uptime percentage and incident count.
     expect(screen.getByText("Last 7 days")).toBeInTheDocument();
@@ -208,6 +208,70 @@ describe("MonitorDetailsPage", () => {
     h.monitor.data.data.currentStatus = false;
     renderPage();
     expect(screen.getByText(/Currently down for/)).toBeInTheDocument();
+  });
+
+  it("shows the current status as a forest pill when up and a rose pill when down", () => {
+    const { unmount } = renderPage();
+    const up = screen.getByTestId("status-tile").querySelector("[data-tone]");
+    expect(up).toHaveAttribute("data-tone", "up");
+    expect(up).toHaveClass("rounded-full", "bg-forest-soft", "text-forest-ink");
+    expect(up).toHaveTextContent("up");
+    unmount();
+
+    h.monitor.data.data.currentStatus = false;
+    renderPage();
+    const down = screen.getByTestId("status-tile").querySelector("[data-tone]");
+    expect(down).toHaveAttribute("data-tone", "down");
+    expect(down).toHaveClass("rounded-full", "bg-rose-soft", "text-rose-ink");
+    expect(down).toHaveTextContent("down");
+  });
+
+  it("lays the status overview out as a responsive grid of token tiles", () => {
+    renderPage();
+    const heading = screen.getByRole("heading", { name: "Status overview" });
+    expect(heading).toHaveClass("text-[13px]", "font-bold", "uppercase", "tracking-[0.06em]");
+    expect(screen.getByText("Current health and uptime over recent periods")).toBeInTheDocument();
+
+    const tile = screen.getByTestId("status-tile");
+    expect(tile).toHaveClass("rounded-sm", "bg-card", "p-5", "shadow-surface-ring");
+    expect(tile.parentElement).toHaveClass("grid-cols-1", "sm:grid-cols-2", "lg:grid-cols-4");
+    // Status tile plus one tile per range.
+    expect(tile.parentElement!.children).toHaveLength(4);
+    // 90 days with 2h down -> 99.91% uptime, with the incident sub-line beneath it.
+    expect(screen.getByText("99.91%")).toBeInTheDocument();
+    expect(screen.getByText("2 incidents, 2h down")).toBeInTheDocument();
+    expect(tile.parentElement!.innerHTML).not.toMatch(/border-l-|green-|red-/);
+  });
+
+  it("matches the header buttons to the list page's Add Monitor button", () => {
+    renderPage();
+    for (const name of ["Notification Settings", "Configure"]) {
+      const button = screen.getByRole("button", { name });
+      // `size="sm"` (h-9) and the kit's font-medium, as on Add Monitor; outline variant.
+      expect(button).toHaveClass("h-9", "font-medium", "border-border", "bg-card", "gap-2");
+    }
+    // Different icons: a bell for notifications, sliders for configuration.
+    expect(
+      screen.getByRole("button", { name: "Notification Settings" }).querySelector("svg"),
+    ).toHaveClass("lucide-bell-ring");
+    expect(screen.getByRole("button", { name: "Configure" }).querySelector("svg")).toHaveClass(
+      "lucide-sliders-horizontal",
+    );
+    // The actions trigger is a square of the same height.
+    expect(screen.getByRole("button", { name: "Actions" })).toHaveClass("h-9", "w-9", "px-0");
+    expect(screen.getByRole("heading", { level: 1, name: "API monitor" })).toBeInTheDocument();
+  });
+
+  it("gives Latest incidents the small-caps heading with an inline description", () => {
+    renderPage();
+    expect(screen.getByRole("heading", { name: "Latest incidents" })).toHaveClass(
+      "text-[13px]",
+      "font-bold",
+      "uppercase",
+    );
+    expect(screen.getByText("Recent downtime for this monitor")).toBeInTheDocument();
+    // Four or fewer incidents: no "View all" action.
+    expect(screen.queryByText("View all incidents")).toBeNull();
   });
 
   it("hides the action buttons for an external (source type 2) monitor", () => {
@@ -236,7 +300,9 @@ describe("MonitorDetailsPage", () => {
       itemId: `i${i}`,
     }));
     renderPage();
-    const viewAll = screen.getByText("View all incidents");
+    const viewAll = screen.getByRole("button", { name: "View all incidents" });
+    // A `size="sm"` outline button on the right of the section heading.
+    expect(viewAll).toHaveClass("h-9", "border-border", "bg-card");
     await userEvent.click(viewAll);
     expect(h.navigate).toHaveBeenCalledWith("/scoped/monitor/incidents/m1");
   });
@@ -257,7 +323,7 @@ describe("MonitorDetailsPage paused state", () => {
     lastResponseTimeIsActive = undefined;
   });
 
-  const statusCard = () => screen.getByText("Current Status").closest("div")!;
+  const statusCard = () => screen.getByTestId("status-tile");
 
   it("shows a Paused badge on the Current Status card when isActive is false", () => {
     // H3
@@ -276,10 +342,9 @@ describe("MonitorDetailsPage paused state", () => {
     expect(screen.queryByText(/Currently (up|down) for/)).toBeNull();
     const card = statusCard();
     expect(card.textContent).not.toMatch(/\b(up|down)\b/i);
-    expect(container.querySelector(".text-green-500")).toBeNull();
-    expect(container.querySelector(".border-l-green-500")).toBeNull();
-    expect(container.querySelector(".border-l-red-500")).toBeNull();
-    expect(container.querySelector(".border-l-muted")).toBeTruthy();
+    expect(card.querySelector("[data-tone='paused']")).toHaveTextContent("Paused");
+    expect(card.querySelector("[data-tone='up'], [data-tone='down']")).toBeNull();
+    expect(container.querySelector(".text-forest-ink, .text-rose-ink")).toBeNull();
   });
 
   it("shows Paused for a monitor whose last known status was down", () => {

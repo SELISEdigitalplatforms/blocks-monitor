@@ -67,10 +67,43 @@ const baseProps = {
 describe("ResponseTime", () => {
   it("shows 100% uptime and zero downtime for empty data", () => {
     render(<ResponseTime {...baseProps} />);
-    expect(screen.getByText("Status Overview")).toBeInTheDocument();
+    expect(screen.getByText("Response time")).toBeInTheDocument();
     expect(screen.getByText("100.00%")).toBeInTheDocument();
     // Two metric cards read "0s" / "0" for downtime and incident count.
     expect(screen.getByText("0s")).toBeInTheDocument();
+  });
+
+  it("uses the section heading and token tiles instead of raw palette boxes", () => {
+    const { container } = render(<ResponseTime {...baseProps} />);
+    expect(screen.getByRole("heading", { name: "Response time" })).toHaveClass(
+      "text-[13px]",
+      "font-bold",
+      "uppercase",
+    );
+    for (const label of ["Uptime", "Total downtime", "Incidents"]) {
+      const tile = screen.getByText(label).parentElement!;
+      expect(tile).toHaveClass("rounded-sm", "bg-card", "shadow-surface-ring", "p-5");
+    }
+    expect(container.innerHTML).not.toMatch(/(green|red|blue|gray)-\d{2,3}/);
+  });
+
+  it("draws the tooltip on the popover surface with token status colours", () => {
+    render(<ResponseTime {...baseProps} />);
+    const up = screen.getByText("Up", { selector: "div" });
+    expect(up).toHaveClass("text-forest-ink");
+    expect(up.parentElement).toHaveClass("bg-popover");
+    expect(up.parentElement).not.toHaveClass("bg-white");
+  });
+
+  it("styles the time-range select as the console dropdown", () => {
+    render(<ResponseTime {...baseProps} />);
+    expect(screen.getByRole("combobox", { name: "Time range" })).toHaveClass(
+      "h-9",
+      "w-40",
+      "rounded-sm",
+      "bg-card",
+      "text-[13px]",
+    );
   });
 
   it("renders the interval and request-timeout labels", () => {
@@ -135,7 +168,8 @@ describe("ResponseTime", () => {
 // A paused monitor is not being checked, so the chart must not assert an up/down state at "now"
 // while the page shows a Paused badge (issue #197, C1).
 describe("ResponseTime while paused", () => {
-  const points = () => (globalThis as { __chartPoints?: { ts: number; status: number }[] }).__chartPoints ?? [];
+  const points = () =>
+    (globalThis as { __chartPoints?: { ts: number; status: number }[] }).__chartPoints ?? [];
 
   it("plots a current status point while the monitor is active", () => {
     render(<ResponseTime {...baseProps} currentStatus={false} isActive />);
@@ -162,7 +196,9 @@ describe("ResponseTime while paused", () => {
     // afterwards is always later than the point it plots there and `ts < now` would hold even
     // for the very point this is meant to reject.
     const beforeRender = Date.now();
-    render(<ResponseTime {...baseProps} data={withHistory} currentStatus={false} isActive={false} />);
+    render(
+      <ResponseTime {...baseProps} data={withHistory} currentStatus={false} isActive={false} />,
+    );
     // The last plotted point is a real recovery edge, not a "currently down" assertion at now.
     expect(points().at(-1)!.ts).toBeLessThan(beforeRender);
   });
@@ -174,7 +210,8 @@ describe("ResponseTime while paused", () => {
 });
 
 describe("ResponseTime with an unresolved incident", () => {
-  const points = () => (globalThis as { __chartPoints?: { ts: number; status: number }[] }).__chartPoints ?? [];
+  const points = () =>
+    (globalThis as { __chartPoints?: { ts: number; status: number }[] }).__chartPoints ?? [];
   const openIncident = () =>
     [
       { startTime: new Date(Date.now() - 20 * 60 * 1000).toISOString(), endTime: null },
@@ -190,7 +227,7 @@ describe("ResponseTime with an unresolved incident", () => {
     // left this one asserting a live Down beside the Paused badge.
     const beforeRender = Date.now();
     render(
-      <ResponseTime {...baseProps} data={openIncident()} currentStatus={false} isActive={false} />
+      <ResponseTime {...baseProps} data={openIncident()} currentStatus={false} isActive={false} />,
     );
     const down = points().filter((p) => p.status === 0);
     expect(down.length).toBeGreaterThan(0); // the outage itself is still shown

@@ -147,6 +147,9 @@ describe("Monitor command palette integration", () => {
         "/app/project/environments",
       ],
     );
+    // One flat, unlabeled section: Monitor and Repos are not nested under a "Monitor" group.
+    expect(h.props?.sections).toHaveLength(1);
+    expect(h.props?.sections?.[0]?.label).toBeUndefined();
     expect(h.props?.projectGroups).toBeUndefined();
   });
 

@@ -25,13 +25,7 @@ export function useMonitorNavigation(): PaletteNavSection[] {
           ]
         : [],
     );
-    return [
-      { id: "overview", items: items.filter((item) => item.id === "overview-project") },
-      {
-        id: "monitor",
-        label: "Monitor",
-        items: items.filter((item) => item.id !== "overview-project"),
-      },
-    ].filter((section) => section.items.length > 0);
+    // One flat list: Monitor and Repos sit beside Overview rather than under a "Monitor" group.
+    return items.length ? [{ id: "monitor", items }] : [];
   }, [itemId, menus]);
 }

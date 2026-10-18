@@ -48,7 +48,7 @@ describe("IncidentPage", () => {
     h.isError = true;
     renderPage();
     expect(screen.getByRole("alert")).toHaveTextContent("Could not load incidents.");
-    expect(screen.queryByText("No results.")).toBeNull();
+    expect(screen.queryByText("No incidents found.")).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(h.refetch).toHaveBeenCalledTimes(1);
   });
@@ -56,7 +56,7 @@ describe("IncidentPage", () => {
   it("renders the incidents heading and an empty list", () => {
     renderPage();
     expect(screen.getByText("Incidents")).toBeInTheDocument();
-    expect(screen.getByText("No results.")).toBeInTheDocument();
+    expect(screen.getByText("No incidents found.")).toBeInTheDocument();
   });
 
   it("navigates back when the back button is clicked", async () => {

@@ -46,12 +46,22 @@ describe("IncidentList", () => {
     // While loading, the component swaps the table body for the skeleton and
     // never falls through to the empty state.
     expect(screen.getByTestId("table-loading-skeleton")).toBeInTheDocument();
-    expect(screen.queryByText("No results.")).toBeNull();
+    expect(screen.queryByText("No incidents found.")).toBeNull();
   });
 
-  it("shows an empty state when there are no incidents", () => {
-    render(<IncidentList isLoading={false} data={[]} />, { wrapper: wrapper() });
-    expect(screen.getByText("No results.")).toBeInTheDocument();
+  it("shows a muted empty state inside the table card when there are no incidents", () => {
+    const { container } = render(<IncidentList isLoading={false} data={[]} />, {
+      wrapper: wrapper(),
+    });
+    const empty = screen.getByText("No incidents found.");
+    expect(empty.parentElement).toHaveClass("text-muted-foreground");
+    // The table draws its own card (the release "Monitoring" table look).
+    expect(container.firstElementChild).toHaveClass(
+      "overflow-hidden",
+      "rounded-sm",
+      "bg-card",
+      "shadow-surface-ring",
+    );
   });
 
   it("renders resolved and unresolved statuses", () => {
@@ -64,6 +74,25 @@ describe("IncidentList", () => {
     );
     expect(screen.getByText("Resolved")).toBeInTheDocument();
     expect(screen.getByText("Unresolved")).toBeInTheDocument();
+  });
+
+  it("renders resolved as a forest pill and unresolved as a rose pill", () => {
+    render(
+      <IncidentList
+        isLoading={false}
+        data={[incident({ isResolved: true }), incident({ isResolved: false, itemId: "i2" })]}
+      />,
+      { wrapper: wrapper() },
+    );
+    const resolved = screen.getByText("Resolved").closest("[data-tone]");
+    const unresolved = screen.getByText("Unresolved").closest("[data-tone]");
+    expect(resolved).toHaveAttribute("data-tone", "up");
+    expect(resolved).toHaveClass("rounded-full", "bg-forest-soft", "text-forest-ink");
+    expect(unresolved).toHaveAttribute("data-tone", "down");
+    expect(unresolved).toHaveClass("rounded-full", "bg-rose-soft", "text-rose-ink");
+    // No raw palette colours left on the status cells.
+    expect(resolved?.className).not.toMatch(/green-|red-/);
+    expect(unresolved?.className).not.toMatch(/green-|red-/);
   });
 
   it("parses a JSON failure reason into its error field", () => {
@@ -123,7 +152,10 @@ describe("IncidentList", () => {
       />,
       { wrapper: wrapper() },
     );
-    await userEvent.click(screen.getByLabelText("Go to next page"));
+    // The pagination footer sits inside the table card.
+    const next = screen.getByLabelText("Go to next page");
+    expect(next.closest(".shadow-surface-ring")).not.toBeNull();
+    await userEvent.click(next);
     expect(onPageChange).toHaveBeenCalledWith(1);
   });
 
