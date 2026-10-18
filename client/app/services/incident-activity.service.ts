@@ -90,7 +90,8 @@ export async function getMonitorIncidentActivity(
   let readCount = 0;
   let isPartial = false;
 
-  for (let pageNumber = 1; ; pageNumber++) {
+  // GetIncidentList pages from 0: the server skips pageNumber * pageSize rows.
+  for (let pageNumber = 0; ; pageNumber++) {
     signal?.throwIfAborted();
     const response = await alertsService.getAllMonitorIncidentList({
       monitorId,
@@ -100,11 +101,9 @@ export async function getMonitorIncidentActivity(
       sortIsDescending: true,
     });
     signal?.throwIfAborted();
-    if (
-      !response ||
-      response.isSuccess === false ||
-      (response.data != null && !Array.isArray(response.data))
-    ) {
+    // GetIncidentList never sets isSuccess, so it always arrives false even on success; the
+    // incident table ignores it too. A usable page is one whose data is a list.
+    if (!response || (response.data != null && !Array.isArray(response.data))) {
       throw new Error("Incident activity could not be loaded.");
     }
     const page = response.data ?? [];

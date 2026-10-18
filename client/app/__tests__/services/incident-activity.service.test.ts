@@ -26,7 +26,7 @@ const incident = (
   ...overrides,
 });
 const page = (data: ReturnType<typeof incident>[], totalCount?: number) =>
-  ({ isSuccess: true, data, totalCount }) as never;
+  ({ isSuccess: false, data, totalCount }) as never;
 const load = (signal?: AbortSignal) => getMonitorIncidentActivity("m1", END, { signal, now: NOW });
 
 describe("monitor incident activity", () => {
@@ -44,9 +44,11 @@ describe("monitor incident activity", () => {
     );
     const result = await load();
     expect(getList).toHaveBeenCalledTimes(2);
+    // Zero-based paging, as the server skips pageNumber * pageSize rows.
+    expect(getList).toHaveBeenNthCalledWith(1, expect.objectContaining({ pageNumber: 0 }));
     expect(getList).toHaveBeenNthCalledWith(2, {
       monitorId: "m1",
-      pageNumber: 2,
+      pageNumber: 1,
       pageSize: 100,
       sortProperty: "started_time",
       sortIsDescending: true,
@@ -177,10 +179,10 @@ describe("monitor incident activity", () => {
     expect((await load()).isPartial).toBe(true);
   });
 
-  it("returns an empty calendar for empty history and rejects a failed response", async () => {
+  it("returns an empty calendar for empty history and rejects a malformed response", async () => {
     getList.mockResolvedValue(page([], 0));
     expect(await load()).toEqual({ days: [], incidents: [], unit: "minute" });
-    getList.mockResolvedValue({ isSuccess: false } as never);
+    getList.mockResolvedValue({ isSuccess: false, data: "unexpected" } as never);
     await expect(load()).rejects.toThrow("could not be loaded");
   });
 

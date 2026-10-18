@@ -812,9 +812,12 @@
   mask-image: linear-gradient(100deg, transparent, #000 65%);
 }
 
-/* app-kit's sidebar draws each unlabeled section with a top and bottom border. Between two
-   adjacent sections that would be a double line; drop the second's top border so the first's
-   bottom border is the single separator after Overview. */
+/* app-kit's sidebar draws each unlabeled section with a top and bottom border. Keep only the
+   line between Overview and the rest: drop the second section's top border (it would double the
+   first's bottom border) and the last section's bottom border (no line after Repos). */
 nav[aria-label="Application navigation"] > div + div {
   border-top-width: 0;
+}
+nav[aria-label="Application navigation"] > div:last-child {
+  border-bottom-width: 0;
 }
