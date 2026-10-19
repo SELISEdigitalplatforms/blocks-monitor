@@ -50,11 +50,22 @@ namespace XUnitTest.Validators
         public async Task Validate_TooManyMonitors_Fails()
         {
             _repo.Setup(r => r.GetConfigurationListByTenantIdAsync("proj"))
-                .ReturnsAsync(Enumerable.Range(0, 11).Select(i => new MonitorConfiguration { ItemId = i.ToString() }).ToList());
+                .ReturnsAsync(Enumerable.Range(0, 30).Select(i => new MonitorConfiguration { ItemId = i.ToString() }).ToList());
 
             var result = await Sut().ValidateAsync(Valid());
 
-            result.Errors.Select(e => e.ErrorMessage).Should().Contain(m => m.Contains("more than 10 monitors"));
+            result.Errors.Select(e => e.ErrorMessage).Should().Contain(m => m.Contains("more than 30 monitors"));
+        }
+
+        [Fact]
+        public async Task Validate_BelowMonitorLimit_Passes()
+        {
+            _repo.Setup(r => r.GetConfigurationListByTenantIdAsync("proj"))
+                .ReturnsAsync(Enumerable.Range(0, 29).Select(i => new MonitorConfiguration { ItemId = i.ToString() }).ToList());
+
+            var result = await Sut().ValidateAsync(Valid());
+
+            result.Errors.Select(e => e.ErrorMessage).Should().NotContain(m => m.Contains("monitors for this project"));
         }
 
         [Fact]
