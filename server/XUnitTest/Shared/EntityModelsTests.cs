@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DomainService.Alert.Entities;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 using DomainService.Shared.Models;
 using FluentAssertions;

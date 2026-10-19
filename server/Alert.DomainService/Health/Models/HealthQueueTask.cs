@@ -1,4 +1,4 @@
-﻿using DomainService.Monitor.Entity;
+﻿using Blocks.Genesis.Entities.Monitor;
 
 namespace DomainService.Health.Models
 {

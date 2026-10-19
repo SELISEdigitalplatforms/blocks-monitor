@@ -9,7 +9,7 @@ using DomainService.Shared.Services;
 using DomainService.Alert.Entities;
 using DomainService.Alert.Services;
 using DomainService.Health.Services;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Shared.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -34,7 +34,7 @@ namespace XUnitTest.Health
             var secret = MongoMocks.BlocksSecret().Object;
 
             var healthRepo = new HealthConfigurationRepoService(
-                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret);
+                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret, PassThroughMonitorDataAccess.Instance);
             var alertRepo = new AlertRepoService(db.Provider, secret);
             var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo);
             var http = new Mock<IHttpHelperServices>();
@@ -47,7 +47,7 @@ namespace XUnitTest.Health
                 new Mock<ICryptoService>().Object, new Mock<ITenants>().Object, alertRepo, new Mock<IConfiguration>().Object);
 
             return new HealthIncidentService(
-                new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret);
+                new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret, PassThroughMonitorDataAccess.Instance);
         }
 
         // Builds the service with a caller-supplied incident collection so write failures can be simulated.
@@ -64,7 +64,7 @@ namespace XUnitTest.Health
             var secret = MongoMocks.BlocksSecret().Object;
 
             var healthRepo = new HealthConfigurationRepoService(
-                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret);
+                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret, PassThroughMonitorDataAccess.Instance);
             var alertRepo = new AlertRepoService(db.Provider, secret);
             var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo);
             var http = new Mock<IHttpHelperServices>();
@@ -77,7 +77,7 @@ namespace XUnitTest.Health
                 new Mock<ICryptoService>().Object, new Mock<ITenants>().Object, alertRepo, new Mock<IConfiguration>().Object);
 
             return new HealthIncidentService(
-                new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret);
+                new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret, PassThroughMonitorDataAccess.Instance);
         }
 
         private static MonitorConfiguration Config() => new() { ItemId = "m1", Name = "Api", Url = "http://api" };

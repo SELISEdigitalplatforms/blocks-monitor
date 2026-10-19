@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Services;
 using FluentAssertions;
 

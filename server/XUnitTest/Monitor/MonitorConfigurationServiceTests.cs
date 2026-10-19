@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Blocks.Genesis;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.DataAccess.Rules;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.Services;
@@ -174,6 +175,21 @@ namespace XUnitTest.Monitor
             _repo.Verify(r => r.SaveConfigurationAsync(It.IsAny<MonitorConfiguration>()), Times.Once);
             _messageClient.Verify(m => m.SendToConsumerAsync(
                 It.IsAny<ConsumerMessage<MonitorConfigurationUpdateQueue>>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SaveConfigurationAsync_RefusedByAValidationRule_ReturnsItsFieldMessage()
+        {
+            var refused = new DataValidationResult();
+            refused.AddError("Url", "Url must start with https://", "Regex");
+            _repo.Setup(r => r.SaveConfigurationAsync(It.IsAny<MonitorConfiguration>())).ThrowsAsync(new DataValidationException(refused));
+
+            var result = await CreateSut().SaveConfigurationAsync(ValidSaveRequest());
+
+            result.IsSuccess.Should().BeFalse();
+            result.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
+            result.Errors.Should().Equal(new Dictionary<string, string> { ["Url"] = "Url must start with https://" });
+            _messageClient.Verify(m => m.SendToConsumerAsync(It.IsAny<ConsumerMessage<MonitorConfigurationUpdateQueue>>()), Times.Never);
         }
 
         [Fact]

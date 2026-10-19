@@ -3,9 +3,11 @@ using System.Threading;
 using System.Diagnostics.CodeAnalysis;
 using Azure.Core;
 using Blocks.Genesis;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.DataAccess.Rules;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;
+using DomainService.Shared.DataAccess;
 using DomainService.Shared.Entity;
 using DomainService.Shared.Models;
 using DomainService.Shared.Utilities;
@@ -216,6 +218,10 @@ namespace DomainService.Monitor.Services
                     Message = $"MonitorConfiguration with ItemId {monitorConfiguration.ItemId} created successfully."
                 };
             }
+            catch (DataValidationException ex)
+            {
+                return ex.ToRefusedResponse();
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error saving MonitorConfiguration with url {Url}", request.Url);
@@ -309,6 +315,10 @@ namespace DomainService.Monitor.Services
                     IsSuccess = true,
                     Message = $"MonitorConfiguration with ItemId {request.ItemId} updated successfully."
                 };
+            }
+            catch (DataValidationException ex)
+            {
+                return ex.ToRefusedResponse();
             }
             catch (Exception ex)
             {

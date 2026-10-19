@@ -1,7 +1,7 @@
 using System.Globalization;
 using Blocks.Genesis;
-using DomainService.Monitor.Entity;
-using DomainService.Monitor.Models;
+using DomainService.Shared.DataAccess;
+using Blocks.Genesis.Entities.Monitor;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -12,12 +12,15 @@ namespace DomainService.Monitor.MonitorIncidentService
     {
         private readonly ILogger<MonitorIncidentRepoService> _logger;
         private readonly IMongoCollection<MonitorIncident> _monitorIncidentsCollection;
+        private readonly IMonitorDataAccess _access;
 
         public MonitorIncidentRepoService(
             ILogger<MonitorIncidentRepoService> logger,
             IDbContextProvider dbContextProvider,
-            IBlocksSecret blocksSecret)
+            IBlocksSecret blocksSecret,
+            IMonitorDataAccess access)
         {
+            _access = access;
             var db = dbContextProvider.GetDatabase(blocksSecret.DatabaseConnectionString, blocksSecret.RootDatabaseName);
 
             _logger = logger;
@@ -61,7 +64,9 @@ namespace DomainService.Monitor.MonitorIncidentService
                     Builders<MonitorIncident>.Filter.Eq(i => i.MonitorId, monitorId),
                     Builders<MonitorIncident>.Filter.Eq(i => i.IsResolved, false)
                 );
-                return await _monitorIncidentsCollection.Find(filter).FirstOrDefaultAsync();
+                // Whole document on purpose: callers update it and write it back with UpdateIncidentAsync (a replace).
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorIncident, filter, "MonitorIncidentRepoService.GetActiveIncidentAsync", useProjection: false);
+                return scope.Granted ? await scope.Apply(_monitorIncidentsCollection).FirstOrDefaultAsync() : null;
             }
             catch (Exception ex)
             {
@@ -74,6 +79,8 @@ namespace DomainService.Monitor.MonitorIncidentService
         {
             try
             {
+                if (!await _access.InsertAllowedAsync(MonitorSchemas.MonitorIncident, "MonitorIncidentRepoService.CreateIncidentAsync"))
+                    throw new UnauthorizedAccessException("Access to monitor incidents was denied by the data access policy.");
                 await _monitorIncidentsCollection.InsertOneAsync(incident);
                 _logger.LogInformation("Created new incident for MonitorId {MonitorId}", incident.MonitorId);
             }
@@ -87,7 +94,9 @@ namespace DomainService.Monitor.MonitorIncidentService
         {
             try
             {
-                var filter = Builders<MonitorIncident>.Filter.Eq(i => i.ItemId, incident.ItemId);
+                var filter = await _access.EditFilterAsync(MonitorSchemas.MonitorIncident,
+                    Builders<MonitorIncident>.Filter.Eq(i => i.ItemId, incident.ItemId), "MonitorIncidentRepoService.UpdateIncidentAsync");
+                if (filter is null) return;
                 await _monitorIncidentsCollection.ReplaceOneAsync(filter, incident, new ReplaceOptions { IsUpsert = false });
                 _logger.LogInformation("Updated incident {IncidentId} for MonitorId {MonitorId}", incident.ItemId, incident.MonitorId);
             }
@@ -101,9 +110,11 @@ namespace DomainService.Monitor.MonitorIncidentService
         {
             try
             {
-                var filter = Builders<MonitorIncident>.Filter.Eq(i => i.MonitorId, monitor.ItemId);
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorIncident,
+                    Builders<MonitorIncident>.Filter.Eq(i => i.MonitorId, monitor.ItemId), "MonitorIncidentRepoService.GetIncidentCountByMonitorIdAsync");
+                if (!scope.Granted) return 0;
 
-                var totalCount = await _monitorIncidentsCollection.CountDocumentsAsync(filter);
+                var totalCount = await _monitorIncidentsCollection.CountDocumentsAsync(scope.Filter);
 
                 _logger.LogInformation("Total {Count} incidents found for MonitorId {MonitorId}", totalCount, monitor.ItemId);
 
@@ -121,10 +132,11 @@ namespace DomainService.Monitor.MonitorIncidentService
         {
             try
             {
-                var filter = Builders<MonitorIncident>.Filter.Eq(i => i.MonitorId, monitor.ItemId);
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorIncident,
+                    Builders<MonitorIncident>.Filter.Eq(i => i.MonitorId, monitor.ItemId), "MonitorIncidentRepoService.GetIncidentsByMonitorIdAsync");
+                if (!scope.Granted) return new List<MonitorIncident>();
 
-                var incidents = await _monitorIncidentsCollection
-                    .Find(filter)
+                var incidents = await scope.Apply(_monitorIncidentsCollection)
                     .Sort(BuildSortDefinition(sortProperty, sortIsDescending))
                     .Skip((pageNumber - 1) * pageSize)
                     .Limit(pageSize)
@@ -152,8 +164,11 @@ namespace DomainService.Monitor.MonitorIncidentService
                     Builders<MonitorIncident>.Filter.Lte(i => i.StartTime, endTime)
                 );
 
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorIncident, filter, "MonitorIncidentRepoService.GetIncidentsDurationByDateRangeAsync");
+                if (!scope.Granted) return 0;
+
                 var aggregate = _monitorIncidentsCollection.Aggregate()
-                    .Match(filter)
+                    .Match(scope.Filter)
                     .Project(new BsonDocument
                     {
                 { "durationMs",
@@ -215,7 +230,10 @@ namespace DomainService.Monitor.MonitorIncidentService
                     { "last365Days", now.AddDays(-365) }
                 };
 
-                        var match = new BsonDocument("$match", new BsonDocument { { "MonitorId", monitorId } });
+                        var scope = await _access.ReadAsync(MonitorSchemas.MonitorIncident,
+                            Builders<MonitorIncident>.Filter.Eq(i => i.MonitorId, monitorId), "MonitorIncidentRepoService.GetDowntimeByMultipleRangesAsync");
+                        if (!scope.Granted) return ranges.Keys.ToDictionary(k => k, _ => 0L);
+                        var match = scope.MatchStage();
 
                         var facet = new BsonDocument("$facet", new BsonDocument
                         {
@@ -283,7 +301,11 @@ namespace DomainService.Monitor.MonitorIncidentService
             };
                 }
 
-                var pipeline = new[] { new BsonDocument("$facet", facetDoc) };
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorIncident,
+                    Builders<MonitorIncident>.Filter.Eq(i => i.MonitorId, monitorId), "MonitorIncidentRepoService.GetDowntimeAndCountByDateRangesAsync");
+                if (!scope.Granted) return rangesInDays.Keys.ToDictionary(k => k, _ => (0L, 0L));
+
+                var pipeline = new[] { scope.MatchStage(), new BsonDocument("$facet", facetDoc) };
                 var result = await _monitorIncidentsCollection.Aggregate<BsonDocument>(pipeline).FirstOrDefaultAsync();
 
                 var output = new Dictionary<string, (long TotalDurationMs, long IncidentCount)>();
@@ -320,8 +342,11 @@ namespace DomainService.Monitor.MonitorIncidentService
             {
                 var skip = pageNumber * pageSize;
 
-                // Build the match filter
-                var matchStage = new BsonDocument("$match", new BsonDocument("MonitorId", monitor.ItemId));
+                // Build the match filter: the row policy's filter on this monitor's incidents
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorIncident,
+                    Builders<MonitorIncident>.Filter.Eq(i => i.MonitorId, monitor.ItemId), "MonitorIncidentRepoService.GetIncidentsWithCountByMonitorIdAsync");
+                if (!scope.Granted) return (new List<MonitorIncident>(), 0);
+                var matchStage = scope.MatchStage();
 
                 // Build the facet pipeline manually (no ToBsonDocument)
                 var facetStage = new BsonDocument("$facet", new BsonDocument
@@ -421,8 +446,12 @@ namespace DomainService.Monitor.MonitorIncidentService
 
                 var finalFilter = filterBuilder.And(filters);
 
+                // Row filter only: this query keeps its own two-field projection.
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorIncident, finalFilter, "MonitorIncidentRepoService.GetIncidentsListByDateRangeAsync", useProjection: false);
+                if (!scope.Granted) return new List<IncidentListSummary>();
+
                 var partialResults = await _monitorIncidentsCollection
-                    .Find(finalFilter)
+                    .Find(scope.Filter)
                     .Project(x => new
                     {
                         x.StartTime,
@@ -462,8 +491,10 @@ namespace DomainService.Monitor.MonitorIncidentService
                                 filterBuilder.Gte(x => x.StartTime, startDateUtc) &
                                 filterBuilder.Lte(x => x.StartTime, endDateUtc);
 
-                var incidents = await _monitorIncidentsCollection
-                    .Find(filter)
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorIncident, filter, "MonitorIncidentRepoService.GetIncidentsListByMonitorIdsAndDateRangeAsync");
+                if (!scope.Granted) return new List<MonitorIncident>();
+
+                var incidents = await scope.Apply(_monitorIncidentsCollection)
                     .SortByDescending(x => x.StartTime)
                     .ToListAsync();
 

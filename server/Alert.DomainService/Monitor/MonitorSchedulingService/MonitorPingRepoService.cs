@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using Blocks.Genesis;
-using DomainService.Monitor.Entity;
+using DomainService.Shared.DataAccess;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
@@ -11,13 +12,16 @@ namespace DomainService.Monitor.MonitorSchedulingService
     {
         private readonly ILogger<MonitorPingRepoService> _logger;
         private readonly IMongoCollection<MonitorPingLog> _monitorPingLogsCollection;
+        private readonly IMonitorDataAccess _access;
 
 
         public MonitorPingRepoService(
             ILogger<MonitorPingRepoService> logger,
             IDbContextProvider dbContextProvider,
-            IBlocksSecret blocksSecret)
+            IBlocksSecret blocksSecret,
+            IMonitorDataAccess access)
         {
+            _access = access;
             var db = dbContextProvider.GetDatabase(blocksSecret.DatabaseConnectionString, blocksSecret.RootDatabaseName);
 
             _logger = logger;
@@ -28,6 +32,8 @@ namespace DomainService.Monitor.MonitorSchedulingService
         {
             try
             {
+                if (!await _access.InsertAllowedAsync(MonitorSchemas.MonitorPingLog, "MonitorPingRepoService.SavePingLogAsync"))
+                    throw new UnauthorizedAccessException("Saving a ping log was denied by the data access policy.");
                 await _monitorPingLogsCollection.InsertOneAsync(log);
             }
             catch (Exception ex)
@@ -68,8 +74,12 @@ namespace DomainService.Monitor.MonitorSchedulingService
                     .Include(x => x.ResponseTimeMs)
                     .Include(x => x.StatusCode);
 
+                // Row filter only: this query keeps its own summary projection.
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorPingLog, filter, "MonitorPingRepoService.GetPingLogsByDateRangeAsync", useProjection: false);
+                if (!scope.Granted) return new List<MonitorPingLogSummary>();
+
                 var results = await _monitorPingLogsCollection
-                    .Find(filter)
+                    .Find(scope.Filter)
                     .Project<MonitorPingLogSummary>(projection)
                     .ToListAsync();
 

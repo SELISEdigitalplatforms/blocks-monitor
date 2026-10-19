@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorSchedulingService;
 using FluentAssertions;
@@ -17,7 +17,7 @@ namespace XUnitTest.Monitor
         {
             var db = new MongoMocks.DbBuilder().With(collection);
             return new MonitorPingRepoService(
-                new Mock<ILogger<MonitorPingRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
+                new Mock<ILogger<MonitorPingRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object, PassThroughMonitorDataAccess.Instance);
         }
 
         [Fact]

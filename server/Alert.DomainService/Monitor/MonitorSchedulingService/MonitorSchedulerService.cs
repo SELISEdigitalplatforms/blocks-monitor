@@ -1,4 +1,4 @@
-﻿using DomainService.Monitor.Entity;
+﻿using Blocks.Genesis.Entities.Monitor;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 

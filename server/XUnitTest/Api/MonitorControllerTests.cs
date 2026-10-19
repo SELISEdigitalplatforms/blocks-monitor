@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Api.Controllers;
 using Blocks.Genesis;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.Services;
@@ -639,7 +639,7 @@ namespace XUnitTest.Api
             var propsPath = LocateDirectoryPackagesProps();
             var props = File.ReadAllText(propsPath);
             props.Should().Contain("Include=\"SeliseBlocks.ReleaseDriver.OS\" Version=\"4.0.3\"");
-            props.Should().Contain("Include=\"SeliseBlocks.Genesis.OS\" Version=\"4.3.6\"");
+            props.Should().Contain("Include=\"SeliseBlocks.Genesis.OS\" Version=\"4.3.7\"");
         }
 
         private static string LocateDirectoryPackagesProps()
