@@ -19,7 +19,7 @@ namespace DomainService.Validators
 
             RuleFor(x => x.ProjectKey)
                 .NotEmpty().WithMessage("ProjectKey is required.")
-                .MustAsync(HaveLessThanMaxMonitors).WithMessage("You cannot have more than 10 monitors for this project.");
+                .MustAsync(HaveLessThanMaxMonitors).WithMessage("You cannot have more than 30 monitors for this project.");
 
 
             RuleFor(x => x.Name)
@@ -48,7 +48,7 @@ namespace DomainService.Validators
                 return true;
 
             var monitors = await _monitorConfigurationRepoService.GetConfigurationListByTenantIdAsync(projectKey);
-            return monitors.Count <= 10;
+            return monitors.Count < 30;
         }
 
         private async Task<bool> BeUniqueUrl(SaveMonitorConfigurationRequest request, string url, CancellationToken token)
