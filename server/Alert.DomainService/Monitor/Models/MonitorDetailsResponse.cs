@@ -1,4 +1,4 @@
-﻿using DomainService.Monitor.Entity;
+﻿using Blocks.Genesis.Entities.Monitor;
 using DomainService.Shared.Models;
 
 namespace DomainService.Monitor.Models

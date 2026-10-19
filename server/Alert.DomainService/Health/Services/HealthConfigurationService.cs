@@ -1,7 +1,9 @@
 ﻿using System.Net;
 using Blocks.Genesis;
+using Blocks.Genesis.DataAccess.Rules;
+using DomainService.Shared.DataAccess;
 using DomainService.Health.Models;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Shared.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -91,6 +93,10 @@ namespace DomainService.Health.Services
                     Message = $"HealthConfiguration created successfully ({healthConfiguration.ItemId})."
                 };
             }
+            catch (DataValidationException ex)
+            {
+                return ex.ToRefusedResponse();
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error saving HealthConfiguration {Name}", request.Name);
@@ -153,6 +159,10 @@ namespace DomainService.Health.Services
                     IsSuccess = true,
                     Message = $"HealthConfiguration {request.ItemId} updated successfully."
                 };
+            }
+            catch (DataValidationException ex)
+            {
+                return ex.ToRefusedResponse();
             }
             catch (Exception ex)
             {

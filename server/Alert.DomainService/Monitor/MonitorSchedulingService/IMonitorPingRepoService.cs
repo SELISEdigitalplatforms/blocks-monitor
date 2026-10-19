@@ -1,4 +1,4 @@
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 
 namespace DomainService.Monitor.MonitorSchedulingService

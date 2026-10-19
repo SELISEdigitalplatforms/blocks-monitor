@@ -6,6 +6,11 @@ using MongoDB.Driver;
 
 namespace DomainService.Alert.Services
 {
+    /// <summary>
+    /// Reads for the alert flow (incident emails and notifications), which runs without a signed-in user. Not routed
+    /// through IMonitorDataAccess on purpose: these are the root database's platform alert template and mail server,
+    /// not tenant data, so a tenant's EmailTemplate / MailServerConfiguration policies must not hide them.
+    /// </summary>
     public class AlertRepoService
     {
         private readonly IMongoCollection<ProjectPeople> _projectPeopleCollection;

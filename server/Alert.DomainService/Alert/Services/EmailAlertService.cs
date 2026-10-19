@@ -1,5 +1,5 @@
 ﻿using DomainService.Alert.Entities;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Mail;

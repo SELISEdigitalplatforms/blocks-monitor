@@ -1,5 +1,4 @@
 using DomainService.Health.Models;
-using DomainService.Monitor.Entity;
 using DomainService.Monitor.Models;
 using DomainService.Shared.Models;
 

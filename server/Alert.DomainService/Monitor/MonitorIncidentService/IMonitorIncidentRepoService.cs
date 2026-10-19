@@ -1,5 +1,4 @@
-using DomainService.Monitor.Entity;
-using DomainService.Monitor.Models;
+using Blocks.Genesis.Entities.Monitor;
 
 namespace DomainService.Monitor.MonitorIncidentService
 {

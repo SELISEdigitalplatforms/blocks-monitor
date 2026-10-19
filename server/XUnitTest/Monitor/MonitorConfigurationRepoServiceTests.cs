@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.Services;
 using FluentAssertions;
@@ -27,7 +27,7 @@ namespace XUnitTest.Monitor
                 new Mock<ILogger<MonitorConfigurationRepoService>>().Object,
                 db.Provider,
                 new Mock<IConfiguration>().Object,
-                MongoMocks.BlocksSecret().Object);
+                MongoMocks.BlocksSecret().Object, PassThroughMonitorDataAccess.Instance);
         }
 
         private static MonitorConfigurationRepoService Build(IEnumerable<MonitorConfiguration> data = null) =>

@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Blocks.Genesis.Entities.Monitor;
+using FluentValidation;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.Services;
 using System.Net;

@@ -1,6 +1,6 @@
 using System;
 using DomainService.Health.Models;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using FluentAssertions;
 
 namespace XUnitTest.Health

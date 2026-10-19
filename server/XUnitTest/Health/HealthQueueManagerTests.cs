@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using DomainService.Health.HealthWorkerService;
 using DomainService.Health.Models;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using FluentAssertions;
 
 namespace XUnitTest.Health

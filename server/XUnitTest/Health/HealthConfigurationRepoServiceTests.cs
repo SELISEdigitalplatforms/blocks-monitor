@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using DomainService.Health.Services;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
@@ -19,7 +19,7 @@ namespace XUnitTest.Health
             var db = new MongoMocks.DbBuilder()
                 .With(configs ?? new List<MonitorConfiguration>());
             return new HealthConfigurationRepoService(
-                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
+                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object, PassThroughMonitorDataAccess.Instance);
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace XUnitTest.Health
             var db = new MongoMocks.DbBuilder()
                 .With(MongoMocks.CollectionThrowing<MonitorConfiguration>());
             var repo = new HealthConfigurationRepoService(
-                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
+                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object, PassThroughMonitorDataAccess.Instance);
 
             await FluentActions.Invoking(() => repo.GetAllActiveConfigurationsAsync())
                 .Should().ThrowAsync<MongoException>();
@@ -88,7 +88,7 @@ namespace XUnitTest.Health
                 .ThrowsAsync(new MongoException("boom"));
             var db = new MongoMocks.DbBuilder().With(coll);
             var repo = new HealthConfigurationRepoService(
-                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
+                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object, PassThroughMonitorDataAccess.Instance);
 
             var act = async () => await repo.SaveOrUpdateConfigurationAsync(new MonitorConfiguration { ItemId = "m1" });
 
@@ -101,7 +101,7 @@ namespace XUnitTest.Health
             var db = new MongoMocks.DbBuilder()
                 .With(MongoMocks.CollectionThrowing<MonitorConfiguration>());
             var repo = new HealthConfigurationRepoService(
-                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
+                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object, PassThroughMonitorDataAccess.Instance);
 
             (await repo.GetConfigurationAsync("m1")).Should().BeNull();
         }
@@ -112,7 +112,7 @@ namespace XUnitTest.Health
             var db = new MongoMocks.DbBuilder()
                 .With(MongoMocks.CollectionThrowing<MonitorConfiguration>());
             var repo = new HealthConfigurationRepoService(
-                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
+                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object, PassThroughMonitorDataAccess.Instance);
 
             (await repo.GetConfigurationListAsync("t")).Should().BeEmpty();
         }
@@ -125,7 +125,7 @@ namespace XUnitTest.Health
                 .ThrowsAsync(new MongoException("boom"));
             var db = new MongoMocks.DbBuilder().With(coll);
             var repo = new HealthConfigurationRepoService(
-                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
+                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object, PassThroughMonitorDataAccess.Instance);
 
             var result = await repo.DeleteConfigurationAsync("m1");
 
@@ -141,7 +141,7 @@ namespace XUnitTest.Health
                 .ThrowsAsync(new MongoException("boom"));
             var db = new MongoMocks.DbBuilder().With(coll);
             var repo = new HealthConfigurationRepoService(
-                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
+                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object, PassThroughMonitorDataAccess.Instance);
 
             var result = await repo.UpdateConfigurationIncidentStateAsync("m1", true, System.DateTime.UtcNow);
 

@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Shared.Services;
 using Microsoft.Extensions.Logging;
 using DomainService.Monitor.MonitorIncidentService;

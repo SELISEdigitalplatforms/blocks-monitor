@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Blocks.Genesis;
 using DomainService.Alert.Entities;
 using DomainService.Alert.Services;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Shared.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
