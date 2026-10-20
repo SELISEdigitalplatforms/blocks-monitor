@@ -107,6 +107,7 @@ namespace DomainService.Health.Services
 
                 if (!await _access.InsertAllowedAsync(MonitorSchemas.MonitorIncident, "HealthIncidentService.CreateIncidentAsync"))
                     throw new UnauthorizedAccessException("Creating a monitor incident was denied by the data access policy.");
+                await _access.PrepareWriteAsync(MonitorSchemas.MonitorIncident, incident, isInsert: true, "HealthIncidentService.CreateIncidentAsync");
                 await _incidentCollection.InsertOneAsync(incident);
 
                 var update = Builders<MonitorConfiguration>.Update

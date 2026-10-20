@@ -81,6 +81,7 @@ namespace DomainService.Monitor.MonitorIncidentService
             {
                 if (!await _access.InsertAllowedAsync(MonitorSchemas.MonitorIncident, "MonitorIncidentRepoService.CreateIncidentAsync"))
                     throw new UnauthorizedAccessException("Access to monitor incidents was denied by the data access policy.");
+                await _access.PrepareWriteAsync(MonitorSchemas.MonitorIncident, incident, isInsert: true, "MonitorIncidentRepoService.CreateIncidentAsync");
                 await _monitorIncidentsCollection.InsertOneAsync(incident);
                 _logger.LogInformation("Created new incident for MonitorId {MonitorId}", incident.MonitorId);
             }
