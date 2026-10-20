@@ -9,7 +9,7 @@ using DomainService.Alert.Services;
 using DomainService.Health.HealthWorkerService;
 using DomainService.Health.Models;
 using DomainService.Health.Services;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Shared.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -29,12 +29,12 @@ namespace XUnitTest.Health
                 .With(configs ?? new List<MonitorConfiguration>())
                 .With(incidents ?? new List<MonitorIncident>())
                 .With(new List<ProjectPeople>())
-                .With(new List<AlertMailTemplate>())
+                .With(new List<EmailTemplate>())
                 .With(new List<MailServerConfiguration>());
             var secret = MongoMocks.BlocksSecret().Object;
 
             var healthRepo = new HealthConfigurationRepoService(
-                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret);
+                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret, PassThroughMonitorDataAccess.Instance);
 
             var alertRepo = new AlertRepoService(db.Provider, secret);
             var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo);
@@ -49,7 +49,7 @@ namespace XUnitTest.Health
                 new Mock<ILogger<NotificationAlertService>>().Object, http.Object, crypto.Object, tenants.Object, alertRepo, new Mock<IConfiguration>().Object);
 
             var incidentService = new HealthIncidentService(
-                new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret);
+                new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret, PassThroughMonitorDataAccess.Instance);
 
             var healthCheck = new HealthCheckService(
                 new HealthQueueManager(), new Mock<ILogger<HealthCheckService>>().Object, healthRepo, incidentService, workerCount: 1);
@@ -70,12 +70,12 @@ namespace XUnitTest.Health
                 .With(configColl)
                 .With(new List<MonitorIncident>())
                 .With(new List<ProjectPeople>())
-                .With(new List<AlertMailTemplate>())
+                .With(new List<EmailTemplate>())
                 .With(new List<MailServerConfiguration>());
             var secret = MongoMocks.BlocksSecret().Object;
 
             var healthRepo = new HealthConfigurationRepoService(
-                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret);
+                new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret, PassThroughMonitorDataAccess.Instance);
             var alertRepo = new AlertRepoService(db.Provider, secret);
             var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo);
             var http = new Mock<IHttpHelperServices>();
@@ -87,7 +87,7 @@ namespace XUnitTest.Health
                 new Mock<ILogger<NotificationAlertService>>().Object, http.Object,
                 new Mock<ICryptoService>().Object, new Mock<ITenants>().Object, alertRepo, new Mock<IConfiguration>().Object);
             var incidentService = new HealthIncidentService(
-                new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret);
+                new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret, PassThroughMonitorDataAccess.Instance);
             var healthCheck = new HealthCheckService(
                 new HealthQueueManager(), new Mock<ILogger<HealthCheckService>>().Object, healthRepo, incidentService, workerCount: 1);
             var configuration = new Mock<IConfiguration>();

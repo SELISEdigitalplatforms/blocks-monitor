@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DomainService.Alert.Entities;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 using DomainService.Shared.Models;
 using FluentAssertions;
@@ -81,9 +81,9 @@ namespace XUnitTest.Shared
         }
 
         [Fact]
-        public void AlertMailTemplate_StoresAllProperties()
+        public void EmailTemplate_StoresAllProperties()
         {
-            var template = new AlertMailTemplate
+            var template = new EmailTemplate
             {
                 JsonContent = "{}",
                 ImageId = "img1",

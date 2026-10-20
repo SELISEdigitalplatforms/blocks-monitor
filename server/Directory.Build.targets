@@ -1,0 +1,17 @@
+<Project>
+  <!-- Local-ref flag (collection cut). OFF by default: a normal build uses the NuGet packages, CI never sets it.
+       ON (-p:UseLocalGenesis=true): projects that reference SeliseBlocks.Genesis.OS build against the local
+       blocks-genesis-net checkout instead. blocks-monitor builds SeliseBlocks.MonitorDriver.OS itself
+       (Observability.Driver), so there is no MonitorDriver swap here. -->
+  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.local.props"
+          Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.local.props')" />
+
+  <PropertyGroup Condition="'$(UseLocalGenesis)' == 'true'">
+    <LocalGenesisProject Condition="'$(LocalGenesisProject)' == ''">$(MSBuildThisFileDirectory)..\..\blocks-genesis-net\src\Genesis\Blocks.Genesis.csproj</LocalGenesisProject>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(UseLocalGenesis)' == 'true' And '@(PackageReference->AnyHaveMetadataValue('Identity','SeliseBlocks.Genesis.OS'))' == 'true'">
+    <PackageReference Remove="SeliseBlocks.Genesis.OS" />
+    <ProjectReference Include="$(LocalGenesisProject)" />
+  </ItemGroup>
+</Project>

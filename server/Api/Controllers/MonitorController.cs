@@ -1,9 +1,10 @@
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.Services;
 using DomainService.Shared.Models;
 using System.Net;
-using Microsoft.AspNetCore.Authorization;
+using Blocks.Genesis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc;
 // The release driver namespace is deliberately NOT imported wholesale: it also defines a
@@ -57,7 +58,7 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="projectKey">The project key to filter monitor configurations.</param>
         /// <returns>A list of monitor configurations.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> GetMonitorList([FromQuery] string projectKey, [FromQuery] string? monitorSourceType, [FromQuery] int pageNumber = 0, [FromQuery] int pageSize = 10, [FromQuery] string? sortProperty = null, [FromQuery] bool sortIsDescending = false, [FromQuery] string? monitorSourcetype = null)
         {
@@ -74,7 +75,7 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="projectKey">The project key to filter monitor configurations.</param>
         /// <returns>A list of monitor configurations.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> GetMonitorListByRepoId([FromQuery] string projectKey, string repoId)
         {
@@ -87,7 +88,7 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="projectKey">The project key to filter monitor configurations.</param>
         /// <returns>A list of monitor configurations.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> GetMonitorById([FromQuery] string monitorId)
         {
@@ -100,7 +101,7 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="request">The request containing monitor configuration details.</param>
         /// <returns>The result of the save operation.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::manage")]
         [HttpPost]
         public async Task<IActionResult> SaveMonitor([FromBody] SaveMonitorConfigurationRequest request)
         {
@@ -113,7 +114,7 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="request">The request containing updated monitor configuration details.</param>
         /// <returns>The result of the update operation.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::manage")]
         [HttpPost]
         public async Task<IActionResult> UpdateMonitor([FromBody] UpdateMonitorConfigurationRequest request)
         {
@@ -126,7 +127,7 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="itemId">The ID of the monitor configuration to delete.</param>
         /// <returns>The result of the delete operation.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::manage")]
         [HttpDelete]
         public async Task<IActionResult> DeleteMonitor([FromQuery] string itemId)
         {
@@ -141,7 +142,7 @@ namespace Api.Controllers
         /// <param name="pageNumber">The page number for pagination.</param>
         /// <param name="pageSize">The number of items per page.</param>
         /// <returns>A paginated list of incidents.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> GetIncidentList([FromQuery] string monitorId, int pageNumber = 0, int pageSize = 10, [FromQuery] string? sortProperty = null, [FromQuery] bool sortIsDescending = true)
         {
@@ -154,7 +155,7 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="monitorId">The ID of the monitor.</param>
         /// <returns>Details of incidents for the monitor.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> GetMonitorDetails([FromQuery] string monitorId)
         {
@@ -169,7 +170,7 @@ namespace Api.Controllers
         /// <param name="startDate">The start date of the range (optional).</param>
         /// <param name="endDate">The end date of the range (optional).</param>
         /// <returns>The response time logs for the monitor.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> GetMonitorResponseTime([FromQuery] string monitorId, string? startDate, string? endDate)
         {
@@ -177,7 +178,7 @@ namespace Api.Controllers
             return Ok(result);
         }
 
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> GetMonitorDownTime([FromQuery] string monitorId, string? startDate, string? endDate)
         {
@@ -185,7 +186,7 @@ namespace Api.Controllers
             return Ok(result);
         }
 
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
         public async Task<IActionResult> IsExternalServiceConfigured([FromQuery] string externalServiceId)
         {
@@ -209,7 +210,7 @@ namespace Api.Controllers
         /// Monitor/GetReposList/repos-list, which is not the documented contract; the route test in
         /// MonitorControllerTests reads the generated route so this cannot regress silently.
         /// </remarks>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet("~/api/Monitor/repos-list")]
         public async Task<IActionResult> GetReposList()
         {
@@ -260,7 +261,7 @@ namespace Api.Controllers
         /// Route escapes the controller template with "~/" so the documented URL resolves exactly
         /// to api/Monitor/repo-details (same pattern as repos-list).
         /// </remarks>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet("~/api/Monitor/repo-details")]
         public async Task<IActionResult> GetRepoDetails(
             [FromQuery] string repoId,
@@ -324,7 +325,7 @@ namespace Api.Controllers
         /// <summary>
         /// Retrieves a SAST or SCA report for a build via the release driver.
         /// </summary>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet("~/api/Monitor/reports")]
         public async Task<IActionResult> GetReports(
             [FromQuery] string buildId,

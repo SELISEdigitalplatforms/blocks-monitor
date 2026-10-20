@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 using DomainService.Alert.Services;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.Services;
 using DomainService.Shared.Models;

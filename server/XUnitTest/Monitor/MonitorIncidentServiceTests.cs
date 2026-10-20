@@ -7,7 +7,7 @@ using Blocks.Genesis;
 using DomainService.Shared.Services;
 using DomainService.Alert.Entities;
 using DomainService.Alert.Services;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.Services;
@@ -39,7 +39,7 @@ namespace XUnitTest.Monitor
         {
             var db = new MongoMocks.DbBuilder()
                 .With(new List<ProjectPeople>())
-                .With(new List<AlertMailTemplate>())
+                .With(new List<EmailTemplate>())
                 .With(new List<MailServerConfiguration>());
             var alertRepo = new AlertRepoService(db.Provider, MongoMocks.BlocksSecret().Object);
 
