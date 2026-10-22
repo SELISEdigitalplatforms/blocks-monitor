@@ -16,7 +16,9 @@ import ResponseTime from "@/components/module/monitor/details/response-time";
 import { EditSingleMonitorForm } from "@/components/module/monitor/form/edit-monitor-form";
 import { MonitorModal } from "@/components/module/monitor/modal/monitor-modal";
 import { useGetMonitorById, useGetMonitorDetails, useGetMonitorDownTime } from "@/hooks/use-alerts";
+import { useNow } from "@/hooks/use-now";
 import { IMonitorSummary } from "@/models/alerts.model";
+import { formatUptime, observedWindowMs } from "@/utils/uptime.util";
 import { useScopedPath } from "@seliseblocks/genesis-os/hooks";
 import { useProjectStore } from "@seliseblocks/genesis-os/store";
 import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
@@ -26,7 +28,8 @@ import { useNavigate, useParams } from "react-router";
 interface MonitorSummaryProps {
   data: IMonitorSummary[];
   status: boolean;
-  incident: Date;
+  /** The last up/down change. Null until the monitor has had an incident. */
+  lastIncidentAt: string | null | undefined;
   createdAt: string;
   /**
    * Whether the monitor is running. Typed plain `boolean` on purpose: the API model declares
@@ -96,14 +99,25 @@ const getBorderColorClass = (index: number) => {
   return "border-l-chart-purple";
 };
 
-const MonitorSummary = ({ data, status, incident, createdAt, isActive }: MonitorSummaryProps) => {
-  const toMilliseconds = (value: string): number => Number.parseInt(value, 10) * 24 * 60 * 60 * 1000;
-  const [now] = useState(() => Date.now());
-  const incidentDate = new Date(incident);
-  const incidentTime =
-    incidentDate.getUTCFullYear() === 1 ? new Date(createdAt).getTime() : incidentDate.getTime();
+/**
+ * When the current up/down state began: the last status change, or the monitor's creation when it
+ * has never had one. `lastIncidentAt` is nullable, and C#'s `DateTime.MinValue` (year 1, or year 0
+ * after a positive UTC offset) also means "never".
+ */
+const statusSince = (lastIncidentAt: string | null | undefined, createdAt: string): number => {
+  const last = lastIncidentAt ? new Date(lastIncidentAt) : null;
+  if (last && !Number.isNaN(last.getTime()) && last.getUTCFullYear() > 1) return last.getTime();
+  return new Date(createdAt).getTime();
+};
 
-  const incidentDuration = formatDuration(now - incidentTime);
+const MonitorSummary = ({ data, status, lastIncidentAt, createdAt, isActive }: MonitorSummaryProps) => {
+  const toMilliseconds = (value: string): number => Number.parseInt(value, 10) * 24 * 60 * 60 * 1000;
+  // Ticks, so "Currently up for ..." keeps counting while the page is open.
+  const now = useNow(1000);
+
+  // `> 0` rather than Math.max: it also turns NaN (no usable date) into 0s.
+  const sinceMs = now - statusSince(lastIncidentAt, createdAt);
+  const statusDuration = formatDuration(sinceMs > 0 ? sinceMs : 0);
 
   return (
     <div className="my-6 flex w-full flex-col gap-4 md:flex-row md:gap-10">
@@ -145,7 +159,7 @@ const MonitorSummary = ({ data, status, incident, createdAt, isActive }: Monitor
                     </span>
                     <span className="text-xs font-medium text-medium-emphasis">
                       {" "}
-                      Currently {status ? "up" : "down"} for {incidentDuration}
+                      Currently {status ? "up" : "down"} for {statusDuration}
                     </span>
                   </>
                 )}
@@ -154,9 +168,8 @@ const MonitorSummary = ({ data, status, incident, createdAt, isActive }: Monitor
           );
         }
 
-        const totalPossibleMs = toMilliseconds(item.range!);
-        const uptimePercentage =
-          ((totalPossibleMs - item.totalDurationMs!) / totalPossibleMs) * 100;
+        const observedMs = observedWindowMs(toMilliseconds(item.range!), now, createdAt);
+        const uptimePercentage = formatUptime(observedMs, item.totalDurationMs!);
 
         return (
           <Card
@@ -169,7 +182,7 @@ const MonitorSummary = ({ data, status, incident, createdAt, isActive }: Monitor
               Last {item.range?.slice(0, -1)} days
             </CardTitle>
             <CardContent className="mt-3 flex flex-col gap-3">
-              <span className="text-xl font-semibold">{uptimePercentage.toFixed(2)}%</span>
+              <span className="text-xl font-semibold">{uptimePercentage}%</span>
               <span className="text-xs font-medium text-primary">
                 {item.incidentCount} incidents, {formatDuration(item.totalDurationMs!)} down
               </span>
@@ -193,10 +206,15 @@ const MonitorDetailsPage = () => {
 
   const monitorId = id || "";
 
-  const { data, isLoading } = useGetMonitorDetails(monitorId);
-  const { data: monitorData, isLoading: isMonitorLoading } = useGetMonitorById(monitorId);
+  // Status, the 7/30/365-day cards and the chart all refresh at the monitor's check interval.
+  const { data: monitorData, isLoading: isMonitorLoading } = useGetMonitorById(monitorId, {
+    live: true,
+  });
   const request = monitorData?.data?.monitorConfigurationType === 0;
   const interval = monitorData?.data?.intervalInSeconds || 0;
+  const { data, isLoading } = useGetMonitorDetails(monitorId, {
+    refetchInterval: (interval || 60) * 1000,
+  });
   const monitorSourceType = monitorData?.data?.monitorSourceTypes;
   const { data: rtData, isLoading: isRTLoading } = useGetMonitorDownTime({
     monitorId,
@@ -289,11 +307,7 @@ const MonitorDetailsPage = () => {
               // AlertAction call above deliberately keeps `?? false` -- it sends `!isActive`, so
               // that default offers to activate rather than to pause a possibly-running monitor.
               isActive={monitorData?.data?.isActive ?? true}
-              incident={
-                monitorData?.data?.lastIncidentAt
-                  ? new Date(monitorData?.data?.lastIncidentAt)
-                  : new Date()
-              }
+              lastIncidentAt={monitorData?.data?.lastIncidentAt}
               createdAt={monitorData?.data?.createdDate as string}
             />
           </CardHeader>
@@ -306,6 +320,7 @@ const MonitorDetailsPage = () => {
               timeRange={timeRange}
               setTimeRange={setTimeRange}
               currentStatus={monitorData?.data?.currentStatus || false}
+              createdAt={monitorData?.data?.createdDate}
               // Same `?? true` default as the status card: the chart must not assert a current
               // up/down state while the page is showing "Paused".
               isActive={monitorData?.data?.isActive ?? true}

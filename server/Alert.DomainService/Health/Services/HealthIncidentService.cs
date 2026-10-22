@@ -145,6 +145,7 @@ namespace DomainService.Health.Services
                 _logger.LogInformation("Checking for unresolved incident for {HealthName}", config.Name);
 
                 var openIncident = await FindOpenIncidentAsync(config.ItemId, "HealthIncidentService.ResolveIncidentAsync");
+                var resolvedAt = DateTime.UtcNow;
 
                 if (openIncident == null)
                 {
@@ -154,10 +155,10 @@ namespace DomainService.Health.Services
                 {
                     var updateIncident = Builders<MonitorIncident>.Update
                         .Set(x => x.IsResolved, true)
-                        .Set(x => x.EndTime, DateTime.UtcNow);
+                        .Set(x => x.EndTime, resolvedAt);
 
                     openIncident.IsResolved = true;
-                    openIncident.EndTime = DateTime.UtcNow;
+                    openIncident.EndTime = resolvedAt;
 
                     var incidentFilter = await _access.EditFilterAsync(MonitorSchemas.MonitorIncident,
                         Builders<MonitorIncident>.Filter.Eq(x => x.ItemId, openIncident.ItemId), "HealthIncidentService.ResolveIncidentAsync");
@@ -171,7 +172,13 @@ namespace DomainService.Health.Services
                 // Always mark config as UP
                 var updateHealth = Builders<MonitorConfiguration>.Update
                     .Set(x => x.CurrentStatus, true)
-                    .Set(x => x.LastCheckedAt, DateTime.UtcNow);
+                    .Set(x => x.LastCheckedAt, resolvedAt);
+
+                // LastIncidentAt is the last up/down change: the UI's "Currently up for" counts from it.
+                // HTTP monitors already move it on recovery (MonitorIncidentService); heartbeats did not,
+                // so their uptime started at the outage instead of the recovery.
+                if (openIncident != null)
+                    updateHealth = updateHealth.Set(x => x.LastIncidentAt, resolvedAt);
 
                 await UpdateConfigurationAsync(config.ItemId, updateHealth, "HealthIncidentService.ResolveIncidentAsync");
 

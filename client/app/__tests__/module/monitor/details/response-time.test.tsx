@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 // Recharts renders nothing measurable under jsdom (ResponsiveContainer has no
@@ -198,5 +198,69 @@ describe("ResponseTime with an unresolved incident", () => {
     // earlier than any reading taken after render, so the naive comparison passed even when the
     // offending point was present.
     expect(down.every((p) => p.ts < beforeRender)).toBe(true);
+  });
+});
+
+describe("ResponseTime over the monitor's lifetime", () => {
+  const NOW = Date.UTC(2026, 9, 22, 11, 25, 23);
+  const S = 1000;
+  const M = 60 * S;
+  const points = () => (globalThis as { __chartPoints?: { ts: number; status: number }[] }).__chartPoints ?? [];
+  const at = (ms: number) => new Date(ms).toISOString();
+  const logs = (...items: { startTime: string; endTime: string | null }[]) =>
+    items as unknown as typeof baseProps.data;
+
+  beforeEach(() => {
+    vi.useFakeTimers({ now: NOW });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("measures uptime only since the monitor was created", () => {
+    // The screenshot case: created 10 minutes into a 1h window, down 3 minutes. That is 70% of
+    // the time it existed, not 95% of the hour.
+    render(
+      <ResponseTime
+        {...baseProps}
+        createdAt={at(NOW - 10 * M)}
+        data={logs({ startTime: at(NOW - 8 * M), endTime: at(NOW - 5 * M) })}
+      />
+    );
+    expect(screen.getByText("70.00%")).toBeInTheDocument();
+  });
+
+  it("does not plot the time before the monitor existed", () => {
+    render(<ResponseTime {...baseProps} createdAt={at(NOW - 10 * M)} />);
+    expect(points()[0].ts).toBe(NOW - 10 * M);
+    expect(points().every((p) => p.ts >= NOW - 10 * M)).toBe(true);
+  });
+
+  it("uses the whole window for a monitor older than it", () => {
+    render(<ResponseTime {...baseProps} createdAt={at(NOW - 2 * 60 * M)} />);
+    expect(points()[0].ts).toBe(NOW - 60 * M);
+  });
+
+  it("moves forward while the page is open and plots incidents that start after it opened", () => {
+    // `now` used to be fixed at mount, so a refetched incident that started later was filtered
+    // out and the chart kept showing Up.
+    const { rerender } = render(<ResponseTime {...baseProps} createdAt={at(NOW - 10 * M)} />);
+    expect(points().at(-1)!.ts).toBe(NOW);
+
+    act(() => {
+      vi.advanceTimersByTime(baseProps.interval * S);
+    });
+    rerender(
+      <ResponseTime
+        {...baseProps}
+        createdAt={at(NOW - 10 * M)}
+        currentStatus={false}
+        data={logs({ startTime: at(NOW + 10 * S), endTime: null })}
+      />
+    );
+
+    expect(points().at(-1)).toMatchObject({ ts: NOW + 30 * S, status: 0 });
+    expect(points().some((p) => p.ts === NOW + 10 * S && p.status === 0)).toBe(true);
   });
 });

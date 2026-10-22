@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router";
 
@@ -64,15 +64,17 @@ vi.mock("@/hooks/use-alerts", () => ({
 // Heavy children are covered by their own suites; stub them so this page test
 // stays focused on the page's own branches.
 vi.mock("@/components/module/monitor/details/response-time", () => ({
-  default: (props: { isActive?: boolean }) => {
+  default: (props: { isActive?: boolean; createdAt?: string | null }) => {
     // Capture the prop: an empty stub could not tell whether the page forwards paused state,
     // so the C1 assertion below would have proved nothing.
     lastResponseTimeIsActive = props.isActive;
+    lastResponseTimeCreatedAt = props.createdAt;
     return <div data-testid="response-time" />;
   },
 }));
 
 let lastResponseTimeIsActive: boolean | undefined;
+let lastResponseTimeCreatedAt: string | null | undefined;
 vi.mock("@/components/module/monitor/details/monitor-card", () => ({
   default: () => <div data-testid="monitor-card" />,
 }));
@@ -334,5 +336,112 @@ describe("MonitorDetailsPage paused state", () => {
     again();
     expect(screen.queryByText("Paused")).toBeNull();
     expect(screen.getByText(/Currently up for/)).toBeInTheDocument();
+  });
+});
+
+// How long the monitor has been up or down, and uptime over the time it has existed.
+describe("MonitorDetailsPage status timing", () => {
+  const NOW = Date.UTC(2026, 9, 22, 11, 25, 23);
+  const S = 1000;
+  const M = 60 * S;
+  const D = 24 * 60 * M;
+  const ago = (ms: number) => new Date(NOW - ms).toISOString();
+
+  // The fixture is shared with the suites above, so put back what these tests change.
+  const original = {
+    lastIncidentAt: h.monitor.data.data.lastIncidentAt,
+    createdDate: h.monitor.data.data.createdDate,
+    dateRangeSummary: h.details.data.dateRangeSummary,
+  };
+  const monitor = h.monitor.data.data as { lastIncidentAt: string | null; createdDate: string };
+
+  beforeEach(() => {
+    vi.useFakeTimers({ now: NOW });
+    h.details.isLoading = false;
+    h.monitor.isLoading = false;
+    h.downtime.isLoading = false;
+    h.monitor.data.data.isActive = true;
+    h.monitor.data.data.currentStatus = true;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    h.monitor.data.data.lastIncidentAt = original.lastIncidentAt;
+    h.monitor.data.data.createdDate = original.createdDate;
+    h.details.data.dateRangeSummary = original.dateRangeSummary;
+  });
+
+  it.each([
+    // Created, never had an incident: up since creation. lastIncidentAt is null, which used to
+    // read as "now" and show 0s (and a negative value after the first refresh).
+    { name: "new monitor", status: true, lastIncidentAt: null, expected: "Currently up for 10m" },
+    // Down: since the incident started.
+    { name: "incident open", status: false, lastIncidentAt: ago(2 * M), expected: "Currently down for 2m" },
+    // Recovered: the server moves lastIncidentAt to the recovery, so only the time since then.
+    { name: "recovered", status: true, lastIncidentAt: ago(10 * S), expected: "Currently up for 10s" },
+  ])("$name: $expected", ({ status, lastIncidentAt, expected }) => {
+    monitor.createdDate = ago(10 * M);
+    monitor.lastIncidentAt = lastIncidentAt;
+    h.monitor.data.data.currentStatus = status;
+
+    renderPage();
+
+    expect(screen.getByText(expected)).toBeInTheDocument();
+  });
+
+  it("treats the DateTime.MinValue sentinel as no incident", () => {
+    monitor.createdDate = ago(3 * M);
+    monitor.lastIncidentAt = "0001-01-01T00:00:00Z";
+
+    renderPage();
+
+    expect(screen.getByText("Currently up for 3m")).toBeInTheDocument();
+  });
+
+  it("keeps counting while the page is open", () => {
+    monitor.createdDate = ago(10 * S);
+    monitor.lastIncidentAt = null;
+    renderPage();
+    expect(screen.getByText("Currently up for 10s")).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(5 * S);
+    });
+
+    expect(screen.getByText("Currently up for 15s")).toBeInTheDocument();
+  });
+
+  it("measures range uptime only over the time the monitor has existed", () => {
+    // Created 10 minutes ago and down for 3 of them: 70%, not 99.97% of a week.
+    monitor.createdDate = ago(10 * M);
+    h.details.data.dateRangeSummary = [
+      { type: "range", range: "7d", totalDurationMs: 3 * M, incidentCount: 1 },
+      { type: "range", range: "30d", totalDurationMs: 3 * M, incidentCount: 1 },
+      { type: "range", range: "90d", totalDurationMs: 0, incidentCount: 0 },
+    ];
+
+    renderPage();
+
+    expect(screen.getAllByText("70.00%")).toHaveLength(2);
+    expect(screen.getByText("100.00%")).toBeInTheDocument();
+  });
+
+  it("rounds uptime down so any downtime reads below 100%", () => {
+    // 2m 57.5s in 90 days is 99.9977%; rounding to nearest showed 100.00% beside "1 incidents".
+    monitor.createdDate = ago(400 * D);
+    h.details.data.dateRangeSummary = [
+      { type: "range", range: "90d", totalDurationMs: 177_500, incidentCount: 1 },
+    ];
+
+    renderPage();
+
+    expect(screen.getByText("99.99%")).toBeInTheDocument();
+    expect(screen.queryByText("100.00%")).toBeNull();
+  });
+
+  it("tells the chart when the monitor was created", () => {
+    monitor.createdDate = ago(10 * M);
+    renderPage();
+    expect(lastResponseTimeCreatedAt).toBe(ago(10 * M));
   });
 });
