@@ -398,6 +398,15 @@ describe("MonitorDetailsPage status timing", () => {
     expect(screen.getByText("Currently up for 3m")).toBeInTheDocument();
   });
 
+  it("shows 0s, not NaN, when neither date is usable", () => {
+    monitor.createdDate = "not a date";
+    monitor.lastIncidentAt = null;
+
+    renderPage();
+
+    expect(screen.getByText("Currently up for 0s")).toBeInTheDocument();
+  });
+
   it("keeps counting while the page is open", () => {
     monitor.createdDate = ago(10 * S);
     monitor.lastIncidentAt = null;

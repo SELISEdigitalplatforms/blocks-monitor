@@ -102,12 +102,13 @@ const getBorderColorClass = (index: number) => {
 /**
  * When the current up/down state began: the last status change, or the monitor's creation when it
  * has never had one. `lastIncidentAt` is nullable, and C#'s `DateTime.MinValue` (year 1, or year 0
- * after a positive UTC offset) also means "never".
+ * after a positive UTC offset) also means "never". Null when neither date is usable.
  */
-const statusSince = (lastIncidentAt: string | null | undefined, createdAt: string): number => {
+const statusSince = (lastIncidentAt: string | null | undefined, createdAt: string): number | null => {
   const last = lastIncidentAt ? new Date(lastIncidentAt) : null;
   if (last && !Number.isNaN(last.getTime()) && last.getUTCFullYear() > 1) return last.getTime();
-  return new Date(createdAt).getTime();
+  const created = new Date(createdAt).getTime();
+  return Number.isNaN(created) ? null : created;
 };
 
 const MonitorSummary = ({ data, status, lastIncidentAt, createdAt, isActive }: MonitorSummaryProps) => {
@@ -115,9 +116,9 @@ const MonitorSummary = ({ data, status, lastIncidentAt, createdAt, isActive }: M
   // Ticks, so "Currently up for ..." keeps counting while the page is open.
   const now = useNow(1000);
 
-  // `> 0` rather than Math.max: it also turns NaN (no usable date) into 0s.
-  const sinceMs = now - statusSince(lastIncidentAt, createdAt);
-  const statusDuration = formatDuration(sinceMs > 0 ? sinceMs : 0);
+  // No usable date reads as 0s rather than "NaNs".
+  const since = statusSince(lastIncidentAt, createdAt) ?? now;
+  const statusDuration = formatDuration(Math.max(0, now - since));
 
   return (
     <div className="my-6 flex w-full flex-col gap-4 md:flex-row md:gap-10">
