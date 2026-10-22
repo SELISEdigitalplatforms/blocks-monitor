@@ -25,12 +25,20 @@ import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
+/** How often the page refreshes the monitor's status, its uptime figures and the chart. */
+export const DETAILS_POLL_MS = 10_000;
+
 interface MonitorSummaryProps {
   data: IMonitorSummary[];
   status: boolean;
   /** The last up/down change. Null until the monitor has had an incident. */
   lastIncidentAt: string | null | undefined;
   createdAt: string;
+  /**
+   * When the range figures were fetched. The server counts an open outage up to that moment, so
+   * the uptime cards are worked out as of then and change only when a poll brings new figures.
+   */
+  asOf: number;
   /**
    * Whether the monitor is running. Typed plain `boolean` on purpose: the API model declares
    * `isActive` as the literal `true`, so a `=== false` comparison against it directly would be a
@@ -111,9 +119,17 @@ const statusSince = (lastIncidentAt: string | null | undefined, createdAt: strin
   return Number.isNaN(created) ? null : created;
 };
 
-const MonitorSummary = ({ data, status, lastIncidentAt, createdAt, isActive }: MonitorSummaryProps) => {
+const MonitorSummary = ({
+  data,
+  status,
+  lastIncidentAt,
+  createdAt,
+  asOf,
+  isActive,
+}: MonitorSummaryProps) => {
   const toMilliseconds = (value: string): number => Number.parseInt(value, 10) * 24 * 60 * 60 * 1000;
-  // Ticks, so "Currently up for ..." keeps counting while the page is open.
+  // Ticks, so "Currently up for ..." keeps counting while the page is open. Only that line: the
+  // uptime cards use `asOf`, or they would drift between polls against downtime fetched earlier.
   const now = useNow(1000);
 
   // No usable date reads as 0s rather than "NaNs".
@@ -169,7 +185,9 @@ const MonitorSummary = ({ data, status, lastIncidentAt, createdAt, isActive }: M
           );
         }
 
-        const observedMs = observedWindowMs(toMilliseconds(item.range!), now, createdAt);
+        // A monitor younger than the range has been observed for its whole life in every range,
+        // so 7, 30 and 365 days read the same until it outgrows them.
+        const observedMs = observedWindowMs(toMilliseconds(item.range!), asOf, createdAt);
         const uptimePercentage = formatUptime(observedMs, item.totalDurationMs!);
 
         return (
@@ -207,20 +225,27 @@ const MonitorDetailsPage = () => {
 
   const monitorId = id || "";
 
-  // Status, the 7/30/365-day cards and the chart all refresh at the monitor's check interval.
+  // Status, the 7/30/365-day cards and the chart all poll together.
   const { data: monitorData, isLoading: isMonitorLoading } = useGetMonitorById(monitorId, {
-    live: true,
+    refetchInterval: DETAILS_POLL_MS,
   });
   const request = monitorData?.data?.monitorConfigurationType === 0;
   const interval = monitorData?.data?.intervalInSeconds || 0;
-  const { data, isLoading } = useGetMonitorDetails(monitorId, {
-    refetchInterval: (interval || 60) * 1000,
-  });
+  const {
+    data,
+    isLoading,
+    dataUpdatedAt: detailsUpdatedAt,
+  } = useGetMonitorDetails(monitorId, { refetchInterval: DETAILS_POLL_MS });
   const monitorSourceType = monitorData?.data?.monitorSourceTypes;
-  const { data: rtData, isLoading: isRTLoading } = useGetMonitorDownTime({
+  const {
+    data: rtData,
+    isLoading: isRTLoading,
+    dataUpdatedAt: rtUpdatedAt,
+  } = useGetMonitorDownTime({
     monitorId,
     timeRange,
     interval,
+    refetchInterval: DETAILS_POLL_MS,
   });
 
   const gracePeriod = monitorData?.data?.gracePeriodInSeconds;
@@ -310,6 +335,7 @@ const MonitorDetailsPage = () => {
               isActive={monitorData?.data?.isActive ?? true}
               lastIncidentAt={monitorData?.data?.lastIncidentAt}
               createdAt={monitorData?.data?.createdDate as string}
+              asOf={detailsUpdatedAt}
             />
           </CardHeader>
           <CardContent>
@@ -322,6 +348,7 @@ const MonitorDetailsPage = () => {
               setTimeRange={setTimeRange}
               currentStatus={monitorData?.data?.currentStatus || false}
               createdAt={monitorData?.data?.createdDate}
+              now={rtUpdatedAt}
               // Same `?? true` default as the status card: the chart must not assert a current
               // up/down state while the page is showing "Paused".
               isActive={monitorData?.data?.isActive ?? true}

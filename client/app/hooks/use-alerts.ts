@@ -141,17 +141,15 @@ export const useGetMonitorDetails = (monitorId: string, options?: { refetchInter
   });
 };
 /**
- * `live`: refetch at the monitor's own check interval, so a page showing its current status follows
- * new checks. Off by default: the edit form also reads this query, and refetching under it is pointless.
+ * `refetchInterval`: poll, for a page showing the monitor's current status. Off by default: the edit
+ * form also reads this query, and refetching under it is pointless.
  */
-export const useGetMonitorById = (monitorId: string, options?: { live?: boolean }) => {
+export const useGetMonitorById = (monitorId: string, options?: { refetchInterval?: number }) => {
   return useQuery({
     queryKey: ["get-monitor-by-id", monitorId],
     queryFn: () => alertsService.getMonitorById(monitorId),
     enabled: !!monitorId,
-    refetchInterval: options?.live
-      ? (query) => (query.state.data?.data?.intervalInSeconds || 60) * 1000
-      : false,
+    refetchInterval: options?.refetchInterval,
   });
 };
 
@@ -207,6 +205,8 @@ export const useGetMonitorDownTime = (option: {
   monitorId: string;
   timeRange: string;
   interval: number;
+  /** Overrides polling at the monitor's own interval. */
+  refetchInterval?: number;
 }) => {
   return useQuery({
     queryKey: ["get-monitor-response-id", option.monitorId, option.timeRange],
@@ -242,7 +242,7 @@ export const useGetMonitorDownTime = (option: {
       const res = await alertsService.GetMonitorDownTime(payload);
       return res;
     },
-    refetchInterval: (option.interval || 60) * 1000,
+    refetchInterval: option.refetchInterval ?? (option.interval || 60) * 1000,
     enabled: !!option.monitorId && !!option.interval,
   });
 };

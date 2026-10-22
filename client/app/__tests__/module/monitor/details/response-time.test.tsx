@@ -62,6 +62,7 @@ const baseProps = {
   currentStatus: true,
   request: true,
   data: [],
+  now: Date.now(),
 };
 
 describe("ResponseTime", () => {
@@ -106,7 +107,7 @@ describe("ResponseTime", () => {
         downtimeDurationSeconds: 3600,
       },
     ];
-    render(<ResponseTime {...baseProps} currentStatus={false} data={data} />);
+    render(<ResponseTime {...baseProps} now={now} currentStatus={false} data={data} />);
     // Two of the three logs fall in the 1h window.
     expect(screen.getByText("2")).toBeInTheDocument();
     // Uptime is below 100 given the accumulated downtime.
@@ -151,20 +152,19 @@ describe("ResponseTime while paused", () => {
   });
 
   it("omits it for a monitor with downtime history too", () => {
+    const now = Date.now();
     const withHistory = [
       {
-        startTime: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-        endTime: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+        startTime: new Date(now - 30 * 60 * 1000).toISOString(),
+        endTime: new Date(now - 25 * 60 * 1000).toISOString(),
       },
     ] as unknown as typeof baseProps.data;
 
-    // Captured BEFORE render: the component anchors its own `now` at mount, so a timestamp read
-    // afterwards is always later than the point it plots there and `ts < now` would hold even
-    // for the very point this is meant to reject.
-    const beforeRender = Date.now();
-    render(<ResponseTime {...baseProps} data={withHistory} currentStatus={false} isActive={false} />);
+    render(
+      <ResponseTime {...baseProps} now={now} data={withHistory} currentStatus={false} isActive={false} />
+    );
     // The last plotted point is a real recovery edge, not a "currently down" assertion at now.
-    expect(points().at(-1)!.ts).toBeLessThan(beforeRender);
+    expect(points().at(-1)!.ts).toBeLessThan(now);
   });
 
   it("defaults to plotting the current point when isActive is not supplied", () => {
@@ -175,29 +175,32 @@ describe("ResponseTime while paused", () => {
 
 describe("ResponseTime with an unresolved incident", () => {
   const points = () => (globalThis as { __chartPoints?: { ts: number; status: number }[] }).__chartPoints ?? [];
+  const now = Date.now();
   const openIncident = () =>
     [
-      { startTime: new Date(Date.now() - 20 * 60 * 1000).toISOString(), endTime: null },
+      { startTime: new Date(now - 20 * 60 * 1000).toISOString(), endTime: null },
     ] as unknown as typeof baseProps.data;
 
   it("plots the ongoing outage up to now while active", () => {
-    render(<ResponseTime {...baseProps} data={openIncident()} currentStatus={false} isActive />);
+    render(<ResponseTime {...baseProps} now={now} data={openIncident()} currentStatus={false} isActive />);
     expect(points().filter((p) => p.status === 0).length).toBeGreaterThan(1);
   });
 
   it("does not claim the monitor is currently down while paused", () => {
     // An open incident normalises its end to `now`, so guarding only the synthetic final point
     // left this one asserting a live Down beside the Paused badge.
-    const beforeRender = Date.now();
     render(
-      <ResponseTime {...baseProps} data={openIncident()} currentStatus={false} isActive={false} />
+      <ResponseTime
+        {...baseProps}
+        now={now}
+        data={openIncident()}
+        currentStatus={false}
+        isActive={false}
+      />
     );
     const down = points().filter((p) => p.status === 0);
     expect(down.length).toBeGreaterThan(0); // the outage itself is still shown
-    // Compared against a pre-render timestamp, not Date.now(): the component's own `now` is
-    // earlier than any reading taken after render, so the naive comparison passed even when the
-    // offending point was present.
-    expect(down.every((p) => p.ts < beforeRender)).toBe(true);
+    expect(down.every((p) => p.ts < now)).toBe(true);
   });
 });
 
@@ -210,6 +213,8 @@ describe("ResponseTime over the monitor's lifetime", () => {
   const logs = (...items: { startTime: string; endTime: string | null }[]) =>
     items as unknown as typeof baseProps.data;
 
+  const props = { ...baseProps, now: NOW, createdAt: at(NOW - 10 * M) };
+
   beforeEach(() => {
     vi.useFakeTimers({ now: NOW });
   });
@@ -219,48 +224,52 @@ describe("ResponseTime over the monitor's lifetime", () => {
   });
 
   it("measures uptime only since the monitor was created", () => {
-    // The screenshot case: created 10 minutes into a 1h window, down 3 minutes. That is 70% of
-    // the time it existed, not 95% of the hour.
-    render(
-      <ResponseTime
-        {...baseProps}
-        createdAt={at(NOW - 10 * M)}
-        data={logs({ startTime: at(NOW - 8 * M), endTime: at(NOW - 5 * M) })}
-      />
-    );
+    // Created 10 minutes into a 1h window, down 3 minutes. That is 70% of the time it existed,
+    // not 95% of the hour.
+    render(<ResponseTime {...props} data={logs({ startTime: at(NOW - 8 * M), endTime: at(NOW - 5 * M) })} />);
     expect(screen.getByText("70.00%")).toBeInTheDocument();
   });
 
   it("does not plot the time before the monitor existed", () => {
-    render(<ResponseTime {...baseProps} createdAt={at(NOW - 10 * M)} />);
+    render(<ResponseTime {...props} />);
     expect(points()[0].ts).toBe(NOW - 10 * M);
     expect(points().every((p) => p.ts >= NOW - 10 * M)).toBe(true);
   });
 
   it("uses the whole window for a monitor older than it", () => {
-    render(<ResponseTime {...baseProps} createdAt={at(NOW - 2 * 60 * M)} />);
+    render(<ResponseTime {...props} createdAt={at(NOW - 2 * 60 * M)} />);
     expect(points()[0].ts).toBe(NOW - 60 * M);
   });
 
-  it("moves forward while the page is open and plots incidents that start after it opened", () => {
-    // `now` used to be fixed at mount, so a refetched incident that started later was filtered
-    // out and the chart kept showing Up.
-    const { rerender } = render(<ResponseTime {...baseProps} createdAt={at(NOW - 10 * M)} />);
-    expect(points().at(-1)!.ts).toBe(NOW);
+  it("does not move between polls", () => {
+    // Worked out as of the data's fetch time. A ticking clock against downtime fetched earlier
+    // made an open outage read as rising uptime until the next poll snapped it back.
+    render(<ResponseTime {...props} currentStatus={false} data={logs({ startTime: at(NOW - 3 * M), endTime: null })} />);
+    expect(screen.getByText("70.00%")).toBeInTheDocument();
 
     act(() => {
-      vi.advanceTimersByTime(baseProps.interval * S);
+      vi.advanceTimersByTime(30 * S);
     });
+
+    expect(screen.getByText("70.00%")).toBeInTheDocument();
+    expect(points().at(-1)!.ts).toBe(NOW);
+  });
+
+  it("follows the poll: a new `now` moves the window and plots incidents that started since", () => {
+    const { rerender } = render(<ResponseTime {...props} />);
+    expect(points().at(-1)!.ts).toBe(NOW);
+
+    // The next poll, 10s later, brings an outage that started after the previous one.
     rerender(
       <ResponseTime
-        {...baseProps}
-        createdAt={at(NOW - 10 * M)}
+        {...props}
+        now={NOW + 10 * S}
         currentStatus={false}
-        data={logs({ startTime: at(NOW + 10 * S), endTime: null })}
+        data={logs({ startTime: at(NOW + 5 * S), endTime: null })}
       />
     );
 
-    expect(points().at(-1)).toMatchObject({ ts: NOW + 30 * S, status: 0 });
-    expect(points().some((p) => p.ts === NOW + 10 * S && p.status === 0)).toBe(true);
+    expect(points().at(-1)).toMatchObject({ ts: NOW + 10 * S, status: 0 });
+    expect(points().some((p) => p.ts === NOW + 5 * S && p.status === 0)).toBe(true);
   });
 });

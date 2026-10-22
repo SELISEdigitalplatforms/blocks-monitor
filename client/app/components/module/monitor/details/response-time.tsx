@@ -22,7 +22,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { formatDuration } from "@seliseblocks/genesis-os/utils";
-import { useNow } from "@/hooks/use-now";
 import { formatUptime, observedWindowMs } from "@/utils/uptime.util";
 
 type DowntimeLog = {
@@ -50,6 +49,11 @@ type ResponseTimeProps = {
    * nor counted toward uptime. Without it the whole window is used.
    */
   createdAt?: string | null;
+  /**
+   * The end of the window: when `data` was fetched. The window, an open outage and uptime are all
+   * worked out as of then, so they agree with the data and change only when a poll brings new data.
+   */
+  now: number;
 };
 
 type ChartPoint = {
@@ -150,10 +154,8 @@ const ResponseTime = ({
   isActive = true,
   request,
   createdAt,
+  now,
 }: ResponseTimeProps) => {
-  // Moves with the refetch interval, so the window, an open outage and incidents that start after
-  // the page was opened all stay current. Read in an effect, so render stays pure.
-  const now = useNow(Math.max(1, interval) * 1000);
   const windowMs = TIME_RANGES[timeRange] ?? TIME_RANGES["1h"];
   const rangeStart = now - windowMs;
   // Where observation starts: the window start, or the monitor's creation if that is later.
