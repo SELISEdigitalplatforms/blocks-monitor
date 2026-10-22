@@ -150,26 +150,41 @@ internal static class ColumnMask
     {
         var changed = false;
         foreach (var element in document.ToList())
+            changed |= RemoveHiddenElement(document, element, row);
+        return changed;
+    }
+
+    /// <summary>
+    /// Applies <see cref="RemoveHidden"/> to one stored <paramref name="element"/>: removes it when the mask cleared
+    /// it, otherwise recurses into a nested document or array of documents. True when anything was taken out.
+    /// </summary>
+    private static bool RemoveHiddenElement(BsonDocument document, BsonElement element, IDictionary<string, object> row)
+    {
+        if (element.Value.IsBsonNull)
+            return false;
+        if (!row.TryGetValue(element.Name, out var masked) || masked is null)
         {
-            if (element.Value.IsBsonNull)
-                continue;
-            if (!row.TryGetValue(element.Name, out var masked) || masked is null)
-            {
-                document.Remove(element.Name);
-                changed = true;
-            }
-            else if (element.Value is BsonDocument nested && masked is IDictionary<string, object> nestedRow)
-            {
-                changed |= RemoveHidden(nested, nestedRow);
-            }
-            else if (element.Value is BsonArray array && masked is System.Collections.IList items && items.Count == array.Count)
-            {
-                for (var i = 0; i < array.Count; i++)
-                {
-                    if (array[i] is BsonDocument item && items[i] is IDictionary<string, object> itemRow)
-                        changed |= RemoveHidden(item, itemRow);
-                }
-            }
+            document.Remove(element.Name);
+            return true;
+        }
+        if (element.Value is BsonDocument nested && masked is IDictionary<string, object> nestedRow)
+            return RemoveHidden(nested, nestedRow);
+        if (element.Value is BsonArray array && masked is System.Collections.IList items && items.Count == array.Count)
+            return RemoveHiddenItems(array, items);
+        return false;
+    }
+
+    /// <summary>
+    /// Applies <see cref="RemoveHidden"/> pairwise to the documents of <paramref name="array"/> and their masked
+    /// counterparts in <paramref name="items"/>. True when anything was taken out.
+    /// </summary>
+    private static bool RemoveHiddenItems(BsonArray array, System.Collections.IList items)
+    {
+        var changed = false;
+        for (var i = 0; i < array.Count; i++)
+        {
+            if (array[i] is BsonDocument item && items[i] is IDictionary<string, object> itemRow)
+                changed |= RemoveHidden(item, itemRow);
         }
         return changed;
     }
