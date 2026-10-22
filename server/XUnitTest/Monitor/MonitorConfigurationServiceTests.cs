@@ -56,7 +56,7 @@ namespace XUnitTest.Monitor
         public async Task GetConfigurationByIdAsync_ReturnsConfig()
         {
             var config = new MonitorConfiguration { ItemId = "m1" };
-            _repo.Setup(r => r.GetConfigurationAsync("m1")).ReturnsAsync(config);
+            _repo.Setup(r => r.GetConfigurationForViewAsync("m1")).ReturnsAsync(config);
 
             var result = await CreateSut().GetConfigurationByIdAsync("m1");
 
@@ -67,7 +67,7 @@ namespace XUnitTest.Monitor
         [Fact]
         public async Task GetConfigurationByIdAsync_WhenRepoThrows_StillSucceedsWithEmptyConfig()
         {
-            _repo.Setup(r => r.GetConfigurationAsync("m1")).ThrowsAsync(new Exception("db"));
+            _repo.Setup(r => r.GetConfigurationForViewAsync("m1")).ThrowsAsync(new Exception("db"));
 
             var result = await CreateSut().GetConfigurationByIdAsync("m1");
 
@@ -392,7 +392,7 @@ namespace XUnitTest.Monitor
         [Fact]
         public async Task GetConfigurationByIdAsync_WhenCrossTenant_ReturnsEmptyConfig()
         {
-            _repo.Setup(r => r.GetConfigurationAsync("m1"))
+            _repo.Setup(r => r.GetConfigurationForViewAsync("m1"))
                 .ReturnsAsync(new MonitorConfiguration { ItemId = "m1", TenantId = "tenant-a" });
             try
             {

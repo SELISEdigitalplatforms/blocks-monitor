@@ -43,6 +43,23 @@ namespace DomainService.Monitor.Services
             }
         }
 
+        public async Task<MonitorConfiguration?> GetConfigurationForViewAsync(string itemId)
+        {
+            try
+            {
+                var filter = Builders<MonitorConfiguration>.Filter.Eq(m => m.ItemId, itemId);
+                // Masked: View column (property) rules clear what the caller may not see. Never save it back.
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorConfiguration, filter, "MonitorConfigurationRepoService.GetConfigurationForViewAsync");
+                if (!scope.Granted) return null;
+                return scope.ForView(await scope.Apply(_monitorConfigurationCollection).FirstOrDefaultAsync());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving MonitorConfiguration with ItemId {ItemId}", itemId);
+                return null;
+            }
+        }
+
         public async Task<MonitorConfiguration?> GetConfigurationAsync(string itemId)
         {
             try
@@ -139,7 +156,8 @@ namespace DomainService.Monitor.Services
                     .Limit(pageSize)
                     .ToListAsync();
 
-                return (items, totalCount);
+                // The API lists these: View column (property) rules clear what the caller may not see.
+                return (scope.ForView(items), totalCount);
             }
             catch (Exception ex)
             {
@@ -221,7 +239,8 @@ namespace DomainService.Monitor.Services
                 if (!scope.Granted) return new List<MonitorConfiguration>();
                 var monitorConfig = await scope.Apply(_monitorConfigurationCollection).ToListAsync();
 
-                return monitorConfig;
+                // The API lists these: View column (property) rules clear what the caller may not see.
+                return scope.ForView(monitorConfig);
             }
             catch (Exception ex)
             {
@@ -284,7 +303,7 @@ namespace DomainService.Monitor.Services
                 var filter = await _access.EditFilterAsync(MonitorSchemas.MonitorConfiguration,
                     Builders<MonitorConfiguration>.Filter.Eq(m => m.ItemId, monitorConfiguration.ItemId), callSite);
                 if (filter is null) return false;
-                await _access.PrepareWriteAsync(MonitorSchemas.MonitorConfiguration, monitorConfiguration, isInsert: false, callSite);
+                await _access.PrepareReplaceAsync(MonitorSchemas.MonitorConfiguration, monitorConfiguration, _monitorConfigurationCollection, filter, callSite);
                 var result = await _monitorConfigurationCollection.ReplaceOneAsync(filter, monitorConfiguration, new ReplaceOptions { IsUpsert = false });
 
                 return result.ModifiedCount > 0;
@@ -369,7 +388,8 @@ namespace DomainService.Monitor.Services
 
                 var scope = await _access.ReadAsync(MonitorSchemas.MonitorConfiguration, filter, "MonitorConfigurationRepoService.GetExternalServiceConfigurationAsync");
                 if (!scope.Granted) return null;
-                return await scope.Apply(_monitorConfigurationCollection).FirstOrDefaultAsync();
+                // Returned to the API caller: View column (property) rules clear what the caller may not see.
+                return scope.ForView(await scope.Apply(_monitorConfigurationCollection).FirstOrDefaultAsync());
             }
             catch (Exception ex)
             {

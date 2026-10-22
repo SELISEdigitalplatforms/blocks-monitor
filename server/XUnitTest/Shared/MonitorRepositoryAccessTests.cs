@@ -32,6 +32,7 @@ namespace XUnitTest.Shared
             public Task<bool> InsertAllowedAsync(string schema, string callSite, string? tenantId = null) => Task.FromResult(false);
             public Task<T> PrepareWriteAsync<T>(string schema, T entity, bool isInsert, string callSite, string? tenantId = null) => throw new InvalidOperationException("rules after a denial");
             public Task<T> PrepareUpsertAsync<T>(string schema, T entity, IMongoCollection<T> collection, FilterDefinition<T> filter, string callSite, string? tenantId = null) => throw new InvalidOperationException("rules after a denial");
+            public Task<T> PrepareReplaceAsync<T>(string schema, T entity, IMongoCollection<T> collection, FilterDefinition<T> filter, string callSite, string? tenantId = null) => throw new InvalidOperationException("rules after a denial");
             public Task CheckUpdateAsync<T>(string schema, UpdateDefinition<T> update, string callSite, string? tenantId = null) => throw new InvalidOperationException("rules after a denial");
         }
 
@@ -72,7 +73,8 @@ namespace XUnitTest.Shared
             access.Setup(a => a.InsertAllowedAsync(MonitorSchemas.MonitorConfiguration, It.IsAny<string>(), null)).ReturnsAsync(true);
             access.Setup(a => a.PrepareUpsertAsync(MonitorSchemas.MonitorConfiguration, It.IsAny<MonitorConfiguration>(), It.IsAny<IMongoCollection<MonitorConfiguration>>(),
                 It.IsAny<FilterDefinition<MonitorConfiguration>>(), It.IsAny<string>(), null)).ThrowsAsync(Refused());
-            access.Setup(a => a.PrepareWriteAsync(MonitorSchemas.MonitorConfiguration, It.IsAny<MonitorConfiguration>(), false, It.IsAny<string>(), null)).ThrowsAsync(Refused());
+            access.Setup(a => a.PrepareReplaceAsync(MonitorSchemas.MonitorConfiguration, It.IsAny<MonitorConfiguration>(), It.IsAny<IMongoCollection<MonitorConfiguration>>(),
+                It.IsAny<FilterDefinition<MonitorConfiguration>>(), It.IsAny<string>(), null)).ThrowsAsync(Refused());
             var collection = new Mock<IMongoCollection<MonitorConfiguration>>();
             var repo = Configurations(collection, access.Object);
 
