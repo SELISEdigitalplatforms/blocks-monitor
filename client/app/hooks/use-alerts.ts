@@ -133,17 +133,25 @@ export const useIsExternalServiceConfigured = (externalServiceId: string) => {
     enabled: !!externalServiceId,
   });
 };
-export const useGetMonitorDetails = (monitorId: string) => {
+export const useGetMonitorDetails = (monitorId: string, options?: { refetchInterval?: number }) => {
   return useQuery({
     queryKey: ["get-monitor-details", monitorId],
     queryFn: () => alertsService.getMonitorDetails(monitorId),
+    refetchInterval: options?.refetchInterval,
   });
 };
-export const useGetMonitorById = (monitorId: string) => {
+/**
+ * `live`: refetch at the monitor's own check interval, so a page showing its current status follows
+ * new checks. Off by default: the edit form also reads this query, and refetching under it is pointless.
+ */
+export const useGetMonitorById = (monitorId: string, options?: { live?: boolean }) => {
   return useQuery({
     queryKey: ["get-monitor-by-id", monitorId],
     queryFn: () => alertsService.getMonitorById(monitorId),
     enabled: !!monitorId,
+    refetchInterval: options?.live
+      ? (query) => (query.state.data?.data?.intervalInSeconds || 60) * 1000
+      : false,
   });
 };
 
