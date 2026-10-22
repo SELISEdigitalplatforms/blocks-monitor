@@ -22,7 +22,7 @@ const alias = {
   // The real subpath bundles a nested framer-motion build that fails to load
   // under jsdom (reads process.env.NODE_ENV during evaluation). The app only
   // uses tiny helpers from it, so redirect to a local stub in tests.
-  "@seliseblocks/genesis-os/components": path.resolve(
+  "@seliseblocks/app-kit/components": path.resolve(
     __dirname,
     "./app/__tests__/stubs/blocks-kit-components.tsx",
   ),
@@ -30,9 +30,9 @@ const alias = {
   // package's own inlined getRuntimeEnv, which `vi.mock(".../lib")` does not intercept; it then
   // falls through to import.meta.env, undefined in the externalized dep. http-client calls
   // getRollbar at module scope, so that broke every spec importing a service.
-  // NOTE: these are prefix matches. If a bare "@seliseblocks/genesis-os" alias is ever added it
+  // NOTE: these are prefix matches. If a bare "@seliseblocks/app-kit" alias is ever added it
   // must go BELOW both subpath entries, or it swallows them.
-  "@seliseblocks/genesis-os/observability": path.resolve(
+  "@seliseblocks/app-kit/observability": path.resolve(
     __dirname,
     "./app/__tests__/stubs/blocks-kit-observability.tsx",
   ),

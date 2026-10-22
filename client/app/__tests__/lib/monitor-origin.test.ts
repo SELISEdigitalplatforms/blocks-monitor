@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { JSDOM } from "jsdom";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getRuntimeEnv } from "@seliseblocks/genesis-os/lib";
+import { getRuntimeEnv } from "@seliseblocks/app-kit/lib";
 
 afterEach(() => {
   vi.unstubAllGlobals();

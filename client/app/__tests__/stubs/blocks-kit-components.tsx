@@ -3,7 +3,6 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { parseAsBoolean, parseAsInteger, parseAsString } from "nuqs";
 
-
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -97,8 +96,31 @@ function TablePagination({
   );
 }
 
+// The real `.SearchInput` is a collapsible, debounced field; this stand-in is an always-open
+// input that reports every change at once, labelled like the real one (placeholder minus "...").
+function SearchInput({
+  value,
+  onChange,
+  placeholder = "Search...",
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  [key: string]: unknown;
+}) {
+  return (
+    <input
+      aria-label={placeholder.replace(/\.\.\.$/, "")}
+      placeholder={placeholder}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  );
+}
+
 export const FilterControls = Object.assign(FilterControlsBase, {
   SortHeader,
+  SearchInput,
   TablePagination,
 });
 

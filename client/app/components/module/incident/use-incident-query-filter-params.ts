@@ -3,7 +3,7 @@ import {
   type SortValue,
   paginationQueryParsers,
   sortQueryParsers,
-} from "@seliseblocks/genesis-os/components";
+} from "@seliseblocks/app-kit/components";
 import { parseAsString, useQueryStates } from "nuqs";
 
 export type IncidentFilter = {

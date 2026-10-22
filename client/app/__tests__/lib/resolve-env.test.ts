@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { resolveEnv } from "@seliseblocks/genesis-os/lib";
+import { resolveEnv } from "@seliseblocks/app-kit/lib";
 
 const win = window as unknown as { __BLOCKS_ENV__?: Record<string, string> };
 
@@ -28,14 +28,15 @@ describe("resolveEnv", () => {
   });
 
   it("routes only exact __BLOCKS_..__ placeholders to build-time env resolution", () => {
-    // An exact placeholder enters the `import.meta.env[key]` branch. That env is
-    // not injected into the externalized blocks-kit module under vitest, so the
-    // branch is exercised but throws here - proving the guard positively
-    // identifies placeholders (a concrete value would have been skipped).
+    // An exact placeholder is replaced from build-time env (`import.meta.env?.[key]`).
+    // That env is not injected into the externalized app-kit module under vitest, so
+    // the placeholder resolves to "" - proving the guard positively identifies
+    // placeholders (a concrete value would have been left as-is).
     win.__BLOCKS_ENV__ = {
       BLOCKS_MONITOR_BASE_URL: "__BLOCKS_MONITOR_BASE_URL__",
     };
-    expect(() => resolveEnv()).toThrow();
+    expect(() => resolveEnv()).not.toThrow();
+    expect(win.__BLOCKS_ENV__?.BLOCKS_MONITOR_BASE_URL).toBe("");
   });
 
   it("no-ops when window.__BLOCKS_ENV__ is undefined", () => {

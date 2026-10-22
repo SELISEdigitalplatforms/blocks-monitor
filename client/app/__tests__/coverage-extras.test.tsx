@@ -6,8 +6,8 @@ import { MemoryRouter, Routes, Route } from "react-router";
 // injected into the externalized blocks-kit dependency under vitest (it throws
 // at import). Resolve it to an empty string while keeping the real HttpClient,
 // so the module still builds its genuine service instances for the assertions.
-vi.mock("@seliseblocks/genesis-os/lib", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@seliseblocks/genesis-os/lib")>();
+vi.mock("@seliseblocks/app-kit/lib", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@seliseblocks/app-kit/lib")>();
   return { ...actual, getRuntimeEnv: () => "" };
 });
 import { MonitorLayout } from "@/layouts/monitor-layout/monitor-layout";

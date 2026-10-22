@@ -1,15 +1,7 @@
 import { useMemo, type ReactNode } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Separator,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/core";
+import { Card, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/core";
+import { cn } from "@/lib/utils";
+import { SectionHeading } from "@/components/common/section-heading/section-heading";
 import { useGetReport } from "@/hooks/use-repos";
 import { hasNoReport } from "@/components/module/repos/sca-transform";
 import {
@@ -17,22 +9,23 @@ import {
   ReportLoadingCard,
   ReportNoDataCard,
 } from "@/components/module/repos/report-states";
-import { getDeploymentLogEventBadgeClassName } from "@/utils/deployment-logs.utils";
+import { RepoStatusBadge } from "@/components/module/repos/repo-status-badge";
 
 const MISSING = "-";
 
 type RatingLetter = "A" | "B" | "C" | "D" | "E";
 type SastScope = "new" | "overall";
 
+/** Rating grades on the console's soft status surfaces, best (A) to worst (E). */
 const RATING_CLASS: Record<RatingLetter, string> = {
-  A: "bg-green-100 text-green-700",
-  B: "bg-lime-100 text-lime-700",
-  C: "bg-yellow-100 text-yellow-700",
-  D: "bg-orange-100 text-orange-700",
-  E: "bg-red-100 text-red-700",
+  A: "bg-forest-soft text-forest-ink",
+  B: "bg-forest-soft/60 text-forest-ink",
+  C: "bg-sunset-soft text-warn-ink",
+  D: "bg-rose-soft text-rose-ink",
+  E: "bg-destructive/10 text-danger-ink",
 };
 
-const STATS_GRID = "grid w-full grid-cols-1 gap-x-10 gap-y-2 sm:grid-cols-2 md:grid-cols-3";
+const STATS_GRID = "grid w-full grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3";
 
 export function SastTab({
   projectKey,
@@ -58,44 +51,40 @@ export function SastTab({
   if (!newView || !overallView) return <ReportNoDataCard />;
 
   return (
-    <Card data-testid="sast-tab">
-      <CardHeader className="mb-0 flex flex-col gap-4">
-        <CardTitle className="text-lg">Overview</CardTitle>
-        <div className="flex flex-wrap gap-2 text-xs">
-          <div>
-            <span className="text-low-emphasis">Quality Gate</span>
-            <span
-              data-testid="sast-quality-gate"
-              className={`${getDeploymentLogEventBadgeClassName(
-                newView.qualityGate === MISSING ? "Pending" : newView.qualityGate,
-              )} ml-2`}
-            >
-              {newView.qualityGate}
-            </span>
+    <Card data-testid="sast-tab" className="overflow-hidden p-0">
+      <div className="flex flex-col gap-3 border-b border-border/60 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <SectionHeading title="Overview" description="Static analysis of the latest build." />
+        <dl className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
+          <div className="flex items-center gap-2">
+            <dt className="text-muted-foreground">Quality Gate</dt>
+            <dd>
+              <RepoStatusBadge
+                testId="sast-quality-gate"
+                status={newView.qualityGate === MISSING ? "Pending" : newView.qualityGate}
+                label={newView.qualityGate}
+              />
+            </dd>
           </div>
-          <div>
-            <span className="text-low-emphasis">Lines of code</span>
-            <span className="pl-2" data-testid="sast-ncloc">
+          <div className="flex items-center gap-2">
+            <dt className="text-muted-foreground">Lines of code</dt>
+            <dd className="font-medium tabular-nums text-high-emphasis" data-testid="sast-ncloc">
               {newView.ncloc}
-            </span>
+            </dd>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Separator orientation="horizontal" className="my-4 w-full" />
-        <Tabs defaultValue="new">
-          <TabsList>
-            <TabsTrigger value="new">New Code</TabsTrigger>
-            <TabsTrigger value="overall">Overall Code</TabsTrigger>
-          </TabsList>
-          <TabsContent value="new" className="mt-4 space-y-3">
-            <NewCodeView view={newView} />
-          </TabsContent>
-          <TabsContent value="overall" className="mt-4 space-y-3">
-            <OverallCodeView view={overallView} />
-          </TabsContent>
-        </Tabs>
-      </CardContent>
+        </dl>
+      </div>
+      <Tabs defaultValue="new" className="px-5 pb-5 pt-3">
+        <TabsList>
+          <TabsTrigger value="new">New Code</TabsTrigger>
+          <TabsTrigger value="overall">Overall Code</TabsTrigger>
+        </TabsList>
+        <TabsContent value="new" className="mt-4 space-y-4">
+          <NewCodeView view={newView} />
+        </TabsContent>
+        <TabsContent value="overall" className="mt-4 space-y-4">
+          <OverallCodeView view={overallView} />
+        </TabsContent>
+      </Tabs>
     </Card>
   );
 }
@@ -105,14 +94,19 @@ function NewCodeView({ view }: Readonly<{ view: SastView }>) {
   return (
     <>
       {view.newCodeSince && (
-        <p className="text-xs text-medium-emphasis">New code: Since {view.newCodeSince}</p>
+        <p className="text-xs text-muted-foreground">New code: Since {view.newCodeSince}</p>
       )}
 
-      <div className="space-y-1 rounded-md border border-border p-3 text-xs">
+      <div
+        className={cn(
+          "space-y-1.5 rounded-sm px-4 py-3 text-[13px]",
+          failed ? "bg-rose-soft/60" : "bg-forest-soft/60",
+        )}
+      >
         {failed ? (
           <>
-            <p className="font-medium text-red-700">{view.failedConditions} conditions failed</p>
-            <ul className="space-y-1 text-medium-emphasis">
+            <p className="font-medium text-rose-ink">{view.failedConditions} conditions failed</p>
+            <ul className="space-y-1 text-muted-foreground">
               <li>
                 <span className="font-medium text-high-emphasis">{view.coverage}</span> Coverage is
                 less than {view.requiredCoverage}
@@ -128,7 +122,7 @@ function NewCodeView({ view }: Readonly<{ view: SastView }>) {
             </ul>
           </>
         ) : (
-          <p className="text-green-700">All conditions passed</p>
+          <p className="font-medium text-forest-ink">All conditions passed</p>
         )}
       </div>
 
@@ -249,22 +243,23 @@ function MetricBlock({
   testId?: string;
 }>) {
   return (
-    <div className="flex h-20 items-start gap-4" data-testid={testId}>
-      <div className="flex-1">
+    <div
+      className="flex min-h-20 items-center gap-4 rounded-sm bg-surface-warm/40 px-4 py-3"
+      data-testid={testId}
+    >
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="text-sm text-high-emphasis">{title}</p>
-          {failed && (
-            <span className={`${getDeploymentLogEventBadgeClassName("Failed")} text-[10px]`}>
-              Failed
-            </span>
-          )}
+          <p className="text-[13px] text-muted-foreground">{title}</p>
+          {failed && <RepoStatusBadge status="Failed" className="px-2 py-0.5 text-[10px]" />}
         </div>
-        <p className="text-lg font-semibold">{value}</p>
+        <p className="mt-0.5 text-lg font-semibold tabular-nums text-high-emphasis">{value}</p>
         {helper && (
-          <p className={`text-xs ${failed ? "text-red-600" : "text-gray-400"}`}>{helper}</p>
+          <p className={cn("text-xs", failed ? "text-danger-ink" : "text-muted-foreground")}>
+            {helper}
+          </p>
         )}
       </div>
-      {visual && <div className="flex items-center gap-2">{visual}</div>}
+      {visual && <div className="flex shrink-0 items-center gap-2">{visual}</div>}
     </div>
   );
 }
@@ -272,7 +267,9 @@ function MetricBlock({
 function SeverityChips({ view }: Readonly<{ view: SastView }>) {
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium text-high-emphasis">Issues by severity</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        Issues by severity
+      </p>
       <div className="flex flex-wrap gap-2">
         <Chip>Blocker {view.blocker}</Chip>
         <Chip>High {view.high}</Chip>
@@ -286,7 +283,7 @@ function SeverityChips({ view }: Readonly<{ view: SastView }>) {
 
 function Chip({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-medium-emphasis">
+    <span className="inline-flex items-center rounded-full bg-surface-warm px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
       {children}
     </span>
   );
@@ -297,7 +294,10 @@ function GradeCircle({ letter }: Readonly<{ letter: RatingLetter | null }>) {
   return (
     <span
       data-testid={`grade-${letter}`}
-      className={`flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold ${RATING_CLASS[letter]}`}
+      className={cn(
+        "flex h-11 w-11 items-center justify-center rounded-full text-base font-bold",
+        RATING_CLASS[letter],
+      )}
     >
       {letter}
     </span>
@@ -310,8 +310,13 @@ function Donut({ percent, label }: Readonly<{ percent: number | null; label: str
   const c = 2 * Math.PI * r;
   const offset = c - (p / 100) * c;
   return (
-    <div className="relative h-16 w-16">
-      <svg className="h-full w-full" viewBox="0 0 64 64" aria-label={label} data-testid="sast-donut">
+    <div className="relative h-12 w-12">
+      <svg
+        className="h-full w-full"
+        viewBox="0 0 64 64"
+        aria-label={label}
+        data-testid="sast-donut"
+      >
         <circle
           cx="32"
           cy="32"
@@ -319,7 +324,7 @@ function Donut({ percent, label }: Readonly<{ percent: number | null; label: str
           fill="transparent"
           stroke="currentColor"
           strokeWidth="8"
-          className="text-muted"
+          className="text-border-default"
         />
         <circle
           cx="32"

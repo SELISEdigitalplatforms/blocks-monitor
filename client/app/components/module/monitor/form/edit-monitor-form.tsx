@@ -1,4 +1,4 @@
-import { useProjectStore } from "@seliseblocks/genesis-os";
+import { useProjectStore } from "@seliseblocks/app-kit";
 import { MonitorFormFields } from "./monitor-form-fields";
 import { useMonitorFormController } from "./use-monitor-form-controller";
 

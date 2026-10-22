@@ -1,7 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/core";
+import { SectionHeading } from "@/components/common/section-heading/section-heading";
+import { cn } from "@/lib/utils";
+import {
+  SECTION_CLASS,
+  SURFACE_TILE_CLASS,
+} from "@/components/module/monitor/details/surface-styles";
 import { Pencil, Layers } from "lucide-react";
 import { iconMap } from "@/models";
-import { RenderConditionally } from "@seliseblocks/genesis-os/components";
+import { RenderConditionally } from "@seliseblocks/app-kit/components";
 
 type IMonitorCard = {
   onOpenChange: (value: boolean) => void;
@@ -24,25 +29,29 @@ const MonitorCard = ({
 }: IMonitorCard) => {
   const GithubIcon = iconMap["github"];
   return (
-    <Card className="rounded-lg border shadow-xs">
-      <CardHeader>
-        <CardTitle className="text-base font-semibold text-high-emphasis">
-          General information
-        </CardTitle>
-      </CardHeader>
+    <section aria-label="General information" className={SECTION_CLASS}>
+      <SectionHeading
+        title="General information"
+        description="What this monitor checks and who it notifies"
+      />
 
-      <CardContent className="grid grid-cols-1 gap-x-8 gap-y-6 text-sm text-muted-foreground sm:grid-cols-2">
+      <div
+        className={cn(
+          SURFACE_TILE_CLASS,
+          "grid grid-cols-1 gap-x-8 gap-y-5 text-[13px] text-muted-foreground sm:grid-cols-2",
+        )}
+      >
         {/* Tagged Service */}
 
         <div>
-          <div className="mb-1 text-xs font-medium text-foreground">Tagged Service</div>
+          <div className="mb-1 text-xs font-medium text-muted-foreground">Tagged Service</div>
 
           <RenderConditionally condition={!!repoName}>
             <div className="flex flex-wrap items-center gap-2">
               <span className="break-all">Deployed service</span>
               <div className="flex flex-wrap items-center gap-1">
-                <GithubIcon className="h-4 w-4 text-foreground" />
-                <span className="break-all font-medium text-foreground">{repoName}</span>
+                <GithubIcon className="h-4 w-4 text-high-emphasis" />
+                <span className="break-all font-medium text-high-emphasis">{repoName}</span>
               </div>
             </div>
           </RenderConditionally>
@@ -51,23 +60,27 @@ const MonitorCard = ({
             <div className="flex flex-wrap items-center gap-2">
               <span className="break-all">My service</span>
               <div className="flex flex-wrap items-center gap-1">
-                <Layers size={14} className="text-foreground" />
-                <span className="break-all font-medium text-foreground">{externalServiceName}</span>
+                <Layers size={14} className="text-high-emphasis" />
+                <span className="break-all font-medium text-high-emphasis">
+                  {externalServiceName}
+                </span>
               </div>
             </div>
           </RenderConditionally>
 
-          {!repoName && !externalServiceName && <span className="text-foreground">{"None"}</span>}
+          {!repoName && !externalServiceName && (
+            <span className="text-high-emphasis">{"None"}</span>
+          )}
         </div>
 
         {/* URL to monitor */}
         <div>
-          <div className="mb-1 text-xs font-medium text-foreground">
+          <div className="mb-1 text-xs font-medium text-muted-foreground">
             {request ? "URL to monitor" : "Heartbeat URL"}
           </div>
           <a
             href={url}
-            className="break-all text-blue-600 hover:underline"
+            className="break-all text-primary hover:underline"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -76,18 +89,20 @@ const MonitorCard = ({
         </div>
 
         {/* Monitor type */}
-        <div className={`sm:${request ? "col-span-2" : "col-span-1"}`}>
-          <div className="mb-1 text-xs font-medium text-foreground">Monitor type</div>
-          <div className="text-foreground">{request ? "HTTP Check" : "Heartbeat"}</div>
+        <div className={request ? "sm:col-span-2" : "sm:col-span-1"}>
+          <div className="mb-1 text-xs font-medium text-muted-foreground">Monitor type</div>
+          <div className="text-high-emphasis">{request ? "HTTP Check" : "Heartbeat"}</div>
         </div>
 
         {/* Notification recipients */}
         {monitorSourceType !== 2 && (
           <div className="sm:col-span-2">
-            <div className="mb-1 text-xs font-medium text-foreground">Notification recipients</div>
+            <div className="mb-1 text-xs font-medium text-muted-foreground">
+              Notification recipients
+            </div>
             <div className="flex flex-wrap items-center gap-1">
-              <span className="text-foreground">{emails[0]}</span>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-high-emphasis">{emails[0]}</span>
+              <span className="text-muted-foreground">
                 {(() => {
                   if (emails.length === 0) return "Add recipient";
                   if (emails.length === 1) return "";
@@ -97,7 +112,7 @@ const MonitorCard = ({
               <button
                 type="button"
                 aria-label="Edit notification recipients"
-                className="cursor-pointer text-blue-500 hover:underline"
+                className="cursor-pointer rounded-sm text-primary hover:text-primary-hover"
                 onClick={() => onOpenChange(true)}
               >
                 <Pencil className="ml-1 inline h-4 w-4" />
@@ -105,8 +120,8 @@ const MonitorCard = ({
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 };
 

@@ -45,10 +45,10 @@ export const EntitySelectField = <TFormValues extends FieldValues, TOption>({
               }}
               disabled={disabled}
             >
-              <SelectTrigger>
+              <SelectTrigger className="rounded-sm bg-card">
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
-              <SelectContent className="w-[min(var(--radix-select-trigger-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)]">
+              <SelectContent className="w-[min(var(--radix-select-trigger-width),calc(100vw-2rem))] max-w-[calc(100vw-2rem)] rounded-sm">
                 {options.length === 0 ? (
                   <SelectItem
                     value="__empty__"

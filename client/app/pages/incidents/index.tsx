@@ -1,5 +1,5 @@
-import type { SortValue } from "@seliseblocks/genesis-os/components";
-import { Button, Card, CardContent } from "@/components/core";
+import type { SortValue } from "@seliseblocks/app-kit/components";
+import { Button } from "@/components/core";
 import IncidentList from "@/components/module/incident/incident-list";
 import { useIncidentFilterQueryParams } from "@/components/module/incident/use-incident-query-filter-params";
 import { useGetAllIncidentList } from "@/hooks/use-alerts";
@@ -16,7 +16,7 @@ const IncidentPage = () => {
     isDescending: true,
   });
 
-  const { data, isLoading } = useGetAllIncidentList({
+  const { data, isLoading, isError, refetch } = useGetAllIncidentList({
     monitorId,
     pageNumber: queryParams.page,
     pageSize: queryParams.pageSize,
@@ -45,23 +45,33 @@ const IncidentPage = () => {
           <span className="text-lg font-semibold md:text-2xl">Incidents</span>
         </div>
       </div>
-      <Card className="h-full">
-        <CardContent>
-          <IncidentList
-            isLoading={isLoading}
-            data={data?.data || []}
-            totalCount={data?.totalCount}
-            pageSize={queryParams.pageSize}
-            pageNumber={queryParams.page}
-            onPageChange={handlePageChange}
-            sortQueryParams={{
-              property: queryParams.sortProperty,
-              isDescending: queryParams.isDescending,
-            }}
-            onSortChange={handleSortChange}
-          />
-        </CardContent>
-      </Card>
+      {/* IncidentList draws its own table card, so it is not wrapped in a second one. */}
+      {isError && (
+        <div
+          role="alert"
+          className="rounded-sm bg-card px-5 py-4 text-sm text-destructive shadow-surface-ring"
+        >
+          Could not load incidents.{" "}
+          <Button variant="outline" onClick={() => void refetch()}>
+            Try again
+          </Button>
+        </div>
+      )}
+      {!isError && (
+        <IncidentList
+          isLoading={isLoading}
+          data={data?.data || []}
+          totalCount={data?.totalCount}
+          pageSize={queryParams.pageSize}
+          pageNumber={queryParams.page}
+          onPageChange={handlePageChange}
+          sortQueryParams={{
+            property: queryParams.sortProperty,
+            isDescending: queryParams.isDescending,
+          }}
+          onSortChange={handleSortChange}
+        />
+      )}
     </main>
   );
 };

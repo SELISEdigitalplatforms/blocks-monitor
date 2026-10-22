@@ -6,10 +6,10 @@ import type { ReactNode } from "react";
 
 const h = vi.hoisted(() => ({ navigate: vi.fn() }));
 
-vi.mock("@seliseblocks/genesis-os", () => ({
+vi.mock("@seliseblocks/app-kit", () => ({
   useProjectStore: () => ({ selectedProject: { tenantId: "proj-1" } }),
 }));
-vi.mock("@seliseblocks/genesis-os/hooks", () => ({
+vi.mock("@seliseblocks/app-kit/hooks", () => ({
   useScopedPath: () => (p: string) => `/scoped/${p}`,
 }));
 vi.mock("react-router", async (o) => {
@@ -76,6 +76,14 @@ describe("AlertsList", () => {
       { wrapper: wrapper() },
     );
     expect(screen.getByText("No results.")).toBeInTheDocument();
+  });
+
+  it("labels the table for assistive tech", () => {
+    render(
+      <AlertsList data={[]} isLoading={false} sortQueryParams={sort} onSortChange={vi.fn()} />,
+      { wrapper: wrapper() },
+    );
+    expect(screen.getByRole("table", { name: "Monitors" })).toBeInTheDocument();
   });
 
   it("renders monitor rows with type, url, and tagged service", () => {
@@ -366,7 +374,7 @@ describe("AlertsList paused state", () => {
         sortQueryParams={sort}
         onSortChange={vi.fn()}
       />,
-      { wrapper: wrapper() }
+      { wrapper: wrapper() },
     );
 
   it("shows a Paused badge instead of the progress bar when isActive is false", () => {
@@ -408,7 +416,7 @@ describe("AlertsList paused state", () => {
     delete (row as Partial<AlertTree>).isActive;
     render(
       <AlertsList data={[row]} isLoading={false} sortQueryParams={sort} onSortChange={vi.fn()} />,
-      { wrapper: wrapper() }
+      { wrapper: wrapper() },
     );
     expect(screen.queryByText("Paused")).toBeNull();
     expect(screen.getByTestId("progress")).toBeInTheDocument();
@@ -439,7 +447,7 @@ describe("AlertsList paused state", () => {
         isLoading={false}
         sortQueryParams={sort}
         onSortChange={vi.fn()}
-      />
+      />,
     );
     expect(screen.getByText("Paused")).toBeInTheDocument();
 
@@ -449,7 +457,7 @@ describe("AlertsList paused state", () => {
         isLoading={false}
         sortQueryParams={sort}
         onSortChange={vi.fn()}
-      />
+      />,
     );
     expect(screen.queryByText("Paused")).toBeNull();
   });

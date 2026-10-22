@@ -13,6 +13,7 @@ FROM node:22-alpine AS client
 WORKDIR /src/client
 
 COPY client/package.json client/package-lock.json ./
+COPY client/vendor/seliseblocks-app-kit-0.1.1.tgz ./vendor/
 RUN npm ci --no-audit --no-fund
 
 COPY client ./

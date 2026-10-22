@@ -1,6 +1,6 @@
 import { SERVICE_NAME } from "@/constants/service.constant";
-import { HttpClient, getRuntimeEnv } from "@seliseblocks/genesis-os/lib";
-import { createHttpFailureReporter, getRollbar } from "@seliseblocks/genesis-os/observability";
+import { HttpClient, getRuntimeEnv } from "@seliseblocks/app-kit/lib";
+import { createHttpFailureReporter, getRollbar } from "@seliseblocks/app-kit/observability";
 
 // Only failures that never reached the server -- API unreachable, DNS, CORS, TLS. Anything with an
 // HTTP status is skipped: a 5xx is already reported server-side with a real stack trace, and 4xx is

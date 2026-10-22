@@ -2,13 +2,13 @@ import { Toaster, TooltipProvider } from "@/components/core";
 import { SERVICE_NAME } from "@/constants/service.constant";
 import QueryProvider, { getQueryClient } from "@/providers/query-provider";
 import "@/styles/globals.css";
-import "@seliseblocks/genesis-os/lib";
+import "@seliseblocks/app-kit/lib";
 import {
   RollbarProvider,
   attachQueryErrorReporting,
   getRollbar,
-} from "@seliseblocks/genesis-os/observability";
-import { BlocksAppLayout, ThemeProvider } from "@seliseblocks/genesis-os/providers";
+} from "@seliseblocks/app-kit/observability";
+import { BlocksAppLayout, ThemeProvider } from "@seliseblocks/app-kit/providers";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v8";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";

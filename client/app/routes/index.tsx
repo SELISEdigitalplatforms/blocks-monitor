@@ -1,26 +1,22 @@
-import { navigationMenus } from "@/constants/navigation-menus.constant";
+import { AppShell } from "@/layouts/app-shell";
+import { MonitorDashboardRoute } from "@/layouts/monitor-dashboard-route";
 import { MonitorLayout } from "@/layouts/monitor-layout/monitor-layout";
 import MonitorPage from "@/pages/monitor";
 import IncidentPage from "@/pages/incidents";
 import MonitorDetailsPage from "@/pages/monitor/details";
 import ReposPage from "@/pages/repos";
 import RepoDetailsPage from "@/pages/repos/details";
-import { AuthResolver, ProtectedGuard, PublicGuard } from "@seliseblocks/genesis-os/guards";
-import { ConsoleLayout, DashboardRoute } from "@seliseblocks/genesis-os/layouts";
+import { AuthResolver, ProtectedGuard, PublicGuard } from "@seliseblocks/app-kit/guards";
+import { ImpersonationChecker, ImpersonationTerminator } from "@seliseblocks/app-kit";
 import {
   CallbackPage,
-  ConsolePage,
   DashboardOverview,
   LoginPage,
   ProfilePage,
-} from "@seliseblocks/genesis-os/pages";
+} from "@seliseblocks/app-kit/pages";
+import { ConsoleRoute } from "@/pages/console/console-route";
 
 import { Navigate, Outlet, type RouteObject } from "react-router";
-
-const redirectPaths: Record<string, string> = {
-  "/app/monitor/monitor/*": "/app/monitor",
-  "/app/monitor/monitor/incidents/*": "/app/monitor",
-};
 
 export const routes = [
   {
@@ -59,30 +55,37 @@ export const routes = [
             ),
             children: [
               { index: true, element: <Navigate to="console" replace /> },
+              // Returning to the console terminates the environment session before rendering.
               {
                 element: (
-                  <ConsoleLayout>
-                    <Outlet />
-                  </ConsoleLayout>
+                  <ImpersonationChecker>
+                    <ImpersonationTerminator>
+                      <AppShell>
+                        <Outlet />
+                      </AppShell>
+                    </ImpersonationTerminator>
+                  </ImpersonationChecker>
                 ),
                 children: [
                   { path: "profile", element: <ProfilePage /> },
-                  { path: "console", element: <ConsolePage /> },
+                  { path: "console", element: <ConsoleRoute /> },
                 ],
               },
 
               {
                 // impersonate
                 path: ":itemId",
-                element: (
-                  <DashboardRoute redirectPaths={redirectPaths} navigationMenus={navigationMenus} />
-                ),
+                element: <MonitorDashboardRoute />,
                 children: [
                   {
                     index: true,
                     element: <Navigate to="dashboard" replace />,
                   },
-                  { path: "dashboard", element: <DashboardOverview /> },
+                  {
+                    path: "dashboard",
+                    // Like Release, the dashboard leaves out the Domains and Repositories tables.
+                    element: <DashboardOverview showDomains={false} showRepositories={false} />,
+                  },
                   {
                     element: <MonitorLayout />,
                     children: [

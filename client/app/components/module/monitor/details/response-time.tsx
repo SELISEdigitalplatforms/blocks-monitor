@@ -1,16 +1,13 @@
 import React, { useMemo, useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/core";
+import { SectionHeading } from "@/components/common/section-heading/section-heading";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/core";
+  SECTION_CLASS,
+  STAT_LABEL_CLASS,
+  STAT_SUB_CLASS,
+  STAT_VALUE_CLASS,
+  SURFACE_TILE_CLASS,
+} from "@/components/module/monitor/details/surface-styles";
 import {
   AreaChart,
   Area,
@@ -21,7 +18,7 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
-import { formatDuration } from "@seliseblocks/genesis-os/utils";
+import { formatDuration } from "@seliseblocks/app-kit/utils";
 
 type DowntimeLog = {
   startTime: string;
@@ -72,19 +69,28 @@ const CustomTooltip = ({
   if (!active || !payload?.length) return null;
   const d: ChartPoint = payload[0]?.payload;
   return (
-    <div className="rounded-md border bg-white p-3 text-sm shadow-[0_1px_3px_0_rgb(0_0_0/0.1),0_1px_2px_-1px_rgb(0_0_0/0.1)]">
-      <div className="mb-1 font-medium">{new Date(d.ts).toLocaleString()}</div>
+    <div className="rounded-sm border border-border bg-popover p-3 text-[13px] text-popover-foreground shadow-md">
+      <div className="mb-1 font-medium text-high-emphasis">{new Date(d.ts).toLocaleString()}</div>
       <div
-        className={d.status === 1 ? "font-semibold text-green-600" : "font-semibold text-red-600"}
+        className={d.status === 1 ? "font-semibold text-forest-ink" : "font-semibold text-rose-ink"}
       >
         {d.status === 1 ? "Up" : "Down"}
       </div>
       {d.duration !== undefined && (
-        <div className="mt-1 text-gray-600">Duration: {formatDuration(d.duration * 1000)}</div>
+        <div className="mt-1 text-muted-foreground">
+          Duration: {formatDuration(d.duration * 1000)}
+        </div>
       )}
     </div>
   );
 };
+
+// Chart colours come from the console tokens (bare `H S% L%` triplets), so the chart follows the
+// light and dark themes like the rest of the page.
+const CHART_UP = "hsl(var(--forest))";
+const CHART_GRID = "hsl(var(--border))";
+const CHART_AXIS = "hsl(var(--border-default))";
+const CHART_TICK = { fontSize: 12, fill: "hsl(var(--muted-foreground))" };
 
 type RelevantDowntime = {
   start: number;
@@ -96,7 +102,7 @@ const processDowntimePoints = (
   rangeStart: number,
   now: number,
   isActive: boolean,
-  pts: ChartPoint[]
+  pts: ChartPoint[],
 ) => {
   for (const d of relevant) {
     const s = Math.max(d.start, rangeStart);
@@ -214,73 +220,73 @@ const ResponseTime = ({
     return Array.from(map.values()).sort((a, b) => a.ts - b.ts);
   }, [downtimes, rangeStart, now, currentStatus, isActive]);
 
+  const metricTiles = [
+    { label: "Uptime", value: `${metrics.uptimePercentage}%`, sub: "Of the selected window" },
+    { label: "Total downtime", value: metrics.totalDowntime, sub: "Time spent down" },
+    { label: "Incidents", value: metrics.downtimeCount, sub: "Outages in the window" },
+  ];
+
   return (
-    <Card className="mb-6 border-none p-0 shadow-none">
-      <CardHeader>
-        <CardTitle className="flex w-full items-center justify-between gap-4">
-          <span>Status Overview</span>
+    <section aria-label="Response time" className={SECTION_CLASS}>
+      <SectionHeading
+        className="items-center"
+        title="Response time"
+        description="Up and down checks over the selected window"
+        actions={
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger
+              aria-label="Time range"
+              className="h-9 w-40 rounded-sm border-border bg-card text-[13px]"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="rounded-sm">
+              <SelectItem value="1h">Last 1 Hour</SelectItem>
+              <SelectItem value="3h">Last 3 Hours</SelectItem>
+              <SelectItem value="6h">Last 6 Hours</SelectItem>
+              <SelectItem value="12h">Last 12 Hours</SelectItem>
+              <SelectItem value="24h">Last 24 Hours</SelectItem>
+            </SelectContent>
+          </Select>
+        }
+      />
 
-          <div className="flex items-center gap-2">
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1h">Last 1 Hour</SelectItem>
-                <SelectItem value="3h">Last 3 Hours</SelectItem>
-                <SelectItem value="6h">Last 6 Hours</SelectItem>
-                <SelectItem value="12h">Last 12 Hours</SelectItem>
-                <SelectItem value="24h">Last 24 Hours</SelectItem>
-              </SelectContent>
-            </Select>
+      {/* Metrics */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {metricTiles.map((tile) => (
+          <div key={tile.label} className={SURFACE_TILE_CLASS}>
+            <p className={STAT_LABEL_CLASS}>{tile.label}</p>
+            <p className={STAT_VALUE_CLASS}>{tile.value}</p>
+            <p className={STAT_SUB_CLASS}>{tile.sub}</p>
           </div>
-        </CardTitle>
+        ))}
+      </div>
 
-        <CardDescription className="flex flex-wrap gap-6">
-          <span className="flex items-baseline gap-2">
-            <span className="text-sm text-gray-600">Monitor interval</span>
-            <span className="font-semibold">{formatDuration(interval * 1000)}</span>
-          </span>
-
-          <span className="flex items-baseline gap-2">
-            <span className="text-sm text-gray-600">
+      {/* Chart */}
+      <div className={SURFACE_TILE_CLASS}>
+        <dl className="mb-4 flex flex-wrap gap-x-6 gap-y-1 text-[13px]">
+          <div className="flex items-baseline gap-2">
+            <dt className="text-muted-foreground">Monitor interval</dt>
+            <dd className="font-medium text-high-emphasis">{formatDuration(interval * 1000)}</dd>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <dt className="text-muted-foreground">
               {request ? "Request timeout" : "Grace Period"}
-            </span>
-            <span className="font-semibold">{formatDuration(timeout * 1000)}</span>
-          </span>
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent>
-        {/* Metrics */}
-        <div className="mb-6 grid grid-cols-3 gap-4">
-          <div className="rounded border border-green-200 bg-green-50 p-4">
-            <div className="text-sm text-gray-600">Uptime</div>
-            <div className="text-2xl font-bold text-green-700">{metrics.uptimePercentage}%</div>
+            </dt>
+            <dd className="font-medium text-high-emphasis">{formatDuration(timeout * 1000)}</dd>
           </div>
+        </dl>
 
-          <div className="rounded border border-red-200 bg-red-50 p-4">
-            <div className="text-sm text-gray-600">Total Downtime</div>
-            <div className="text-2xl font-bold text-red-700">{metrics.totalDowntime}</div>
-          </div>
-
-          <div className="rounded border border-blue-200 bg-blue-50 p-4">
-            <div className="text-sm text-gray-600">Incidents</div>
-            <div className="text-2xl font-bold text-blue-700">{metrics.downtimeCount}</div>
-          </div>
-        </div>
-
-        {/* Chart */}
         <ResponsiveContainer width="100%" height={260}>
           <AreaChart data={chartData}>
             <defs>
               <linearGradient id="statusGradient" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
+                <stop offset="5%" stopColor={CHART_UP} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={CHART_UP} stopOpacity={0.05} />
               </linearGradient>
             </defs>
 
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID} />
 
             <XAxis
               dataKey="ts"
@@ -293,8 +299,8 @@ const ResponseTime = ({
                   minute: "2-digit",
                 })
               }
-              tick={{ fontSize: 12 }}
-              axisLine={{ stroke: "#d1d5db" }}
+              tick={CHART_TICK}
+              axisLine={{ stroke: CHART_AXIS }}
             />
 
             <YAxis
@@ -302,26 +308,26 @@ const ResponseTime = ({
               ticks={[0, 1]}
               tickFormatter={(v) => (v === 1 ? "Up" : "Down")}
               width={60}
-              tick={{ fontSize: 12 }}
-              axisLine={{ stroke: "#d1d5db" }}
+              tick={CHART_TICK}
+              axisLine={{ stroke: CHART_AXIS }}
             />
 
             <Tooltip content={<CustomTooltip />} />
 
-            <ReferenceLine y={0.5} stroke="#e5e7eb" strokeDasharray="3 3" />
+            <ReferenceLine y={0.5} stroke={CHART_GRID} strokeDasharray="3 3" />
 
             <Area
               type="stepAfter"
               dataKey="status"
-              stroke="#10b981"
+              stroke={CHART_UP}
               strokeWidth={2.5}
               fill="url(#statusGradient)"
               isAnimationActive={false}
             />
           </AreaChart>
         </ResponsiveContainer>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 };
 

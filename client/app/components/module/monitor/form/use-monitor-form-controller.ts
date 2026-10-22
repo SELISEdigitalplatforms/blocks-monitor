@@ -15,8 +15,8 @@ import {
   toUpdateCallbackPayload,
   toUpdateRequestPayload,
 } from "./util";
-import { ErrorTransformer } from "@seliseblocks/genesis-os/utils";
-import { useScopedPath, useGetAllServices } from "@seliseblocks/genesis-os/hooks";
+import { ErrorTransformer } from "@seliseblocks/app-kit/utils";
+import { useScopedPath, useGetAllServices } from "@seliseblocks/app-kit/hooks";
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo } from "react";

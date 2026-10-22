@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router";
 
@@ -39,6 +39,8 @@ const h = vi.hoisted(() => ({
     isLoading: false,
   },
   downtime: { data: { data: [] as unknown[] }, isLoading: false },
+  errors: { details: false, monitor: false, downtime: false },
+  refetch: { details: vi.fn(), monitor: vi.fn(), downtime: vi.fn() },
 }));
 
 vi.mock("react-router", async (o) => {
@@ -49,16 +51,28 @@ vi.mock("react-router", async (o) => {
     useParams: () => ({ id: "m1" }),
   };
 });
-vi.mock("@seliseblocks/genesis-os/hooks", () => ({
+vi.mock("@seliseblocks/app-kit/hooks", () => ({
   useScopedPath: () => (p: string) => `/scoped/${p}`,
 }));
-vi.mock("@seliseblocks/genesis-os/store", () => ({
+vi.mock("@seliseblocks/app-kit/store", () => ({
   useProjectStore: () => ({ selectedProject: { tenantId: "proj-1" } }),
 }));
 vi.mock("@/hooks/use-alerts", () => ({
-  useGetMonitorDetails: () => h.details,
-  useGetMonitorById: () => h.monitor,
-  useGetMonitorDownTime: () => h.downtime,
+  useGetMonitorDetails: () => ({
+    ...h.details,
+    isError: h.errors.details,
+    refetch: h.refetch.details,
+  }),
+  useGetMonitorById: () => ({
+    ...h.monitor,
+    isError: h.errors.monitor,
+    refetch: h.refetch.monitor,
+  }),
+  useGetMonitorDownTime: () => ({
+    ...h.downtime,
+    isError: h.errors.downtime,
+    refetch: h.refetch.downtime,
+  }),
 }));
 
 // Heavy children are covered by their own suites; stub them so this page test
@@ -86,6 +100,11 @@ vi.mock("@/components/module/incident/incident-list", () => ({
 }));
 
 let lastIncidentListData: unknown[] = [];
+vi.mock("@/components/module/monitor/details/incident-activity", () => ({
+  default: (props: { monitorId: string }) => (
+    <div data-testid="incident-activity" data-monitor-id={props.monitorId} />
+  ),
+}));
 vi.mock("@/components/module/alert/alert-action", () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="alert-action">{children}</div>
@@ -152,7 +171,22 @@ describe("MonitorDetailsPage", () => {
     // makes the active-state assertions order-dependent.
     h.monitor.data.data.isActive = true;
     lastIncidentListData = [];
+    h.errors = { details: false, monitor: false, downtime: false };
   });
+
+  it.each(["details", "monitor", "downtime"] as const)(
+    "shows an error with a retry that refetches every query when %s fails",
+    async (failing) => {
+      h.errors[failing] = true;
+      renderPage();
+      expect(screen.getByRole("alert")).toHaveTextContent("Could not load this monitor.");
+      expect(screen.queryByText("API monitor")).toBeNull();
+      await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+      expect(h.refetch.details).toHaveBeenCalledTimes(1);
+      expect(h.refetch.monitor).toHaveBeenCalledTimes(1);
+      expect(h.refetch.downtime).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it("renders the skeleton while any query is loading", () => {
     h.monitor.isLoading = true;
@@ -166,8 +200,8 @@ describe("MonitorDetailsPage", () => {
     expect(screen.getByText("API monitor")).toBeInTheDocument();
     expect(screen.getByText("Notification Settings")).toBeInTheDocument();
     expect(screen.getByText("Configure")).toBeInTheDocument();
-    // Status card
-    expect(screen.getByText("Current Status")).toBeInTheDocument();
+    // Status tile
+    expect(screen.getByText("Current status")).toBeInTheDocument();
     expect(screen.getByText(/Currently up for/)).toBeInTheDocument();
     // Range card renders an uptime percentage and incident count.
     expect(screen.getByText("Last 7 days")).toBeInTheDocument();
@@ -179,6 +213,81 @@ describe("MonitorDetailsPage", () => {
     h.monitor.data.data.currentStatus = false;
     renderPage();
     expect(screen.getByText(/Currently down for/)).toBeInTheDocument();
+  });
+
+  it("shows the current status as a forest pill when up and a rose pill when down", () => {
+    const { unmount } = renderPage();
+    const up = screen.getByTestId("status-tile").querySelector("[data-tone]");
+    expect(up).toHaveAttribute("data-tone", "up");
+    expect(up).toHaveClass("rounded-full", "bg-forest-soft", "text-forest-ink");
+    expect(up).toHaveTextContent("up");
+    unmount();
+
+    h.monitor.data.data.currentStatus = false;
+    renderPage();
+    const down = screen.getByTestId("status-tile").querySelector("[data-tone]");
+    expect(down).toHaveAttribute("data-tone", "down");
+    expect(down).toHaveClass("rounded-full", "bg-rose-soft", "text-rose-ink");
+    expect(down).toHaveTextContent("down");
+  });
+
+  it("lays the status overview out as a responsive grid of token tiles", () => {
+    renderPage();
+    const heading = screen.getByRole("heading", { name: "Status overview" });
+    expect(heading).toHaveClass("text-[13px]", "font-bold", "uppercase", "tracking-[0.06em]");
+    expect(screen.getByText("Current health and uptime over recent periods")).toBeInTheDocument();
+
+    const tile = screen.getByTestId("status-tile");
+    expect(tile).toHaveClass("rounded-sm", "bg-card", "p-5", "shadow-surface-ring");
+    expect(tile.parentElement).toHaveClass("grid-cols-1", "sm:grid-cols-2", "lg:grid-cols-4");
+    // Status tile plus one tile per range.
+    expect(tile.parentElement!.children).toHaveLength(4);
+    // 90 days with 2h down -> 99.91% uptime, with the incident sub-line beneath it.
+    expect(screen.getByText("99.91%")).toBeInTheDocument();
+    expect(screen.getByText("2 incidents, 2h down")).toBeInTheDocument();
+    expect(tile.parentElement!.innerHTML).not.toMatch(/border-l-|green-|red-/);
+  });
+
+  it("matches the header buttons to the list page's Add Monitor button", () => {
+    renderPage();
+    for (const name of ["Notification Settings", "Configure"]) {
+      const button = screen.getByRole("button", { name });
+      // `size="sm"` (h-9) and the kit's font-medium, as on Add Monitor; outline variant.
+      expect(button).toHaveClass("h-9", "font-medium", "border-border", "bg-card", "gap-2");
+    }
+    // Different icons: a bell for notifications, sliders for configuration.
+    expect(
+      screen.getByRole("button", { name: "Notification Settings" }).querySelector("svg"),
+    ).toHaveClass("lucide-bell-ring");
+    expect(screen.getByRole("button", { name: "Configure" }).querySelector("svg")).toHaveClass(
+      "lucide-sliders-horizontal",
+    );
+    // The actions trigger is a square of the same height.
+    expect(screen.getByRole("button", { name: "Actions" })).toHaveClass("h-9", "w-9", "px-0");
+    expect(screen.getByRole("heading", { level: 1, name: "API monitor" })).toBeInTheDocument();
+  });
+
+  it("gives Latest incidents the small-caps heading with an inline description", () => {
+    renderPage();
+    expect(screen.getByRole("heading", { name: "Latest incidents" })).toHaveClass(
+      "text-[13px]",
+      "font-bold",
+      "uppercase",
+    );
+    expect(screen.getByText("Recent downtime for this monitor")).toBeInTheDocument();
+    // Four or fewer incidents: no "View all" action.
+    expect(screen.queryByText("View all incidents")).toBeNull();
+  });
+
+  it("puts the downtime calendar inside Latest incidents, above the table", () => {
+    renderPage();
+    const section = screen.getByRole("region", { name: "Latest incidents" });
+    const activity = within(section).getByTestId("incident-activity");
+    expect(activity).toHaveAttribute("data-monitor-id", "m1");
+    expect(
+      activity.compareDocumentPosition(within(section).getByTestId("incident-list")) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("hides the action buttons for an external (source type 2) monitor", () => {
@@ -207,7 +316,9 @@ describe("MonitorDetailsPage", () => {
       itemId: `i${i}`,
     }));
     renderPage();
-    const viewAll = screen.getByText("View all incidents");
+    const viewAll = screen.getByRole("button", { name: "View all incidents" });
+    // A `size="sm"` outline button on the right of the section heading.
+    expect(viewAll).toHaveClass("h-9", "border-border", "bg-card");
     await userEvent.click(viewAll);
     expect(h.navigate).toHaveBeenCalledWith("/scoped/monitor/incidents/m1");
   });
@@ -228,7 +339,7 @@ describe("MonitorDetailsPage paused state", () => {
     lastResponseTimeIsActive = undefined;
   });
 
-  const statusCard = () => screen.getByText("Current Status").closest("div")!;
+  const statusCard = () => screen.getByTestId("status-tile");
 
   it("shows a Paused badge on the Current Status card when isActive is false", () => {
     // H3
@@ -247,10 +358,9 @@ describe("MonitorDetailsPage paused state", () => {
     expect(screen.queryByText(/Currently (up|down) for/)).toBeNull();
     const card = statusCard();
     expect(card.textContent).not.toMatch(/\b(up|down)\b/i);
-    expect(container.querySelector(".text-green-500")).toBeNull();
-    expect(container.querySelector(".border-l-green-500")).toBeNull();
-    expect(container.querySelector(".border-l-red-500")).toBeNull();
-    expect(container.querySelector(".border-l-muted")).toBeTruthy();
+    expect(card.querySelector("[data-tone='paused']")).toHaveTextContent("Paused");
+    expect(card.querySelector("[data-tone='up'], [data-tone='down']")).toBeNull();
+    expect(container.querySelector(".text-forest-ink, .text-rose-ink")).toBeNull();
   });
 
   it("shows Paused for a monitor whose last known status was down", () => {
@@ -287,6 +397,7 @@ describe("MonitorDetailsPage paused state", () => {
 
     expect(screen.getByText("Paused")).toBeInTheDocument();
     expect(lastIncidentListData).toEqual(incidents);
+    expect(screen.getByTestId("incident-activity")).toBeInTheDocument();
   });
 
   it("tells the Status Overview chart the monitor is paused", () => {
@@ -321,7 +432,7 @@ describe("MonitorDetailsPage paused state", () => {
           <Routes>
             <Route path="/app/:itemId/monitor/:id" element={<MonitorDetailsPage />} />
           </Routes>
-        </MemoryRouter>
+        </MemoryRouter>,
       );
 
     h.monitor.data.data.isActive = false;

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryWrapper } from "@/__tests__/test-utils";
 
@@ -90,9 +90,42 @@ describe("ScaTab", () => {
       </QueryWrapper>,
     );
     await user.click(screen.getByTestId("sca-tile-low"));
+    expect(screen.getByTestId("sca-tile-low")).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByTestId("sca-empty")).toHaveTextContent("No dependencies found");
+    // Nothing to page through: the footer is left out rather than captioned "0 of 0".
+    expect(screen.queryByTestId("sca-footer")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("sca-prev")).not.toBeInTheDocument();
+    await user.click(screen.getByTestId("sca-tile-low"));
+    expect(screen.getByTestId("sca-tile-low")).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByTestId("sca-row-1")).toBeInTheDocument();
+  });
+
+  it("pages through more than five dependencies", async () => {
+    const user = userEvent.setup();
+    const report = h.report.data as {
+      data: { vulnerabilities: Array<Record<string, unknown>> };
+    };
+    report.data.vulnerabilities = Array.from({ length: 7 }, (_, index) => ({
+      id: `CVE-${index + 1}`,
+      name: `pkg-${index + 1}`,
+      group: "npm",
+      version: "1.0.0",
+      severity: "LOW",
+      score: "1.0",
+    }));
+    render(
+      <QueryWrapper>
+        <ScaTab projectKey="t" buildId="b1" isActive />
+      </QueryWrapper>,
+    );
+    expect(screen.getByTestId("sca-footer")).toHaveTextContent("Showing 1-5 of 7 entries");
     expect(screen.getByTestId("sca-prev")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Page 1" })).toHaveAttribute("aria-current", "page");
+    await user.click(screen.getByTestId("sca-next"));
+    expect(screen.getByTestId("sca-footer")).toHaveTextContent("Showing 6-7 of 7 entries");
     expect(screen.getByTestId("sca-next")).toBeDisabled();
+    await user.click(screen.getByTestId("sca-prev"));
+    expect(screen.getByTestId("sca-footer")).toHaveTextContent("Showing 1-5 of 7 entries");
   });
 
   it("filters by component search (H13)", async () => {
@@ -118,6 +151,33 @@ describe("ScaTab", () => {
     );
     await user.click(screen.getByText("left-pad"));
     expect(screen.getByTestId("sca-dialog")).toBeInTheDocument();
+  });
+
+  it("opens the dialog from the keyboard on a focused row", () => {
+    render(
+      <QueryWrapper>
+        <ScaTab projectKey="t" buildId="b1" isActive />
+      </QueryWrapper>,
+    );
+    const row = screen.getByTestId("sca-row-1");
+    expect(row).toHaveAttribute("role", "button");
+    expect(row).toHaveAttribute("tabindex", "0");
+    fireEvent.keyDown(row, { key: "Tab" });
+    expect(screen.queryByTestId("sca-dialog")).not.toBeInTheDocument();
+    fireEvent.keyDown(row, { key: "Enter" });
+    expect(screen.getByTestId("sca-dialog")).toHaveTextContent("left-pad");
+  });
+
+  it("does not open the dialog from the NVD link", () => {
+    render(
+      <QueryWrapper>
+        <ScaTab projectKey="t" buildId="b1" isActive />
+      </QueryWrapper>,
+    );
+    const link = screen.getByRole("link", { name: "CVE-1" });
+    expect(link).toHaveAttribute("href", "https://nvd.nist.gov/vuln/detail/CVE-1");
+    fireEvent.click(link);
+    expect(screen.queryByTestId("sca-dialog")).not.toBeInTheDocument();
   });
 
   it("shows no-report for empty details (C12)", () => {

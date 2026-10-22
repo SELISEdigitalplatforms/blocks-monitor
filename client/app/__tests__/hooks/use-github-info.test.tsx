@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 
-vi.mock("@seliseblocks/genesis-os", () => ({
+vi.mock("@seliseblocks/app-kit", () => ({
   useProjectStore: () => ({ selectedProject: { tenantId: "proj-1" } }),
 }));
 

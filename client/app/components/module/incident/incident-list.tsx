@@ -1,16 +1,7 @@
-import type { SortValue } from "@seliseblocks/genesis-os/components";
-import { FilterControls } from "@seliseblocks/genesis-os/components";
-import { TableLoadingSkeleton } from "@seliseblocks/genesis-os/components";
-import {
-  ScrollArea,
-  ScrollBar,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/core";
+import type { SortValue } from "@seliseblocks/app-kit/components";
+import { FilterControls } from "@seliseblocks/app-kit/components";
+import { TableLoadingSkeleton } from "@seliseblocks/app-kit/components";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/core";
 import { IncidentTree } from "@/models/alerts.model";
 import {
   CellContext,
@@ -21,7 +12,10 @@ import {
 } from "@tanstack/react-table";
 import { useCallback, useMemo } from "react";
 import { useIncidentFilterQueryParams } from "./use-incident-query-filter-params";
-import { formatDuration } from "@seliseblocks/genesis-os/utils";
+import { formatDuration } from "@seliseblocks/app-kit/utils";
+import { ShieldCheck } from "lucide-react";
+import { StatusPill } from "@/components/module/monitor/details/status-pill";
+import { TABLE_CARD_CLASS } from "@/components/module/monitor/details/surface-styles";
 
 const parseFailureReason = (reason?: string | null): string | undefined => {
   if (!reason) return undefined; // instead of null
@@ -112,12 +106,11 @@ const IncidentList = ({
         ),
         cell: ({ row }) => {
           const isResolved = row.original.isResolved;
-          const statusClass = isResolved
-            ? "text-green-600 bg-green-100 px-2 py-1 rounded-full"
-            : "text-red-600 bg-red-100 px-2 py-1 rounded-full";
           return (
-            <div className="ml-2 flex w-[100px] flex-row items-center gap-2 sm:ml-0">
-              <span className={statusClass}>{isResolved ? "Resolved" : "Unresolved"}</span>
+            <div className="flex w-[100px] flex-row items-center gap-2">
+              <StatusPill tone={isResolved ? "up" : "down"}>
+                {isResolved ? "Resolved" : "Unresolved"}
+              </StatusPill>
             </div>
           );
         },
@@ -136,7 +129,7 @@ const IncidentList = ({
                 />
               ),
               cell: (cell: CellContext<IncidentTree, string | undefined>) => (
-                <div className="ml-2 flex items-center sm:ml-0 sm:w-[100px]">
+                <div className="flex items-center sm:w-[100px]">
                   <span>{cell.row.original.lastStatusCode}</span>
                 </div>
               ),
@@ -156,7 +149,7 @@ const IncidentList = ({
           />
         ),
         cell: ({ row }) => (
-          <div className="ml-2 flex items-center sm:ml-0 sm:w-[100px]">
+          <div className="flex items-center sm:w-[100px]">
             <span>{parseFailureReason(row.original.failureReason)}</span>
           </div>
         ),
@@ -177,7 +170,7 @@ const IncidentList = ({
         cell: ({ row }) => {
           const started = new Date(row.original.startTime).toLocaleString();
           return (
-            <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
+            <div className="flex w-[180px] items-center sm:w-[150px]">
               <span>{started}</span>
             </div>
           );
@@ -200,7 +193,7 @@ const IncidentList = ({
           const endTime = row.original.endTime ? new Date(row.original.endTime) : null;
           const isOngoing = !endTime || endTime < startTime;
           return (
-            <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
+            <div className="flex w-[180px] items-center sm:w-[150px]">
               <span>{isOngoing ? "Ongoing" : endTime?.toLocaleString()}</span>
             </div>
           );
@@ -226,7 +219,7 @@ const IncidentList = ({
             durationSec = Math.floor((now - start) / 1000);
           }
           return (
-            <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[100px]">
+            <div className="flex w-[180px] items-center sm:w-[100px]">
               <span>{formatDuration(durationSec * 1000)}</span>
             </div>
           );
@@ -246,13 +239,17 @@ const IncidentList = ({
   });
 
   return (
-    <ScrollArea className="w-full">
-      <Table className="text-sm">
+    // The table draws its own card (the release "Monitoring" table), with the pagination footer
+    // inside it. The kit Table and the global table CSS already give the uppercase `h-10 px-5`
+    // headers, `px-5 py-4` cells, faint row dividers and warm hover, and the kit table's own
+    // ring is dropped inside this card, so wide tables still scroll sideways within it.
+    <div className={TABLE_CARD_CLASS}>
+      <Table aria-label="Incidents" className="w-full min-w-[760px]">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="px-4 py-2 hover:bg-transparent">
+            <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id} className="font-bold text-medium-emphasis">
+                <TableHead key={header.id}>
                   {header.isPlaceholder
                     ? null
                     : flexRender(header.column.columnDef.header, header.getContext())}
@@ -271,7 +268,7 @@ const IncidentList = ({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="text-medium-emphasis"
+                  className="cursor-auto text-medium-emphasis"
                   isHoverable
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -283,11 +280,11 @@ const IncidentList = ({
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={table.getAllColumns().length}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  No results.
+                <TableCell colSpan={table.getAllColumns().length} className="h-40">
+                  <div className="flex flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
+                    <ShieldCheck className="h-6 w-6" aria-hidden="true" />
+                    <span>No incidents found.</span>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -295,7 +292,7 @@ const IncidentList = ({
         )}
       </Table>
       {totalCount > pageSize && (
-        <div className="mt-5 flex items-center justify-end">
+        <div className="flex items-center justify-end border-t border-border/60 px-5 py-3">
           <FilterControls.TablePagination
             pageIndex={pageNumber}
             pageSize={pageSize}
@@ -306,9 +303,7 @@ const IncidentList = ({
           />
         </div>
       )}
-
-      <ScrollBar orientation="horizontal" />
-    </ScrollArea>
+    </div>
   );
 };
 
