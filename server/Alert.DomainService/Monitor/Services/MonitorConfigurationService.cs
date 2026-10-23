@@ -48,7 +48,7 @@ namespace DomainService.Monitor.Services
             var data = new MonitorConfiguration();
             try
             {
-                data = await _monitorConfigurationRepoService.GetConfigurationAsync(monitorId);
+                data = await _monitorConfigurationRepoService.GetConfigurationForViewAsync(monitorId);
 
                 if (data != null && IsCrossTenantAccess(data))
                 {

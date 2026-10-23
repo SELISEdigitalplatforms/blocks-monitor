@@ -133,17 +133,23 @@ export const useIsExternalServiceConfigured = (externalServiceId: string) => {
     enabled: !!externalServiceId,
   });
 };
-export const useGetMonitorDetails = (monitorId: string) => {
+export const useGetMonitorDetails = (monitorId: string, options?: { refetchInterval?: number }) => {
   return useQuery({
     queryKey: ["get-monitor-details", monitorId],
     queryFn: () => alertsService.getMonitorDetails(monitorId),
+    refetchInterval: options?.refetchInterval,
   });
 };
-export const useGetMonitorById = (monitorId: string) => {
+/**
+ * `refetchInterval`: poll, for a page showing the monitor's current status. Off by default: the edit
+ * form also reads this query, and refetching under it is pointless.
+ */
+export const useGetMonitorById = (monitorId: string, options?: { refetchInterval?: number }) => {
   return useQuery({
     queryKey: ["get-monitor-by-id", monitorId],
     queryFn: () => alertsService.getMonitorById(monitorId),
     enabled: !!monitorId,
+    refetchInterval: options?.refetchInterval,
   });
 };
 
@@ -199,6 +205,8 @@ export const useGetMonitorDownTime = (option: {
   monitorId: string;
   timeRange: string;
   interval: number;
+  /** Overrides polling at the monitor's own interval. */
+  refetchInterval?: number;
 }) => {
   return useQuery({
     queryKey: ["get-monitor-response-id", option.monitorId, option.timeRange],
@@ -234,7 +242,7 @@ export const useGetMonitorDownTime = (option: {
       const res = await alertsService.GetMonitorDownTime(payload);
       return res;
     },
-    refetchInterval: (option.interval || 60) * 1000,
+    refetchInterval: option.refetchInterval ?? (option.interval || 60) * 1000,
     enabled: !!option.monitorId && !!option.interval,
   });
 };

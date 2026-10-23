@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Blocks.Genesis;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using DomainService.Shared.Services;
 using DomainService.Alert.Entities;
@@ -50,13 +53,14 @@ namespace XUnitTest.Health
                 new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret, PassThroughMonitorDataAccess.Instance);
         }
 
-        // Builds the service with a caller-supplied incident collection so write failures can be simulated.
+        // Builds the service with caller-supplied collections so writes can be captured or made to fail.
         private HealthIncidentService BuildWithIncidentCollection(
             Mock<IMongoCollection<MonitorIncident>> incidentColl,
-            IEnumerable<MonitorConfiguration> configs = null)
+            IEnumerable<MonitorConfiguration> configs = null,
+            Mock<IMongoCollection<MonitorConfiguration>> configColl = null)
         {
             var db = new MongoMocks.DbBuilder()
-                .With(configs ?? new List<MonitorConfiguration>())
+                .With(configColl ?? MongoMocks.Collection(configs ?? new List<MonitorConfiguration>()))
                 .With(incidentColl)
                 .With(new List<ProjectPeople>())
                 .With(new List<EmailTemplate>())
@@ -202,6 +206,51 @@ namespace XUnitTest.Health
             var act = async () => await BuildWithIncidentCollection(incidentColl).ResolveIncidentAsync(Config());
 
             await act.Should().ThrowAsync<MongoException>();
+        }
+
+        // Resolves with the given incidents and returns the $set sent to the monitor configuration.
+        private async Task<BsonDocument> ResolveAndCaptureConfigSet(List<MonitorIncident> incidents)
+        {
+            UpdateDefinition<MonitorConfiguration>? captured = null;
+            var configColl = MongoMocks.Collection(new List<MonitorConfiguration> { Config() });
+            configColl.Setup(c => c.UpdateOneAsync(It.IsAny<FilterDefinition<MonitorConfiguration>>(), It.IsAny<UpdateDefinition<MonitorConfiguration>>(),
+                    It.IsAny<UpdateOptions>(), It.IsAny<CancellationToken>()))
+                .Callback<FilterDefinition<MonitorConfiguration>, UpdateDefinition<MonitorConfiguration>, UpdateOptions, CancellationToken>((_, u, _, _) => captured = u)
+                .ReturnsAsync(new UpdateResult.Acknowledged(1, 1, null));
+
+            await BuildWithIncidentCollection(MongoMocks.Collection(incidents), configColl: configColl).ResolveIncidentAsync(Config());
+
+            captured.Should().NotBeNull();
+            var rendered = captured!.Render(new RenderArgs<MonitorConfiguration>(
+                BsonSerializer.LookupSerializer<MonitorConfiguration>(), BsonSerializer.SerializerRegistry));
+            return rendered.AsBsonDocument["$set"].AsBsonDocument;
+        }
+
+        [Fact]
+        public async Task ResolveIncidentAsync_WhenOpenIncidentExists_MovesLastIncidentAtToTheRecovery()
+        {
+            // "Currently up for" counts from LastIncidentAt, so a recovery must move it, as it does for HTTP monitors.
+            var before = DateTime.UtcNow;
+
+            var set = await ResolveAndCaptureConfigSet(new List<MonitorIncident>
+            {
+                new() { ItemId = "i1", MonitorId = "m1", IsResolved = false, StartTime = before.AddMinutes(-3) }
+            });
+
+            set["CurrentStatus"].AsBoolean.Should().BeTrue();
+            set.Contains("LastIncidentAt").Should().BeTrue();
+            set["LastIncidentAt"].ToUniversalTime().Should().BeOnOrAfter(before.AddMilliseconds(-1));
+            set["LastIncidentAt"].Should().Be(set["LastCheckedAt"]);
+        }
+
+        [Fact]
+        public async Task ResolveIncidentAsync_WhenNoOpenIncident_LeavesLastIncidentAtAlone()
+        {
+            // A ping while already up is not a status change.
+            var set = await ResolveAndCaptureConfigSet(new List<MonitorIncident>());
+
+            set["CurrentStatus"].AsBoolean.Should().BeTrue();
+            set.Contains("LastIncidentAt").Should().BeFalse();
         }
     }
 }

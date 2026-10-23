@@ -21,6 +21,7 @@
     <!-- Transitive dependencies of Alert.DomainService bundled in this package -->
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="MailKit" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
     <PackageReference Include="SeliseBlocks.Genesis.OS" />
   </ItemGroup>
 

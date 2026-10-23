@@ -81,6 +81,47 @@ namespace XUnitTest.Shared
         }
 
         [Fact]
+        public async Task Insert_AddsTheRequesterToReadUpdateAndDeleteUserIds_KeepingIdsAlreadyThere()
+        {
+            Resolves();
+            var record = new MonitorConfiguration { ItemId = "m1", Name = "api", Url = "https://api.test" };
+            record.Read = new OperationAccess { UserIds = ["user-9"], Roles = ["admin"] };
+            record.Update = new OperationAccess { UserIds = ["user-1"] };
+
+            await _sut.PrepareWriteAsync(MonitorSchemas.MonitorConfiguration, record, isInsert: true, "test");
+
+            record.Read!.UserIds.Should().Equal("user-9", "user-1");
+            record.Read.Roles.Should().Equal("admin");
+            record.Update!.UserIds.Should().Equal("user-1");   // once
+            record.Delete!.UserIds.Should().Equal("user-1");
+            record.Create.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task Insert_OnASchemaWithoutRules_StillAddsTheRequester()
+        {
+            var record = new MonitorConfiguration { ItemId = "m1", Name = "api", Url = "https://api.test" };
+
+            await _sut.PrepareWriteAsync(MonitorSchemas.MonitorIncident, record, isInsert: true, "test");
+
+            record.Read!.UserIds.Should().Equal("user-1");
+        }
+
+        [Fact]
+        public async Task AReplace_OrAnInsertWithoutASignedInUser_AddsNoRequester()
+        {
+            Resolves();
+            var replaced = new MonitorConfiguration { ItemId = "m1", Name = "api", Url = "https://api.test" };
+            await _sut.PrepareWriteAsync(MonitorSchemas.MonitorConfiguration, replaced, isInsert: false, "test");
+            replaced.Read.Should().BeNull();
+
+            SetContext(authenticated: false);
+            var anonymous = new MonitorConfiguration { ItemId = "m1", Name = "api", Url = "https://api.test" };
+            await _sut.PrepareWriteAsync(MonitorSchemas.MonitorConfiguration, anonymous, isInsert: true, "test");
+            anonymous.Read.Should().BeNull();
+        }
+
+        [Fact]
         public async Task ABrokenRule_Throws_WithThePropertyAndMessage()
         {
             Resolves(validation: Failed("Name", "Name must be at most 5 characters"));

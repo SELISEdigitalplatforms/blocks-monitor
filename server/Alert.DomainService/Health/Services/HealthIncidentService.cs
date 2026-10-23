@@ -9,6 +9,8 @@ namespace DomainService.Health.Services
 {
     public class HealthIncidentService
     {
+        private const string CreateIncidentCallSite = "HealthIncidentService.CreateIncidentAsync";
+
         private readonly ILogger<HealthIncidentService> _logger;
         private readonly IMongoCollection<MonitorIncident> _incidentCollection;
         private readonly IMongoCollection<MonitorConfiguration> _healthConfigCollection;
@@ -86,7 +88,7 @@ namespace DomainService.Health.Services
             {
                 _logger.LogInformation("Creating incident for {HealthName}", config.Name);
 
-                var existingIncident = await FindOpenIncidentAsync(config.ItemId, "HealthIncidentService.CreateIncidentAsync");
+                var existingIncident = await FindOpenIncidentAsync(config.ItemId, CreateIncidentCallSite);
 
                 if (existingIncident is not null)
                 {
@@ -105,8 +107,9 @@ namespace DomainService.Health.Services
                     FailureReason = "No ping received",
                 };
 
-                if (!await _access.InsertAllowedAsync(MonitorSchemas.MonitorIncident, "HealthIncidentService.CreateIncidentAsync"))
+                if (!await _access.InsertAllowedAsync(MonitorSchemas.MonitorIncident, CreateIncidentCallSite))
                     throw new UnauthorizedAccessException("Creating a monitor incident was denied by the data access policy.");
+                await _access.PrepareWriteAsync(MonitorSchemas.MonitorIncident, incident, isInsert: true, CreateIncidentCallSite);
                 await _incidentCollection.InsertOneAsync(incident);
 
                 var update = Builders<MonitorConfiguration>.Update
@@ -114,7 +117,7 @@ namespace DomainService.Health.Services
                     .Set(x => x.LastIncidentAt, DateTime.UtcNow)
                     .Set(x => x.LastCheckedAt, DateTime.UtcNow);
 
-                await UpdateConfigurationAsync(config.ItemId, update, "HealthIncidentService.CreateIncidentAsync");
+                await UpdateConfigurationAsync(config.ItemId, update, CreateIncidentCallSite);
                 await _notificationAlertService.HandleNotificationAlertAsync(config, incident);
                 await _emailAlertService.HandleEmailAlertAsync(config, incident);
                 _logger.LogInformation("Created new DOWN incident for {HealthName} ({Url})", config.Name, config.Url);
@@ -142,6 +145,7 @@ namespace DomainService.Health.Services
                 _logger.LogInformation("Checking for unresolved incident for {HealthName}", config.Name);
 
                 var openIncident = await FindOpenIncidentAsync(config.ItemId, "HealthIncidentService.ResolveIncidentAsync");
+                var resolvedAt = DateTime.UtcNow;
 
                 if (openIncident == null)
                 {
@@ -151,10 +155,10 @@ namespace DomainService.Health.Services
                 {
                     var updateIncident = Builders<MonitorIncident>.Update
                         .Set(x => x.IsResolved, true)
-                        .Set(x => x.EndTime, DateTime.UtcNow);
+                        .Set(x => x.EndTime, resolvedAt);
 
                     openIncident.IsResolved = true;
-                    openIncident.EndTime = DateTime.UtcNow;
+                    openIncident.EndTime = resolvedAt;
 
                     var incidentFilter = await _access.EditFilterAsync(MonitorSchemas.MonitorIncident,
                         Builders<MonitorIncident>.Filter.Eq(x => x.ItemId, openIncident.ItemId), "HealthIncidentService.ResolveIncidentAsync");
@@ -168,7 +172,13 @@ namespace DomainService.Health.Services
                 // Always mark config as UP
                 var updateHealth = Builders<MonitorConfiguration>.Update
                     .Set(x => x.CurrentStatus, true)
-                    .Set(x => x.LastCheckedAt, DateTime.UtcNow);
+                    .Set(x => x.LastCheckedAt, resolvedAt);
+
+                // LastIncidentAt is the last up/down change: the UI's "Currently up for" counts from it.
+                // HTTP monitors already move it on recovery (MonitorIncidentService); heartbeats did not,
+                // so their uptime started at the outage instead of the recovery.
+                if (openIncident != null)
+                    updateHealth = updateHealth.Set(x => x.LastIncidentAt, resolvedAt);
 
                 await UpdateConfigurationAsync(config.ItemId, updateHealth, "HealthIncidentService.ResolveIncidentAsync");
 

@@ -81,6 +81,7 @@ namespace DomainService.Monitor.MonitorIncidentService
             {
                 if (!await _access.InsertAllowedAsync(MonitorSchemas.MonitorIncident, "MonitorIncidentRepoService.CreateIncidentAsync"))
                     throw new UnauthorizedAccessException("Access to monitor incidents was denied by the data access policy.");
+                await _access.PrepareWriteAsync(MonitorSchemas.MonitorIncident, incident, isInsert: true, "MonitorIncidentRepoService.CreateIncidentAsync");
                 await _monitorIncidentsCollection.InsertOneAsync(incident);
                 _logger.LogInformation("Created new incident for MonitorId {MonitorId}", incident.MonitorId);
             }
@@ -144,7 +145,8 @@ namespace DomainService.Monitor.MonitorIncidentService
 
                 _logger.LogInformation("Fetched {Count} incidents for MonitorId {MonitorId}", incidents.Count, monitor.ItemId);
 
-                return incidents;
+                // The API lists these: View column (property) rules clear what the caller may not see.
+                return scope.ForView(incidents);
             }
             catch (Exception ex)
             {
@@ -391,7 +393,8 @@ namespace DomainService.Monitor.MonitorIncidentService
                     data.Count, totalCount, monitor.ItemId
                 );
 
-                return (data, totalCount);
+                // The API lists these: View column (property) rules clear what the caller may not see.
+                return (scope.ForView(data), totalCount);
             }
             catch (Exception ex)
             {
