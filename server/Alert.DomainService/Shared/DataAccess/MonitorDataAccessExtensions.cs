@@ -16,7 +16,10 @@ public static class MonitorDataAccessExtensions
             return services;
 
         if (!services.Any(d => d.ServiceType == typeof(IDataAccessResolver)))
+        {
             services.AddBlocksDataAccess();
+            services.AddSingleton<IAccessPrincipalAccessor, BlocksContextPrincipalAccessor>();
+        }
         services.AddSingleton<IMonitorDataAccess, MonitorDataAccess>();
         return services;
     }
