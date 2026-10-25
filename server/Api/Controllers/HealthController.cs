@@ -1,6 +1,6 @@
 ﻿using DomainService.Health.Models;
 using DomainService.Health.Services;
-using Microsoft.AspNetCore.Authorization;
+using Blocks.Genesis;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
@@ -24,7 +24,7 @@ namespace Api.Controllers
             _healthConfigurationService = healthConfigurationService;
             _healthCheckService = healthCheckService;
         }
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::health::manage")]
         [HttpPost]
         public async Task<IActionResult> SaveHealth([FromBody] SaveHealthConfigurationRequest request)
         {
@@ -37,7 +37,7 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="request">The request containing updated health configuration details.</param>
         /// <returns>The result of the update operation.</returns>
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::health::manage")]
         [HttpPost]
         public async Task<IActionResult> UpdateHealth([FromBody] UpdateHealthConfigurationRequest request)
         {
@@ -52,7 +52,7 @@ namespace Api.Controllers
             return Ok(new { message = $"Received ping for {itemId}" });
         }
 
-        [Authorize]
+        [ProtectedEndPoint("blocks-monitor::health::manage")]
         [HttpDelete]
         public async Task<IActionResult> DeleteHealth([FromQuery] string itemId)
         {

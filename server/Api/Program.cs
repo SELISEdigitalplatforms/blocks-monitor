@@ -39,6 +39,9 @@ var services = builder.Services;
 
 services.AddHealthChecks();
 
+// A system schema's validation rules refusing a save outside the services' own handling: 400 with the failed properties.
+services.Configure<Microsoft.AspNetCore.Mvc.MvcOptions>(options => options.Filters.Add<Api.Middleware.DataValidationExceptionFilter>());
+
 if (builder.Environment.IsDevelopment())
 {
  services.AddCors(options =>

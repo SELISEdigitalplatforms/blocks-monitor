@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Blocks.Genesis;
 using DomainService.Shared.Services;
 using DomainService.Alert.Services;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Shared.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -36,7 +36,7 @@ namespace XUnitTest.Alert
         {
             var db = new MongoMocks.DbBuilder()
                 .With(people ?? new List<ProjectPeople>())
-                .With(new List<DomainService.Alert.Entities.AlertMailTemplate>())
+                .With(new List<DomainService.Alert.Entities.EmailTemplate>())
                 .With(new List<DomainService.Alert.Entities.MailServerConfiguration>());
             return new AlertRepoService(db.Provider, MongoMocks.BlocksSecret().Object);
         }

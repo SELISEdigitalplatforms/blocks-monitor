@@ -1,5 +1,6 @@
+using XUnitTest.Utilities;
 using Blocks.Genesis;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -25,7 +26,7 @@ public class MonitoringRootPlacementTests
             It.IsAny<ReplaceOptions>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ReplaceOneResult.Acknowledged(0, 0, new BsonString("dev-monitor")));
         var repository = new MonitorConfigurationRepoService(NullLogger<MonitorConfigurationRepoService>.Instance,
-            provider.Object, new ConfigurationBuilder().Build(), secret);
+            provider.Object, new ConfigurationBuilder().Build(), secret, PassThroughMonitorDataAccess.Instance);
 
         Assert.True(await repository.SaveConfigurationAsync(record));
 

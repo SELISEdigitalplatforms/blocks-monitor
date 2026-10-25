@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Blocks.Genesis;
 using DomainService.Shared.Services;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Shared.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

@@ -10,7 +10,7 @@ using DomainService.Alert.Services;
 using DomainService.Health.HealthWorkerService;
 using DomainService.Health.Models;
 using DomainService.Health.Services;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Shared.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -31,11 +31,11 @@ namespace XUnitTest.Health
                 .With(configColl)
                 .With(incidents ?? new List<MonitorIncident>())
                 .With(new List<ProjectPeople>())
-                .With(new List<AlertMailTemplate>())
+                .With(new List<EmailTemplate>())
                 .With(new List<MailServerConfiguration>());
             var secret = MongoMocks.BlocksSecret().Object;
 
-            var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret);
+            var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret, PassThroughMonitorDataAccess.Instance);
             var alertRepo = new AlertRepoService(db.Provider, secret);
             var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo);
             var http = new Mock<IHttpHelperServices>();
@@ -44,7 +44,7 @@ namespace XUnitTest.Health
                 .ReturnsAsync((new NotificationResponse { IsSuccess = true }, new HttpResponseMessage(HttpStatusCode.OK)));
             var notification = new NotificationAlertService(new Mock<ILogger<NotificationAlertService>>().Object, http.Object,
                 new Mock<ICryptoService>().Object, new Mock<ITenants>().Object, alertRepo, new Mock<IConfiguration>().Object);
-            var incidentService = new HealthIncidentService(new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret);
+            var incidentService = new HealthIncidentService(new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret, PassThroughMonitorDataAccess.Instance);
 
             return new HealthCheckService(_queue, new Mock<ILogger<HealthCheckService>>().Object, healthRepo, incidentService, workerCount: 1);
         }
@@ -198,15 +198,15 @@ namespace XUnitTest.Health
                 .With(MongoMocks.Collection(new List<MonitorConfiguration>()))
                 .With(MongoMocks.CollectionThrowing<MonitorIncident>())
                 .With(new List<ProjectPeople>())
-                .With(new List<AlertMailTemplate>())
+                .With(new List<EmailTemplate>())
                 .With(new List<MailServerConfiguration>());
             var secret = MongoMocks.BlocksSecret().Object;
-            var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret);
+            var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret, PassThroughMonitorDataAccess.Instance);
             var alertRepo = new AlertRepoService(db.Provider, secret);
             var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo);
             var notification = new NotificationAlertService(new Mock<ILogger<NotificationAlertService>>().Object, new Mock<IHttpHelperServices>().Object,
                 new Mock<ICryptoService>().Object, new Mock<ITenants>().Object, alertRepo, new Mock<IConfiguration>().Object);
-            var incidentService = new HealthIncidentService(new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret);
+            var incidentService = new HealthIncidentService(new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret, PassThroughMonitorDataAccess.Instance);
             var sut = new HealthCheckService(new HealthQueueManager(), new Mock<ILogger<HealthCheckService>>().Object, healthRepo, incidentService, workerCount: 1);
 
             var act = async () =>
@@ -227,14 +227,14 @@ namespace XUnitTest.Health
             var queue = new HealthQueueManager();
             var db = new MongoMocks.DbBuilder()
                 .With(new List<MonitorConfiguration>()).With(new List<MonitorIncident>())
-                .With(new List<ProjectPeople>()).With(new List<AlertMailTemplate>()).With(new List<MailServerConfiguration>());
+                .With(new List<ProjectPeople>()).With(new List<EmailTemplate>()).With(new List<MailServerConfiguration>());
             var secret = MongoMocks.BlocksSecret().Object;
-            var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret);
+            var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret, PassThroughMonitorDataAccess.Instance);
             var alertRepo = new AlertRepoService(db.Provider, secret);
             var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo);
             var notification = new NotificationAlertService(new Mock<ILogger<NotificationAlertService>>().Object,
                 new Mock<IHttpHelperServices>().Object, new Mock<ICryptoService>().Object, new Mock<ITenants>().Object, alertRepo, new Mock<IConfiguration>().Object);
-            var incidentService = new HealthIncidentService(new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret);
+            var incidentService = new HealthIncidentService(new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret, PassThroughMonitorDataAccess.Instance);
 
             // StartAsync is virtual, so mock it to observe the worker delegating to it.
             var healthCheck = new Mock<HealthCheckService>(queue, new Mock<ILogger<HealthCheckService>>().Object, healthRepo, incidentService, 1) { CallBase = false };

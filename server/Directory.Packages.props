@@ -10,11 +10,9 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="MongoDB.Driver" Version="3.8.0" />
     <!--
-      Genesis is declared once here at 4.2.2. Api's graph is lifted to 4.2.3 transitively by
-      ReleaseDriver.OS 4.0.3 (which depends on Genesis 4.2.3), while Worker (and anything that
-      only sees this central pin) stays on 4.2.2. That Api/Worker split is intentional and still
-      present — aligning Worker onto 4.2.3 is out of scope for #222 and must be assessed
-      separately.
+      Genesis is declared once here at 4.3.7, in sync with every collection-cut service (owner
+      2026-10-14). ReleaseDriver.OS 4.0.3 depends on Genesis 4.2.3, which is lower, so Api and
+      Worker both resolve 4.2.8 and the old Api/Worker split is gone.
 
       4.0.8 added delegated access, which registers a startup validator that fails the host unless
       BLOCKS_IAM_BASE_URL or BLOCKS_IAM_TOKEN_ENDPOINT resolves. Both processes get it from the
@@ -29,7 +27,7 @@
       is seeded, and 4xx is never reported by design. Note that ConfigureWorker gets no
       IConfiguration, so Worker is NOT covered - its faults reach the LMT pipeline only.
     -->
-    <PackageVersion Include="SeliseBlocks.Genesis.OS" Version="4.2.2" />
+    <PackageVersion Include="SeliseBlocks.Genesis.OS" Version="4.4.4" />
     <PackageVersion Include="SeliseBlocks.ReleaseDriver.OS" Version="4.0.3" />
     <!--
       ReleaseDriver.OS 4.0.3 ships Devops.DomainService with an assembly ref to
@@ -47,5 +45,7 @@
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
     <PackageVersion Include="SeliseBlocks.ConfigurationDriver" Version="10.0.0-preview.1" />
+    <!-- Transitive pin: MimeKit (via MailKit) pulls Pkcs 10.0.0 (GHSA-846f-f764-76mx, GHSA-2fmv-rv2c-59x7). -->
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
 </Project>

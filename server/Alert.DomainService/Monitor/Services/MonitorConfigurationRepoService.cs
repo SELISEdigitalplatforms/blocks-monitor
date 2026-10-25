@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using Blocks.Genesis;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.DataAccess.Rules;
+using DomainService.Shared.DataAccess;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -12,12 +14,14 @@ namespace DomainService.Monitor.Services
     {
         private readonly ILogger<MonitorConfigurationRepoService> _logger;
         private readonly IMongoCollection<MonitorConfiguration> _monitorConfigurationCollection;
+        private readonly IMonitorDataAccess _access;
 
-        public MonitorConfigurationRepoService(ILogger<MonitorConfigurationRepoService> logger, IDbContextProvider dbContextProvider, IConfiguration configuration, IBlocksSecret blocksSecret)
+        public MonitorConfigurationRepoService(ILogger<MonitorConfigurationRepoService> logger, IDbContextProvider dbContextProvider, IConfiguration configuration, IBlocksSecret blocksSecret, IMonitorDataAccess access)
         {
             var db = dbContextProvider.GetDatabase(blocksSecret.DatabaseConnectionString, blocksSecret.RootDatabaseName);
 
             _logger = logger;
+            _access = access;
             _monitorConfigurationCollection = db.GetCollection<MonitorConfiguration>("MonitorConfigurations");
         }
 
@@ -25,7 +29,9 @@ namespace DomainService.Monitor.Services
         {
             try
             {
-                var filter = Builders<MonitorConfiguration>.Filter.Eq(m => m.ItemId, itemId);
+                var filter = await _access.DeleteFilterAsync(MonitorSchemas.MonitorConfiguration,
+                    Builders<MonitorConfiguration>.Filter.Eq(m => m.ItemId, itemId), "MonitorConfigurationRepoService.DeleteConfigurationAsync");
+                if (filter is null) return false;
                 var result = await _monitorConfigurationCollection.DeleteOneAsync(filter);
 
                 return result.DeletedCount > 0;
@@ -37,12 +43,32 @@ namespace DomainService.Monitor.Services
             }
         }
 
+        public async Task<MonitorConfiguration?> GetConfigurationForViewAsync(string itemId)
+        {
+            try
+            {
+                var filter = Builders<MonitorConfiguration>.Filter.Eq(m => m.ItemId, itemId);
+                // Masked: View column (property) rules clear what the caller may not see. Never save it back.
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorConfiguration, filter, "MonitorConfigurationRepoService.GetConfigurationForViewAsync");
+                if (!scope.Granted) return null;
+                return scope.ForView(await scope.Apply(_monitorConfigurationCollection).FirstOrDefaultAsync());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving MonitorConfiguration with ItemId {ItemId}", itemId);
+                return null;
+            }
+        }
+
         public async Task<MonitorConfiguration?> GetConfigurationAsync(string itemId)
         {
             try
             {
                 var filter = Builders<MonitorConfiguration>.Filter.Eq(m => m.ItemId, itemId);
-                var monitorConfig = await _monitorConfigurationCollection.Find(filter).FirstOrDefaultAsync();
+                // Whole document on purpose: the update flow writes this entity back with a whole-doc replace.
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorConfiguration, filter, "MonitorConfigurationRepoService.GetConfigurationAsync", useProjection: false);
+                if (!scope.Granted) return null;
+                var monitorConfig = await scope.Apply(_monitorConfigurationCollection).FirstOrDefaultAsync();
 
                 return monitorConfig;
             }
@@ -117,18 +143,21 @@ namespace DomainService.Monitor.Services
 
                 var skip = pageNumber * pageSize;
 
-                var totalCount = (int)await _monitorConfigurationCollection.CountDocumentsAsync(filter);
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorConfiguration, filter, "MonitorConfigurationRepoService.GetConfigurationListAsync");
+                if (!scope.Granted) return (new List<MonitorConfiguration>(), 0);
+
+                var totalCount = (int)await _monitorConfigurationCollection.CountDocumentsAsync(scope.Filter);
 
                 var sort = BuildSortDefinition(monitorSourceType, sortProperty, sortIsDescending);
 
-                var items = await _monitorConfigurationCollection
-                    .Find(filter)
+                var items = await scope.Apply(_monitorConfigurationCollection)
                     .Sort(sort)
                     .Skip(skip)
                     .Limit(pageSize)
                     .ToListAsync();
 
-                return (items, totalCount);
+                // The API lists these: View column (property) rules clear what the caller may not see.
+                return (scope.ForView(items), totalCount);
             }
             catch (Exception ex)
             {
@@ -206,9 +235,12 @@ namespace DomainService.Monitor.Services
                     Builders<MonitorConfiguration>.Filter.Eq(m => m.TenantId, tenantId),
                     Builders<MonitorConfiguration>.Filter.Eq(m => m.RepoId, repoId)
                 );
-                var monitorConfig = await _monitorConfigurationCollection.Find(filter).ToListAsync();
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorConfiguration, filter, "MonitorConfigurationRepoService.GetConfigurationListByRepoIdAsync");
+                if (!scope.Granted) return new List<MonitorConfiguration>();
+                var monitorConfig = await scope.Apply(_monitorConfigurationCollection).ToListAsync();
 
-                return monitorConfig;
+                // The API lists these: View column (property) rules clear what the caller may not see.
+                return scope.ForView(monitorConfig);
             }
             catch (Exception ex)
             {
@@ -227,7 +259,8 @@ namespace DomainService.Monitor.Services
                 Builders<MonitorConfiguration>.Filter.Eq(m => m.MonitorConfigurationType, MonitorConfigurationTypes.OutboundPing)
             );
 
-            var monitorConfig = await _monitorConfigurationCollection.Find(filter).ToListAsync();
+            var scope = await _access.ReadAsync(MonitorSchemas.MonitorConfiguration, filter, "MonitorConfigurationRepoService.GetAllConfigurationListAsync");
+            var monitorConfig = scope.Granted ? await scope.Apply(_monitorConfigurationCollection).ToListAsync() : new List<MonitorConfiguration>();
             _logger.LogInformation(
                 "Retrieved {Count} active OutboundPing MonitorConfigurations from database.",
                 monitorConfig.Count);
@@ -238,7 +271,12 @@ namespace DomainService.Monitor.Services
         {
             try
             {
-                var filter = Builders<MonitorConfiguration>.Filter.Eq(m => m.ItemId, monitorConfiguration.ItemId);
+                const string callSite = "MonitorConfigurationRepoService.SaveConfigurationAsync";
+                var filter = await _access.EditFilterAsync(MonitorSchemas.MonitorConfiguration,
+                    Builders<MonitorConfiguration>.Filter.Eq(m => m.ItemId, monitorConfiguration.ItemId), callSite);
+                if (filter is null || !await _access.InsertAllowedAsync(MonitorSchemas.MonitorConfiguration, callSite))
+                    throw new UnauthorizedAccessException("Access to the monitor configuration was denied by the data access policy.");
+                await _access.PrepareUpsertAsync(MonitorSchemas.MonitorConfiguration, monitorConfiguration, _monitorConfigurationCollection, filter, callSite);
 
                 var result = await _monitorConfigurationCollection.ReplaceOneAsync(
                     filter,
@@ -261,12 +299,16 @@ namespace DomainService.Monitor.Services
         {
             try
             {
-                var filter = Builders<MonitorConfiguration>.Filter.Eq(m => m.ItemId, monitorConfiguration.ItemId);
+                const string callSite = "MonitorConfigurationRepoService.UpdateConfigurationAsync";
+                var filter = await _access.EditFilterAsync(MonitorSchemas.MonitorConfiguration,
+                    Builders<MonitorConfiguration>.Filter.Eq(m => m.ItemId, monitorConfiguration.ItemId), callSite);
+                if (filter is null) return false;
+                await _access.PrepareReplaceAsync(MonitorSchemas.MonitorConfiguration, monitorConfiguration, _monitorConfigurationCollection, filter, callSite);
                 var result = await _monitorConfigurationCollection.ReplaceOneAsync(filter, monitorConfiguration, new ReplaceOptions { IsUpsert = false });
 
                 return result.ModifiedCount > 0;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not DataValidationException)
             {
                 _logger.LogError(ex, "Error updating MonitorConfiguration with ItemId {ItemId}", monitorConfiguration.ItemId);
                 return false;
@@ -277,17 +319,21 @@ namespace DomainService.Monitor.Services
         {
             try
             {
-                var filter = Builders<MonitorConfiguration>.Filter.Eq(m => m.ItemId, monitorConfigurationUpdate.MonitorId);
+                const string callSite = "MonitorConfigurationRepoService.UpdateConfigurationIncidentAsync";
+                var filter = await _access.EditFilterAsync(MonitorSchemas.MonitorConfiguration,
+                    Builders<MonitorConfiguration>.Filter.Eq(m => m.ItemId, monitorConfigurationUpdate.MonitorId), callSite);
+                if (filter is null) return false;
 
                 var update = Builders<MonitorConfiguration>.Update
                     .Set(m => m.LastIncidentAt, monitorConfigurationUpdate.LastIncidentAt)
                     .Set(m => m.CurrentStatus, monitorConfigurationUpdate.CurrentStatus);
+                await _access.CheckUpdateAsync(MonitorSchemas.MonitorConfiguration, update, callSite);
 
                 var result = await _monitorConfigurationCollection.UpdateOneAsync(filter, update);
 
                 return result.ModifiedCount > 0;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not DataValidationException)
             {
                 _logger.LogError(ex,
                     "Error updating incident fields for MonitorConfiguration with ItemId {MonitorId}",
@@ -302,9 +348,9 @@ namespace DomainService.Monitor.Services
             {
                 var filter = Builders<MonitorConfiguration>.Filter.Eq(m => m.TenantId, tenantId);
 
-                var monitorConfigs = await _monitorConfigurationCollection
-                    .Find(filter)
-                    .ToListAsync();
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorConfiguration, filter, "MonitorConfigurationRepoService.GetConfigurationListByTenantIdAsync");
+                if (!scope.Granted) return new List<MonitorConfiguration>();
+                var monitorConfigs = await scope.Apply(_monitorConfigurationCollection).ToListAsync();
 
                 return monitorConfigs;
             }
@@ -321,7 +367,8 @@ namespace DomainService.Monitor.Services
         public async Task<MonitorConfiguration> GetByUrlAsync(string url)
         {
             var filter = Builders<MonitorConfiguration>.Filter.Eq(m => m.Url, url);
-            return await _monitorConfigurationCollection.Find(filter).FirstOrDefaultAsync();
+            var scope = await _access.ReadAsync(MonitorSchemas.MonitorConfiguration, filter, "MonitorConfigurationRepoService.GetByUrlAsync");
+            return scope.Granted ? await scope.Apply(_monitorConfigurationCollection).FirstOrDefaultAsync() : null!;
         }
 
         public async Task<MonitorConfiguration?> GetExternalServiceConfigurationAsync(string externalServiceId)
@@ -339,9 +386,10 @@ namespace DomainService.Monitor.Services
                     Builders<MonitorConfiguration>.Filter.Eq(m => m.ExternalServiceId, externalServiceId)
                 );
 
-                return await _monitorConfigurationCollection
-                    .Find(filter)
-                    .FirstOrDefaultAsync();
+                var scope = await _access.ReadAsync(MonitorSchemas.MonitorConfiguration, filter, "MonitorConfigurationRepoService.GetExternalServiceConfigurationAsync");
+                if (!scope.Granted) return null;
+                // Returned to the API caller: View column (property) rules clear what the caller may not see.
+                return scope.ForView(await scope.Apply(_monitorConfigurationCollection).FirstOrDefaultAsync());
             }
             catch (Exception ex)
             {

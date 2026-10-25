@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Blocks.Genesis;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.DataAccess.Rules;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.Services;
@@ -55,7 +56,7 @@ namespace XUnitTest.Monitor
         public async Task GetConfigurationByIdAsync_ReturnsConfig()
         {
             var config = new MonitorConfiguration { ItemId = "m1" };
-            _repo.Setup(r => r.GetConfigurationAsync("m1")).ReturnsAsync(config);
+            _repo.Setup(r => r.GetConfigurationForViewAsync("m1")).ReturnsAsync(config);
 
             var result = await CreateSut().GetConfigurationByIdAsync("m1");
 
@@ -66,7 +67,7 @@ namespace XUnitTest.Monitor
         [Fact]
         public async Task GetConfigurationByIdAsync_WhenRepoThrows_StillSucceedsWithEmptyConfig()
         {
-            _repo.Setup(r => r.GetConfigurationAsync("m1")).ThrowsAsync(new Exception("db"));
+            _repo.Setup(r => r.GetConfigurationForViewAsync("m1")).ThrowsAsync(new Exception("db"));
 
             var result = await CreateSut().GetConfigurationByIdAsync("m1");
 
@@ -174,6 +175,21 @@ namespace XUnitTest.Monitor
             _repo.Verify(r => r.SaveConfigurationAsync(It.IsAny<MonitorConfiguration>()), Times.Once);
             _messageClient.Verify(m => m.SendToConsumerAsync(
                 It.IsAny<ConsumerMessage<MonitorConfigurationUpdateQueue>>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SaveConfigurationAsync_RefusedByAValidationRule_ReturnsItsFieldMessage()
+        {
+            var refused = new DataValidationResult();
+            refused.AddError("Url", "Url must start with https://", "Regex");
+            _repo.Setup(r => r.SaveConfigurationAsync(It.IsAny<MonitorConfiguration>())).ThrowsAsync(new DataValidationException(refused));
+
+            var result = await CreateSut().SaveConfigurationAsync(ValidSaveRequest());
+
+            result.IsSuccess.Should().BeFalse();
+            result.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
+            result.Errors.Should().Equal(new Dictionary<string, string> { ["Url"] = "Url must start with https://" });
+            _messageClient.Verify(m => m.SendToConsumerAsync(It.IsAny<ConsumerMessage<MonitorConfigurationUpdateQueue>>()), Times.Never);
         }
 
         [Fact]
@@ -376,7 +392,7 @@ namespace XUnitTest.Monitor
         [Fact]
         public async Task GetConfigurationByIdAsync_WhenCrossTenant_ReturnsEmptyConfig()
         {
-            _repo.Setup(r => r.GetConfigurationAsync("m1"))
+            _repo.Setup(r => r.GetConfigurationForViewAsync("m1"))
                 .ReturnsAsync(new MonitorConfiguration { ItemId = "m1", TenantId = "tenant-a" });
             try
             {

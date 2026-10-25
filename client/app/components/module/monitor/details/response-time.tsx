@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -22,6 +22,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { formatDuration } from "@seliseblocks/genesis-os/utils";
+import { formatUptime, observedWindowMs } from "@/utils/uptime.util";
 
 type DowntimeLog = {
   startTime: string;
@@ -43,6 +44,16 @@ type ResponseTimeProps = {
    */
   isActive?: boolean;
   request: boolean;
+  /**
+   * When the monitor was created. Time before it is not part of the window: it is neither plotted
+   * nor counted toward uptime. Without it the whole window is used.
+   */
+  createdAt?: string | null;
+  /**
+   * The end of the window: when `data` was fetched. The window, an open outage and uptime are all
+   * worked out as of then, so they agree with the data and change only when a poll brings new data.
+   */
+  now: number;
 };
 
 type ChartPoint = {
@@ -142,11 +153,13 @@ const ResponseTime = ({
   currentStatus,
   isActive = true,
   request,
+  createdAt,
+  now,
 }: ResponseTimeProps) => {
-  // Anchor the window at mount so the render stays pure (no Date.now() call in
-  // render body). Data updates still refresh the memos via their downtimes dep.
-  const [now] = useState(() => Date.now());
-  const rangeStart = now - (TIME_RANGES[timeRange] ?? TIME_RANGES["1h"]);
+  const windowMs = TIME_RANGES[timeRange] ?? TIME_RANGES["1h"];
+  const rangeStart = now - windowMs;
+  // Where observation starts: the window start, or the monitor's creation if that is later.
+  const observedStart = now - observedWindowMs(windowMs, now, createdAt);
 
   // metrics
   const metrics = useMemo(() => {
@@ -165,31 +178,29 @@ const ResponseTime = ({
       const s = new Date(log.startTime).getTime();
       const e = log.endTime ? new Date(log.endTime).getTime() : now;
 
-      if (e < rangeStart || s > now) continue;
+      if (e < observedStart || s > now) continue;
 
-      const cs = Math.max(s, rangeStart);
+      const cs = Math.max(s, observedStart);
       const ce = Math.min(e, now);
 
       totalDowntime += Math.max(0, ce - cs);
       downtimeCount++;
     }
 
-    const totalTime = Math.max(1, now - rangeStart);
-    const uptimePct = ((totalTime - totalDowntime) / totalTime) * 100;
-
     return {
-      uptimePercentage: uptimePct.toFixed(2),
+      uptimePercentage: formatUptime(now - observedStart, totalDowntime),
       totalDowntime: formatDuration(totalDowntime),
       downtimeCount,
     };
-  }, [downtimes, rangeStart, now]);
+  }, [downtimes, observedStart, now]);
 
   // build chart data (strict linear timeline, stepAfter semantics via step-like points)
   const chartData: ChartPoint[] = useMemo(() => {
     const pts: ChartPoint[] = [];
 
-    // start edge: assume UP at rangeStart (will be corrected by downtimes if overlap)
-    pts.push({ ts: rangeStart, status: 1 });
+    // start edge: assume UP where observation starts (corrected by downtimes if they overlap).
+    // The axis still spans the whole window; before the monitor existed nothing is drawn.
+    pts.push({ ts: observedStart, status: 1 });
 
     if (downtimes && Array.isArray(downtimes) && downtimes.length > 0) {
       // normalize and clip downtimes to range
@@ -198,10 +209,10 @@ const ResponseTime = ({
           start: new Date(d.startTime).getTime(),
           end: d.endTime ? new Date(d.endTime).getTime() : now,
         }))
-        .filter((d) => d.end >= rangeStart && d.start <= now)
+        .filter((d) => d.end >= observedStart && d.start <= now)
         .sort((a, b) => a.start - b.start);
 
-      processDowntimePoints(relevant, rangeStart, now, isActive, pts);
+      processDowntimePoints(relevant, observedStart, now, isActive, pts);
     }
 
     // final point at now -- skipped while paused: nothing is being checked, so plotting a
@@ -212,7 +223,7 @@ const ResponseTime = ({
     const map = new Map<number, ChartPoint>();
     for (const p of pts) map.set(p.ts, p);
     return Array.from(map.values()).sort((a, b) => a.ts - b.ts);
-  }, [downtimes, rangeStart, now, currentStatus, isActive]);
+  }, [downtimes, observedStart, now, currentStatus, isActive]);
 
   return (
     <Card className="mb-6 border-none p-0 shadow-none">

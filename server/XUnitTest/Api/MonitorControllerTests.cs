@@ -4,7 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Api.Controllers;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.Services;
@@ -638,7 +639,7 @@ namespace XUnitTest.Api
             var propsPath = LocateDirectoryPackagesProps();
             var props = File.ReadAllText(propsPath);
             props.Should().Contain("Include=\"SeliseBlocks.ReleaseDriver.OS\" Version=\"4.0.3\"");
-            props.Should().Contain("Include=\"SeliseBlocks.Genesis.OS\" Version=\"4.2.2\"");
+            props.Should().Contain("Include=\"SeliseBlocks.Genesis.OS\" Version=\"4.4.4\"");
         }
 
         private static string LocateDirectoryPackagesProps()
@@ -748,6 +749,46 @@ namespace XUnitTest.Api
             }
 
             throw new FileNotFoundException("could not locate Api/Program.cs above " + AppContext.BaseDirectory);
+        }
+
+        // Owner decision 2026-10-14: every monitor read needs blocks-monitor::monitor::read,
+        // every change blocks-monitor::monitor::manage. [Authorize] alone accepted any token of the tenant.
+        [Theory]
+        [InlineData(nameof(MonitorController.GetMonitorList), "blocks-monitor::monitor::read")]
+        [InlineData(nameof(MonitorController.GetMonitorListByRepoId), "blocks-monitor::monitor::read")]
+        [InlineData(nameof(MonitorController.GetMonitorById), "blocks-monitor::monitor::read")]
+        [InlineData(nameof(MonitorController.GetIncidentList), "blocks-monitor::monitor::read")]
+        [InlineData(nameof(MonitorController.GetMonitorDetails), "blocks-monitor::monitor::read")]
+        [InlineData(nameof(MonitorController.GetMonitorResponseTime), "blocks-monitor::monitor::read")]
+        [InlineData(nameof(MonitorController.GetMonitorDownTime), "blocks-monitor::monitor::read")]
+        [InlineData(nameof(MonitorController.IsExternalServiceConfigured), "blocks-monitor::monitor::read")]
+        [InlineData(nameof(MonitorController.GetReposList), "blocks-monitor::monitor::read")]
+        [InlineData(nameof(MonitorController.GetRepoDetails), "blocks-monitor::monitor::read")]
+        [InlineData(nameof(MonitorController.GetReports), "blocks-monitor::monitor::read")]
+        [InlineData(nameof(MonitorController.SaveMonitor), "blocks-monitor::monitor::manage")]
+        [InlineData(nameof(MonitorController.UpdateMonitor), "blocks-monitor::monitor::manage")]
+        [InlineData(nameof(MonitorController.DeleteMonitor), "blocks-monitor::monitor::manage")]
+        public void Action_IsProtectedByNamedPermission(string methodName, string expectedPermission)
+        {
+            var method = typeof(MonitorController).GetMethod(methodName)!;
+
+            var guard = (ProtectedEndPointAttribute?)Attribute.GetCustomAttribute(method, typeof(ProtectedEndPointAttribute));
+            guard.Should().NotBeNull();
+            guard!.ResourceName.Should().Be(expectedPermission);
+            method.GetCustomAttributes(true).OfType<IAllowAnonymous>().Should().BeEmpty();
+        }
+
+        [Fact]
+        public void EveryMonitorAction_HasANamedPermission()
+        {
+            // A new action added with only [Authorize] (or nothing) fails here.
+            var actions = typeof(MonitorController).GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.DeclaredOnly);
+            actions.Should().NotBeEmpty();
+            foreach (var action in actions)
+            {
+                Attribute.GetCustomAttribute(action, typeof(ProtectedEndPointAttribute))
+                    .Should().NotBeNull($"{action.Name} must carry a ProtectedEndPoint");
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using DomainService.Alert.Entities;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Mail;
@@ -133,7 +133,7 @@ namespace DomainService.Alert.Services
 
 
         private async Task<bool> SendUsingSystemSmtpAsync(
-            AlertMailTemplate template,
+            EmailTemplate template,
             MailServerConfiguration config,
             string toEmail,
             Dictionary<string, string> variables)
@@ -185,7 +185,7 @@ namespace DomainService.Alert.Services
         }
 
         private async Task<bool> SendUsingMailKitAsync(
-            AlertMailTemplate template,
+            EmailTemplate template,
             MailServerConfiguration config,
             string toEmail,
             Dictionary<string, string> variables)

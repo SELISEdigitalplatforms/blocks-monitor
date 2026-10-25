@@ -1,19 +1,23 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using Blocks.Genesis;
-using DomainService.Monitor.Entity;
+using DomainService.Shared.DataAccess;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Alert.Services;
 
 namespace DomainService.Health.Services
 {
     public class HealthIncidentService
     {
+        private const string CreateIncidentCallSite = "HealthIncidentService.CreateIncidentAsync";
+
         private readonly ILogger<HealthIncidentService> _logger;
         private readonly IMongoCollection<MonitorIncident> _incidentCollection;
         private readonly IMongoCollection<MonitorConfiguration> _healthConfigCollection;
         private readonly HealthConfigurationRepoService _healthConfigurationRepoService;
         private readonly EmailAlertService _emailAlertService;
         private readonly NotificationAlertService _notificationAlertService;
+        private readonly IMonitorDataAccess _access;
 
         public HealthIncidentService(
             ILogger<HealthIncidentService> logger,
@@ -21,8 +25,10 @@ namespace DomainService.Health.Services
             HealthConfigurationRepoService healthConfigurationRepoService,
             EmailAlertService emailAlertService,
             NotificationAlertService notificationAlertService,
-            IBlocksSecret blocksSecret)
+            IBlocksSecret blocksSecret,
+            IMonitorDataAccess access)
         {
+            _access = access;
             var db = dbContextProvider.GetDatabase(blocksSecret.DatabaseConnectionString, blocksSecret.RootDatabaseName);
 
             _logger = logger;
@@ -45,9 +51,7 @@ namespace DomainService.Health.Services
                 return;
             }
 
-            var existingIncident = await _incidentCollection
-                .Find(x => x.MonitorId == itemId && !x.IsResolved)
-                .FirstOrDefaultAsync();
+            var existingIncident = await FindOpenIncidentAsync(itemId, "HealthIncidentService.HandleIncidentAsync");
 
             if (existingIncident == null)
             {
@@ -84,9 +88,7 @@ namespace DomainService.Health.Services
             {
                 _logger.LogInformation("Creating incident for {HealthName}", config.Name);
 
-                var existingIncident = await _incidentCollection
-                .Find(x => x.MonitorId == config.ItemId && !x.IsResolved)
-                .FirstOrDefaultAsync();
+                var existingIncident = await FindOpenIncidentAsync(config.ItemId, CreateIncidentCallSite);
 
                 if (existingIncident is not null)
                 {
@@ -105,6 +107,9 @@ namespace DomainService.Health.Services
                     FailureReason = "No ping received",
                 };
 
+                if (!await _access.InsertAllowedAsync(MonitorSchemas.MonitorIncident, CreateIncidentCallSite))
+                    throw new UnauthorizedAccessException("Creating a monitor incident was denied by the data access policy.");
+                await _access.PrepareWriteAsync(MonitorSchemas.MonitorIncident, incident, isInsert: true, CreateIncidentCallSite);
                 await _incidentCollection.InsertOneAsync(incident);
 
                 var update = Builders<MonitorConfiguration>.Update
@@ -112,7 +117,7 @@ namespace DomainService.Health.Services
                     .Set(x => x.LastIncidentAt, DateTime.UtcNow)
                     .Set(x => x.LastCheckedAt, DateTime.UtcNow);
 
-                await _healthConfigCollection.UpdateOneAsync(x => x.ItemId == config.ItemId, update);
+                await UpdateConfigurationAsync(config.ItemId, update, CreateIncidentCallSite);
                 await _notificationAlertService.HandleNotificationAlertAsync(config, incident);
                 await _emailAlertService.HandleEmailAlertAsync(config, incident);
                 _logger.LogInformation("Created new DOWN incident for {HealthName} ({Url})", config.Name, config.Url);
@@ -139,9 +144,8 @@ namespace DomainService.Health.Services
             {
                 _logger.LogInformation("Checking for unresolved incident for {HealthName}", config.Name);
 
-                var openIncident = await _incidentCollection
-                    .Find(x => x.MonitorId == config.ItemId && !x.IsResolved)
-                    .FirstOrDefaultAsync();
+                var openIncident = await FindOpenIncidentAsync(config.ItemId, "HealthIncidentService.ResolveIncidentAsync");
+                var resolvedAt = DateTime.UtcNow;
 
                 if (openIncident == null)
                 {
@@ -151,12 +155,15 @@ namespace DomainService.Health.Services
                 {
                     var updateIncident = Builders<MonitorIncident>.Update
                         .Set(x => x.IsResolved, true)
-                        .Set(x => x.EndTime, DateTime.UtcNow);
+                        .Set(x => x.EndTime, resolvedAt);
 
                     openIncident.IsResolved = true;
-                    openIncident.EndTime = DateTime.UtcNow;
+                    openIncident.EndTime = resolvedAt;
 
-                    await _incidentCollection.UpdateOneAsync(x => x.ItemId == openIncident.ItemId, updateIncident);
+                    var incidentFilter = await _access.EditFilterAsync(MonitorSchemas.MonitorIncident,
+                        Builders<MonitorIncident>.Filter.Eq(x => x.ItemId, openIncident.ItemId), "HealthIncidentService.ResolveIncidentAsync");
+                    if (incidentFilter is not null)
+                        await _incidentCollection.UpdateOneAsync(incidentFilter, updateIncident);
                     await _notificationAlertService.HandleNotificationAlertAsync(config, openIncident);
                     await _emailAlertService.HandleEmailAlertAsync(config, openIncident);
                     _logger.LogInformation("Resolved incident for {HealthName} ({Url})", config.Name, config.Url);
@@ -165,9 +172,15 @@ namespace DomainService.Health.Services
                 // Always mark config as UP
                 var updateHealth = Builders<MonitorConfiguration>.Update
                     .Set(x => x.CurrentStatus, true)
-                    .Set(x => x.LastCheckedAt, DateTime.UtcNow);
+                    .Set(x => x.LastCheckedAt, resolvedAt);
 
-                await _healthConfigCollection.UpdateOneAsync(x => x.ItemId == config.ItemId, updateHealth);
+                // LastIncidentAt is the last up/down change: the UI's "Currently up for" counts from it.
+                // HTTP monitors already move it on recovery (MonitorIncidentService); heartbeats did not,
+                // so their uptime started at the outage instead of the recovery.
+                if (openIncident != null)
+                    updateHealth = updateHealth.Set(x => x.LastIncidentAt, resolvedAt);
+
+                await UpdateConfigurationAsync(config.ItemId, updateHealth, "HealthIncidentService.ResolveIncidentAsync");
 
             }
             catch (Exception ex)
@@ -175,6 +188,23 @@ namespace DomainService.Health.Services
                 _logger.LogError(ex, "Error resolving incident for {HealthName}", config.Name);
                 throw;
             }
+        }
+
+        private async Task<MonitorIncident?> FindOpenIncidentAsync(string monitorId, string callSite)
+        {
+            var scope = await _access.ReadAsync(MonitorSchemas.MonitorIncident,
+                Builders<MonitorIncident>.Filter.Where(x => x.MonitorId == monitorId && !x.IsResolved), callSite);
+            return scope.Granted ? await scope.Apply(_incidentCollection).FirstOrDefaultAsync() : null;
+        }
+
+        /// <summary>A <c>$set</c> on the configuration's status fields, behind the edit gate and its rules.</summary>
+        private async Task UpdateConfigurationAsync(string configId, UpdateDefinition<MonitorConfiguration> update, string callSite)
+        {
+            var filter = await _access.EditFilterAsync(MonitorSchemas.MonitorConfiguration,
+                Builders<MonitorConfiguration>.Filter.Eq(x => x.ItemId, configId), callSite);
+            if (filter is null) return;
+            await _access.CheckUpdateAsync(MonitorSchemas.MonitorConfiguration, update, callSite);
+            await _healthConfigCollection.UpdateOneAsync(filter, update);
         }
     }
 }

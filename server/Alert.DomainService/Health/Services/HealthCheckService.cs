@@ -1,6 +1,6 @@
 ﻿using DomainService.Health.HealthWorkerService;
 using DomainService.Health.Models;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson.IO;
 using System.Collections.Concurrent;

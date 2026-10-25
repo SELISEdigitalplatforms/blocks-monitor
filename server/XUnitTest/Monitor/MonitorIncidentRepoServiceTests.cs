@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.MonitorIncidentService;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -22,7 +22,7 @@ namespace XUnitTest.Monitor
         {
             var db = new MongoMocks.DbBuilder().With(collection);
             return new MonitorIncidentRepoService(
-                new Mock<ILogger<MonitorIncidentRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object);
+                new Mock<ILogger<MonitorIncidentRepoService>>().Object, db.Provider, MongoMocks.BlocksSecret().Object, PassThroughMonitorDataAccess.Instance);
         }
 
         private static MonitorIncidentRepoService Build(IEnumerable<MonitorIncident> data = null) =>

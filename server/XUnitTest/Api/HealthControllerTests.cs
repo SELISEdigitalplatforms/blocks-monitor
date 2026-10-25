@@ -10,7 +10,7 @@ using DomainService.Alert.Services;
 using DomainService.Health.HealthWorkerService;
 using DomainService.Health.Models;
 using DomainService.Health.Services;
-using DomainService.Monitor.Entity;
+using Blocks.Genesis.Entities.Monitor;
 using DomainService.Shared.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -29,11 +29,11 @@ namespace XUnitTest.Api
                 .With(configs ?? new List<MonitorConfiguration>())
                 .With(new List<MonitorIncident>())
                 .With(new List<ProjectPeople>())
-                .With(new List<AlertMailTemplate>())
+                .With(new List<EmailTemplate>())
                 .With(new List<MailServerConfiguration>());
             var secret = MongoMocks.BlocksSecret().Object;
 
-            var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret);
+            var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret, PassThroughMonitorDataAccess.Instance);
             var alertRepo = new AlertRepoService(db.Provider, secret);
             var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo);
             var http = new Mock<IHttpHelperServices>();
@@ -43,7 +43,7 @@ namespace XUnitTest.Api
                 .ReturnsAsync((new NotificationResponse { IsSuccess = true }, new HttpResponseMessage(HttpStatusCode.OK)));
             var notification = new NotificationAlertService(new Mock<ILogger<NotificationAlertService>>().Object, http.Object,
                 new Mock<ICryptoService>().Object, new Mock<ITenants>().Object, alertRepo, new Mock<IConfiguration>().Object);
-            var incidentService = new HealthIncidentService(new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret);
+            var incidentService = new HealthIncidentService(new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret, PassThroughMonitorDataAccess.Instance);
             var healthCheck = new HealthCheckService(new HealthQueueManager(), new Mock<ILogger<HealthCheckService>>().Object, healthRepo, incidentService, 1);
 
             var configuration = new Mock<IConfiguration>();
@@ -102,6 +102,30 @@ namespace XUnitTest.Api
 
             var body = (BaseApiResponse)result.Should().BeOfType<OkObjectResult>().Subject.Value;
             body.IsSuccess.Should().BeFalse();
+        }
+
+        // Owner decision 2026-10-14: health changes need blocks-monitor::health::manage.
+        [Theory]
+        [InlineData(nameof(HealthController.SaveHealth))]
+        [InlineData(nameof(HealthController.UpdateHealth))]
+        [InlineData(nameof(HealthController.DeleteHealth))]
+        public void HealthChange_IsProtectedByHealthManage(string methodName)
+        {
+            var method = typeof(HealthController).GetMethod(methodName)!;
+
+            var guard = (ProtectedEndPointAttribute?)System.Attribute.GetCustomAttribute(method, typeof(ProtectedEndPointAttribute));
+            guard.Should().NotBeNull();
+            guard!.ResourceName.Should().Be("blocks-monitor::health::manage");
+        }
+
+        [Fact]
+        public void Ping_StaysOpen()
+        {
+            // Heartbeat from monitored apps; they send no token.
+            var method = typeof(HealthController).GetMethod(nameof(HealthController.Ping))!;
+
+            method.GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), true)
+                .Should().BeEmpty();
         }
     }
 }
