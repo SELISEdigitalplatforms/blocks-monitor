@@ -51,7 +51,7 @@ namespace XUnitTest.Monitor
 
             var notification = new NotificationAlertService(
                 new Mock<ILogger<NotificationAlertService>>().Object, _http.Object, crypto.Object, tenants.Object, alertRepo, config.Object);
-            var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo);
+            var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo, AlertMailTestDoubles.PasswordResolver());
 
             return new MonitorIncidentService(
                 _incidentRepo.Object, notification, _configRepo.Object, email, new Mock<ILogger<MonitorIncidentService>>().Object);

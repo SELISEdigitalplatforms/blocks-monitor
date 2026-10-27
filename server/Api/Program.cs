@@ -1,5 +1,6 @@
 using Blocks.Extensions.DependencyInjection;
 using Blocks.Genesis;
+using Blocks.Secrets;
 using Microsoft.AspNetCore.Http.Features;
 using SeliseBlocks.ConfigurationDriver;
 using DomainService.Shared.Utilities;
@@ -79,6 +80,8 @@ ApplyFrontendRuntimeSettings(builder.Configuration, wwwrootPath);
 
 
 Alert.DomainService.ServiceRegistry.AddApplicationServices(services);
+// Alert mail reads root mail-configuration passwords from Blocks Secrets (blocks-monitor#253).
+services.AddBlocksSecrets();
 
 // Repository listing is served by our own API through IReleaseDriverService rather than by the
 // browser calling blocks-logic, so Monitor no longer depends on an outside service for it.

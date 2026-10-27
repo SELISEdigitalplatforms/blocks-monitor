@@ -12,13 +12,16 @@ namespace DomainService.Alert.Services
     {
         private readonly ILogger<EmailAlertService> _logger;
         private readonly AlertRepoService _alertRepo;
+        private readonly AlertMailPasswordResolver _passwordResolver;
 
         public EmailAlertService(
             ILogger<EmailAlertService> logger,
-            AlertRepoService alertRepo)
+            AlertRepoService alertRepo,
+            AlertMailPasswordResolver passwordResolver)
         {
             _logger = logger;
             _alertRepo = alertRepo;
+            _passwordResolver = passwordResolver;
         }
 
         public async Task<bool> HandleEmailAlertAsync(MonitorConfiguration monitorConfiguration, MonitorIncident incident)
@@ -52,6 +55,22 @@ namespace DomainService.Alert.Services
                     _logger.LogWarning("Mail config {ConfigId} not found", template.MailConfigurationId);
                     return false;
                 }
+
+                // Resolved once per alert, before any send, so every recipient shares one secret read.
+                var password = await _passwordResolver.ResolveAsync(mailConfig);
+                if (!password.Succeeded)
+                {
+                    // Never log the password, the reference id or the exception itself (its message carries the id).
+                    _logger.LogError(
+                        "ALERT MAIL FAILED (credential) for mail config {ConfigId}: {ExceptionType} ({FailureClass})",
+                        mailConfig.ItemId,
+                        password.ExceptionType ?? "none",
+                        password.FailureClass);
+                    return false;
+                }
+
+                // In memory only, on this call's own copy of the configuration; it is never written back.
+                mailConfig.AccountPassword = password.Password!;
 
                 bool allSuccess = true;
 
