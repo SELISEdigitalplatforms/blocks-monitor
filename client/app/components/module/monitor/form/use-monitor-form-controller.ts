@@ -20,7 +20,7 @@ import { useScopedPath, useGetAllServices } from "@seliseblocks/genesis-os/hooks
 import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { type Resolver, useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router";
 import {
   getMonitorFormDefaultValues,
@@ -82,7 +82,7 @@ export const useMonitorFormController = ({
   const form = useForm<MonitorFormValues>({
     defaultValues,
     values,
-    resolver: zodResolver(monitorFormSchema),
+    resolver: zodResolver(monitorFormSchema) as Resolver<MonitorFormValues>,
     mode: "onChange",
   });
 

@@ -39,7 +39,7 @@ const NotificationModal = ({ open, onOpenChange, data, request }: NotificationPr
   const getEmailError = (email: string): string | null => {
     const result = emailSchema.safeParse(email);
     if (!result.success) {
-      return result.error.errors[0]?.message || "Please enter a valid email address";
+      return result.error.issues[0]?.message || "Please enter a valid email address";
     }
     return null;
   };
