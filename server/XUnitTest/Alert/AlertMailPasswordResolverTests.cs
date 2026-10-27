@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Blocks.Genesis;
@@ -8,6 +9,7 @@ using Blocks.Secrets;
 using DomainService.Alert.Entities;
 using DomainService.Alert.Services;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using XUnitTest.Utilities;
@@ -72,26 +74,108 @@ namespace XUnitTest.Alert
             }
         }
 
-        [Theory]
-        [InlineData(nameof(SecretNotFoundException))]
-        [InlineData(nameof(InvalidOperationException))]
-        public async Task ResolveAsync_WhenReadThrows_StillRestoresCallerContext(string failure)
+        [Fact]
+        public async Task ResolveAsync_UnderAmbientHttpIdentityOfAnotherTenant_ReadsAsRootTenant_AndRestoresCaller()
         {
-            // C6
-            Exception exception = failure == nameof(SecretNotFoundException)
-                ? new SecretNotFoundException(Reference)
-                : new InvalidOperationException("store misconfigured");
+            // H8: HealthController.Ping -> Task.Run carries the request's HttpContext, whose
+            // authenticated non-root identity BlocksContext.GetContext() prefers over a context set
+            // with changeContext: false. Only changeContext: true makes the read run as root.
+            BlocksContext? seen = null;
             var secrets = new Mock<ISecretService>(MockBehavior.Strict);
-            secrets.Setup(s => s.GetValueAsync(Reference, It.IsAny<CancellationToken>())).ThrowsAsync(exception);
-            var caller = CallerContext();
-            BlocksContext.SetContext(caller, true);
+            secrets.Setup(s => s.GetValueAsync(Reference, It.IsAny<CancellationToken>()))
+                   .Callback(() => seen = BlocksContext.GetContext())
+                   .ReturnsAsync(SecretPassword);
+            var sut = AlertMailTestDoubles.PasswordResolver(secrets);
 
+            var previousAccessor = BlocksHttpContextAccessor.Instance;
+            var accessor = new HttpContextAccessor();
+            BlocksHttpContextAccessor.Instance = accessor;
             try
             {
-                var result = await AlertMailTestDoubles.PasswordResolver(secrets).ResolveAsync(Referenced());
+                accessor.HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(
+                        new[] { new Claim("tenant_id", "caller-tenant"), new Claim("user_id", "caller-user"), new Claim("sub", "caller-user") },
+                        "Bearer")),
+                };
+                BlocksContext.GetContext()!.TenantId.Should().Be("caller-tenant", "precondition: the ambient HTTP identity is the caller context");
 
-                result.Succeeded.Should().BeFalse();
-                BlocksContext.GetContext().Should().BeSameAs(caller);
+                var result = await Task.Run(() => sut.ResolveAsync(Referenced()));
+
+                result.Password.Should().Be(SecretPassword);
+                seen.Should().NotBeNull();
+                seen!.TenantId.Should().Be(AlertMailTestDoubles.RootTenantId);
+                seen.UserId.Should().Be(AlertMailPasswordResolver.ServiceUserId);
+                BlocksContext.GetContext()!.TenantId.Should().Be("caller-tenant");
+            }
+            finally
+            {
+                accessor.HttpContext = null;
+                BlocksHttpContextAccessor.Instance = previousAccessor;
+                BlocksContext.SetContext(null, false);
+            }
+        }
+
+        // C6 harness. In an ordinary flow the runtime rolls back AsyncLocal changes made inside an
+        // awaited method, so a missing `finally` would go unnoticed. Here, on a pool thread with no
+        // SynchronizationContext, the flow is suppressed and the pending read is completed on that
+        // same thread: the resolver's code after its await then runs inline in this thread's
+        // ExecutionContext with no rollback, so the context left here is exactly what the
+        // resolver's explicit restore wrote. `completingContext` is put on the thread first, so the
+        // result differs from the caller's context whenever no restore happens.
+        private static async Task<(BlocksContext? Left, AlertMailPasswordResult Result)> ContextLeftAfterReadAsync(
+            BlocksContext? caller, BlocksContext completingContext, Action<TaskCompletionSource<string>> completeRead)
+        {
+            var read = new TaskCompletionSource<string>(); // inline continuations on purpose
+            var secrets = new Mock<ISecretService>(MockBehavior.Strict);
+            secrets.Setup(s => s.GetValueAsync(Reference, It.IsAny<CancellationToken>())).Returns(read.Task);
+            var sut = AlertMailTestDoubles.PasswordResolver(secrets);
+
+            var (left, resolve) = await Task.Run(() =>
+            {
+                BlocksContext.SetContext(caller, caller is not null);
+                var flow = ExecutionContext.SuppressFlow();
+                try
+                {
+                    var pending = sut.ResolveAsync(Referenced());
+                    pending.IsCompleted.Should().BeFalse("the secret read must still be pending");
+
+                    BlocksContext.SetContext(completingContext, true);
+                    completeRead(read);
+                    pending.IsCompleted.Should().BeTrue("the resolver must have finished inline on this thread");
+
+                    return (BlocksContext.GetContext(), pending);
+                }
+                finally
+                {
+                    flow.Undo();
+                }
+            });
+
+            return (left, await resolve);
+        }
+
+        private static Action<TaskCompletionSource<string>> CompleteRead(string outcome) => outcome switch
+        {
+            "success" => read => read.SetResult(SecretPassword),
+            nameof(SecretNotFoundException) => read => read.SetException(new SecretNotFoundException(Reference)),
+            _ => read => read.SetException(new InvalidOperationException("store misconfigured")),
+        };
+
+        [Theory]
+        [InlineData("success")]
+        [InlineData(nameof(SecretNotFoundException))]
+        [InlineData(nameof(InvalidOperationException))]
+        public async Task ResolveAsync_AfterTheRead_ExplicitlyRestoresCallerContext(string outcome)
+        {
+            // C6: whether the read succeeds or throws, the resolver writes the caller's context back.
+            var caller = CallerContext();
+            try
+            {
+                var (left, result) = await ContextLeftAfterReadAsync(caller, CallerContext("completing-tenant"), CompleteRead(outcome));
+
+                left.Should().BeSameAs(caller);
+                result.Succeeded.Should().Be(outcome == "success");
             }
             finally
             {
@@ -99,17 +183,23 @@ namespace XUnitTest.Alert
             }
         }
 
-        [Fact]
-        public async Task ResolveAsync_WithNoCallerContext_LeavesNoContextBehind()
+        [Theory]
+        [InlineData("success")]
+        [InlineData(nameof(SecretNotFoundException))]
+        public async Task ResolveAsync_WithNoCallerContext_ExplicitlyLeavesNoContextBehind(string outcome)
         {
             // C6: a background caller (worker, timer) had no context and gets none back.
-            BlocksContext.SetContext(null, false);
-            var secrets = new Mock<ISecretService>(MockBehavior.Strict);
-            secrets.Setup(s => s.GetValueAsync(Reference, It.IsAny<CancellationToken>())).ThrowsAsync(new SecretVaultException("down", "get", Reference));
+            try
+            {
+                var (left, result) = await ContextLeftAfterReadAsync(null, CallerContext("completing-tenant"), CompleteRead(outcome));
 
-            await AlertMailTestDoubles.PasswordResolver(secrets).ResolveAsync(Referenced());
-
-            BlocksContext.GetContext().Should().BeNull();
+                left.Should().BeNull();
+                result.Succeeded.Should().Be(outcome == "success");
+            }
+            finally
+            {
+                BlocksContext.SetContext(null, false);
+            }
         }
 
         [Fact]

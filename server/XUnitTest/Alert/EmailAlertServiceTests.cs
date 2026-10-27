@@ -270,7 +270,7 @@ namespace XUnitTest.Alert
 
             var result = await Sut(SmtpRepo(smtp, client, "", Reference), secrets, logger).HandleEmailAlertAsync(Monitor("a@test.com"), OpenIncident);
 
-            result.Should().BeTrue();
+            result.Should().BeTrue(smtp.Describe());
             smtp.Credentials.Should().Equal(("mailer", SecretPassword));
             secrets.Verify(s => s.GetValueAsync(Reference, It.IsAny<CancellationToken>()), Times.Once);
             AssertNoSecretMaterialLogged(logger);
@@ -287,7 +287,7 @@ namespace XUnitTest.Alert
 
             var result = await Sut(SmtpRepo(smtp, client, LegacyPassword, null), secrets).HandleEmailAlertAsync(Monitor("a@test.com"), OpenIncident);
 
-            result.Should().BeTrue();
+            result.Should().BeTrue(smtp.Describe());
             smtp.Credentials.Should().Equal(("mailer", LegacyPassword));
             secrets.Verify(s => s.GetValueAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
@@ -301,8 +301,31 @@ namespace XUnitTest.Alert
 
             var result = await Sut(SmtpRepo(smtp, SmtpClient.Default, LegacyPassword, ""), secrets).HandleEmailAlertAsync(Monitor("a@test.com"), OpenIncident);
 
-            result.Should().BeTrue();
+            result.Should().BeTrue(smtp.Describe());
             smtp.Credentials.Should().Equal(("mailer", LegacyPassword));
+        }
+
+        [Fact]
+        public async Task HandleEmailAlertAsync_WhitespaceReference_IsTreatedAsAReferenceAndFailsClosed()
+        {
+            // Decision (review minor): only a null or empty reference means "legacy". A whitespace-only
+            // reference counts as a reference, so it is read from Blocks Secrets and, when that read
+            // fails, the email fails closed: no SMTP connection and the plaintext is never used.
+            const string whitespace = "   ";
+            using var smtp = new FakeSmtpServer();
+            var secrets = new Mock<ISecretService>(MockBehavior.Strict);
+            secrets.Setup(s => s.GetValueAsync(whitespace, It.IsAny<CancellationToken>())).ThrowsAsync(new SecretNotFoundException(whitespace));
+            var logger = new CapturingLogger<EmailAlertService>();
+
+            var result = await Sut(SmtpRepo(smtp, SmtpClient.Default, LegacyPassword, whitespace), secrets, logger)
+                .HandleEmailAlertAsync(Monitor("a@test.com"), OpenIncident);
+
+            result.Should().BeFalse();
+            secrets.Verify(s => s.GetValueAsync(whitespace, It.IsAny<CancellationToken>()), Times.Once);
+            smtp.Connections.Should().Be(0);
+            smtp.Credentials.Should().BeEmpty();
+            AssertCredentialFailureLogged(logger, nameof(SecretNotFoundException), "credential");
+            AssertNoSecretMaterialLogged(logger);
         }
 
         [Theory]
@@ -317,7 +340,7 @@ namespace XUnitTest.Alert
 
             var result = await Sut(SmtpRepo(smtp, client, "", Reference), secrets).HandleEmailAlertAsync(Monitor(recipients), OpenIncident);
 
-            result.Should().BeTrue();
+            result.Should().BeTrue(smtp.Describe());
             smtp.Connections.Should().Be(5);
             smtp.Credentials.Should().HaveCount(5).And.OnlyContain(c => c.Password == SecretPassword);
             secrets.Verify(s => s.GetValueAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -331,7 +354,7 @@ namespace XUnitTest.Alert
 
             var result = await Sut(SmtpRepo(smtp, SmtpClient.Default, LegacyPassword, Reference), Secrets()).HandleEmailAlertAsync(Monitor("a@test.com"), OpenIncident);
 
-            result.Should().BeTrue();
+            result.Should().BeTrue(smtp.Describe());
             smtp.Credentials.Should().Equal(("mailer", SecretPassword));
         }
 
@@ -459,7 +482,7 @@ namespace XUnitTest.Alert
             var result = await Sut(SmtpRepo(smtp, SmtpClient.Default, LegacyPassword, null), new Mock<ISecretService>(MockBehavior.Strict), rootTenantId: null)
                 .HandleEmailAlertAsync(Monitor("a@test.com"), OpenIncident);
 
-            result.Should().BeTrue();
+            result.Should().BeTrue(smtp.Describe());
             smtp.Credentials.Should().Equal(("mailer", LegacyPassword));
         }
 
