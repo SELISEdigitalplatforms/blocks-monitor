@@ -30,7 +30,7 @@ const NotificationModal = ({ open, onOpenChange, data, request }: NotificationPr
   const [emailList, setEmailList] = useState<string[]>(data.emails || []);
   const [emailErrors, setEmailErrors] = useState<{ [key: number]: string }>({});
   const MAX_EMAILS = 5;
-  const emailSchema = z.string().email("Please enter a valid email address");
+  const emailSchema = z.email("Please enter a valid email address");
   const isValidEmail = (email: string): boolean => {
     const result = emailSchema.safeParse(email);
     return result.success;
