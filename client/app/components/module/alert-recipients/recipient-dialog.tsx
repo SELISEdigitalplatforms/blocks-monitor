@@ -25,7 +25,7 @@ import {
 } from "@/utils/alert-recipient-email.util";
 import { ErrorTransformer } from "@seliseblocks/genesis-os/utils";
 import { Loader2, Search } from "lucide-react";
-import { type FormEvent, useId, useMemo, useState } from "react";
+import { type SubmitEvent, useId, useMemo, useState } from "react";
 import {
   countMonitors,
   monitorKindLabel,
@@ -47,6 +47,52 @@ type RecipientDialogProps = {
   recipients: IAlertRecipient[];
   maxEmailsPerMonitor: number;
   onClose: () => void;
+};
+
+type EmailState = {
+  normalized: string | null;
+  emailError: string | null;
+  visibleEmailError: string | null;
+};
+
+/** The email to save and the error to show: invalid input on blur or submit, a duplicate as soon as it is typed. */
+const getEmailState = (
+  isEdit: boolean,
+  storedEmail: string | undefined,
+  typed: string,
+  recipientEmails: ReadonlySet<string>,
+  revealInvalid: boolean,
+): EmailState => {
+  const normalized = isEdit ? (storedEmail ?? null) : normalizeAlertRecipientEmail(typed);
+  const isDuplicate = !isEdit && !!normalized && recipientEmails.has(normalized);
+  let emailError: string | null = null;
+  if (!normalized) emailError = INVALID_EMAIL_MESSAGE;
+  else if (isDuplicate) emailError = DUPLICATE_RECIPIENT_MESSAGE;
+  const visibleEmailError = isDuplicate || revealInvalid ? emailError : null;
+  return { normalized, emailError, visibleEmailError };
+};
+
+const getSaveLabel = (
+  isEdit: boolean,
+  scope: Scope,
+  selectedCount: number,
+  monitorCount: number,
+) => {
+  if (isEdit) return "Save";
+  if (scope === "selected") return `Add to ${countMonitors(selectedCount)}`;
+  return monitorCount === 1 ? "Add to 1 monitor" : `Add to all ${monitorCount} monitors`;
+};
+
+const fullMonitorsNote = (fullCount: number, maxEmailsPerMonitor: number) =>
+  fullCount === 1
+    ? `1 monitor already has ${maxEmailsPerMonitor} recipients and will be skipped.`
+    : `${fullCount} monitors already have ${maxEmailsPerMonitor} recipients and will be skipped.`;
+
+const filterMonitors = (monitors: IAlertRecipientMonitor[], filter: string) => {
+  const filterText = filter.trim().toLowerCase();
+  return filterText
+    ? monitors.filter((monitor) => monitor.name.toLowerCase().includes(filterText))
+    : monitors;
 };
 
 const scopeCardClass = (active: boolean) =>
@@ -98,13 +144,14 @@ const RecipientDialog = ({
       ? suggestions.data.memberEmails.filter((member) => !recipientEmails.has(member))
       : [];
 
-  const normalized = isEdit ? recipient.email : normalizeAlertRecipientEmail(email);
-  const isDuplicate = !isEdit && !!normalized && recipientEmails.has(normalized);
-  let emailError: string | null = null;
-  if (!normalized) emailError = INVALID_EMAIL_MESSAGE;
-  else if (isDuplicate) emailError = DUPLICATE_RECIPIENT_MESSAGE;
   // Invalid input is reported on blur or submit; a duplicate as soon as it is typed.
-  const visibleEmailError = isDuplicate || touched || submitted ? emailError : null;
+  const { normalized, emailError, visibleEmailError } = getEmailState(
+    isEdit,
+    recipient?.email,
+    email,
+    recipientEmails,
+    touched || submitted,
+  );
 
   const isFull = (monitor: IAlertRecipientMonitor) =>
     monitor.emailCount >= maxEmailsPerMonitor && !personMonitorIds.has(monitor.itemId);
@@ -113,23 +160,14 @@ const RecipientDialog = ({
     .filter((monitor) => selected.has(monitor.itemId) && !isFull(monitor))
     .map((monitor) => monitor.itemId);
 
-  const filterText = filter.trim().toLowerCase();
-  const visibleMonitors = filterText
-    ? monitors.filter((monitor) => monitor.name.toLowerCase().includes(filterText))
-    : monitors;
+  const visibleMonitors = filterMonitors(monitors, filter);
 
   const canSave =
     !emailError &&
     !saveMutation.isPending &&
     (scope === "all" ? monitors.length > 0 : selectedIds.length > 0);
 
-  let saveLabel = "Save";
-  if (!isEdit) {
-    if (scope === "selected") saveLabel = `Add to ${countMonitors(selectedIds.length)}`;
-    else
-      saveLabel =
-        monitors.length === 1 ? "Add to 1 monitor" : `Add to all ${monitors.length} monitors`;
-  }
+  const saveLabel = getSaveLabel(isEdit, scope, selectedIds.length, monitors.length);
 
   const toggleMonitor = (monitorId: string, checked: boolean) => {
     setSelected((current) => {
@@ -140,7 +178,7 @@ const RecipientDialog = ({
     });
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitted(true);
     if (!canSave || !normalized) return;
@@ -256,9 +294,7 @@ const RecipientDialog = ({
 
               {scope === "all" && fullCount > 0 && (
                 <p className="text-[13px] text-muted-foreground">
-                  {fullCount === 1
-                    ? `1 monitor already has ${maxEmailsPerMonitor} recipients and will be skipped.`
-                    : `${fullCount} monitors already have ${maxEmailsPerMonitor} recipients and will be skipped.`}
+                  {fullMonitorsNote(fullCount, maxEmailsPerMonitor)}
                 </p>
               )}
 

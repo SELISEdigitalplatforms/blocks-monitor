@@ -216,7 +216,7 @@ const AlertRecipientsPage = () => {
       </div>
 
       {/* Always mounted, so screen readers announce the notice when its text appears. */}
-      <div role="status" aria-live="polite">
+      <output aria-live="polite">
         {notice && (
           <div className="flex flex-wrap items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 py-2 pl-4 pr-2 text-sm text-foreground">
             <span className="flex-1">{removedNotice(notice.email, notice.removed)}</span>
@@ -237,7 +237,7 @@ const AlertRecipientsPage = () => {
             )}
           </div>
         )}
-      </div>
+      </output>
 
       <Card className="overflow-hidden">
         {hasData && hasMonitors && (
