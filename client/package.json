@@ -23,7 +23,7 @@
   "dependencies": {
     "@beefree.io/sdk": "^11.4.0",
     "@hcaptcha/react-hcaptcha": "^1.12.0",
-    "@hookform/resolvers": "^3.9.0",
+    "@hookform/resolvers": "^5.7.1",
     "@mailupinc/bee-plugin": "^2.3.0",
     "@microsoft/signalr": "^10.0.0",
     "@radix-ui/react-accordion": "^1.2.0",
@@ -75,7 +75,7 @@
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",
     "vaul": "^1.1.2",
-    "zod": "^3.23.8",
+    "zod": "^4.6.6",
     "zustand": "^5.0.1"
   },
   "devDependencies": {
@@ -110,6 +110,7 @@
   "overrides": {
     "axios": "1.20.0",
     "source-map-js": "1.2.2",
-    "fast-uri": "3.1.8"
+    "fast-uri": "3.1.9",
+    "zod": "$zod"
   }
 }

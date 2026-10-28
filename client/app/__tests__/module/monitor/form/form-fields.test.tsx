@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useForm } from "react-hook-form";
+import { type Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog } from "@/components/core";
 import { MonitorFormFields } from "@/components/module/monitor/form/monitor-form-fields";
@@ -23,7 +23,7 @@ function Harness({
 }) {
   const form = useForm<MonitorFormValues>({
     defaultValues: { ...getMonitorFormDefaultValues("request"), ...initialValues },
-    resolver: zodResolver(monitorFormSchema),
+    resolver: zodResolver(monitorFormSchema) as Resolver<MonitorFormValues>,
     mode: "onChange",
   });
 

@@ -37,7 +37,7 @@ namespace XUnitTest.Health
 
             var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret, PassThroughMonitorDataAccess.Instance);
             var alertRepo = new AlertRepoService(db.Provider, secret);
-            var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo);
+            var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo, AlertMailTestDoubles.PasswordResolver());
             var http = new Mock<IHttpHelperServices>();
             http.Setup(h => h.MakeHttpRequest<NotificationResponse>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<HttpMethod>(),
                     It.IsAny<object>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>()))
@@ -203,7 +203,7 @@ namespace XUnitTest.Health
             var secret = MongoMocks.BlocksSecret().Object;
             var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret, PassThroughMonitorDataAccess.Instance);
             var alertRepo = new AlertRepoService(db.Provider, secret);
-            var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo);
+            var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo, AlertMailTestDoubles.PasswordResolver());
             var notification = new NotificationAlertService(new Mock<ILogger<NotificationAlertService>>().Object, new Mock<IHttpHelperServices>().Object,
                 new Mock<ICryptoService>().Object, new Mock<ITenants>().Object, alertRepo, new Mock<IConfiguration>().Object);
             var incidentService = new HealthIncidentService(new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret, PassThroughMonitorDataAccess.Instance);
@@ -231,7 +231,7 @@ namespace XUnitTest.Health
             var secret = MongoMocks.BlocksSecret().Object;
             var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret, PassThroughMonitorDataAccess.Instance);
             var alertRepo = new AlertRepoService(db.Provider, secret);
-            var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo);
+            var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo, AlertMailTestDoubles.PasswordResolver());
             var notification = new NotificationAlertService(new Mock<ILogger<NotificationAlertService>>().Object,
                 new Mock<IHttpHelperServices>().Object, new Mock<ICryptoService>().Object, new Mock<ITenants>().Object, alertRepo, new Mock<IConfiguration>().Object);
             var incidentService = new HealthIncidentService(new Mock<ILogger<HealthIncidentService>>().Object, db.Provider, healthRepo, email, notification, secret, PassThroughMonitorDataAccess.Instance);

@@ -30,6 +30,7 @@ namespace Alert.DomainService
             services.AddSingleton<IHttpHelperServices, HttpHelperServices>();
             services.AddSingleton<NotificationAlertService>();
             services.AddSingleton<AlertRepoService>();
+            services.AddSingleton<AlertMailPasswordResolver>();
             services.AddSingleton<EmailAlertService>();
             services.AddSingleton<HealthConfigurationService>();
             services.AddSingleton<HealthConfigurationRepoService>();
