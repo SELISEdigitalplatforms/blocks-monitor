@@ -104,6 +104,13 @@ describe("RecipientsTable", () => {
     ).toBeEnabled();
   });
 
+  it("colours Remove with the AA themed error token, not --destructive (m7)", () => {
+    renderTable({ recipients: [recipient("ali@x.com", ["m1"])] });
+    const remove = screen.getByRole("button", { name: "Remove ali@x.com from all monitors" });
+    expect(remove).toHaveClass("text-blocks-error-800");
+    expect(remove).not.toHaveClass("text-destructive");
+  });
+
   it("keeps a 760 px minimum width so narrow screens scroll inside the card (C22)", () => {
     renderTable();
     expect(screen.getByRole("table")).toHaveClass("min-w-[760px]");

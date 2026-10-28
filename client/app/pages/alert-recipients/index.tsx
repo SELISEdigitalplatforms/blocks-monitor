@@ -15,6 +15,7 @@ import {
   removedNotice,
   sortByEmail,
   storedAllMonitors,
+  UNDO_NOTHING_LEFT,
 } from "@/components/module/alert-recipients/alert-recipients.utils";
 import CoverageBadge from "@/components/module/alert-recipients/coverage-badge";
 import RecipientDialog from "@/components/module/alert-recipients/recipient-dialog";
@@ -30,7 +31,7 @@ import { useScopedPath } from "@seliseblocks/genesis-os/hooks";
 import { useProjectStore } from "@seliseblocks/genesis-os/store";
 import { ErrorTransformer } from "@seliseblocks/genesis-os/utils";
 import { AlertCircle, Loader2, Plus, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
 
 type DialogState = { mode: "add" } | { mode: "edit"; recipient: IAlertRecipient } | null;
@@ -44,6 +45,7 @@ type RemovedNotice = {
 };
 
 const LOADING_ROWS = 5;
+
 
 const LoadingRows = () => (
   <div className="flex flex-col gap-3 p-6" data-testid="recipients-loading">
@@ -62,6 +64,10 @@ const AlertRecipientsPage = () => {
   const [search, setSearch] = useState("");
   const [dialog, setDialog] = useState<DialogState>(null);
   const [notice, setNotice] = useState<RemovedNotice | null>(null);
+  const undoButtonRef = useRef<HTMLButtonElement>(null);
+  // Set by a successful Remove: once the notice renders, focus moves to its Undo button (C21), since the
+  // focused Remove button disappears with its row.
+  const focusUndoRef = useRef(false);
 
   const { data, isLoading, isError, error, refetch, isFetching } =
     useGetAlertRecipients(projectKey);
@@ -80,6 +86,12 @@ const AlertRecipientsPage = () => {
   ).length;
   const maxEmailsPerMonitor = data?.maxEmailsPerMonitor ?? 10;
 
+  useEffect(() => {
+    if (!notice || !focusUndoRef.current) return;
+    focusUndoRef.current = false;
+    undoButtonRef.current?.focus();
+  }, [notice]);
+
   const hasData = !!data && !isError;
   const hasMonitors = monitors.length > 0;
 
@@ -90,6 +102,7 @@ const AlertRecipientsPage = () => {
         showErrorToast({ errors: response?.message || "The recipient was not removed." });
         return;
       }
+      focusUndoRef.current = true;
       setNotice({
         email: recipient.email,
         removed: response.data?.removed ?? recipient.monitorIds.length,
@@ -103,12 +116,22 @@ const AlertRecipientsPage = () => {
 
   const handleUndo = async () => {
     if (!notice) return;
+    // A monitor deleted since the removal would make the server refuse the whole save ("Monitor not
+    // found"), so only the monitors still in the current data are resent.
+    const monitorIds = notice.allMonitors
+      ? []
+      : notice.monitorIds.filter((id) => monitorsById.has(id));
+    if (!notice.allMonitors && monitorIds.length === 0) {
+      setNotice(null);
+      showErrorToast({ errors: UNDO_NOTHING_LEFT });
+      return;
+    }
     try {
       const response = await undoMutation.mutateAsync({
         projectKey,
         email: notice.email,
         allMonitors: notice.allMonitors,
-        monitorIds: notice.allMonitors ? [] : notice.monitorIds,
+        monitorIds,
       });
       if (!response?.isSuccess) {
         showErrorToast({ errors: response?.message || "The recipient was not restored." });
@@ -222,6 +245,7 @@ const AlertRecipientsPage = () => {
             <span className="flex-1">{removedNotice(notice.email, notice.removed)}</span>
             {canUndo && (
               <Button
+                ref={undoButtonRef}
                 type="button"
                 variant="ghost"
                 size="sm"

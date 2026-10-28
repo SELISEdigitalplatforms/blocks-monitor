@@ -118,11 +118,12 @@ const RecipientRow = ({
           >
             Edit
           </Button>
+          {/* blocks-error-800 meets AA in both themes (about 9.7:1 light, 11.3:1 dark); --destructive does not. */}
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="text-destructive hover:text-destructive"
+            className="text-blocks-error-800 hover:text-blocks-error-800"
             aria-label={`Remove ${recipient.email} from all monitors`}
             disabled={isRemoving}
             onClick={() => onRemove(recipient)}

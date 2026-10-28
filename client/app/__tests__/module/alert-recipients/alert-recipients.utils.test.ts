@@ -56,6 +56,21 @@ describe("alert-recipients utils", () => {
     expect(sortByEmail(rows).map((r) => r.email)).toEqual(["a@x.com", "b@x.com"]);
   });
 
+  it("sorts ordinal like the server, not by locale (n9)", () => {
+    const rows = ["a_b@x.com", "a-b@x.com", "a+b@x.com", "a1@x.com", "a@x.com", "a@x.com"].map(
+      (email) => recipient(email, []),
+    );
+    // Code-unit order: "+" (43) < "-" (45) < "1" (49) < "@" (64) < "_" (95).
+    expect(sortByEmail(rows).map((r) => r.email)).toEqual([
+      "a+b@x.com",
+      "a-b@x.com",
+      "a1@x.com",
+      "a@x.com",
+      "a@x.com",
+      "a_b@x.com",
+    ]);
+  });
+
   it("prefers the stored All choice over the computed one (Q4)", () => {
     expect(
       storedAllMonitors(recipient("a@x.com", [], { allMonitors: false, allMonitorsChoice: true })),

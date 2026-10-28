@@ -3,6 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import type { IAlertRecipientsData } from "@/models/alert-recipients.model";
+import { UNDO_NOTHING_LEFT } from "@/components/module/alert-recipients/alert-recipients.utils";
 import { MONITORS, recipient } from "../../module/alert-recipients/fixtures";
 
 type QueryState = {
@@ -204,6 +205,86 @@ describe("AlertRecipientsPage", () => {
       "ops@x.com removed from 2 monitors. They no longer get alert emails.",
     );
     expect(within(status).getByRole("button", { name: "Undo" })).toBeInTheDocument();
+  });
+
+  it("moves focus to Undo after Remove, so keyboard users keep their place (m8, C21)", async () => {
+    renderPage();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Remove ops@x.com from all monitors" }),
+    );
+    expect(document.activeElement).toBe(
+      within(screen.getByRole("status")).getByRole("button", { name: "Undo" }),
+    );
+  });
+
+  it("keeps focus where it is when Remove is refused", async () => {
+    h.deleteAsync.mockResolvedValue({ isSuccess: false, message: "Project not found." });
+    renderPage();
+    const remove = screen.getByRole("button", { name: "Remove ali@x.com from all monitors" });
+    await userEvent.click(remove);
+    expect(document.activeElement).toBe(remove);
+  });
+
+  it("Undo resends only the monitors that still exist (S-m1)", async () => {
+    setData({
+      ...E1,
+      recipients: [recipient("ali@x.com", ["m1", "m2"])],
+    });
+    h.deleteAsync.mockResolvedValue({
+      isSuccess: true,
+      data: { email: "ali@x.com", removed: 2, conflicted: [], denied: [] },
+    });
+    const view = renderPage();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Remove ali@x.com from all monitors" }),
+    );
+    // m2 is deleted before Undo; the refetched data no longer lists it.
+    setData({ ...E1, monitors: MONITORS.filter((m) => m.itemId !== "m2"), recipients: [] });
+    view.rerender(
+      <MemoryRouter>
+        <AlertRecipientsPage />
+      </MemoryRouter>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    expect(h.saveAsync).toHaveBeenCalledWith({
+      projectKey: "p1",
+      email: "ali@x.com",
+      allMonitors: false,
+      monitorIds: ["m1"],
+    });
+  });
+
+  it("Undo says so and sends nothing when none of the monitors exist any more (S-m1)", async () => {
+    h.deleteAsync.mockResolvedValue({
+      isSuccess: true,
+      data: { email: "ali@x.com", removed: 1, conflicted: [], denied: [] },
+    });
+    const view = renderPage();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Remove ali@x.com from all monitors" }),
+    );
+    setData({ ...E1, monitors: MONITORS.filter((m) => m.itemId !== "m1") });
+    view.rerender(
+      <MemoryRouter>
+        <AlertRecipientsPage />
+      </MemoryRouter>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    expect(h.saveAsync).not.toHaveBeenCalled();
+    expect(h.error).toHaveBeenCalledWith({ errors: UNDO_NOTHING_LEFT });
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
+  });
+
+  it("Undo of an All monitors person still sends All when monitors were deleted (S-m1)", async () => {
+    renderPage();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Remove ops@x.com from all monitors" }),
+    );
+    setData({ ...E1, monitors: [] });
+    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    expect(h.saveAsync).toHaveBeenCalledWith(
+      expect.objectContaining({ allMonitors: true, monitorIds: [] }),
+    );
   });
 
   it("Undo restores the stored All choice (H8, Q4)", async () => {

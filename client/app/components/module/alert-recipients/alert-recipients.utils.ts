@@ -52,8 +52,14 @@ export const filterRecipients = (
   });
 };
 
+const compareOrdinal = (a: string, b: string) => {
+  if (a === b) return 0;
+  return a < b ? -1 : 1;
+};
+
+/** Ordinal (code unit) order, the same as the server's `StringComparer.Ordinal` sort. */
 export const sortByEmail = (recipients: IAlertRecipient[]) =>
-  [...recipients].sort((a, b) => a.email.localeCompare(b.email));
+  [...recipients].sort((a, b) => compareOrdinal(a.email, b.email));
 
 /**
  * A monitor detail's source type: the server's effective value, then the stored one (#256 Q10).
@@ -69,3 +75,7 @@ export const resolveMonitorSourceType = (monitor?: {
 export const hasManagedRecipients = (sourceType: number | undefined) =>
   sourceType !== Number(MONITOR_SOURCE_TYPES.Infrastructure) &&
   sourceType !== Number(MONITOR_SOURCE_TYPES.BlocksServices);
+
+/** Shown when every monitor the removed person was on has been deleted since, so Undo has nothing to restore. */
+export const UNDO_NOTHING_LEFT =
+  "Nothing to restore: the monitors this person was on no longer exist.";
