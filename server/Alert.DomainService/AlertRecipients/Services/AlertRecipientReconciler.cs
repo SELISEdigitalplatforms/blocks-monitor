@@ -111,15 +111,15 @@ public sealed class AlertRecipientReconciler : IAlertRecipientReconciler
         if (monitors.Count == 0)
             return 0;
 
-        PlannedEmailsChange Replan(MonitorConfiguration monitor) => Plan(monitor, people);
+        PlannedRecipientChange Replan(MonitorConfiguration monitor) => Plan(monitor, people);
         var plans = monitors.Select(Replan).ToList();
         foreach (var plan in plans.Where(p => p.Change == AlertRecipientChange.SkippedFull))
             LogSkippedFull(plan.Monitor.ItemId, tenantId);
 
         var results = await _writer.WriteAsync(tenantId, plans, Replan, refuseInvalid: false, updatedBy: null);
-        foreach (var result in results.Where(r => r.Outcome is EmailsWriteOutcome.Invalid or EmailsWriteOutcome.Conflicted or EmailsWriteOutcome.Denied))
+        foreach (var result in results.Where(r => r.Outcome is RecipientWriteOutcome.Invalid or RecipientWriteOutcome.Conflicted or RecipientWriteOutcome.Denied))
             LogNotReconciled(result.Plan.Monitor.ItemId, tenantId, result.Outcome);
-        return results.Count(r => r.Outcome == EmailsWriteOutcome.Applied);
+        return results.Count(r => r.Outcome == RecipientWriteOutcome.Applied);
     }
 
     // Only ids and the outcome reach these lines: the monitor id and the project key, never a list of people (C20).
@@ -129,7 +129,7 @@ public sealed class AlertRecipientReconciler : IAlertRecipientReconciler
         _logger.LogWarning("Monitor {MonitorId} of project {ProjectKey} already has 10 alert recipients; its missing \"All monitors\" people were not added.",
             LogValue.Clean(monitorId), LogValue.Clean(tenantId));
 
-    private void LogNotReconciled(string monitorId, string tenantId, EmailsWriteOutcome outcome) =>
+    private void LogNotReconciled(string monitorId, string tenantId, RecipientWriteOutcome outcome) =>
         _logger.LogWarning("Monitor {MonitorId} of project {ProjectKey} was not reconciled ({Outcome}); the next run retries it.",
             LogValue.Clean(monitorId), LogValue.Clean(tenantId), outcome.ToString());
 
@@ -137,16 +137,16 @@ public sealed class AlertRecipientReconciler : IAlertRecipientReconciler
     /// Appends the missing people in sorted order, never past 10 emails in total. A monitor already at 10 is
     /// <see cref="AlertRecipientChange.SkippedFull"/>; one that has everyone (compared normalized) is left alone.
     /// </summary>
-    public static PlannedEmailsChange Plan(MonitorConfiguration monitor, IReadOnlyList<string> allMonitorsPeople)
+    public static PlannedRecipientChange Plan(MonitorConfiguration monitor, IReadOnlyList<string> allMonitorsPeople)
     {
         var emails = monitor.Emails ?? new List<string>();
         var present = emails.Select(AlertRecipientEmail.Normalize).ToHashSet(StringComparer.Ordinal);
         var missing = allMonitorsPeople.Where(e => !present.Contains(e)).Order(StringComparer.Ordinal).ToList();
         if (missing.Count == 0)
-            return new PlannedEmailsChange(monitor, AlertRecipientChange.None);
+            return new PlannedRecipientChange(monitor, AlertRecipientChange.None);
         var room = AlertRecipientRules.MaxEmailsPerMonitor - emails.Count;
         if (room <= 0)
-            return new PlannedEmailsChange(monitor, AlertRecipientChange.SkippedFull);
-        return new PlannedEmailsChange(monitor, AlertRecipientChange.Add, emails.Concat(missing.Take(room)).ToList());
+            return new PlannedRecipientChange(monitor, AlertRecipientChange.SkippedFull);
+        return new PlannedRecipientChange(monitor, AlertRecipientChange.Add, emails.Concat(missing.Take(room)).ToList());
     }
 }

@@ -178,7 +178,7 @@ public sealed class AlertRecipientService : IAlertRecipientService
                 }
             }
 
-            PlannedEmailsChange Replan(MonitorConfiguration m) => Plan(m, email, targets.Contains(m.ItemId));
+            PlannedRecipientChange Replan(MonitorConfiguration m) => Plan(m, email, targets.Contains(m.ItemId));
             writeStarted = true;
             var written = await _writer.WriteAsync(tenantId, monitors.Select(Replan).ToList(), Replan, refuseInvalid: true, userId,
                 () => ChoiceUnchangedAsync(tenantId, email, expected));
@@ -260,7 +260,7 @@ public sealed class AlertRecipientService : IAlertRecipientService
 
             // Nothing can fail between the early write and the monitor writes, so a later failure leaves the
             // choice cleared, which is what the removal wants anyway.
-            PlannedEmailsChange Replan(MonitorConfiguration m) => Plan(m, email, isTarget: false);
+            PlannedRecipientChange Replan(MonitorConfiguration m) => Plan(m, email, isTarget: false);
             var written = await _writer.WriteAsync(tenantId, monitors.Select(Replan).ToList(), Replan, refuseInvalid: true, userId,
                 () => ChoiceUnchangedAsync(tenantId, email, expected));
 
@@ -373,19 +373,19 @@ public sealed class AlertRecipientService : IAlertRecipientService
     /// What saving <paramref name="email"/> does to <paramref name="monitor"/> (decision Q7: emails compare
     /// normalized; other emails are never changed, reordered or trimmed, and legacy lists over 10 stay as they are).
     /// </summary>
-    public static PlannedEmailsChange Plan(MonitorConfiguration monitor, string email, bool isTarget)
+    public static PlannedRecipientChange Plan(MonitorConfiguration monitor, string email, bool isTarget)
     {
         var emails = monitor.Emails ?? new List<string>();
         var holds = emails.Any(e => AlertRecipientEmail.Normalize(e) == email);
         if (isTarget)
         {
-            if (holds) return new PlannedEmailsChange(monitor, AlertRecipientChange.Unchanged);
-            if (emails.Count >= AlertRecipientRules.MaxEmailsPerMonitor) return new PlannedEmailsChange(monitor, AlertRecipientChange.SkippedFull);
-            return new PlannedEmailsChange(monitor, AlertRecipientChange.Add, new List<string>(emails) { email });
+            if (holds) return new PlannedRecipientChange(monitor, AlertRecipientChange.Unchanged);
+            if (emails.Count >= AlertRecipientRules.MaxEmailsPerMonitor) return new PlannedRecipientChange(monitor, AlertRecipientChange.SkippedFull);
+            return new PlannedRecipientChange(monitor, AlertRecipientChange.Add, new List<string>(emails) { email });
         }
         return holds
-            ? new PlannedEmailsChange(monitor, AlertRecipientChange.Remove, emails.Where(e => AlertRecipientEmail.Normalize(e) != email).ToList())
-            : new PlannedEmailsChange(monitor, AlertRecipientChange.None);
+            ? new PlannedRecipientChange(monitor, AlertRecipientChange.Remove, emails.Where(e => AlertRecipientEmail.Normalize(e) != email).ToList())
+            : new PlannedRecipientChange(monitor, AlertRecipientChange.None);
     }
 
     /// <summary>The success message, e.g. "Added to 4 monitors. 1 skipped: already has 10 recipients."</summary>
@@ -454,18 +454,18 @@ public sealed class AlertRecipientService : IAlertRecipientService
             .ThenBy(m => m.ItemId, StringComparer.Ordinal)
             .ToList();
 
-    private static void Tally(EmailsWriteResult item, AlertRecipientChangeResult result)
+    private static void Tally(RecipientWriteResult item, AlertRecipientChangeResult result)
     {
         var change = item.Plan.Change;
         var reference = new AlertRecipientMonitorRef(item.Plan.Monitor.ItemId, item.Plan.Monitor.Name ?? string.Empty);
         switch (item.Outcome)
         {
-            case EmailsWriteOutcome.Applied when change == AlertRecipientChange.Add: result.Added++; break;
-            case EmailsWriteOutcome.Applied: result.Removed++; break;
-            case EmailsWriteOutcome.NotWritten when change == AlertRecipientChange.Unchanged: result.Unchanged++; break;
-            case EmailsWriteOutcome.NotWritten when change == AlertRecipientChange.SkippedFull: result.SkippedFull.Add(reference); break;
-            case EmailsWriteOutcome.Conflicted: result.Conflicted.Add(reference); break;
-            case EmailsWriteOutcome.Denied: result.Denied.Add(reference); break;
+            case RecipientWriteOutcome.Applied when change == AlertRecipientChange.Add: result.Added++; break;
+            case RecipientWriteOutcome.Applied: result.Removed++; break;
+            case RecipientWriteOutcome.NotWritten when change == AlertRecipientChange.Unchanged: result.Unchanged++; break;
+            case RecipientWriteOutcome.NotWritten when change == AlertRecipientChange.SkippedFull: result.SkippedFull.Add(reference); break;
+            case RecipientWriteOutcome.Conflicted: result.Conflicted.Add(reference); break;
+            case RecipientWriteOutcome.Denied: result.Denied.Add(reference); break;
         }
     }
 
@@ -473,9 +473,9 @@ public sealed class AlertRecipientService : IAlertRecipientService
     /// One Worker refresh message when an HTTP check changed, one health cache reload when a heartbeat changed.
     /// Failures are logged only: the 600-second polls pick the change up (C15).
     /// </summary>
-    private async Task RefreshAsync(List<EmailsWriteResult> written, string tenantId)
+    private async Task RefreshAsync(List<RecipientWriteResult> written, string tenantId)
     {
-        var changed = written.Where(r => r.Outcome == EmailsWriteOutcome.Applied).Select(r => r.Plan.Monitor).ToList();
+        var changed = written.Where(r => r.Outcome == RecipientWriteOutcome.Applied).Select(r => r.Plan.Monitor).ToList();
         var httpCheck = changed.FirstOrDefault(m => m.MonitorConfigurationType == MonitorConfigurationTypes.OutboundPing);
         if (httpCheck is not null)
         {
