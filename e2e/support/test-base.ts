@@ -23,6 +23,9 @@ function pauseMs(isHeaded: boolean): number {
   return isHeaded ? 10_000 : 0
 }
 
+// Feature projects whose failures keep the shared project (see run-outcome.ts).
+const SUITE_PROJECTS = new Set(["monitor", "alert-recipients"])
+
 export const test = base.extend<{ pauseAfterEachTest: void }>({
   pauseAfterEachTest: [
     async ({ page }, use, testInfo) => {
@@ -33,7 +36,7 @@ export const test = base.extend<{ pauseAfterEachTest: void }>({
 
       await use()
 
-      if (testInfo.project.name === "monitor") {
+      if (SUITE_PROJECTS.has(testInfo.project.name)) {
         if (testInfo.status !== "passed" && testInfo.status !== "skipped") {
           markSuiteTestFailed()
         }

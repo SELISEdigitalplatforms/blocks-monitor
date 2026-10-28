@@ -16,4 +16,10 @@ export const MONITOR_FEATURES: MonitorFeature[] = [
     enabled: true,
     spec: "tests/02-monitor/monitor.spec.ts",
   },
+  {
+    id: "alert-recipients",
+    name: "Alert recipients – all or selected monitors",
+    enabled: true,
+    spec: "tests/03-alert-recipients/alert-recipients.spec.ts",
+  },
 ];

@@ -273,19 +273,16 @@ test.describe("Monitor - full page workflow", () => {
       });
     });
 
-    await test.step("Details — Notification Settings opens with Add email control", async () => {
-      await page.getByRole("button", { name: "Notification Settings" }).click();
-      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeVisible({
-        timeout: 15_000,
-      });
-      await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
-      await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
-      await expect(page.getByRole("button", { name: "Add email" })).toBeVisible();
-      await expect(page.getByRole("button", { name: "Save" })).toBeDisabled();
-      await page.getByRole("button", { name: "Cancel" }).click();
-      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeHidden({
-        timeout: 5_000,
-      });
+    await test.step("Details — no Notification Settings button; recipients are read-only (H12)", async () => {
+      await expect(page.getByRole("button", { name: "Configure" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Notification Settings" })).toHaveCount(0);
+      await expect(page.getByText("Notification recipients", { exact: true })).toBeVisible();
+      await expect(
+        page
+          .getByRole("list", { name: "Notification recipients" })
+          .or(page.getByText("No recipients", { exact: true })),
+      ).toBeVisible();
+      await expect(page.getByRole("link", { name: "Open Alert recipients" })).toBeVisible();
     });
 
     await test.step("Details — Back button returns to the Monitor list", async () => {
@@ -468,40 +465,27 @@ test.describe("Monitor - full page workflow", () => {
       });
     });
 
-    await test.step("Details — Notification Settings rejects invalid email format", async () => {
-      await page.getByRole("button", { name: "Notification Settings" }).click();
-      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeVisible({
-        timeout: 15_000,
-      });
-
-      await page.getByRole("button", { name: "Add email" }).click();
-      await page.getByPlaceholder("Enter email address").first().fill("not-an-email");
-      await expect(page.getByText("Please enter a valid email address").first()).toBeVisible({
-        timeout: 5_000,
-      });
-
-      await page.getByRole("button", { name: "Cancel" }).click();
-      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeHidden({
-        timeout: 5_000,
-      });
+    await test.step("Details — recipients have no edit control after Configure saves (H12)", async () => {
+      await expect(page.getByText("Notification recipients", { exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Notification Settings" })).toHaveCount(0);
+      await expect(
+        page.getByRole("button", { name: /Add email|Edit notification recipients/ }),
+      ).toHaveCount(0);
+      await expect(page.getByPlaceholder("Enter email address")).toHaveCount(0);
     });
 
-    await test.step("Details — Notification Settings adds and saves a valid email", async () => {
-      const uniqueEmail = `e2e-${Date.now()}@example.com`;
-      await page.getByRole("button", { name: "Notification Settings" }).click();
-      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeVisible({
+    await test.step("Details — 'Open Alert recipients' opens the Alert recipients page (H12)", async () => {
+      const detailsUrl = page.url();
+      await page.getByRole("link", { name: "Open Alert recipients" }).click();
+      await expect(page).toHaveURL(/\/alert-recipients\/?$/, { timeout: 15_000 });
+      await expect(page.getByRole("heading", { name: "Alert recipients", level: 1 })).toBeVisible({
         timeout: 15_000,
       });
 
-      await page.getByRole("button", { name: "Add email" }).click();
-      await page.getByPlaceholder("Enter email address").first().fill(uniqueEmail);
-      await page.getByRole("button", { name: "Save" }).click();
-
-      await expect(page.getByText("Monitor successfully updated.", { exact: true })).toBeVisible({
+      await page.goBack({ waitUntil: "domcontentloaded" });
+      await expect(page).toHaveURL(detailsUrl, { timeout: 15_000 });
+      await expect(page.getByRole("button", { name: "Configure" })).toBeVisible({
         timeout: 15_000,
-      });
-      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeHidden({
-        timeout: 5_000,
       });
     });
 
