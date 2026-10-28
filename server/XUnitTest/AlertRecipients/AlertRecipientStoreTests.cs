@@ -85,11 +85,11 @@ namespace XUnitTest.AlertRecipients
             _kv.Add("monitor:alert-recipients:p2", Entry("sel@x.com", false));
             _kv.Add("monitor:alert-recipients:", Entry("orphan@x.com", true));
 
-            var tenants = await Sut().GetAllMonitorsEmailsByTenantAsync();
+            var tenants = await Sut().GetAllMonitorsPeopleByTenantAsync();
 
-            tenants.Keys.Should().Equal("p1");
-            tenants["p1"].Should().HaveCount(10).And.BeInAscendingOrder(StringComparer.Ordinal).And.NotContain("p00@x.com");
-            tenants["p1"][0].Should().Be("p01@x.com");
+            tenants.Select(t => t.TenantId).Should().Equal("p1");
+            tenants[0].People.Should().HaveCount(10).And.BeInAscendingOrder(StringComparer.Ordinal).And.NotContain("p00@x.com");
+            tenants[0].People[0].Should().Be("p01@x.com");
         }
 
         [Fact]
@@ -134,7 +134,42 @@ namespace XUnitTest.AlertRecipients
 
             emails.Should().BeEmpty();
             _logger.Has(LogLevel.Warning, "the monitor is created without recipients").Should().BeTrue();
+            // m4: the failure type only, never the exception (its message may quote the stored data).
+            _logger.Has(LogLevel.Warning, "failed (MongoException)").Should().BeTrue();
+            _logger.Lines.Should().NotContain(line => line.Contains("kv read failed", StringComparison.Ordinal));
         }
+
+        [Fact]
+        public async Task LogForging_TheRequestsProjectKeyIsLoggedWithoutLineBreaks()
+        {
+            Caller.Set("p2");
+
+            await Sut().GetEmailsForNewMonitorAsync("p1\r\nforged entry");
+            Caller.Clear();
+            _kv.FailReads = true;
+            await Sut().GetEmailsForNewMonitorAsync("p1\nforged entry");
+
+            _logger.Entries.Should().HaveCount(2);
+            _logger.Lines.Should().OnlyContain(line => line.Contains("p1forged entry", StringComparison.Ordinal));
+            _logger.Lines.Should().NotContain(line => line.Contains('\n') || line.Contains('\r'));
+        }
+
+        [Fact]
+        public async Task Save_ReturnsThePersonAsStored_WithItsOneDocument()
+        {
+            var first = await Sut().SaveAsync("p1", Entry("new@x.com", true), null);
+            _kv.Add(Key, Entry("new@x.com", true, 48));
+            var merged = (await Sut().GetAsync("p1"))["new@x.com"];
+
+            var second = await Sut().SaveAsync("p1", Entry("new@x.com", false, 0), merged);
+
+            first.ItemIds.Should().ContainSingle().Which.Should().Be(_kv.Docs[0].ItemId);
+            second.ItemIds.Should().Equal(first.ItemIds);
+            second.Entry.AllMonitors.Should().BeFalse();
+            KvDocsFor("new@x.com").Should().ContainSingle();
+        }
+
+        private List<string> KvDocsFor(string email) => _kv.Docs.Where(d => d.Value.Email == email).Select(d => d.ItemId).ToList();
 
         [Theory]
         [InlineData(null)]

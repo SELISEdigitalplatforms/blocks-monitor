@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Blocks.Genesis;
 using Blocks.Genesis.Entities.Monitor;
 using DomainService.AlertRecipients.Models;
 using DomainService.AlertRecipients.Services;
@@ -67,6 +68,17 @@ namespace XUnitTest.AlertRecipients
             _repo.EditFilterCalls.Should().Be(0);
             _repo.Written.Should().BeEmpty();
             _repo.Get("m2").Emails.Should().Equal(" OPS@x.com");
+        }
+
+        [Fact]
+        public async Task C25_WhenNoMonitorMissesAnyone_NothingIsPlannedOrWritten()
+        {
+            await Sut().ReconcileAsync();
+
+            _repo.MissingReads.Should().Be(1);
+            _repo.EditFilterCalls.Should().Be(0);
+            _repo.Written.Should().BeEmpty();
+            _logger.Has(LogLevel.Information, "1 projects, 0 monitors updated").Should().BeTrue();
         }
 
         [Fact]
@@ -156,6 +168,63 @@ namespace XUnitTest.AlertRecipients
             await act.Should().NotThrowAsync();
             _logger.Has(LogLevel.Error, "failed for project p1").Should().BeTrue();
             _repo.Get("m1").Emails.Should().Equal("ops@x.com", "ali@x.com");
+            NoEmailInTheLogs();
+        }
+
+        [Fact]
+        public async Task M1_RunsWithoutTheMessageSendersUserContext_AndRestoresIt()
+        {
+            // A refresh message arrives with its sender's context (another project's user). The reconciliation must
+            // take the data access skip path, like the 600-second poll, and leave the context as it found it.
+            Caller.Set("p9", "user-of-p9");
+            var senders = BlocksContext.GetContext();
+            _repo.Monitors.Add(FakeMonitorRepo.Monitor("m4", "deployed-svc"));
+
+            try
+            {
+                await Sut().ReconcileAsync();
+
+                _repo.MissingReadContexts.Should().ContainSingle().Which.Should().BeNull();
+                _repo.Get("m4").Emails.Should().Equal("ops@x.com");
+                BlocksContext.GetContext().Should().BeSameAs(senders);
+            }
+            finally
+            {
+                Caller.Clear();
+            }
+        }
+
+        [Fact]
+        public async Task M1_RestoresTheContext_EvenWhenTheRunFails()
+        {
+            Caller.Set("p9");
+            var senders = BlocksContext.GetContext();
+            _repo.FailReads = true;
+            _repo.Monitors.Add(FakeMonitorRepo.Monitor("m4", "deployed-svc"));
+
+            try
+            {
+                await Sut().ReconcileAsync();
+
+                _repo.MissingReadContexts.Should().ContainSingle().Which.Should().BeNull();
+                BlocksContext.GetContext().Should().BeSameAs(senders);
+            }
+            finally
+            {
+                Caller.Clear();
+            }
+        }
+
+        [Fact]
+        public async Task LogForging_AProjectKeyFromTheKeyValueKeyIsLoggedWithoutLineBreaks()
+        {
+            _kv.Add("monitor:alert-recipients:p7\r\nforged", Entry("lead@q.com", true));
+            _repo.FailReads = true;
+
+            await Sut().ReconcileAsync();
+
+            _logger.Has(LogLevel.Error, "failed for project p7forged").Should().BeTrue();
+            _logger.Lines.Should().NotContain(line => line.Contains('\n') || line.Contains('\r'));
         }
 
         [Fact]
@@ -195,6 +264,7 @@ namespace XUnitTest.AlertRecipients
 
             _repo.Get("m4").Emails.Should().Equal("dev@x.com", "dev2@x.com");
             _logger.Has(LogLevel.Warning, "Monitor m4 of project p1 was not reconciled (Conflicted)").Should().BeTrue();
+            NoEmailInTheLogs();
         }
 
         [Fact]

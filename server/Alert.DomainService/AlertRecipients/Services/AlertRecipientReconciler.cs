@@ -1,7 +1,9 @@
 using System.Diagnostics;
+using Blocks.Genesis;
 using Blocks.Genesis.Entities.Monitor;
 using DomainService.AlertRecipients.Models;
 using DomainService.Monitor.Services;
+using DomainService.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 
 namespace DomainService.AlertRecipients.Services;
@@ -21,7 +23,14 @@ public interface IAlertRecipientReconciler
 /// Adds only: never removes or reorders an email, never goes past 10, never touches Blocks services or
 /// Infrastructure monitors, and writes nothing to a monitor that already has everyone. Writes use the same
 /// optimistic rules as a save; a monitor that changed meanwhile, or that a validation rule refuses, is skipped
-/// and retried on the next run. Runs without user context (the data access skip path). Logs never carry emails.
+/// and retried on the next run.
+/// <para>
+/// It always runs without user context, which is the data access skip path. The 600-second poll has no context
+/// anyway. A refresh message arrives with its sender's <see cref="BlocksContext"/>, so that context is cleared for
+/// the run and restored afterwards: one project's row policies and rules must never decide another project's
+/// monitors.
+/// </para>
+/// Logs carry project keys, monitor ids, counts and failure types, never an email address (C20).
 /// </remarks>
 public sealed class AlertRecipientReconciler : IAlertRecipientReconciler
 {
@@ -40,12 +49,26 @@ public sealed class AlertRecipientReconciler : IAlertRecipientReconciler
 
     public async Task ReconcileAsync()
     {
+        var callerContext = BlocksContext.GetContext();
+        BlocksContext.SetContext(null);
+        try
+        {
+            await ReconcileAllAsync();
+        }
+        finally
+        {
+            BlocksContext.SetContext(callerContext);
+        }
+    }
+
+    private async Task ReconcileAllAsync()
+    {
         var stopwatch = Stopwatch.StartNew();
-        Dictionary<string, List<string>> tenants = null!;
+        IReadOnlyList<AllMonitorsPeople> tenants = Array.Empty<AllMonitorsPeople>();
         string? readErrorType = null;
         try
         {
-            tenants = await _store.GetAllMonitorsEmailsByTenantAsync();
+            tenants = await _store.GetAllMonitorsPeopleByTenantAsync();
         }
         catch (Exception ex)
         {
@@ -59,13 +82,15 @@ public sealed class AlertRecipientReconciler : IAlertRecipientReconciler
             return;
         }
 
-        var updated = 0;
-        foreach (var (tenantId, emails) in tenants)
+        int projects = 0, updated = 0;
+        foreach (var tenant in tenants)
         {
+            projects++;
+            var tenantId = tenant.TenantId;
             string? tenantErrorType = null;
             try
             {
-                updated += await ReconcileTenantAsync(tenantId, emails);
+                updated += await ReconcileTenantAsync(tenantId, tenant.People);
             }
             catch (Exception ex)
             {
@@ -73,20 +98,20 @@ public sealed class AlertRecipientReconciler : IAlertRecipientReconciler
             }
 
             if (tenantErrorType is not null)
-                _logger.LogError("Alert recipient reconciliation failed for project {ProjectKey}: {ErrorType}.", tenantId, tenantErrorType);
+                _logger.LogError("Alert recipient reconciliation failed for project {ProjectKey}: {ErrorType}.", LogValue.Clean(tenantId), tenantErrorType);
         }
 
         _logger.LogInformation("Alert recipient reconciliation: {Projects} projects, {Updated} monitors updated in {ElapsedMs} ms.",
-            tenants.Count, updated, stopwatch.ElapsedMilliseconds);
+            projects, updated, stopwatch.ElapsedMilliseconds);
     }
 
-    private async Task<int> ReconcileTenantAsync(string tenantId, List<string> allMonitorsEmails)
+    private async Task<int> ReconcileTenantAsync(string tenantId, IReadOnlyList<string> people)
     {
-        var monitors = await _repo.GetEditableMonitorsMissingEmailsAsync(tenantId, allMonitorsEmails);
+        var monitors = await _repo.GetEditableMonitorsMissingPeopleAsync(tenantId, people.ToList());
         if (monitors.Count == 0)
             return 0;
 
-        PlannedEmailsChange Replan(MonitorConfiguration monitor) => Plan(monitor, allMonitorsEmails);
+        PlannedEmailsChange Replan(MonitorConfiguration monitor) => Plan(monitor, people);
         var plans = monitors.Select(Replan).ToList();
         foreach (var plan in plans.Where(p => p.Change == AlertRecipientChange.SkippedFull))
             LogSkippedFull(plan.Monitor.ItemId, tenantId);
@@ -97,23 +122,26 @@ public sealed class AlertRecipientReconciler : IAlertRecipientReconciler
         return results.Count(r => r.Outcome == EmailsWriteOutcome.Applied);
     }
 
+    // Only ids and the outcome reach these lines: the monitor id and the project key, never a list of people (C20).
     private void LogSkippedFull(string monitorId, string tenantId) =>
-        _logger.LogWarning("Monitor {MonitorId} of project {ProjectKey} already has {Max} alert recipients; its missing \"All monitors\" people were not added.",
-            monitorId, tenantId, AlertRecipientRules.MaxEmailsPerMonitor);
+        // The limit is spelled in the text: the AlertRecipientRules constant is named like personal data, which CodeQL
+        // (cs/exposure-of-private-information) then reports as reaching the log.
+        _logger.LogWarning("Monitor {MonitorId} of project {ProjectKey} already has 10 alert recipients; its missing \"All monitors\" people were not added.",
+            LogValue.Clean(monitorId), LogValue.Clean(tenantId));
 
     private void LogNotReconciled(string monitorId, string tenantId, EmailsWriteOutcome outcome) =>
         _logger.LogWarning("Monitor {MonitorId} of project {ProjectKey} was not reconciled ({Outcome}); the next run retries it.",
-            monitorId, tenantId, outcome);
+            LogValue.Clean(monitorId), LogValue.Clean(tenantId), outcome.ToString());
 
     /// <summary>
     /// Appends the missing people in sorted order, never past 10 emails in total. A monitor already at 10 is
     /// <see cref="AlertRecipientChange.SkippedFull"/>; one that has everyone (compared normalized) is left alone.
     /// </summary>
-    public static PlannedEmailsChange Plan(MonitorConfiguration monitor, IReadOnlyList<string> allMonitorsEmails)
+    public static PlannedEmailsChange Plan(MonitorConfiguration monitor, IReadOnlyList<string> allMonitorsPeople)
     {
         var emails = monitor.Emails ?? new List<string>();
         var present = emails.Select(AlertRecipientEmail.Normalize).ToHashSet(StringComparer.Ordinal);
-        var missing = allMonitorsEmails.Where(e => !present.Contains(e)).Order(StringComparer.Ordinal).ToList();
+        var missing = allMonitorsPeople.Where(e => !present.Contains(e)).Order(StringComparer.Ordinal).ToList();
         if (missing.Count == 0)
             return new PlannedEmailsChange(monitor, AlertRecipientChange.None);
         var room = AlertRecipientRules.MaxEmailsPerMonitor - emails.Count;

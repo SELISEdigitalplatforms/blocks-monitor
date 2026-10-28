@@ -30,11 +30,14 @@ namespace DomainService.Monitor.Services
         /// <summary>Whole documents of the editable monitors, optionally only <paramref name="itemIds"/>.</summary>
         Task<List<MonitorConfiguration>> GetEditableMonitorsAsync(string tenantId, IReadOnlyCollection<string>? itemIds = null);
 
-        /// <summary>Whole documents of the editable monitors that lack at least one of <paramref name="emails"/> (exact match).</summary>
-        Task<List<MonitorConfiguration>> GetEditableMonitorsMissingEmailsAsync(string tenantId, IReadOnlyCollection<string> emails);
+        /// <summary>Whole documents of the editable monitors that lack at least one of <paramref name="people"/> (exact match).</summary>
+        Task<List<MonitorConfiguration>> GetEditableMonitorsMissingPeopleAsync(string tenantId, IReadOnlyCollection<string> people);
 
-        /// <summary>One EDIT row filter for all of <paramref name="itemIds"/>; null when the caller may edit none.</summary>
-        Task<FilterDefinition<MonitorConfiguration>?> GetEmailsEditFilterAsync(string tenantId, IReadOnlyCollection<string> itemIds);
+        /// <summary>
+        /// The EDIT row filter for the tenant's monitors, resolved once per request; null when the caller may edit
+        /// none. It carries no monitor ids: every update ANDs its own <c>ItemId</c> into it.
+        /// </summary>
+        Task<FilterDefinition<MonitorConfiguration>?> GetEmailsEditFilterAsync(string tenantId);
 
         /// <summary>The data validation rules for each update (bounded parallelism); the updates they refuse, in input order.</summary>
         Task<IReadOnlyList<MonitorEmailsCheckFailure>> CheckEmailsUpdatesAsync(IReadOnlyList<MonitorEmailsUpdate> updates);

@@ -2,6 +2,7 @@
 using Blocks.Genesis;
 using Blocks.Genesis.DataAccess.Rules;
 using DomainService.Shared.DataAccess;
+using DomainService.AlertRecipients.Models;
 using Blocks.Genesis.Entities.Monitor;
 using DomainService.Monitor.Models;
 using Microsoft.Extensions.Configuration;
@@ -486,22 +487,21 @@ namespace DomainService.Monitor.Services
             return scope.Granted ? await scope.Apply(_monitorConfigurationCollection).ToListAsync() : new List<MonitorConfiguration>();
         }
 
-        public async Task<List<MonitorConfiguration>> GetEditableMonitorsMissingEmailsAsync(string tenantId, IReadOnlyCollection<string> emails)
+        public async Task<List<MonitorConfiguration>> GetEditableMonitorsMissingPeopleAsync(string tenantId, IReadOnlyCollection<string> people)
         {
             var fb = Builders<MonitorConfiguration>.Filter;
-            var filter = fb.And(EditableMonitorsFilter(tenantId), fb.Not(fb.All(m => m.Emails, emails)));
+            var filter = fb.And(EditableMonitorsFilter(tenantId), fb.Not(fb.All(m => m.Emails, people)));
             var scope = await _access.ReadAsync(MonitorSchemas.MonitorConfiguration, filter,
-                "MonitorConfigurationRepoService.GetEditableMonitorsMissingEmailsAsync", useProjection: false);
+                "MonitorConfigurationRepoService.GetEditableMonitorsMissingPeopleAsync", useProjection: false);
             return scope.Granted ? await scope.Apply(_monitorConfigurationCollection).ToListAsync() : new List<MonitorConfiguration>();
         }
 
-        public Task<FilterDefinition<MonitorConfiguration>?> GetEmailsEditFilterAsync(string tenantId, IReadOnlyCollection<string> itemIds)
-        {
-            var fb = Builders<MonitorConfiguration>.Filter;
-            return _access.EditFilterAsync(MonitorSchemas.MonitorConfiguration,
-                fb.And(fb.Eq(m => m.TenantId, tenantId), fb.In(m => m.ItemId, itemIds)),
+        public Task<FilterDefinition<MonitorConfiguration>?> GetEmailsEditFilterAsync(string tenantId) =>
+            // No ItemId $in here: the filter is ANDed into every UpdateOne, which adds its own ItemId, so an id list
+            // would be repeated in each of up to 500 filters (review m3). Same rows, a fraction of the payload.
+            _access.EditFilterAsync(MonitorSchemas.MonitorConfiguration,
+                Builders<MonitorConfiguration>.Filter.Eq(m => m.TenantId, tenantId),
                 "MonitorConfigurationRepoService.GetEmailsEditFilterAsync");
-        }
 
         public async Task<IReadOnlyList<MonitorEmailsCheckFailure>> CheckEmailsUpdatesAsync(IReadOnlyList<MonitorEmailsUpdate> updates)
         {
@@ -509,7 +509,7 @@ namespace DomainService.Monitor.Services
             // The resolver caches nothing, so each check costs several tenant-DB reads: run them side by side, bounded.
             var failures = new MonitorEmailsCheckFailure?[updates.Count];
             await Parallel.ForEachAsync(Enumerable.Range(0, updates.Count),
-                new ParallelOptions { MaxDegreeOfParallelism = DomainService.AlertRecipients.Models.AlertRecipientRules.CheckParallelism },
+                new ParallelOptions { MaxDegreeOfParallelism = AlertRecipientRules.CheckParallelism },
                 async (index, _) =>
                 {
                     try
@@ -530,6 +530,8 @@ namespace DomainService.Monitor.Services
             var models = updates
                 .Select(u => (WriteModel<MonitorConfiguration>)new UpdateOneModel<MonitorConfiguration>(EmailsUpdateFilter(u, editFilter), EmailsUpdateDefinition(u)))
                 .ToList();
+            long matched;
+            int writeErrors;
             try
             {
                 var result = await _monitorConfigurationCollection.BulkWriteAsync(models, new BulkWriteOptions { IsOrdered = false });
@@ -538,9 +540,14 @@ namespace DomainService.Monitor.Services
             catch (MongoBulkWriteException<MonitorConfiguration> ex)
             {
                 // Unordered: the other updates still ran. The failed ones are found by the caller's re-read.
-                _logger.LogError(ex, "Bulk update of monitor alert recipients had {Count} write errors.", ex.WriteErrors.Count);
-                return ex.Result.MatchedCount;
+                // Only counts leave the catch (C20): a write error's errInfo can quote the new Emails values.
+                matched = ex.Result.MatchedCount;
+                writeErrors = ex.WriteErrors.Count;
             }
+
+            _logger.LogError("Bulk update of monitor alert recipients had {Count} write errors ({ErrorType}).",
+                writeErrors, nameof(MongoBulkWriteException));
+            return matched;
         }
 
         public async Task<bool> UpdateEmailsAsync(MonitorEmailsUpdate update, FilterDefinition<MonitorConfiguration> editFilter)

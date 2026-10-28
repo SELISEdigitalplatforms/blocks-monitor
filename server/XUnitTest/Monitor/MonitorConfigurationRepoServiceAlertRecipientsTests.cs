@@ -35,8 +35,9 @@ namespace XUnitTest.Monitor
         private static void AssertBson(BsonDocument? actual, string expected) =>
             actual.Should().NotBeNull().And.Subject.As<BsonDocument>().Equals(BsonDocument.Parse(expected)).Should().BeTrue($"{actual} should equal {expected}");
 
-        private static MonitorConfigurationRepoService Build(Mock<IMongoCollection<MonitorConfiguration>> collection, IMonitorDataAccess? access = null) =>
-            new(new Mock<ILogger<MonitorConfigurationRepoService>>().Object, new MongoMocks.DbBuilder().With(collection).Provider,
+        private static MonitorConfigurationRepoService Build(Mock<IMongoCollection<MonitorConfiguration>> collection, IMonitorDataAccess? access = null,
+            ILogger<MonitorConfigurationRepoService>? logger = null) =>
+            new(logger ?? new Mock<ILogger<MonitorConfigurationRepoService>>().Object, new MongoMocks.DbBuilder().With(collection).Provider,
                 new Mock<IConfiguration>().Object, MongoMocks.BlocksSecret().Object, access ?? PassThroughMonitorDataAccess.Instance);
 
         private static MonitorEmailsUpdate Update(string id, IReadOnlyList<string>? previous, params string[] next) =>
@@ -131,7 +132,7 @@ namespace XUnitTest.Monitor
 
             (await repo.GetEditableMonitorsForViewAsync("p1")).Should().BeEmpty();
             (await repo.GetEditableMonitorsAsync("p1")).Should().BeEmpty();
-            (await repo.GetEditableMonitorsMissingEmailsAsync("p1", new[] { "a@x.com" })).Should().BeEmpty();
+            (await repo.GetEditableMonitorsMissingPeopleAsync("p1", new[] { "a@x.com" })).Should().BeEmpty();
         }
 
         [Fact]
@@ -142,7 +143,7 @@ namespace XUnitTest.Monitor
 
             await FluentActions.Awaiting(() => repo.GetEditableMonitorsForViewAsync("p1")).Should().ThrowAsync<MongoException>();
             await FluentActions.Awaiting(() => repo.GetEditableMonitorsAsync("p1")).Should().ThrowAsync<MongoException>();
-            await FluentActions.Awaiting(() => repo.GetEditableMonitorsMissingEmailsAsync("p1", new[] { "a@x.com" })).Should().ThrowAsync<MongoException>();
+            await FluentActions.Awaiting(() => repo.GetEditableMonitorsMissingPeopleAsync("p1", new[] { "a@x.com" })).Should().ThrowAsync<MongoException>();
         }
 
         [Fact]
@@ -160,7 +161,7 @@ namespace XUnitTest.Monitor
             var repo = Build(collection, access.Object);
 
             await repo.GetEditableMonitorsAsync("p1", new[] { "m1", "m2" });
-            await repo.GetEditableMonitorsMissingEmailsAsync("p1", new[] { "a@x.com", "b@x.com" });
+            await repo.GetEditableMonitorsMissingPeopleAsync("p1", new[] { "a@x.com", "b@x.com" });
 
             filters[0].ToString().Should().Contain("\"_id\" : { \"$in\" : [\"m1\", \"m2\"] }");
             filters[1].ToString().Should().Contain("\"Emails\" : { \"$not\" : { \"$all\" : [\"a@x.com\", \"b@x.com\"] } }");
@@ -168,7 +169,7 @@ namespace XUnitTest.Monitor
         }
 
         [Fact]
-        public async Task EditFilter_IsOneCallForTheTenantAndAllIds()
+        public async Task EditFilter_IsOneCallForTheTenant_WithoutAnIdList()
         {
             var access = new Mock<IMonitorDataAccess>();
             BsonDocument? sent = null;
@@ -176,10 +177,11 @@ namespace XUnitTest.Monitor
                 .Callback<string, FilterDefinition<MonitorConfiguration>, string, string?>((_, f, _, _) => sent = Render(f))
                 .ReturnsAsync((FilterDefinition<MonitorConfiguration>?)null);
 
-            var result = await Build(MongoMocks.Collection<MonitorConfiguration>(), access.Object).GetEmailsEditFilterAsync("p1", new[] { "m1", "m2" });
+            var result = await Build(MongoMocks.Collection<MonitorConfiguration>(), access.Object).GetEmailsEditFilterAsync("p1");
 
             result.Should().BeNull();
-            AssertBson(sent, ("{ TenantId: 'p1', _id: { $in: ['m1', 'm2'] } }"));
+            // m3: no ItemId $in. Each UpdateOne adds its own ItemId, so the rows written are the same.
+            AssertBson(sent, ("{ TenantId: 'p1' }"));
             access.Verify(a => a.EditFilterAsync(MonitorSchemas.MonitorConfiguration, It.IsAny<FilterDefinition<MonitorConfiguration>>(), It.IsAny<string>(), null), Times.Once);
         }
 
@@ -257,6 +259,58 @@ namespace XUnitTest.Monitor
             AssertBson(Render(second.Filter), ("{ TenantId: 'p1', _id: 'm2', Emails: ['b@x.com'] }"));
             (await repo.BulkUpdateEmailsAsync(Array.Empty<MonitorEmailsUpdate>(), Builders<MonitorConfiguration>.Filter.Empty)).Should().Be(0);
             collection.Verify(c => c.BulkWriteAsync(It.IsAny<IEnumerable<WriteModel<MonitorConfiguration>>>(), It.IsAny<BulkWriteOptions>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task M3_A500MonitorSave_SendsEachFilterWithItsOwnIdOnly_NotTheWholeIdList()
+        {
+            // The edit filter is resolved once for the tenant (no $in), so each UpdateOne stays small: before, every one
+            // of the 500 filters carried the 500-id $in (about 11 MB per "All monitors" save).
+            var collection = MongoMocks.Collection<MonitorConfiguration>();
+            List<WriteModel<MonitorConfiguration>>? models = null;
+            collection.Setup(c => c.BulkWriteAsync(It.IsAny<IEnumerable<WriteModel<MonitorConfiguration>>>(), It.IsAny<BulkWriteOptions>(), It.IsAny<CancellationToken>()))
+                .Callback<IEnumerable<WriteModel<MonitorConfiguration>>, BulkWriteOptions, CancellationToken>((m, _, _) => models = m.ToList())
+                .ReturnsAsync(new BulkWriteResult<MonitorConfiguration>.Acknowledged(500, 500, 0, 500, 0, Array.Empty<WriteModel<MonitorConfiguration>>(), Array.Empty<BulkWriteUpsert>()));
+            var access = new Mock<IMonitorDataAccess>();
+            access.Setup(a => a.EditFilterAsync(It.IsAny<string>(), It.IsAny<FilterDefinition<MonitorConfiguration>>(), It.IsAny<string>(), null))
+                .ReturnsAsync((string _, FilterDefinition<MonitorConfiguration> f, string _, string? _) =>
+                    Builders<MonitorConfiguration>.Filter.And(f, Builders<MonitorConfiguration>.Filter.Eq("UpdateUserIds", "u1")));
+            var repo = Build(collection, access.Object);
+            var updates = Enumerable.Range(0, 500).Select(i => Update($"m{i:D3}", new[] { "ops@x.com" }, "ops@x.com", "new@x.com")).ToList();
+
+            var editFilter = await repo.GetEmailsEditFilterAsync("p1");
+            (await repo.BulkUpdateEmailsAsync(updates, editFilter!)).Should().Be(500);
+
+            var filters = models!.Cast<UpdateOneModel<MonitorConfiguration>>().Select(m => Render(m.Filter)).ToList();
+            filters.Should().HaveCount(500).And.OnlyContain(f => !f.ToString().Contains("$in", StringComparison.Ordinal));
+            AssertBson(filters[7], "{ TenantId: 'p1', UpdateUserIds: 'u1', _id: 'm007', Emails: ['ops@x.com'] }");
+            filters.Sum(f => f.ToBson().Length).Should().BeLessThan(100_000, "about 100 bytes per filter, not 23 KB");
+        }
+
+        [Fact]
+        public async Task M4_APartlyFailedBulkWrite_ReturnsTheMatchedCount_AndLogsNoExceptionText()
+        {
+            // A document-validation failure (code 121) quotes the new Emails in errInfo; none of it may reach a log (C20).
+            var collection = MongoMocks.Collection<MonitorConfiguration>();
+            var update = Update("m1", null, "a@x.com");
+            var model = new UpdateOneModel<MonitorConfiguration>(Builders<MonitorConfiguration>.Filter.Empty, MonitorConfigurationRepoService.EmailsUpdateDefinition(update));
+            var error = (BulkWriteError)Activator.CreateInstance(typeof(BulkWriteError),
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance, null,
+                new object[] { 1, ServerErrorCategory.Uncategorized, 121, "Document failed validation",
+                    BsonDocument.Parse("{ consideredValue: ['secret@x.com'] }") }, null)!;
+            var partial = new BulkWriteResult<MonitorConfiguration>.Acknowledged(2, 1, 0, 1, 0, new WriteModel<MonitorConfiguration>[] { model, model }, Array.Empty<BulkWriteUpsert>());
+            var connection = new MongoDB.Driver.Core.Connections.ConnectionId(
+                new MongoDB.Driver.Core.Servers.ServerId(new MongoDB.Driver.Core.Clusters.ClusterId(1), new System.Net.DnsEndPoint("localhost", 27017)));
+            collection.Setup(c => c.BulkWriteAsync(It.IsAny<IEnumerable<WriteModel<MonitorConfiguration>>>(), It.IsAny<BulkWriteOptions>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new MongoBulkWriteException<MonitorConfiguration>(connection, partial, new[] { error }, null!, Array.Empty<WriteModel<MonitorConfiguration>>()));
+            var logger = new XUnitTest.AlertRecipients.CapturingLogger<MonitorConfigurationRepoService>();
+
+            var matched = await Build(collection, logger: logger).BulkUpdateEmailsAsync(new[] { update, Update("m2", null, "a@x.com") },
+                Builders<MonitorConfiguration>.Filter.Empty);
+
+            matched.Should().Be(1);
+            logger.Has(LogLevel.Error, "had 1 write errors (MongoBulkWriteException)").Should().BeTrue();
+            logger.Lines.Should().NotContain(line => line.Contains('@') || line.Contains("Document failed validation", StringComparison.Ordinal));
         }
 
         [Theory]

@@ -118,6 +118,14 @@ public sealed class AlertRecipientService : IAlertRecipientService
         }
     }
 
+    /// <remarks>
+    /// Order (B1): a change of the stored "All monitors" flag is written first, so the Worker reconciliation can never
+    /// re-add a person this save narrows (All to Selected) while the monitors are written, and a person who becomes
+    /// "All monitors" holds their place under the limit of 10 (m5: re-counted after the write, and undone with the
+    /// refusal when the limit was passed meanwhile). Then the monitors; then the key-value entry when the flag did
+    /// not change; then the refresh, so the Worker reads the final choice. A refusal before any monitor write undoes
+    /// the early flag write.
+    /// </remarks>
     public async Task<BaseApiResponse> SaveAsync(SaveAlertRecipientRequest? request)
     {
         var tenantId = ResolveTenant(request?.ProjectKey);
@@ -128,8 +136,11 @@ public sealed class AlertRecipientService : IAlertRecipientService
         if (!validation.IsValid)
             return Refused(validation.Errors[0].ErrorMessage);
         var email = AlertRecipientEmail.TryNormalize(request.Email)!;
+        var userId = BlocksContext.GetContext()?.UserId;
 
         BaseApiResponse refused;
+        EarlyChoice? early = null;
+        var writeStarted = false;
         try
         {
             var monitors = await _repo.GetEditableMonitorsAsync(tenantId);
@@ -152,30 +163,50 @@ public sealed class AlertRecipientService : IAlertRecipientService
                 && people.Values.Count(p => p.Entry.AllMonitors && p.Entry.Email != email) >= AlertRecipientRules.MaxAllMonitorsPeople)
                 return Refused(AlertRecipientRules.TooManyAllMonitorsPeople);
 
+            var previous = people.GetValueOrDefault(email);
+            var expected = previous;
+            if (request.AllMonitors != (previous?.Entry.AllMonitors ?? false))
+            {
+                expected = await _store.SaveAsync(tenantId, NewEntry(email, request.AllMonitors, userId), previous);
+                early = new EarlyChoice(previous, expected);
+                if (request.AllMonitors && !await WithinAllMonitorsLimitAsync(tenantId))
+                {
+                    await UndoEarlyChoiceAsync(tenantId, early);
+                    _logger.LogWarning("Another \"All monitors\" alert recipient was saved at the same time for project {ProjectKey}; this save was refused.",
+                        LogValue.Clean(tenantId));
+                    return Refused(AlertRecipientRules.TooManyAllMonitorsPeople);
+                }
+            }
+
             PlannedEmailsChange Replan(MonitorConfiguration m) => Plan(m, email, targets.Contains(m.ItemId));
-            var userId = BlocksContext.GetContext()?.UserId;
-            var written = await _writer.WriteAsync(tenantId, monitors.Select(Replan).ToList(), Replan, refuseInvalid: true, userId);
+            writeStarted = true;
+            var written = await _writer.WriteAsync(tenantId, monitors.Select(Replan).ToList(), Replan, refuseInvalid: true, userId,
+                () => ChoiceUnchangedAsync(tenantId, email, expected));
 
             var result = new AlertRecipientChangeResult { Email = email, AllMonitors = request.AllMonitors };
             foreach (var item in written)
                 Tally(item, result);
+            var response = Success(Summary(result.Added, result.Removed, result.SkippedFull.Count, result.Conflicted.Count, result.Denied.Count), result);
+
+            if (early is null)
+            {
+                try
+                {
+                    await _store.SaveAsync(tenantId, NewEntry(email, request.AllMonitors, userId), previous);
+                }
+                catch (Exception ex)
+                {
+                    LogFailure(ex, "Saving the alert recipient's \"All monitors\" choice", tenantId);
+                    response = new BaseApiResponse { IsSuccess = false, StatusCode = HttpStatusCode.OK, Message = AlertRecipientRules.ChoiceNotSaved, Data = result };
+                }
+            }
+
+            // After the key-value write (B1): the Worker reconciles against the final choice.
             await RefreshAsync(written, tenantId);
             _logger.LogInformation(
                 "Alert recipient saved for project {ProjectKey}: {Added} added, {Removed} removed, {Unchanged} unchanged, {SkippedFull} full, {Conflicted} conflicted, {Denied} denied.",
-                tenantId, result.Added, result.Removed, result.Unchanged, result.SkippedFull.Count, result.Conflicted.Count, result.Denied.Count);
-
-            try
-            {
-                var entry = new AlertRecipientEntry { Email = email, AllMonitors = request.AllMonitors, UpdatedBy = userId, UpdatedAt = DateTime.UtcNow };
-                await _store.SaveAsync(tenantId, entry, people.GetValueOrDefault(email));
-            }
-            catch (Exception ex)
-            {
-                LogFailure(ex, "Saving the alert recipient's \"All monitors\" choice", tenantId);
-                return new BaseApiResponse { IsSuccess = false, StatusCode = HttpStatusCode.OK, Message = AlertRecipientRules.ChoiceNotSaved, Data = result };
-            }
-
-            return Success(Summary(result.Added, result.Removed, result.SkippedFull.Count, result.Conflicted.Count, result.Denied.Count), result);
+                LogValue.Clean(tenantId), result.Added, result.Removed, result.Unchanged, result.SkippedFull.Count, result.Conflicted.Count, result.Denied.Count);
+            return response;
         }
         catch (DataValidationException ex)
         {
@@ -184,14 +215,23 @@ public sealed class AlertRecipientService : IAlertRecipientService
         catch (Exception ex)
         {
             LogFailure(ex, "Saving an alert recipient", tenantId);
+            if (early is not null && !writeStarted)
+                await UndoEarlyChoiceAsync(tenantId, early);
             return Refused(AlertRecipientRules.SaveFailed);
         }
 
         // Logged outside the catch: only the refusal is reported, never the exception or the email (C20).
-        _logger.LogWarning("A data validation rule refused the alert recipient save for project {ProjectKey}; nothing was written.", tenantId);
+        _logger.LogWarning("A data validation rule refused the alert recipient save for project {ProjectKey}; nothing was written.", LogValue.Clean(tenantId));
+        if (early is not null)
+            await UndoEarlyChoiceAsync(tenantId, early);
         return refused;
     }
 
+    /// <remarks>
+    /// Order (B1): an "All monitors" person is first stored as not "All monitors", so the Worker reconciliation
+    /// can't put them back while they are removed; then the monitors; then every key-value document; then the
+    /// refresh. A refusal before any monitor write puts the stored choice back.
+    /// </remarks>
     public async Task<BaseApiResponse> DeleteAsync(DeleteAlertRecipientRequest? request)
     {
         var tenantId = ResolveTenant(request?.ProjectKey);
@@ -201,39 +241,54 @@ public sealed class AlertRecipientService : IAlertRecipientService
         var email = AlertRecipientEmail.TryNormalize(request.Email);
         if (email is null)
             return Refused(AlertRecipientRules.InvalidEmail);
+        var userId = BlocksContext.GetContext()?.UserId;
 
         BaseApiResponse refused;
+        EarlyChoice? early = null;
         try
         {
             var monitors = await _repo.GetEditableMonitorsAsync(tenantId);
             var people = await _store.GetAsync(tenantId);
 
+            var previous = people.GetValueOrDefault(email);
+            var expected = previous;
+            if (previous?.Entry.AllMonitors == true)
+            {
+                expected = await _store.SaveAsync(tenantId, NewEntry(email, false, userId), previous);
+                early = new EarlyChoice(previous, expected);
+            }
+
+            // Nothing can fail between the early write and the monitor writes, so a later failure leaves the
+            // choice cleared, which is what the removal wants anyway.
             PlannedEmailsChange Replan(MonitorConfiguration m) => Plan(m, email, isTarget: false);
-            var written = await _writer.WriteAsync(tenantId, monitors.Select(Replan).ToList(), Replan, refuseInvalid: true, BlocksContext.GetContext()?.UserId);
+            var written = await _writer.WriteAsync(tenantId, monitors.Select(Replan).ToList(), Replan, refuseInvalid: true, userId,
+                () => ChoiceUnchangedAsync(tenantId, email, expected));
 
             var change = new AlertRecipientChangeResult { Email = email };
             foreach (var item in written)
                 Tally(item, change);
             var result = new AlertRecipientRemoveResult { Email = email, Removed = change.Removed, Conflicted = change.Conflicted, Denied = change.Denied };
-            await RefreshAsync(written, tenantId);
-            _logger.LogInformation(
-                "Alert recipient removed for project {ProjectKey}: {Removed} removed, {Conflicted} conflicted, {Denied} denied.",
-                tenantId, result.Removed, result.Conflicted.Count, result.Denied.Count);
+            var response = Success(Summary(0, result.Removed, 0, result.Conflicted.Count, result.Denied.Count), result);
 
-            if (people.TryGetValue(email, out var stored))
+            if (expected is not null)
             {
                 try
                 {
-                    await _store.RemoveAsync(stored);
+                    await _store.RemoveAsync(expected);
                 }
                 catch (Exception ex)
                 {
                     LogFailure(ex, "Removing the stored alert recipient", tenantId);
-                    return new BaseApiResponse { IsSuccess = false, StatusCode = HttpStatusCode.OK, Message = AlertRecipientRules.RemovalNotSaved, Data = result };
+                    response = new BaseApiResponse { IsSuccess = false, StatusCode = HttpStatusCode.OK, Message = AlertRecipientRules.RemovalNotSaved, Data = result };
                 }
             }
 
-            return Success(Summary(0, result.Removed, 0, result.Conflicted.Count, result.Denied.Count), result);
+            // After the key-value delete (B1): the Worker reconciles against the final choice.
+            await RefreshAsync(written, tenantId);
+            _logger.LogInformation(
+                "Alert recipient removed for project {ProjectKey}: {Removed} removed, {Conflicted} conflicted, {Denied} denied.",
+                LogValue.Clean(tenantId), result.Removed, result.Conflicted.Count, result.Denied.Count);
+            return response;
         }
         catch (DataValidationException ex)
         {
@@ -246,8 +301,72 @@ public sealed class AlertRecipientService : IAlertRecipientService
         }
 
         // Logged outside the catch: only the refusal is reported, never the exception or the email (C20).
-        _logger.LogWarning("A data validation rule refused the alert recipient removal for project {ProjectKey}; nothing was written.", tenantId);
+        _logger.LogWarning("A data validation rule refused the alert recipient removal for project {ProjectKey}; nothing was written.", LogValue.Clean(tenantId));
+        if (early is not null)
+            await UndoEarlyChoiceAsync(tenantId, early);
         return refused;
+    }
+
+    /// <summary>The stored choice before an early flag write (null: the person wasn't stored), and the write itself.</summary>
+    private sealed record EarlyChoice(StoredAlertRecipient? Previous, StoredAlertRecipient Written);
+
+    private static AlertRecipientEntry NewEntry(string email, bool allMonitors, string? userId) =>
+        new() { Email = email, AllMonitors = allMonitors, UpdatedBy = userId, UpdatedAt = DateTime.UtcNow };
+
+    /// <summary>m5: whether the project still has at most 10 "All monitors" people, read after this save's write.</summary>
+    private async Task<bool> WithinAllMonitorsLimitAsync(string tenantId) =>
+        (await _store.GetAsync(tenantId)).Values.Count(p => p.Entry.AllMonitors) <= AlertRecipientRules.MaxAllMonitorsPeople;
+
+    /// <summary>Puts the stored choice back as it was before the early write. Failures are logged by type only.</summary>
+    private async Task UndoEarlyChoiceAsync(string tenantId, EarlyChoice early)
+    {
+        string? errorType = null;
+        try
+        {
+            if (early.Previous is null)
+                await _store.RemoveAsync(early.Written);
+            else
+                await _store.SaveAsync(tenantId, early.Previous.Entry, early.Written);
+        }
+        catch (Exception ex)
+        {
+            errorType = ex.GetType().Name;
+        }
+
+        if (errorType is not null)
+            _logger.LogError("Restoring the alert recipient's \"All monitors\" choice failed for project {ProjectKey}: {ErrorType}.",
+                LogValue.Clean(tenantId), errorType);
+    }
+
+    /// <summary>
+    /// m2: true while the person is stored as this request last saw or wrote them, so a monitor retry can't
+    /// re-apply a change after someone else removed or saved the person meanwhile. A failed read answers false.
+    /// </summary>
+    private async Task<bool> ChoiceUnchangedAsync(string tenantId, string email, StoredAlertRecipient? expected)
+    {
+        StoredAlertRecipient? current;
+        string? errorType = null;
+        try
+        {
+            current = (await _store.GetAsync(tenantId)).GetValueOrDefault(email);
+        }
+        catch (Exception ex)
+        {
+            current = null;
+            errorType = ex.GetType().Name;
+        }
+
+        if (errorType is not null)
+        {
+            _logger.LogWarning("Re-reading the alert recipient before a retry failed for project {ProjectKey} ({ErrorType}); nothing is retried.",
+                LogValue.Clean(tenantId), errorType);
+            return false;
+        }
+        if (current is null || expected is null)
+            return current is null && expected is null;
+        // The key-value store keeps milliseconds, so the entry written by this request compares within 1 ms.
+        return current.Entry.AllMonitors == expected.Entry.AllMonitors
+            && Math.Abs((current.Entry.UpdatedAt - expected.Entry.UpdatedAt).Ticks) < TimeSpan.TicksPerMillisecond;
     }
 
     /// <summary>
@@ -397,7 +516,7 @@ public sealed class AlertRecipientService : IAlertRecipientService
     }
 
     private void LogFailure(Exception ex, string action, string tenantId) =>
-        _logger.LogError("{Action} failed for project {ProjectKey}: {ErrorType}.", action, tenantId, ex.GetType().Name);
+        _logger.LogError("{Action} failed for project {ProjectKey}: {ErrorType}.", action, LogValue.Clean(tenantId), ex.GetType().Name);
 
     private static BaseApiResponse Refused(string message) =>
         new() { IsSuccess = false, StatusCode = HttpStatusCode.OK, Message = message };

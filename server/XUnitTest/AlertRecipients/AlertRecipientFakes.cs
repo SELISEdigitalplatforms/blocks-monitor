@@ -38,6 +38,12 @@ namespace XUnitTest.AlertRecipients
         public Action<FakeMonitorRepo>? BeforeBulkWrite;
         /// <summary>Runs before every single (retry) write.</summary>
         public Action<FakeMonitorRepo, MonitorEmailsUpdate>? BeforeSingleWrite;
+        /// <summary>Runs once, just after the first bulk write (a writer between the bulk write and the re-read).</summary>
+        public Action<FakeMonitorRepo>? AfterBulkWrite;
+        /// <summary>Shared with other fakes to record the order of writes ("monitors:bulk", "monitors:single").</summary>
+        public List<string>? Journal;
+        /// <summary>The caller context seen by each read of monitors missing people (the Worker reconciliation).</summary>
+        public List<BlocksContext?> MissingReadContexts { get; } = new();
 
         public static MonitorConfiguration Monitor(string id, string name, string tenant = "p1",
             MonitorConfigurationTypes type = MonitorConfigurationTypes.OutboundPing,
@@ -83,16 +89,17 @@ namespace XUnitTest.AlertRecipients
                 .Select(Copy).ToList());
         }
 
-        public Task<List<MonitorConfiguration>> GetEditableMonitorsMissingEmailsAsync(string tenantId, IReadOnlyCollection<string> emails)
+        public Task<List<MonitorConfiguration>> GetEditableMonitorsMissingPeopleAsync(string tenantId, IReadOnlyCollection<string> emails)
         {
             MissingReads++;
+            MissingReadContexts.Add(BlocksContext.GetContext());
             ThrowIfFailing();
             return Task.FromResult(Monitors
                 .Where(m => Editable(m, tenantId) && !emails.All(e => (m.Emails ?? new List<string>()).Contains(e)))
                 .Select(Copy).ToList());
         }
 
-        public Task<FilterDefinition<MonitorConfiguration>?> GetEmailsEditFilterAsync(string tenantId, IReadOnlyCollection<string> itemIds)
+        public Task<FilterDefinition<MonitorConfiguration>?> GetEmailsEditFilterAsync(string tenantId)
         {
             EditFilterCalls++;
             return Task.FromResult(DenyEditFilter ? null : (FilterDefinition<MonitorConfiguration>?)Builders<MonitorConfiguration>.Filter.Empty);
@@ -116,10 +123,15 @@ namespace XUnitTest.AlertRecipients
         public Task<long> BulkUpdateEmailsAsync(IReadOnlyList<MonitorEmailsUpdate> updates, FilterDefinition<MonitorConfiguration> editFilter)
         {
             BulkWrites++;
+            Journal?.Add("monitors:bulk");
             var hook = BeforeBulkWrite;
             BeforeBulkWrite = null;
             hook?.Invoke(this);
-            return Task.FromResult((long)updates.Count(Apply));
+            var matched = (long)updates.Count(Apply);
+            var after = AfterBulkWrite;
+            AfterBulkWrite = null;
+            after?.Invoke(this);
+            return Task.FromResult(matched);
         }
 
         public Task<bool> UpdateEmailsAsync(MonitorEmailsUpdate update, FilterDefinition<MonitorConfiguration> editFilter)
@@ -127,6 +139,7 @@ namespace XUnitTest.AlertRecipients
             lock (this)
             {
                 SingleWrites++;
+                Journal?.Add("monitors:single");
                 BeforeSingleWrite?.Invoke(this, update);
                 return Task.FromResult(Apply(update));
             }
@@ -168,6 +181,10 @@ namespace XUnitTest.AlertRecipients
         private int _next;
         public bool FailReads, FailAdd, FailUpdate, FailDelete;
         public List<bool> ImpersonatedFlags { get; } = new();
+        /// <summary>Shared with other fakes to record the order of writes ("kv:add", "kv:update", "kv:delete").</summary>
+        public List<string>? Journal;
+        /// <summary>Runs once, just after the next successful add (a concurrent writer).</summary>
+        public Action<FakeKeyValueStore>? AfterNextAdd;
 
         public string Add(string key, AlertRecipientEntry value)
         {
@@ -189,7 +206,12 @@ namespace XUnitTest.AlertRecipients
         {
             ImpersonatedFlags.Add(impersonated);
             if (FailAdd) throw new MongoException("kv add failed");
-            return Task.FromResult(Add(key, (AlertRecipientEntry)(object)value!));
+            Journal?.Add("kv:add");
+            var id = Add(key, (AlertRecipientEntry)(object)value!);
+            var hook = AfterNextAdd;
+            AfterNextAdd = null;
+            hook?.Invoke(this);
+            return Task.FromResult(id);
         }
 
         public Task<IReadOnlyList<KeyValueItem<T>>> GetAllAsync<T>(string key, IEnumerable<string>? tags = null, bool impersonated = true, CancellationToken cancellationToken = default)
@@ -210,6 +232,7 @@ namespace XUnitTest.AlertRecipients
         {
             ImpersonatedFlags.Add(impersonated);
             if (FailUpdate) throw new MongoException("kv update failed");
+            Journal?.Add("kv:update");
             var index = _docs.FindIndex(d => d.ItemId == itemId);
             if (index < 0) return Task.FromResult(false);
             _docs[index] = _docs[index] with { Value = Clone((AlertRecipientEntry)(object)value!), LastUpdated = DateTime.UtcNow };
@@ -220,6 +243,7 @@ namespace XUnitTest.AlertRecipients
         {
             ImpersonatedFlags.Add(impersonated);
             if (FailDelete) throw new MongoException("kv delete failed");
+            Journal?.Add("kv:delete");
             return Task.FromResult(_docs.RemoveAll(d => d.ItemId == itemId) > 0);
         }
 

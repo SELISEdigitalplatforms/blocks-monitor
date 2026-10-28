@@ -47,6 +47,13 @@ public sealed record EmailsWriteResult(PlannedEmailsChange Plan, EmailsWriteOutc
 /// one EDIT row filter for the request; every update checked by the data validation rules before anything is
 /// written; one unordered bulk write whose filters require the Emails exactly as read; when fewer documents match,
 /// one re-read (through the read row filter) and one re-planned retry per monitor; still no match = conflicted.
+/// <para>
+/// A retry must never undo someone else's later change (review m2). An unordered bulk write doesn't say which
+/// updates matched, so a monitor whose re-read equals the list this request read is never retried: either this
+/// request's write was applied and then reverted by another writer, or the edit row filter excludes it. And when
+/// the caller passes an intent check, the retries run only while it still holds (for example, the person was not
+/// removed or saved again meanwhile).
+/// </para>
 /// </summary>
 public sealed class AlertRecipientMonitorWriter
 {
@@ -61,13 +68,18 @@ public sealed class AlertRecipientMonitorWriter
     /// True: a refused update throws its <see cref="Blocks.Genesis.DataAccess.Rules.DataValidationException"/> before
     /// anything is written. False: those monitors are skipped as <see cref="EmailsWriteOutcome.Invalid"/>.
     /// </param>
+    /// <param name="intentStillCurrent">
+    /// Optional; asked once, only when there are retries. False: nothing is retried and those monitors are
+    /// <see cref="EmailsWriteOutcome.Conflicted"/>.
+    /// </param>
     /// <returns>One result per plan, in input order.</returns>
     public async Task<List<EmailsWriteResult>> WriteAsync(
         string tenantId,
         IReadOnlyList<PlannedEmailsChange> plans,
         Func<MonitorConfiguration, PlannedEmailsChange> replan,
         bool refuseInvalid,
-        string? updatedBy)
+        string? updatedBy,
+        Func<Task<bool>>? intentStillCurrent = null)
     {
         var results = new EmailsWriteResult?[plans.Count];
         var pending = SplitPending(plans, results);
@@ -75,7 +87,7 @@ public sealed class AlertRecipientMonitorWriter
             return Completed(results);
 
         var now = DateTime.UtcNow;
-        var editFilter = await _repo.GetEmailsEditFilterAsync(tenantId, pending.Select(i => plans[i].Monitor.ItemId).ToList());
+        var editFilter = await _repo.GetEmailsEditFilterAsync(tenantId);
         if (editFilter is null)
         {
             SetAll(results, plans, pending, EmailsWriteOutcome.Denied);
@@ -102,8 +114,15 @@ public sealed class AlertRecipientMonitorWriter
         var reread = (await _repo.GetEditableMonitorsAsync(tenantId, pending.Select(i => plans[i].Monitor.ItemId).ToList()))
             .ToDictionary(m => m.ItemId, StringComparer.Ordinal);
         var retries = ResolveAll(plans, pending, reread, replan, results);
-        if (retries.Count > 0)
-            await RetryAsync(retries, editFilter, results, now, updatedBy);
+        if (retries.Count == 0)
+            return Completed(results);
+        if (intentStillCurrent is not null && !await intentStillCurrent())
+        {
+            foreach (var (index, plan) in retries)
+                results[index] = new EmailsWriteResult(plan, EmailsWriteOutcome.Conflicted);
+            return Completed(results);
+        }
+        await RetryAsync(retries, editFilter, results, now, updatedBy);
         return Completed(results);
     }
 
@@ -153,7 +172,8 @@ public sealed class AlertRecipientMonitorWriter
 
     /// <summary>
     /// After a short bulk write: a monitor no longer visible is denied, one already holding the new Emails was
-    /// applied, otherwise the change is planned again; a re-plan that writes is returned as the retry.
+    /// applied, one still holding exactly the Emails this request read is conflicted (see the class remarks),
+    /// otherwise the change is planned again; a re-plan that writes is returned as the retry.
     /// </summary>
     private static PlannedEmailsChange? Resolve(PlannedEmailsChange plan, MonitorConfiguration? current,
         Func<MonitorConfiguration, PlannedEmailsChange> replan, out EmailsWriteResult? final)
@@ -164,9 +184,15 @@ public sealed class AlertRecipientMonitorWriter
             final = new EmailsWriteResult(plan, EmailsWriteOutcome.Denied);
             return null;
         }
-        if ((current.Emails ?? new List<string>()).SequenceEqual(plan.NewEmails!, StringComparer.Ordinal))
+        var currentEmails = current.Emails ?? new List<string>();
+        if (currentEmails.SequenceEqual(plan.NewEmails!, StringComparer.Ordinal))
         {
             final = new EmailsWriteResult(plan, EmailsWriteOutcome.Applied);
+            return null;
+        }
+        if (currentEmails.SequenceEqual(plan.Monitor.Emails ?? new List<string>(), StringComparer.Ordinal))
+        {
+            final = new EmailsWriteResult(plan, EmailsWriteOutcome.Conflicted);
             return null;
         }
         var again = replan(current);

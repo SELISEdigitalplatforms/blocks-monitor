@@ -53,14 +53,16 @@ namespace XUnitTest.AlertRecipients
         private static AlertRecipientEntry Entry(string email, bool all, DateTime? at = null) =>
             new() { Email = email, AllMonitors = all, UpdatedBy = "u", UpdatedAt = at ?? DateTime.UtcNow.AddDays(-1) };
 
-        private AlertRecipientService Sut()
+        private AlertRecipientService Sut() =>
+            new(_repo, new AlertRecipientStore(_kv, _storeLogger), Sut_AlertRepo(), _messages.Object,
+                _health.Object, new SaveAlertRecipientRequestValidator(), _logger);
+
+        private AlertRepoService Sut_AlertRepo()
         {
             var people = MongoMocks.Collection(_members);
             MongoMocks.SetupProjectedFind<ProjectPeople, ProjectPeople>(people, _members);
             var db = new MongoMocks.DbBuilder().With(people).With(new List<EmailTemplate>()).With(new List<MailServerConfiguration>());
-            var alertRepo = new AlertRepoService(db.Provider, MongoMocks.BlocksSecret().Object);
-            return new AlertRecipientService(_repo, new AlertRecipientStore(_kv, _storeLogger), alertRepo, _messages.Object,
-                _health.Object, new SaveAlertRecipientRequestValidator(), _logger);
+            return new AlertRepoService(db.Provider, MongoMocks.BlocksSecret().Object);
         }
 
         private static SaveAlertRecipientRequest All(string email, string project = "p1") =>
@@ -657,23 +659,45 @@ namespace XUnitTest.AlertRecipients
         [Fact]
         public async Task Save_C9_WhenTheKeyValueWriteFails_MonitorChangesStay_AndARetryHasNoDuplicates()
         {
-            _kv.FailAdd = true;
+            // The key-value write that follows the monitor writes: a save that keeps the "All monitors" flag as stored
+            // (a flag change is written before the monitors, see B1 and m5 below).
+            _kv.Add(Key, Entry("rina@x.com", false));
+            _repo.Get("m1").Emails.Add("rina@x.com");
+            _kv.FailUpdate = true;
 
-            var failed = await Sut().SaveAsync(All("rina@x.com"));
+            var failed = await Sut().SaveAsync(Selected("rina@x.com", "m1", "m2", "h1"));
 
             failed.IsSuccess.Should().BeFalse();
             failed.Message.Should().Be("Recipients were updated on the monitors, but saving the \"All monitors\" choice failed. Try again.");
-            Change(failed).Added.Should().Be(3);
+            Change(failed).Added.Should().Be(2);
             _repo.Get("m2").Emails.Should().Contain("rina@x.com");
+            QueueMessages(1);
+            HealthReloads(1);
 
-            _kv.FailAdd = false;
-            var retry = await Sut().SaveAsync(All("rina@x.com"));
+            _kv.FailUpdate = false;
+            var retry = await Sut().SaveAsync(Selected("rina@x.com", "m1", "m2", "h1"));
 
             retry.IsSuccess.Should().BeTrue();
             Change(retry).Unchanged.Should().Be(3);
             foreach (var monitor in new[] { "m1", "m2", "h1" })
                 _repo.Get(monitor).Emails.Count(e => e == "rina@x.com").Should().Be(1);
-            KvFor("rina@x.com").Should().ContainSingle().Which.Value.AllMonitors.Should().BeTrue();
+            KvFor("rina@x.com").Should().ContainSingle().Which.Value.AllMonitors.Should().BeFalse();
+            NoEmailInAnyLog();
+        }
+
+        [Fact]
+        public async Task Save_WhenStoringANewAllMonitorsChoiceFails_NothingIsWritten()
+        {
+            // The flag change is stored first (B1, m5); when that fails no monitor has been touched yet.
+            _kv.FailAdd = true;
+
+            var failed = await Sut().SaveAsync(All("rina@x.com"));
+
+            failed.IsSuccess.Should().BeFalse();
+            failed.Message.Should().Be("Could not save the recipient. Try again.");
+            _repo.BulkWrites.Should().Be(0);
+            KvFor("rina@x.com").Should().BeEmpty();
+            QueueMessages(0);
             NoEmailInAnyLog();
         }
 
@@ -866,7 +890,8 @@ namespace XUnitTest.AlertRecipients
 
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             _repo.Written.Should().BeEmpty();
-            KvFor("ops@x.com").Should().ContainSingle();
+            // The choice cleared before the monitor writes (B1) is put back: nothing changed.
+            KvFor("ops@x.com").Should().ContainSingle().Which.Value.AllMonitors.Should().BeTrue();
         }
 
         [Fact]
@@ -879,6 +904,279 @@ namespace XUnitTest.AlertRecipients
             response.IsSuccess.Should().BeFalse();
             response.Message.Should().Be("Could not remove the recipient. Try again.");
             KvFor("ops@x.com").Should().ContainSingle();
+        }
+
+        // ---------------------------------------------------------------- B1: order of writes and refresh
+
+        private List<string> RecordOrder()
+        {
+            var journal = new List<string>();
+            _kv.Journal = journal;
+            _repo.Journal = journal;
+            _messages.Setup(m => m.SendToConsumerAsync(It.IsAny<ConsumerMessage<MonitorConfigurationUpdateQueue>>()))
+                .Callback(() => journal.Add("refresh:message")).Returns(Task.CompletedTask);
+            _health.Setup(h => h.LoadMonitorsFromDatabaseAsync()).Callback(() => journal.Add("refresh:heartbeats")).Returns(Task.CompletedTask);
+            return journal;
+        }
+
+        /// <summary>The Worker: every refresh message runs the real reconciliation against the same data.</summary>
+        private void ReconcileOnEveryRefreshMessage()
+        {
+            var reconciler = new AlertRecipientReconciler(new AlertRecipientStore(_kv, _storeLogger), _repo, new CapturingLogger<AlertRecipientReconciler>());
+            _messages.Setup(m => m.SendToConsumerAsync(It.IsAny<ConsumerMessage<MonitorConfigurationUpdateQueue>>()))
+                .Returns(() => reconciler.ReconcileAsync());
+        }
+
+        [Fact]
+        public async Task B1_Save_WritesTheKeyValueEntry_BeforeTheRefreshMessageAndTheHeartbeatReload()
+        {
+            var journal = RecordOrder();
+
+            await Sut().SaveAsync(Selected("rina@x.com", "m1", "h1"));
+
+            journal.Should().Equal("monitors:bulk", "kv:add", "refresh:message", "refresh:heartbeats");
+        }
+
+        [Fact]
+        public async Task B1_Save_FromAllToSelected_ClearsTheStoredChoiceBeforeAnyMonitorWrite()
+        {
+            var journal = RecordOrder();
+            _repo.Get("h1").Emails.Add("ops@x.com");
+
+            await Sut().SaveAsync(Selected("ops@x.com", "m1"));
+
+            journal.Should().Equal("kv:update", "monitors:bulk", "refresh:message", "refresh:heartbeats");
+            KvFor("ops@x.com").Should().ContainSingle().Which.Value.AllMonitors.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task B1_Save_FromAllToSelected_WithTheWorkerReconcilingMidSave_DoesNotPutThePersonBack()
+        {
+            // H6: the Worker reconciles while the monitors are written and again on the refresh message.
+            ReconcileOnEveryRefreshMessage();
+            var reconciler = new AlertRecipientReconciler(new AlertRecipientStore(_kv, _storeLogger), _repo, new CapturingLogger<AlertRecipientReconciler>());
+            _repo.AfterBulkWrite = _ => reconciler.ReconcileAsync().GetAwaiter().GetResult();
+
+            var response = await Sut().SaveAsync(Selected("ops@x.com", "m1"));
+
+            response.IsSuccess.Should().BeTrue();
+            _repo.Get("m1").Emails.Should().Equal("ops@x.com", "ali@x.com");
+            _repo.Get("m2").Emails.Should().BeEmpty();
+            _repo.Get("h1").Emails.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task B1_Delete_ClearsTheChoice_WritesTheMonitors_DeletesTheEntry_ThenRefreshes()
+        {
+            var journal = RecordOrder();
+            _repo.Get("h1").Emails.Add("ops@x.com");
+
+            await Sut().DeleteAsync(Remove("ops@x.com"));
+
+            journal.Should().Equal("kv:update", "monitors:bulk", "kv:delete", "refresh:message", "refresh:heartbeats");
+        }
+
+        [Fact]
+        public async Task B1_Delete_WithTheWorkerReconcilingMidDelete_DoesNotPutThePersonBack()
+        {
+            // H7: "people who leave stop getting alerts immediately".
+            ReconcileOnEveryRefreshMessage();
+            var reconciler = new AlertRecipientReconciler(new AlertRecipientStore(_kv, _storeLogger), _repo, new CapturingLogger<AlertRecipientReconciler>());
+            _repo.AfterBulkWrite = _ => reconciler.ReconcileAsync().GetAwaiter().GetResult();
+
+            var response = await Sut().DeleteAsync(Remove("ops@x.com"));
+
+            response.IsSuccess.Should().BeTrue();
+            foreach (var monitor in new[] { "m1", "m2", "h1" })
+                _repo.Get(monitor).Emails.Should().NotContain("ops@x.com");
+            KvFor("ops@x.com").Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task B1_Delete_ASelectedPerson_DeletesTheEntryAfterTheMonitors_WithNoEarlyWrite()
+        {
+            var journal = RecordOrder();
+            _kv.Add(Key, Entry("ali@x.com", false));
+
+            await Sut().DeleteAsync(Remove("ali@x.com"));
+
+            journal.Should().Equal("monitors:bulk", "kv:delete", "refresh:message");
+        }
+
+        [Fact]
+        public async Task B1_Save_ARuleRefusal_AfterTheChoiceWasCleared_PutsTheChoiceBack()
+        {
+            _repo.Refused.Add("m2");
+
+            var response = await Sut().SaveAsync(Selected("ops@x.com", "m1"));
+
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            _repo.Written.Should().BeEmpty();
+            var stored = KvFor("ops@x.com").Should().ContainSingle().Subject.Value;
+            stored.AllMonitors.Should().BeTrue();
+            stored.UpdatedAt.Should().BeBefore(DateTime.UtcNow.AddHours(-1), "the original entry is restored as it was");
+        }
+
+        // ---------------------------------------------------------------- m5: the "All monitors" limit under a race
+
+        [Fact]
+        public async Task M5_ATenthPersonRacingAnotherPastTheLimit_IsRefusedAndUndone()
+        {
+            for (var i = 1; i < 9; i++) _kv.Add(Key, Entry($"all{i}@x.com", true));
+            // Both saves passed the first count (9 stored); the other one lands right after this save's write.
+            _kv.AfterNextAdd = kv => kv.Add(Key, Entry("other@x.com", true, DateTime.UtcNow));
+
+            var response = await Sut().SaveAsync(All("tenth@x.com"));
+
+            response.IsSuccess.Should().BeFalse();
+            response.Message.Should().Be("At most 10 people can get alerts for all monitors.");
+            _repo.BulkWrites.Should().Be(0);
+            KvFor("tenth@x.com").Should().BeEmpty();
+            _kv.Docs.Count(d => d.Value.AllMonitors).Should().Be(10);
+            QueueMessages(0);
+            _logger.Has(LogLevel.Warning, "at the same time").Should().BeTrue();
+            NoEmailInAnyLog();
+        }
+
+        [Fact]
+        public async Task M5_AStoredSelectedPersonRefusedByTheRace_KeepsTheirStoredChoice()
+        {
+            for (var i = 1; i < 9; i++) _kv.Add(Key, Entry($"all{i}@x.com", true));
+            var before = Entry("rina@x.com", false);
+            _kv.Add(Key, before);
+            // rina's entry is updated in place (no add), so the concurrent writer runs after this save's first store write.
+            var store = new RacingStore(new AlertRecipientStore(_kv, _storeLogger), () => _kv.Add(Key, Entry("other@x.com", true, DateTime.UtcNow)));
+            var sut = new AlertRecipientService(_repo, store, Sut_AlertRepo(), _messages.Object, _health.Object, new SaveAlertRecipientRequestValidator(), _logger);
+
+            var response = await sut.SaveAsync(All("rina@x.com"));
+
+            response.Message.Should().Be("At most 10 people can get alerts for all monitors.");
+            var stored = KvFor("rina@x.com").Should().ContainSingle().Subject.Value;
+            stored.AllMonitors.Should().BeFalse();
+            stored.UpdatedAt.Should().Be(before.UpdatedAt);
+            _repo.BulkWrites.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task M5_WhenTheLimitReCountFails_TheEarlyChoiceIsUndone_AndAnUndoFailureIsLoggedByTypeOnly()
+        {
+            _kv.AfterNextAdd = kv => kv.FailReads = true;
+
+            var response = await Sut().SaveAsync(All("rina@x.com"));
+
+            response.Message.Should().Be("Could not save the recipient. Try again.");
+            _repo.BulkWrites.Should().Be(0);
+            KvFor("rina@x.com").Should().BeEmpty();
+
+            _kv.FailReads = false;
+            _kv.AfterNextAdd = kv => { kv.FailReads = true; kv.FailDelete = true; };
+            await Sut().SaveAsync(All("zed@x.com"));
+
+            _logger.Has(LogLevel.Error, "Restoring the alert recipient's \"All monitors\" choice failed for project p1: MongoException").Should().BeTrue();
+            NoEmailInAnyLog();
+        }
+
+        /// <summary>Runs a concurrent writer just after the first SaveAsync of the wrapped store.</summary>
+        private sealed class RacingStore : IAlertRecipientStore
+        {
+            private readonly IAlertRecipientStore _inner;
+            private Action? _afterFirstSave;
+            public RacingStore(IAlertRecipientStore inner, Action afterFirstSave) { _inner = inner; _afterFirstSave = afterFirstSave; }
+            public Task<Dictionary<string, StoredAlertRecipient>> GetAsync(string tenantId) => _inner.GetAsync(tenantId);
+            public async Task<StoredAlertRecipient> SaveAsync(string tenantId, AlertRecipientEntry entry, StoredAlertRecipient? existing)
+            {
+                var stored = await _inner.SaveAsync(tenantId, entry, existing);
+                var hook = _afterFirstSave;
+                _afterFirstSave = null;
+                hook?.Invoke();
+                return stored;
+            }
+            public Task RemoveAsync(StoredAlertRecipient existing) => _inner.RemoveAsync(existing);
+            public Task<IReadOnlyList<AllMonitorsPeople>> GetAllMonitorsPeopleByTenantAsync() => _inner.GetAllMonitorsPeopleByTenantAsync();
+            public Task<List<string>> GetEmailsForNewMonitorAsync(string? projectKey) => _inner.GetEmailsForNewMonitorAsync(projectKey);
+        }
+
+        // ---------------------------------------------------------------- m2: retries never undo a later change
+
+        [Fact]
+        public async Task M2_AMonitorThisSaveWroteAndAnotherWriterThenReverted_IsNotWrittenAgain()
+        {
+            // m2 conflicts before the bulk write; just after it, another writer removes rina from m1 again.
+            _repo.BeforeBulkWrite = repo => repo.Get("m2").Emails.Add("late@x.com");
+            _repo.AfterBulkWrite = repo => repo.Get("m1").Emails.Remove("rina@x.com");
+
+            var result = Change(await Sut().SaveAsync(Selected("rina@x.com", "m1", "m2")));
+
+            _repo.Get("m1").Emails.Should().Equal("ops@x.com", "ali@x.com");
+            result.Conflicted.Select(m => m.ItemId).Should().Equal("m1");
+            // m2 lost to a change that isn't this person's removal: retried once, as before.
+            _repo.Get("m2").Emails.Should().Equal("ops@x.com", "late@x.com", "rina@x.com");
+            _repo.SingleWrites.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task M2_AfterAConcurrentDeleteOfThePerson_NoMonitorIsRetried()
+        {
+            // rina becomes "All monitors"; between the bulk write and the re-read another manager removes rina
+            // (monitors and stored entry). Nothing may bring rina back.
+            _repo.BeforeBulkWrite = repo => repo.Get("m2").Emails.Add("late@x.com");
+            _repo.AfterBulkWrite = repo =>
+            {
+                foreach (var monitor in repo.Monitors) monitor.Emails?.Remove("rina@x.com");
+                foreach (var doc in _kv.Docs.Where(d => d.Value.Email == "rina@x.com")) _kv.DeleteByIdAsync(doc.ItemId).GetAwaiter().GetResult();
+            };
+
+            var result = Change(await Sut().SaveAsync(All("rina@x.com")));
+
+            foreach (var monitor in new[] { "m1", "m2", "h1" })
+                _repo.Get(monitor).Emails.Should().NotContain("rina@x.com");
+            result.Conflicted.Select(m => m.ItemId).Should().BeEquivalentTo(new[] { "m1", "m2", "h1" });
+            _repo.SingleWrites.Should().Be(0);
+            KvFor("rina@x.com").Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task M2_ADeleteRacingASaveOfThePerson_DoesNotRemoveThemAgain()
+        {
+            _repo.BeforeBulkWrite = repo => repo.Get("m2").Emails.Add("late@x.com");
+            _repo.AfterBulkWrite = repo =>
+            {
+                repo.Get("m1").Emails.Insert(0, "ops@x.com");
+                _kv.Add(Key, Entry("ops@x.com", true, DateTime.UtcNow.AddMinutes(1)));
+            };
+
+            var result = (AlertRecipientRemoveResult)(await Sut().DeleteAsync(Remove("ops@x.com"))).Data;
+
+            _repo.Get("m1").Emails.Should().Contain("ops@x.com");
+            _repo.Get("m2").Emails.Should().Equal("ops@x.com", "late@x.com");
+            result.Conflicted.Select(m => m.ItemId).Should().BeEquivalentTo(new[] { "m1", "m2" });
+            _repo.SingleWrites.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task M2_WhenTheIntentReReadFails_NothingIsRetried_AndOnlyTheTypeIsLogged()
+        {
+            _repo.BeforeBulkWrite = repo => repo.Get("m2").Emails.Add("late@x.com");
+            _repo.AfterBulkWrite = _ => _kv.FailReads = true;
+
+            var result = Change(await Sut().SaveAsync(Selected("rina@x.com", "m1", "m2")));
+
+            result.Conflicted.Select(m => m.ItemId).Should().Equal("m2");
+            _repo.SingleWrites.Should().Be(0);
+            _logger.Has(LogLevel.Warning, "nothing is retried").Should().BeTrue();
+            NoEmailInAnyLog();
+        }
+
+        [Fact]
+        public async Task LogForging_ARequestDerivedProjectKeyIsLoggedWithoutLineBreaks()
+        {
+            Caller.Set("p1\r\nforged");
+            _repo.FailReads = true;
+
+            await Sut().SaveAsync(new SaveAlertRecipientRequest { ProjectKey = "p1\r\nforged", Email = "rina@x.com", AllMonitors = true });
+
+            _logger.Lines.Should().Contain(line => line.Contains("p1forged", StringComparison.Ordinal));
+            _logger.Lines.Should().NotContain(line => line.Contains('\n') || line.Contains('\r'));
         }
 
         // ---------------------------------------------------------------- C20 and helpers
