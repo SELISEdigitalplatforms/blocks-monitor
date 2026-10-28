@@ -17,7 +17,10 @@ import {
  *
  * Runs in the shared suite project after the `monitor` project. Fixtures are created through the
  * UI, and every monitor and person this run adds is removed again in `finally`. The project
- * already holds monitors from spec 02, so "All monitors (N)" uses the count the page reports.
+ * already holds monitors from spec 02, so "All monitors (N)" uses the count the page reports, and
+ * the expected "Added to"/"Removed from" counts come from what the server reported for the save:
+ * a monitor in the shared project that already has 10 recipients is skipped as full.
+ * Setup first removes "All monitors" people that earlier runs of this spec left behind.
  *
  * Covered elsewhere (approved #256 Q16): C5 (read-only identity) and H18/H19 + step 9 (Worker
  * reconciliation after a blocks-release deploy) by the backend tests; H17 by the perf script.
@@ -44,11 +47,26 @@ test.describe("Alert recipients - page workflow", () => {
       if (!created) throw new Error(`Fixture monitor "${name}" was not created.`);
       return created.url;
     };
+    // From the "All monitors" save: the monitor count the dialog reported, and how many of those
+    // the person is on (the rest were full).
     let allCount = 0;
+    let allOn = 0;
 
     try {
-      await test.step("Fixtures — create e2e-alert-a, -b (HTTP) and -hb (Heartbeat) in the UI", async () => {
+      await test.step("Setup — remove 'All monitors' people left by earlier failed runs", async () => {
         await recipients.open();
+        // Only this spec's own addresses, from runs that started over 30 minutes ago (a run times
+        // out after 10), so a run still in progress is never touched.
+        const removed = await recipients.removeLeftoverPeople(["all"], 30 * 60_000);
+        if (removed.length > 0) {
+          testInfo.annotations.push({
+            type: "note",
+            description: `Removed ${removed.length} leftover "All monitors" people: ${removed.join(", ")}`,
+          });
+        }
+      });
+
+      await test.step("Fixtures — create e2e-alert-a, -b (HTTP) and -hb (Heartbeat) in the UI", async () => {
         for (const [name, kind] of [
           [monitorA, "HTTP Check"],
           [monitorB, "HTTP Check"],
@@ -93,11 +111,16 @@ test.describe("Alert recipients - page workflow", () => {
 
       await test.step("H4, H3, H16, H13 — add a person to All monitors", async () => {
         // Typed with spaces and capitals; stored and shown trimmed and lower-case (H16).
-        allCount = await recipients.addToAllMonitors(allEmail, `  ${allEmail.toUpperCase()} `);
+        const saved = await recipients.addToAllMonitors(allEmail, `  ${allEmail.toUpperCase()} `);
+        allCount = saved.count;
+        allOn = saved.added;
         expect(allCount).toBeGreaterThanOrEqual(3);
-        await recipients.expectAllMonitorsRow(allEmail, allCount);
+        // The steps below need the person on this run's fixtures, which start with only the
+        // project's other "All monitors" people (and ops on a), so they have room.
+        expect(allOn).toBeGreaterThanOrEqual(3);
+        await recipients.expectAllMonitorsChoiceRow(allEmail, allCount, allOn);
         await expect(page.getByText(allEmail.toUpperCase(), { exact: true })).toHaveCount(0);
-        // Everyone is now on every monitor, so the coverage badge says so (H13).
+        // Every monitor now emails someone: the person, or the 10 recipients that made it full (H13).
         await expect(recipients.coverageBadge).toHaveText(
           allCount === 1
             ? "The 1 monitor emails someone"
@@ -155,9 +178,9 @@ test.describe("Alert recipients - page workflow", () => {
         await expect(recipients.allMonitorsRadio).toBeChecked();
         await recipients.chooseSelectedMonitors([monitorA]);
         await expect(recipients.submitButton).toHaveText("Save");
-        await recipients.submitAndExpectToast(
-          new RegExp(`^Removed from ${allCount - 1} monitors?\\.`),
-        );
+        // Removed from every monitor the person was on except a.
+        const narrowed = await recipients.submitAndReadSummary();
+        expect(narrowed).toEqual({ added: 0, removed: allOn - 1, skippedFull: 0 });
         await recipients.expectSelectedMonitorsRow(allEmail, [monitorA], [monitorB, monitorHb]);
       });
 
@@ -182,9 +205,14 @@ test.describe("Alert recipients - page workflow", () => {
       await test.step("H9 — a monitor created after setting All monitors gets the person", async () => {
         await recipients.openEditDialog(allEmail);
         await recipients.allMonitorsRadio.check();
+        allCount = await recipients.reportedMonitorCount();
         await expect(recipients.submitButton).toHaveText("Save");
-        await recipients.submitAndExpectToast(new RegExp(`^Added to ${allCount - 1} monitors?\\.`));
-        await recipients.expectAllMonitorsRow(allEmail, allCount);
+        // Added to every monitor except a (already there) and the ones full right now.
+        const widened = await recipients.submitAndReadSummary();
+        expect(widened.removed).toBe(0);
+        expect(widened.added + widened.skippedFull).toBe(allCount - 1);
+        allOn = widened.added + 1;
+        await recipients.expectAllMonitorsChoiceRow(allEmail, allCount, allOn);
 
         const url = await createMonitorViaUi(page, { name: monitorC, kind: "HTTP Check" });
         createdMonitors.push({ name: monitorC, url });
@@ -197,7 +225,7 @@ test.describe("Alert recipients - page workflow", () => {
         await expect(detailsRecipientChips(page).filter({ hasText: opsEmail })).toHaveCount(0);
 
         await recipients.open();
-        await recipients.expectAllMonitorsRow(allEmail, allCount + 1);
+        await recipients.expectAllMonitorsChoiceRow(allEmail, allCount + 1, allOn + 1);
       });
 
       await test.step("C1, C2, C18, C21 — invalid, empty and duplicate input keep Save disabled", async () => {

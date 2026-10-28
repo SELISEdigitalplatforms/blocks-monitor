@@ -17,6 +17,12 @@ export function e2eRunId(): string {
   return `${Date.now().toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`;
 }
 
+/** When `e2eRunId()` made `runId` (its first 8 base-36 characters are `Date.now()`), or null. */
+export function e2eRunStartedAt(runId: string): number | null {
+  const stamp = parseInt(runId.slice(0, 8), 36);
+  return /^[0-9a-z]{9,10}$/.test(runId) && Number.isFinite(stamp) ? stamp : null;
+}
+
 /** Obvious dummy addresses on example.com: never a project member, never a real inbox. */
 export function e2eEmail(tag: string, runId: string): string {
   return `e2e+${tag}-${runId}@example.com`;
@@ -25,6 +31,31 @@ export function e2eEmail(tag: string, runId: string): string {
 /** The side-menu link. `exact` keeps it apart from the details page's "Open Alert recipients". */
 export function alertRecipientsMenuLink(page: Page): Locator {
   return page.getByRole("link", { name: "Alert recipients", exact: true });
+}
+
+/** The counts in a save toast, e.g. "Added to 4 monitors. 1 skipped: already has 10 recipients." */
+export interface SaveSummary {
+  added: number;
+  removed: number;
+  skippedFull: number;
+}
+
+export interface AllMonitorsSave extends SaveSummary {
+  /** The editable-monitor count the dialog reported in "All monitors (N)". */
+  count: number;
+}
+
+/** The counts in the server's save message (`AlertRecipientService.Summary`). */
+export function parseSaveSummary(text: string): SaveSummary {
+  const count = (re: RegExp) => Number(re.exec(text)?.[1] ?? 0);
+  const summary = {
+    added: count(/Added to (\d+) monitors?\./),
+    removed: count(/Removed from (\d+) monitors?\./),
+    skippedFull: count(/(\d+) skipped: already (?:has|have) \d+ recipients\./),
+  };
+  // Conflicts and denials are not expected in a single-user run: fail loudly with the text.
+  expect(text, "save summary without conflicts or denials").not.toMatch(/not updated:/);
+  return summary;
 }
 
 export class AlertRecipientsPage {
@@ -154,7 +185,8 @@ export class AlertRecipientsPage {
   }
 
   /** Saves the open dialog and waits for the success toast and for the dialog to close. */
-  async submitAndExpectToast(toast: RegExp) {
+  /** `toast` is a pattern, or text the toast contains. */
+  async submitAndExpectToast(toast: RegExp | string) {
     await expect(this.submitButton).toBeEnabled();
     await this.submitButton.click();
     await expect(this.page.getByText(toast).first()).toBeVisible({ timeout: PAGE_TIMEOUT });
@@ -162,10 +194,39 @@ export class AlertRecipientsPage {
   }
 
   /**
-   * Add a person with "All monitors". `typed` lets a caller type a non-normalized spelling.
-   * Returns the monitor count the dialog reported.
+   * Saves the open dialog and returns the counts the server reported for this save (read from
+   * the SaveAlertRecipient response, so an older toast still on screen can't be mistaken for it),
+   * after the toast shows that message and the dialog closed. Full monitors in the shared project
+   * are skipped by the server, so callers compare these numbers with each other, not with a fixed
+   * monitor count.
    */
-  async addToAllMonitors(email: string, typed = email): Promise<number> {
+  async submitAndReadSummary(): Promise<SaveSummary> {
+    await expect(this.submitButton).toBeEnabled();
+    const saved = this.page.waitForResponse(
+      (response) =>
+        response.url().includes("/SaveAlertRecipient") && response.request().method() === "POST",
+      { timeout: PAGE_TIMEOUT },
+    );
+    await this.submitButton.click();
+    const body = await (await saved).json();
+    expect(body?.isSuccess, `save refused: ${String(body?.message)}`).toBe(true);
+    const message = String(body.message);
+    const summary = parseSaveSummary(message);
+    expect(summary.added, "toast and data agree").toBe(Number(body.data?.added ?? 0));
+    expect(summary.skippedFull, "toast and data agree").toBe(body.data?.skippedFull?.length ?? 0);
+    await expect(this.page.getByText(message, { exact: true }).first()).toBeVisible({
+      timeout: PAGE_TIMEOUT,
+    });
+    await expect(this.dialog).toBeHidden({ timeout: PAGE_TIMEOUT });
+    return summary;
+  }
+
+  /**
+   * Add a person with "All monitors". `typed` lets a caller type a non-normalized spelling.
+   * Returns the monitor count the dialog reported and the toast's counts. Every editable monitor
+   * is either added to or skipped as full (the person is new, so none is unchanged).
+   */
+  async addToAllMonitors(email: string, typed = email): Promise<AllMonitorsSave> {
     await this.openAddDialog();
     await this.emailInput.fill(typed);
     await this.allMonitorsRadio.check();
@@ -173,9 +234,13 @@ export class AlertRecipientsPage {
     await expect(this.submitButton).toHaveText(
       count === 1 ? "Add to 1 monitor" : `Add to all ${count} monitors`,
     );
-    await this.submitAndExpectToast(new RegExp(`^Added to ${count} monitors?\\.`));
+    const summary = await this.submitAndReadSummary();
+    expect(summary.removed).toBe(0);
+    expect(summary.added + summary.skippedFull, "added + skipped as full = every monitor").toBe(
+      count,
+    );
     await expect(this.row(email)).toBeVisible({ timeout: PAGE_TIMEOUT });
-    return count;
+    return { count, ...summary };
   }
 
   async addToSelectedMonitors(email: string, monitorNames: string[]) {
@@ -184,7 +249,7 @@ export class AlertRecipientsPage {
     await this.chooseSelectedMonitors(monitorNames);
     const n = monitorNames.length;
     await expect(this.submitButton).toHaveText(`Add to ${n} ${n === 1 ? "monitor" : "monitors"}`);
-    await this.submitAndExpectToast(new RegExp(`^Added to ${n} monitors?\\.`));
+    await this.submitAndExpectToast(`Added to ${n} ${n === 1 ? "monitor" : "monitors"}.`);
     await expect(this.row(email)).toBeVisible({ timeout: PAGE_TIMEOUT });
   }
 
@@ -211,6 +276,56 @@ export class AlertRecipientsPage {
       timeout: PAGE_TIMEOUT,
     });
     await expect(row.getByText("New monitors too", { exact: true })).toBeVisible();
+  }
+
+  /**
+   * The row of an "All monitors" person, from the numbers the page reported: "All monitors (N)"
+   * when they are on every one of the `count` monitors, otherwise "K monitors:" (some were full,
+   * so the page shows the monitors they are on). `onMonitors` is K.
+   */
+  async expectAllMonitorsChoiceRow(email: string, count: number, onMonitors: number) {
+    if (onMonitors === count) {
+      await this.expectAllMonitorsRow(email, count);
+      return;
+    }
+    const row = this.row(email);
+    await expect(row).toContainText(`${onMonitors} ${onMonitors === 1 ? "monitor" : "monitors"}:`, {
+      timeout: PAGE_TIMEOUT,
+    });
+    await expect(row.getByText(/^All monitors \(\d+\)$/)).toHaveCount(0);
+  }
+
+  /**
+   * Removes people this spec left behind in earlier runs whose cleanup failed: addresses made by
+   * `e2eEmail(tag, runId)` for the given tags, from runs that started more than `olderThanMs` ago
+   * (so a run still in progress is never touched). A leftover "All monitors" person is added to
+   * every monitor, so a few of them fill monitors and break later runs (C7). Never fails the run.
+   */
+  async removeLeftoverPeople(tags: string[], olderThanMs: number) {
+    // Literal pattern (no RegExp built from input); the tag is checked against `tags` below. Run ids
+    // are base 36 with no hyphen, so the last hyphen separates the tag from the run id.
+    const pattern = /^Remove (e2e\+(.+)-([0-9a-z]+)@example\.com) from all monitors$/;
+    const removed: string[] = [];
+    try {
+      await this.search.fill("e2e+");
+      const labels = await this.page
+        .getByRole("button", { name: /^Remove e2e\+.+ from all monitors$/ })
+        .evaluateAll((buttons) => buttons.map((b) => b.getAttribute("aria-label") ?? ""));
+      for (const label of labels) {
+        const match = pattern.exec(label);
+        if (!match || !tags.includes(match[2])) continue;
+        const startedAt = e2eRunStartedAt(match[3]);
+        if (startedAt === null || Date.now() - startedAt < olderThanMs) continue;
+        await this.removeButton(match[1]).click();
+        await expect(this.row(match[1])).toHaveCount(0, { timeout: PAGE_TIMEOUT });
+        removed.push(match[1]);
+      }
+    } catch (error) {
+      console.warn(`[e2e] Removing leftover alert recipients failed. ${String(error)}`);
+    } finally {
+      await this.search.fill("").catch(() => null);
+    }
+    return removed;
   }
 
   /** Removes one person if this page lists them. Used by cleanup, so it never fails the run. */

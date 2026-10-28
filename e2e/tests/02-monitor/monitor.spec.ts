@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import { test, expect } from "../../support/test-base";
 import {
   getRowActionButton,
+  openFirstEditableMonitor,
   openFirstMonitor,
   openMonitorList,
 } from "../../support/monitor-helpers";
@@ -262,7 +263,8 @@ test.describe("Monitor - full page workflow", () => {
 
     await test.step("Details — Configure button opens the edit modal", async () => {
       await openMonitorList(page);
-      await openFirstMonitor(page);
+      // Row 1 can be an Infrastructure monitor, whose details hide the recipients (#256 Q10).
+      await openFirstEditableMonitor(page);
       await page.getByRole("button", { name: "Configure" }).click();
       await expect(page.getByRole("heading", { name: "Configure" })).toBeVisible({
         timeout: 15_000,
@@ -411,9 +413,8 @@ test.describe("Monitor - full page workflow", () => {
 
     await test.step("List — Row click navigates to monitor details", async () => {
       await openMonitorList(page);
-      const firstRow = page.getByRole("row").nth(1);
-      const monitorName = (await firstRow.locator("td").first().innerText()).trim();
-      await firstRow.locator("td").first().click();
+      // The first EDITABLE row: the H12 and Configure steps below need recipients and Configure.
+      const monitorName = await openFirstEditableMonitor(page);
       await expect(page).toHaveURL(/\/monitor\/[^/]+$/, { timeout: 15_000 });
       await expect(page.getByRole("heading", { name: monitorName, exact: true })).toBeVisible({
         timeout: 15_000,
