@@ -10,7 +10,7 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="MongoDB.Driver" Version="3.8.0" />
     <!--
-      Genesis is declared once here at 4.4.9, in sync with every collection-cut service (owner
+      Genesis is declared once here at 4.5.1, in sync with every collection-cut service (owner
       2026-10-14). ReleaseDriver.OS 4.0.3 depends on Genesis 4.2.3, which is lower, so Api and
       Worker both resolve the version pinned here and the old Api/Worker split is gone.
 
@@ -27,7 +27,7 @@
       is seeded, and 4xx is never reported by design. Note that ConfigureWorker gets no
       IConfiguration, so Worker is NOT covered - its faults reach the LMT pipeline only.
     -->
-    <PackageVersion Include="SeliseBlocks.Genesis.OS" Version="4.4.9" />
+    <PackageVersion Include="SeliseBlocks.Genesis.OS" Version="4.5.1" />
     <PackageVersion Include="SeliseBlocks.ReleaseDriver.OS" Version="4.0.3" />
     <!--
       ReleaseDriver.OS 4.0.3 ships Devops.DomainService with an assembly ref to
