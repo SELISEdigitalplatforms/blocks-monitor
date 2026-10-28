@@ -1,4 +1,4 @@
-import { type Page, expect } from "@playwright/test"
+import { type Locator, type Page, expect } from "@playwright/test"
 import { openSharedProjectDashboard } from "./suite-helpers"
 
 export async function waitForRowsLoaded(page: Page) {
@@ -68,6 +68,23 @@ export async function getRowActionButton(page: Page) {
     }
   }
   return null
+}
+
+/**
+ * Opens a row's actions menu and waits until it is open. A click that lands while the list is
+ * still re-rendering after a reload or a pause/resume refetch can be lost (the menu never opens,
+ * and a following `menuitem` click would wait for the whole test timeout), so click again until
+ * the menu shows. Never clicks an already open menu, which would close it.
+ */
+export async function openRowActionMenu(page: Page, trigger: Locator): Promise<Locator> {
+  const menu = page.getByRole("menu")
+  await expect(async () => {
+    if (!(await menu.isVisible())) {
+      await trigger.click({ timeout: 5_000 })
+    }
+    await expect(menu).toBeVisible({ timeout: 2_000 })
+  }).toPass({ timeout: 30_000 })
+  return menu
 }
 
 export async function openFirstMonitor(page: Page) {

@@ -5,6 +5,7 @@ import {
   openFirstEditableMonitor,
   openFirstMonitor,
   openMonitorList,
+  openRowActionMenu,
 } from "../../support/monitor-helpers";
 
 async function resetToMonitorList(page: Page) {
@@ -39,7 +40,7 @@ test.describe("Monitor - full page workflow", () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
       const menuItem = page.getByRole("menuitem").first();
       await expect(menuItem).toHaveText(/Pause|Resume/);
       await page.keyboard.press("Escape");
@@ -49,7 +50,7 @@ test.describe("Monitor - full page workflow", () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
       const pauseItem = page.getByRole("menuitem", { name: "Pause" });
       if (await pauseItem.isVisible().catch(() => false)) {
         await pauseItem.click();
@@ -68,7 +69,7 @@ test.describe("Monitor - full page workflow", () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
       const resumeItem = page.getByRole("menuitem", { name: "Resume" });
       if (await resumeItem.isVisible().catch(() => false)) {
         await resumeItem.click();
@@ -87,7 +88,7 @@ test.describe("Monitor - full page workflow", () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
       await page.getByRole("menuitem", { name: /Pause|Resume/ }).click();
       await page.getByRole("button", { name: "Confirm" }).click();
       await expect(page.getByText(/Monitor (paused|resumed) successfully/).first()).toBeVisible({
@@ -99,7 +100,7 @@ test.describe("Monitor - full page workflow", () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
       await page.getByRole("menuitem", { name: /Pause|Resume/ }).click();
       await page.getByRole("button", { name: "Cancel" }).click();
       await expect(
@@ -111,7 +112,7 @@ test.describe("Monitor - full page workflow", () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
       await page.getByRole("menuitem", { name: "Delete" }).click();
       await expect(page.getByRole("heading", { name: "Remove monitor?" })).toBeVisible();
       await expect(
@@ -136,7 +137,7 @@ test.describe("Monitor - full page workflow", () => {
       const actionButton = firstRow.locator('[aria-haspopup="menu"]').first();
       const visible = await actionButton.isVisible({ timeout: 10_000 }).catch(() => false);
       test.skip(!visible, "No monitor with a row action menu is available.");
-      await actionButton.click();
+      await openRowActionMenu(page, actionButton);
       await page.getByRole("menuitem", { name: "Delete" }).click();
       await page.getByRole("button", { name: "Confirm" }).click();
       await expect(page.getByRole("heading", { name: "Monitor" })).toBeVisible({ timeout: 15_000 });
@@ -156,7 +157,7 @@ test.describe("Monitor - full page workflow", () => {
       await openMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
       await page.getByRole("menuitem", { name: "Delete" }).click();
       const confirmButton = page.getByRole("button", { name: "Confirm" });
       const cancelButton = page.getByRole("button", { name: "Cancel" });
@@ -193,13 +194,8 @@ test.describe("Monitor - full page workflow", () => {
       const deleteMenuItem = page.getByRole("menuitem", { name: "Delete" });
 
       await actionButton.waitFor({ state: "visible", timeout: 15_000 });
-      await actionButton.click();
-      try {
-        await deleteMenuItem.click({ timeout: 10_000 });
-      } catch {
-        await actionButton.click();
-        await deleteMenuItem.click({ timeout: 15_000 });
-      }
+      await openRowActionMenu(page, actionButton);
+      await deleteMenuItem.click();
 
       await page.getByRole("button", { name: "Confirm" }).click();
       await expect(page.getByText(monitorName)).not.toBeVisible({ timeout: 30_000 });
@@ -209,7 +205,7 @@ test.describe("Monitor - full page workflow", () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
 
       const pauseItem = page.getByRole("menuitem", { name: "Pause" });
       if (await pauseItem.isVisible().catch(() => false)) {
