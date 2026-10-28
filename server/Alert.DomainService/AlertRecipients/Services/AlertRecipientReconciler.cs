@@ -41,28 +41,39 @@ public sealed class AlertRecipientReconciler : IAlertRecipientReconciler
     public async Task ReconcileAsync()
     {
         var stopwatch = Stopwatch.StartNew();
-        Dictionary<string, List<string>> tenants;
+        Dictionary<string, List<string>> tenants = null!;
+        string? readErrorType = null;
         try
         {
             tenants = await _store.GetAllMonitorsEmailsByTenantAsync();
         }
         catch (Exception ex)
         {
-            _logger.LogError("Alert recipient reconciliation could not read the \"All monitors\" people: {ErrorType}.", ex.GetType().Name);
+            // Only the type name leaves the catch (C20): the exception itself is never logged.
+            readErrorType = ex.GetType().Name;
+        }
+
+        if (readErrorType is not null)
+        {
+            _logger.LogError("Alert recipient reconciliation could not read the \"All monitors\" people: {ErrorType}.", readErrorType);
             return;
         }
 
         var updated = 0;
         foreach (var (tenantId, emails) in tenants)
         {
+            string? tenantErrorType = null;
             try
             {
                 updated += await ReconcileTenantAsync(tenantId, emails);
             }
             catch (Exception ex)
             {
-                _logger.LogError("Alert recipient reconciliation failed for project {ProjectKey}: {ErrorType}.", tenantId, ex.GetType().Name);
+                tenantErrorType = ex.GetType().Name;
             }
+
+            if (tenantErrorType is not null)
+                _logger.LogError("Alert recipient reconciliation failed for project {ProjectKey}: {ErrorType}.", tenantId, tenantErrorType);
         }
 
         _logger.LogInformation("Alert recipient reconciliation: {Projects} projects, {Updated} monitors updated in {ElapsedMs} ms.",
@@ -78,15 +89,21 @@ public sealed class AlertRecipientReconciler : IAlertRecipientReconciler
         PlannedEmailsChange Replan(MonitorConfiguration monitor) => Plan(monitor, allMonitorsEmails);
         var plans = monitors.Select(Replan).ToList();
         foreach (var plan in plans.Where(p => p.Change == AlertRecipientChange.SkippedFull))
-            _logger.LogWarning("Monitor {MonitorId} of project {ProjectKey} already has {Max} alert recipients; its missing \"All monitors\" people were not added.",
-                plan.Monitor.ItemId, tenantId, AlertRecipientRules.MaxEmailsPerMonitor);
+            LogSkippedFull(plan.Monitor.ItemId, tenantId);
 
         var results = await _writer.WriteAsync(tenantId, plans, Replan, refuseInvalid: false, updatedBy: null);
         foreach (var result in results.Where(r => r.Outcome is EmailsWriteOutcome.Invalid or EmailsWriteOutcome.Conflicted or EmailsWriteOutcome.Denied))
-            _logger.LogWarning("Monitor {MonitorId} of project {ProjectKey} was not reconciled ({Outcome}); the next run retries it.",
-                result.Plan.Monitor.ItemId, tenantId, result.Outcome);
+            LogNotReconciled(result.Plan.Monitor.ItemId, tenantId, result.Outcome);
         return results.Count(r => r.Outcome == EmailsWriteOutcome.Applied);
     }
+
+    private void LogSkippedFull(string monitorId, string tenantId) =>
+        _logger.LogWarning("Monitor {MonitorId} of project {ProjectKey} already has {Max} alert recipients; its missing \"All monitors\" people were not added.",
+            monitorId, tenantId, AlertRecipientRules.MaxEmailsPerMonitor);
+
+    private void LogNotReconciled(string monitorId, string tenantId, EmailsWriteOutcome outcome) =>
+        _logger.LogWarning("Monitor {MonitorId} of project {ProjectKey} was not reconciled ({Outcome}); the next run retries it.",
+            monitorId, tenantId, outcome);
 
     /// <summary>
     /// Appends the missing people in sorted order, never past 10 emails in total. A monitor already at 10 is

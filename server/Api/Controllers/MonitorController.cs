@@ -28,7 +28,6 @@ namespace Api.Controllers
         private readonly IMonitorIncidentService _monitorIncidentService;
         private readonly IMonitorPingService _monitorPingService;
         private readonly IReleaseDriverService _releaseDriverService;
-        private readonly IAlertRecipientService _alertRecipientService;
         private readonly IConfiguration _configuration;
         private readonly ILogger<MonitorController> _logger;
 
@@ -38,14 +37,12 @@ namespace Api.Controllers
         /// <param name="monitorConfigurationService">Service for monitor configuration operations.</param>
         /// <param name="monitorPingService">Service for monitor ping operations.</param>
         /// <param name="monitorIncidentService">Service for monitor incident operations.</param>
-        /// <param name="alertRecipientService">Service for the Alert recipients page.</param>
         public MonitorController(
             IMonitorConfigurationService monitorConfigurationService,
             IMonitorPingService monitorPingService,
             IMonitorConfigurationRepoService monitorConfigurationRepoService,
             IMonitorIncidentService monitorIncidentService,
             IReleaseDriverService releaseDriverService,
-            IAlertRecipientService alertRecipientService,
             IConfiguration configuration,
             ILogger<MonitorController> logger)
         {
@@ -54,7 +51,6 @@ namespace Api.Controllers
             _monitorConfigurationRepoService = monitorConfigurationRepoService;
             _monitorIncidentService = monitorIncidentService;
             _releaseDriverService = releaseDriverService;
-            _alertRecipientService = alertRecipientService;
             _configuration = configuration;
             _logger = logger;
         }
@@ -209,12 +205,13 @@ namespace Api.Controllers
         /// Lists the project's editable monitors and the people who get their alert emails (the Alert recipients page).
         /// </summary>
         /// <param name="projectKey">The project; must be the caller's own, otherwise "Project not found."</param>
+        /// <param name="alertRecipientService">Service for the Alert recipients page, resolved per request.</param>
         /// <returns>An <see cref="AlertRecipientsResponse"/> in <c>Data</c>.</returns>
         [ProtectedEndPoint("blocks-monitor::monitor::read")]
         [HttpGet]
-        public async Task<IActionResult> GetAlertRecipients([FromQuery] string? projectKey)
+        public async Task<IActionResult> GetAlertRecipients([FromQuery] string? projectKey, [FromServices] IAlertRecipientService alertRecipientService)
         {
-            var result = await _alertRecipientService.GetAsync(projectKey);
+            var result = await alertRecipientService.GetAsync(projectKey);
             return Ok(result);
         }
 
@@ -222,12 +219,13 @@ namespace Api.Controllers
         /// Lists up to 50 project members' emails that are not alert recipients yet.
         /// </summary>
         /// <param name="projectKey">The project; must be the caller's own, otherwise "Project not found."</param>
+        /// <param name="alertRecipientService">Service for the Alert recipients page, resolved per request.</param>
         /// <returns>An <see cref="AlertRecipientSuggestionsResponse"/> in <c>Data</c>.</returns>
         [ProtectedEndPoint("blocks-monitor::monitor::manage")]
         [HttpGet]
-        public async Task<IActionResult> GetAlertRecipientSuggestions([FromQuery] string? projectKey)
+        public async Task<IActionResult> GetAlertRecipientSuggestions([FromQuery] string? projectKey, [FromServices] IAlertRecipientService alertRecipientService)
         {
-            var result = await _alertRecipientService.GetSuggestionsAsync(projectKey);
+            var result = await alertRecipientService.GetSuggestionsAsync(projectKey);
             return Ok(result);
         }
 
@@ -235,12 +233,13 @@ namespace Api.Controllers
         /// Adds or updates an alert recipient: on all editable monitors (and monitors created later) or on the chosen ones.
         /// </summary>
         /// <param name="request">The project, the email, and all monitors or up to 500 monitor ids.</param>
+        /// <param name="alertRecipientService">Service for the Alert recipients page, resolved per request.</param>
         /// <returns>An <see cref="AlertRecipientChangeResult"/> in <c>Data</c>.</returns>
         [ProtectedEndPoint("blocks-monitor::monitor::manage")]
         [HttpPost]
-        public async Task<IActionResult> SaveAlertRecipient([FromBody] SaveAlertRecipientRequest request)
+        public async Task<IActionResult> SaveAlertRecipient([FromBody] SaveAlertRecipientRequest request, [FromServices] IAlertRecipientService alertRecipientService)
         {
-            var result = await _alertRecipientService.SaveAsync(request);
+            var result = await alertRecipientService.SaveAsync(request);
             return Ok(result);
         }
 
@@ -249,12 +248,13 @@ namespace Api.Controllers
         /// so no URL or request log carries the address.
         /// </summary>
         /// <param name="request">The project and the email.</param>
+        /// <param name="alertRecipientService">Service for the Alert recipients page, resolved per request.</param>
         /// <returns>An <see cref="AlertRecipientRemoveResult"/> in <c>Data</c>.</returns>
         [ProtectedEndPoint("blocks-monitor::monitor::manage")]
         [HttpPost]
-        public async Task<IActionResult> DeleteAlertRecipient([FromBody] DeleteAlertRecipientRequest request)
+        public async Task<IActionResult> DeleteAlertRecipient([FromBody] DeleteAlertRecipientRequest request, [FromServices] IAlertRecipientService alertRecipientService)
         {
-            var result = await _alertRecipientService.DeleteAsync(request);
+            var result = await alertRecipientService.DeleteAsync(request);
             return Ok(result);
         }
 

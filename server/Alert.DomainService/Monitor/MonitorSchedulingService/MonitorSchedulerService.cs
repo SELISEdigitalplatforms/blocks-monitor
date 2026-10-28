@@ -113,14 +113,19 @@ namespace DomainService.Monitor.Services
         /// </summary>
         public async Task PollOnceAsync()
         {
+            string? reconcileErrorType = null;
             try
             {
                 await _alertRecipientReconciler.ReconcileAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError("[MonitorScheduler] Alert recipient reconciliation failed: {ErrorType}", ex.GetType().Name);
+                // Only the type name leaves the catch: the exception itself is never logged (C20).
+                reconcileErrorType = ex.GetType().Name;
             }
+
+            if (reconcileErrorType is not null)
+                _logger.LogError("[MonitorScheduler] Alert recipient reconciliation failed: {ErrorType}", reconcileErrorType);
 
             try
             {

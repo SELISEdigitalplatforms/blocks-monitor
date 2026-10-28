@@ -33,7 +33,7 @@ namespace XUnitTest.Api
 
         private MonitorController CreateSut() =>
             new(_configService.Object, _pingService.Object, _configRepo.Object, _incidentService.Object,
-                _releaseDriver.Object, _alertRecipients.Object, _configuration.Object, _logger.Object);
+                _releaseDriver.Object, _configuration.Object, _logger.Object);
 
         private void ConfigureReportSources(string? sastUri = "https://sonar.example", string? scaUri = "https://dt.example")
         {
@@ -816,10 +816,25 @@ namespace XUnitTest.Api
         [Fact]
         public void DeleteAlertRecipient_TakesTheEmailFromTheBody()
         {
-            var parameter = typeof(MonitorController).GetMethod(nameof(MonitorController.DeleteAlertRecipient))!.GetParameters().Single();
+            var parameter = typeof(MonitorController).GetMethod(nameof(MonitorController.DeleteAlertRecipient))!.GetParameters()
+                .Single(p => p.ParameterType != typeof(DomainService.AlertRecipients.Services.IAlertRecipientService));
 
             parameter.ParameterType.Should().Be(typeof(DomainService.AlertRecipients.Models.DeleteAlertRecipientRequest));
             parameter.GetCustomAttributes(typeof(FromBodyAttribute), false).Should().ContainSingle();
+        }
+
+        [Theory]
+        [InlineData(nameof(MonitorController.GetAlertRecipients))]
+        [InlineData(nameof(MonitorController.GetAlertRecipientSuggestions))]
+        [InlineData(nameof(MonitorController.SaveAlertRecipient))]
+        [InlineData(nameof(MonitorController.DeleteAlertRecipient))]
+        public void AlertRecipientAction_ResolvesTheServiceFromTheRequestServices(string methodName)
+        {
+            // Not a request value: bound from DI, so it never shows in the API contract.
+            var parameter = typeof(MonitorController).GetMethod(methodName)!.GetParameters()
+                .Single(p => p.ParameterType == typeof(DomainService.AlertRecipients.Services.IAlertRecipientService));
+
+            parameter.GetCustomAttributes(typeof(FromServicesAttribute), false).Should().ContainSingle();
         }
 
         [Fact]
@@ -837,10 +852,10 @@ namespace XUnitTest.Api
             _alertRecipients.Setup(s => s.DeleteAsync(deleteRequest)).ReturnsAsync(delete);
             var sut = CreateSut();
 
-            Body<BaseApiResponse>(await sut.GetAlertRecipients("p")).Should().BeSameAs(get);
-            Body<BaseApiResponse>(await sut.GetAlertRecipientSuggestions("p")).Should().BeSameAs(suggestions);
-            Body<BaseApiResponse>(await sut.SaveAlertRecipient(saveRequest)).Should().BeSameAs(save);
-            Body<BaseApiResponse>(await sut.DeleteAlertRecipient(deleteRequest)).Should().BeSameAs(delete);
+            Body<BaseApiResponse>(await sut.GetAlertRecipients("p", _alertRecipients.Object)).Should().BeSameAs(get);
+            Body<BaseApiResponse>(await sut.GetAlertRecipientSuggestions("p", _alertRecipients.Object)).Should().BeSameAs(suggestions);
+            Body<BaseApiResponse>(await sut.SaveAlertRecipient(saveRequest, _alertRecipients.Object)).Should().BeSameAs(save);
+            Body<BaseApiResponse>(await sut.DeleteAlertRecipient(deleteRequest, _alertRecipients.Object)).Should().BeSameAs(delete);
         }
 
         [Fact]

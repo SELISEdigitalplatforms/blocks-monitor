@@ -70,21 +70,16 @@ public sealed class AlertRecipientMonitorWriter
         string? updatedBy)
     {
         var results = new EmailsWriteResult?[plans.Count];
-        var pending = new List<int>();
-        for (var i = 0; i < plans.Count; i++)
-        {
-            if (plans[i].Writes) pending.Add(i);
-            else results[i] = new EmailsWriteResult(plans[i], EmailsWriteOutcome.NotWritten);
-        }
+        var pending = SplitPending(plans, results);
         if (pending.Count == 0)
-            return results.Select(r => r!).ToList();
+            return Completed(results);
 
         var now = DateTime.UtcNow;
         var editFilter = await _repo.GetEmailsEditFilterAsync(tenantId, pending.Select(i => plans[i].Monitor.ItemId).ToList());
         if (editFilter is null)
         {
-            foreach (var i in pending) results[i] = new EmailsWriteResult(plans[i], EmailsWriteOutcome.Denied);
-            return results.Select(r => r!).ToList();
+            SetAll(results, plans, pending, EmailsWriteOutcome.Denied);
+            return Completed(results);
         }
 
         var updates = pending.ToDictionary(i => i, i => ToUpdate(plans[i], now, updatedBy));
@@ -93,44 +88,95 @@ public sealed class AlertRecipientMonitorWriter
         {
             if (refuseInvalid)
                 throw failures[0].Error;
-            var invalid = failures.Select(f => f.ItemId).ToHashSet(StringComparer.Ordinal);
-            foreach (var i in pending.Where(i => invalid.Contains(plans[i].Monitor.ItemId)).ToList())
-            {
-                results[i] = new EmailsWriteResult(plans[i], EmailsWriteOutcome.Invalid);
-                pending.Remove(i);
-                updates.Remove(i);
-            }
+            SkipInvalid(failures.Select(f => f.ItemId), plans, pending, updates, results);
         }
 
         var matched = updates.Count == 0 ? 0 : await _repo.BulkUpdateEmailsAsync(updates.Values.ToList(), editFilter);
         if (matched >= updates.Count)
         {
-            foreach (var i in pending) results[i] = new EmailsWriteResult(plans[i], EmailsWriteOutcome.Applied);
-            return results.Select(r => r!).ToList();
+            SetAll(results, plans, pending, EmailsWriteOutcome.Applied);
+            return Completed(results);
         }
 
         // Fewer matched than sent: one re-read tells which were written and which changed meanwhile.
         var reread = (await _repo.GetEditableMonitorsAsync(tenantId, pending.Select(i => plans[i].Monitor.ItemId).ToList()))
             .ToDictionary(m => m.ItemId, StringComparer.Ordinal);
+        var retries = ResolveAll(plans, pending, reread, replan, results);
+        if (retries.Count > 0)
+            await RetryAsync(retries, editFilter, results, now, updatedBy);
+        return Completed(results);
+    }
+
+    /// <summary>Marks the plans that write nothing as <see cref="EmailsWriteOutcome.NotWritten"/>; returns the indexes of the others.</summary>
+    private static List<int> SplitPending(IReadOnlyList<PlannedEmailsChange> plans, EmailsWriteResult?[] results)
+    {
+        var pending = new List<int>();
+        for (var i = 0; i < plans.Count; i++)
+        {
+            if (plans[i].Writes) pending.Add(i);
+            else results[i] = new EmailsWriteResult(plans[i], EmailsWriteOutcome.NotWritten);
+        }
+        return pending;
+    }
+
+    private static void SetAll(EmailsWriteResult?[] results, IReadOnlyList<PlannedEmailsChange> plans, List<int> pending, EmailsWriteOutcome outcome)
+    {
+        foreach (var i in pending) results[i] = new EmailsWriteResult(plans[i], outcome);
+    }
+
+    /// <summary>Takes the monitors a data validation rule refused out of the write, as <see cref="EmailsWriteOutcome.Invalid"/>.</summary>
+    private static void SkipInvalid(IEnumerable<string> refusedIds, IReadOnlyList<PlannedEmailsChange> plans, List<int> pending,
+        Dictionary<int, MonitorEmailsUpdate> updates, EmailsWriteResult?[] results)
+    {
+        var invalid = refusedIds.ToHashSet(StringComparer.Ordinal);
+        foreach (var i in pending.Where(i => invalid.Contains(plans[i].Monitor.ItemId)).ToList())
+        {
+            results[i] = new EmailsWriteResult(plans[i], EmailsWriteOutcome.Invalid);
+            pending.Remove(i);
+            updates.Remove(i);
+        }
+    }
+
+    /// <summary>Resolves every pending plan against the re-read monitors; returns the ones to write again.</summary>
+    private static List<(int Index, PlannedEmailsChange Plan)> ResolveAll(IReadOnlyList<PlannedEmailsChange> plans, List<int> pending,
+        Dictionary<string, MonitorConfiguration> reread, Func<MonitorConfiguration, PlannedEmailsChange> replan, EmailsWriteResult?[] results)
+    {
         var retries = new List<(int Index, PlannedEmailsChange Plan)>();
         foreach (var i in pending)
         {
-            if (!reread.TryGetValue(plans[i].Monitor.ItemId, out var current))
-                results[i] = new EmailsWriteResult(plans[i], EmailsWriteOutcome.Denied);
-            else if ((current.Emails ?? new List<string>()).SequenceEqual(plans[i].NewEmails!, StringComparer.Ordinal))
-                results[i] = new EmailsWriteResult(plans[i], EmailsWriteOutcome.Applied);
-            else
-            {
-                var again = replan(current);
-                if (again.Writes) retries.Add((i, again));
-                else results[i] = new EmailsWriteResult(again, EmailsWriteOutcome.NotWritten);
-            }
+            var retry = Resolve(plans[i], reread.GetValueOrDefault(plans[i].Monitor.ItemId), replan, out var final);
+            if (retry is not null) retries.Add((i, retry));
+            else results[i] = final;
         }
-
-        if (retries.Count > 0)
-            await RetryAsync(retries, editFilter, results, now, updatedBy);
-        return results.Select(r => r!).ToList();
+        return retries;
     }
+
+    /// <summary>
+    /// After a short bulk write: a monitor no longer visible is denied, one already holding the new Emails was
+    /// applied, otherwise the change is planned again; a re-plan that writes is returned as the retry.
+    /// </summary>
+    private static PlannedEmailsChange? Resolve(PlannedEmailsChange plan, MonitorConfiguration? current,
+        Func<MonitorConfiguration, PlannedEmailsChange> replan, out EmailsWriteResult? final)
+    {
+        final = null;
+        if (current is null)
+        {
+            final = new EmailsWriteResult(plan, EmailsWriteOutcome.Denied);
+            return null;
+        }
+        if ((current.Emails ?? new List<string>()).SequenceEqual(plan.NewEmails!, StringComparer.Ordinal))
+        {
+            final = new EmailsWriteResult(plan, EmailsWriteOutcome.Applied);
+            return null;
+        }
+        var again = replan(current);
+        if (again.Writes)
+            return again;
+        final = new EmailsWriteResult(again, EmailsWriteOutcome.NotWritten);
+        return null;
+    }
+
+    private static List<EmailsWriteResult> Completed(EmailsWriteResult?[] results) => results.Select(r => r!).ToList();
 
     /// <summary>One retry per monitor, written one by one so each knows whether it matched.</summary>
     private async Task RetryAsync(List<(int Index, PlannedEmailsChange Plan)> retries, MongoDB.Driver.FilterDefinition<MonitorConfiguration> editFilter,

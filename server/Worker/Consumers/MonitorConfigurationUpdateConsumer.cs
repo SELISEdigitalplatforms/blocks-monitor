@@ -23,14 +23,19 @@ namespace MonitoringWorker.Consumers
             {
                 // Monitors inserted elsewhere (blocks-release) get their "All monitors" people before the reload
                 // schedules them (H18). A reconcile failure never stops the reload (C24).
+                string? reconcileErrorType = null;
                 try
                 {
                     await _alertRecipientReconciler.ReconcileAsync();
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError("Alert recipient reconciliation failed: {ErrorType}", ex.GetType().Name);
+                    // Only the type name leaves the catch: the exception itself is never logged (C20).
+                    reconcileErrorType = ex.GetType().Name;
                 }
+
+                if (reconcileErrorType is not null)
+                    _logger.LogError("Alert recipient reconciliation failed: {ErrorType}", reconcileErrorType);
 
                 try
                 {

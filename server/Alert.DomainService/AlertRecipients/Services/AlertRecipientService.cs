@@ -129,6 +129,7 @@ public sealed class AlertRecipientService : IAlertRecipientService
             return Refused(validation.Errors[0].ErrorMessage);
         var email = AlertRecipientEmail.TryNormalize(request.Email)!;
 
+        BaseApiResponse refused;
         try
         {
             var monitors = await _repo.GetEditableMonitorsAsync(tenantId);
@@ -178,14 +179,17 @@ public sealed class AlertRecipientService : IAlertRecipientService
         }
         catch (DataValidationException ex)
         {
-            _logger.LogWarning("A data validation rule refused the alert recipient save for project {ProjectKey}; nothing was written.", tenantId);
-            return ex.ToRefusedResponse();
+            refused = ex.ToRefusedResponse();
         }
         catch (Exception ex)
         {
             LogFailure(ex, "Saving an alert recipient", tenantId);
             return Refused(AlertRecipientRules.SaveFailed);
         }
+
+        // Logged outside the catch: only the refusal is reported, never the exception or the email (C20).
+        _logger.LogWarning("A data validation rule refused the alert recipient save for project {ProjectKey}; nothing was written.", tenantId);
+        return refused;
     }
 
     public async Task<BaseApiResponse> DeleteAsync(DeleteAlertRecipientRequest? request)
@@ -198,6 +202,7 @@ public sealed class AlertRecipientService : IAlertRecipientService
         if (email is null)
             return Refused(AlertRecipientRules.InvalidEmail);
 
+        BaseApiResponse refused;
         try
         {
             var monitors = await _repo.GetEditableMonitorsAsync(tenantId);
@@ -232,14 +237,17 @@ public sealed class AlertRecipientService : IAlertRecipientService
         }
         catch (DataValidationException ex)
         {
-            _logger.LogWarning("A data validation rule refused the alert recipient removal for project {ProjectKey}; nothing was written.", tenantId);
-            return ex.ToRefusedResponse();
+            refused = ex.ToRefusedResponse();
         }
         catch (Exception ex)
         {
             LogFailure(ex, "Removing an alert recipient", tenantId);
             return Refused(AlertRecipientRules.RemoveFailed);
         }
+
+        // Logged outside the catch: only the refusal is reported, never the exception or the email (C20).
+        _logger.LogWarning("A data validation rule refused the alert recipient removal for project {ProjectKey}; nothing was written.", tenantId);
+        return refused;
     }
 
     /// <summary>
