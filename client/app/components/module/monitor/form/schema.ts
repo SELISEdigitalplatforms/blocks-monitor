@@ -27,7 +27,7 @@ const requestConfigurationSchema = z
   .superRefine((data, ctx) => {
     if (data.http_methods === "2" && data.request_body.length === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Request body is required for POST requests",
         path: ["request_body"],
       });
@@ -35,7 +35,7 @@ const requestConfigurationSchema = z
 
     if (data.json_switcher && data.x_header_name.length === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Header name is required when sending JSON",
         path: ["x_header_name"],
       });
@@ -43,7 +43,7 @@ const requestConfigurationSchema = z
 
     if (data.json_switcher && data.value.length === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Header value is required when sending JSON",
         path: ["value"],
       });
@@ -58,7 +58,7 @@ export const monitorFormSchema = z
       .superRefine((value, ctx) => {
         if (value.length === 0) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: "Name is required",
           });
           return;
@@ -66,7 +66,7 @@ export const monitorFormSchema = z
 
         if (value.trim().length === 0) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: "Name cannot contain only spaces",
           });
         }
@@ -82,7 +82,7 @@ export const monitorFormSchema = z
   .superRefine((data, ctx) => {
     if (data.sourceType === "deployed" && !data.selectedRepoId) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Select a deployed repo.",
         path: ["selectedRepoId"],
       });
@@ -90,7 +90,7 @@ export const monitorFormSchema = z
 
     if (data.sourceType === "my-services" && !data.selectedServiceId) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Select a service.",
         path: ["selectedServiceId"],
       });
@@ -99,13 +99,13 @@ export const monitorFormSchema = z
     if (data.monitorConfigurationType === "request") {
       if (!data.urlMonitor) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: "URL is required",
           path: ["urlMonitor"],
         });
       } else if (!URL_REGEX.test(data.urlMonitor)) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message: "Please enter a valid URL (must start with http:// or https://)",
           path: ["urlMonitor"],
         });
@@ -114,7 +114,7 @@ export const monitorFormSchema = z
 
     if (data.monitorConfigurationType === "callback" && !data.monitorSettings.grace_time) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Grace time is required",
         path: ["monitorSettings", "grace_time"],
       });
