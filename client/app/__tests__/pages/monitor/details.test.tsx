@@ -25,7 +25,9 @@ const h = vi.hoisted(() => ({
         name: "API monitor",
         currentStatus: true,
         monitorConfigurationType: 0,
-        monitorSourceTypes: 0,
+        // What the API returns (#256 Q10). The legacy `monitorSourceTypes` is never sent.
+        effectiveMonitorSourceType: 1 as number | undefined,
+        monitorSourceType: 1 as number | undefined,
         intervalInSeconds: 30,
         gracePeriodInSeconds: 60,
         timeoutInSeconds: 45,
@@ -90,8 +92,13 @@ vi.mock("@/components/module/monitor/details/response-time", () => ({
 let lastResponseTimeIsActive: boolean | undefined;
 let lastResponseTimeCreatedAt: string | null | undefined;
 let lastResponseTimeNow: number | undefined;
+type CardProps = { monitorSourceType?: number; alertRecipientsPath: string; emails: string[] };
+let lastMonitorCardProps: CardProps | undefined;
 vi.mock("@/components/module/monitor/details/monitor-card", () => ({
-  default: () => <div data-testid="monitor-card" />,
+  default: (props: CardProps) => {
+    lastMonitorCardProps = props;
+    return <div data-testid="monitor-card" />;
+  },
 }));
 vi.mock("@/components/module/incident/incident-list", () => ({
   default: (props: { data: unknown[] }) => {
@@ -106,11 +113,6 @@ let lastIncidentListData: unknown[] = [];
 vi.mock("@/components/module/alert/alert-action", () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="alert-action">{children}</div>
-  ),
-}));
-vi.mock("@/components/module/alert/notification-modal", () => ({
-  default: (props: { open: boolean }) => (
-    <div data-testid="notification-modal" data-open={String(props.open)} />
   ),
 }));
 vi.mock("@/components/module/monitor/modal/monitor-modal", () => ({
@@ -163,8 +165,10 @@ describe("MonitorDetailsPage", () => {
     h.monitor.isLoading = false;
     h.downtime.isLoading = false;
     h.details.data.monitorIncidents = [];
-    h.monitor.data.data.monitorSourceTypes = 0;
+    h.monitor.data.data.effectiveMonitorSourceType = 1;
+    h.monitor.data.data.monitorSourceType = 1;
     h.monitor.data.data.currentStatus = true;
+    lastMonitorCardProps = undefined;
     // Reset isActive too, or a paused / field-deleted fixture leaks into later tests and
     // makes the active-state assertions order-dependent.
     h.monitor.data.data.isActive = true;
@@ -181,7 +185,6 @@ describe("MonitorDetailsPage", () => {
   it("renders the monitor name, action buttons and summary cards", () => {
     renderPage();
     expect(screen.getByText("API monitor")).toBeInTheDocument();
-    expect(screen.getByText("Notification Settings")).toBeInTheDocument();
     expect(screen.getByText("Configure")).toBeInTheDocument();
     // Status card
     expect(screen.getByText("Current Status")).toBeInTheDocument();
@@ -198,11 +201,37 @@ describe("MonitorDetailsPage", () => {
     expect(screen.getByText(/Currently down for/)).toBeInTheDocument();
   });
 
-  it("hides the action buttons for an external (source type 2) monitor", () => {
-    h.monitor.data.data.monitorSourceTypes = 2;
+  it("hides the header actions for a Blocks services monitor (effective source type 2)", () => {
+    h.monitor.data.data.effectiveMonitorSourceType = 2;
     renderPage();
-    expect(screen.queryByText("Notification Settings")).not.toBeInTheDocument();
     expect(screen.queryByText("Configure")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Actions" })).not.toBeInTheDocument();
+  });
+
+  it("falls back to monitorSourceType when the effective type is missing (Q10)", () => {
+    h.monitor.data.data.effectiveMonitorSourceType = undefined;
+    h.monitor.data.data.monitorSourceType = 2;
+    renderPage();
+    expect(screen.queryByText("Configure")).not.toBeInTheDocument();
+    expect(lastMonitorCardProps?.monitorSourceType).toBe(2);
+  });
+
+  it("prefers effectiveMonitorSourceType over monitorSourceType (Q10)", () => {
+    h.monitor.data.data.effectiveMonitorSourceType = 0;
+    h.monitor.data.data.monitorSourceType = 1;
+    renderPage();
+    expect(lastMonitorCardProps?.monitorSourceType).toBe(0);
+  });
+
+  it("passes the read-only recipients and the scoped Alert recipients link to the card (H12)", () => {
+    h.monitor.data.data.emails = ["ops@x.com"] as never;
+    renderPage();
+    expect(lastMonitorCardProps).toMatchObject({
+      emails: ["ops@x.com"],
+      monitorSourceType: 1,
+      alertRecipientsPath: "/scoped/alert-recipients",
+    });
+    h.monitor.data.data.emails = [];
   });
 
   it("navigates back when the back button is clicked", async () => {
@@ -211,10 +240,10 @@ describe("MonitorDetailsPage", () => {
     expect(h.navigate).toHaveBeenCalledWith(-1);
   });
 
-  it("toggles the notification and configure modals", async () => {
+  it("has no Notification Settings control but keeps Configure and the actions menu (H12, Q9)", async () => {
     renderPage();
-    await userEvent.click(screen.getByText("Notification Settings"));
-    expect(screen.getByTestId("notification-modal")).toHaveAttribute("data-open", "true");
+    expect(screen.queryByText("Notification Settings")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Actions" })).toBeInTheDocument();
     await userEvent.click(screen.getByText("Configure"));
     expect(screen.getByTestId("monitor-modal")).toHaveAttribute("data-open", "true");
   });
@@ -238,7 +267,8 @@ describe("MonitorDetailsPage paused state", () => {
     h.monitor.isLoading = false;
     h.downtime.isLoading = false;
     h.details.data.monitorIncidents = [];
-    h.monitor.data.data.monitorSourceTypes = 0;
+    h.monitor.data.data.effectiveMonitorSourceType = 1;
+    h.monitor.data.data.monitorSourceType = 1;
     h.monitor.data.data.currentStatus = true;
     h.monitor.data.data.isActive = true;
     lastIncidentListData = [];

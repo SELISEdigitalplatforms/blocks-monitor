@@ -247,6 +247,17 @@ describe("payload builders", () => {
     expect(payload.itemId).toBe("item-1");
     expect(payload.monitorConfigurationType).toBe(1);
   });
+
+  // #256: recipients are managed only on the Alert recipients page, so no create or update
+  // request for a monitor or a heartbeat carries `emails`.
+  it.each([
+    ["monitor create", toCreateRequestPayload],
+    ["monitor update", toUpdateRequestPayload],
+    ["heartbeat create", toCreateCallbackPayload],
+    ["heartbeat update", toUpdateCallbackPayload],
+  ])("sends no emails in the %s payload", (_name, build) => {
+    expect(build(values, context)).not.toHaveProperty("emails");
+  });
 });
 
 // H5: what a user actually saves when they add a monitor and never touch the sliders.

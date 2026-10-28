@@ -1,0 +1,211 @@
+{
+  "description": "Alert-recipient email rule shared by the client (Vitest) and the server (xUnit), blocks-monitor#256 Q12. Normalize: trim, then lower-case (invariant). Valid when the normalized value has at most 254 characters and matches zod 4's z.email() pattern. 'normalized' is the stored and displayed form of a valid input.",
+  "maxLength": 254,
+  "cases": [
+    {
+      "input": "ops@x.com",
+      "valid": true,
+      "normalized": "ops@x.com"
+    },
+    {
+      "input": " OPS@x.com ",
+      "valid": true,
+      "normalized": "ops@x.com"
+    },
+    {
+      "input": "A@X.COM",
+      "valid": true,
+      "normalized": "a@x.com"
+    },
+    {
+      "input": "\tali@example.com\n",
+      "valid": true,
+      "normalized": "ali@example.com"
+    },
+    {
+      "input": "first.last@example.com",
+      "valid": true,
+      "normalized": "first.last@example.com"
+    },
+    {
+      "input": "a.b+tag@x.io",
+      "valid": true,
+      "normalized": "a.b+tag@x.io"
+    },
+    {
+      "input": "qa+e2e@example.com",
+      "valid": true,
+      "normalized": "qa+e2e@example.com"
+    },
+    {
+      "input": "o'brien@example.com",
+      "valid": true,
+      "normalized": "o'brien@example.com"
+    },
+    {
+      "input": "a_b@x.com",
+      "valid": true,
+      "normalized": "a_b@x.com"
+    },
+    {
+      "input": "-a@x.com",
+      "valid": true,
+      "normalized": "-a@x.com"
+    },
+    {
+      "input": "a-@x.com",
+      "valid": true,
+      "normalized": "a-@x.com"
+    },
+    {
+      "input": "a@b.co",
+      "valid": true,
+      "normalized": "a@b.co"
+    },
+    {
+      "input": "a@sub.x.museum",
+      "valid": true,
+      "normalized": "a@sub.x.museum"
+    },
+    {
+      "input": "a@1x.com",
+      "valid": true,
+      "normalized": "a@1x.com"
+    },
+    {
+      "input": "a@x--y.com",
+      "valid": true,
+      "normalized": "a@x--y.com"
+    },
+    {
+      "input": "a@x-.com",
+      "valid": true,
+      "normalized": "a@x-.com"
+    },
+    {
+      "input": "alerts@partner.example",
+      "valid": true,
+      "normalized": "alerts@partner.example"
+    },
+    {
+      "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@x.com",
+      "valid": true,
+      "normalized": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@x.com"
+    },
+    {
+      "input": "",
+      "valid": false,
+      "reason": "empty"
+    },
+    {
+      "input": "   ",
+      "valid": false,
+      "reason": "whitespace only"
+    },
+    {
+      "input": "rina@",
+      "valid": false,
+      "reason": "no domain"
+    },
+    {
+      "input": "@x.com",
+      "valid": false,
+      "reason": "no local part"
+    },
+    {
+      "input": "plainaddress",
+      "valid": false,
+      "reason": "no @"
+    },
+    {
+      "input": "a@b",
+      "valid": false,
+      "reason": "no top-level domain"
+    },
+    {
+      "input": "a@b_c.com",
+      "valid": false,
+      "reason": "underscore in the domain"
+    },
+    {
+      "input": "a@x.c",
+      "valid": false,
+      "reason": "one-letter top-level domain"
+    },
+    {
+      "input": "a@x.123",
+      "valid": false,
+      "reason": "numeric top-level domain"
+    },
+    {
+      "input": "a@x.com.",
+      "valid": false,
+      "reason": "trailing dot"
+    },
+    {
+      "input": "a@-x.com",
+      "valid": false,
+      "reason": "domain label starts with a hyphen"
+    },
+    {
+      "input": "a..b@x.com",
+      "valid": false,
+      "reason": "consecutive dots in the local part"
+    },
+    {
+      "input": ".a@x.com",
+      "valid": false,
+      "reason": "local part starts with a dot"
+    },
+    {
+      "input": "a.@x.com",
+      "valid": false,
+      "reason": "local part ends with a dot"
+    },
+    {
+      "input": "a b@x.com",
+      "valid": false,
+      "reason": "space in the local part"
+    },
+    {
+      "input": "a@@x.com",
+      "valid": false,
+      "reason": "two @"
+    },
+    {
+      "input": "\"q\"@x.com",
+      "valid": false,
+      "reason": "quoted local part"
+    },
+    {
+      "input": "x@[1.2.3.4]",
+      "valid": false,
+      "reason": "IP literal domain"
+    },
+    {
+      "input": "user@localhost",
+      "valid": false,
+      "reason": "single-label domain"
+    },
+    {
+      "input": "ü@x.com",
+      "valid": false,
+      "reason": "non-ASCII local part"
+    },
+    {
+      "input": "a@ü.com",
+      "valid": false,
+      "reason": "non-ASCII domain"
+    },
+    {
+      "input": "a@x.com,b@x.com",
+      "valid": false,
+      "reason": "two addresses"
+    },
+    {
+      "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@x.com",
+      "valid": false,
+      "reason": "255 characters"
+    }
+  ]
+}
