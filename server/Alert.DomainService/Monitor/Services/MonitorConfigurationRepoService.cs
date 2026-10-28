@@ -540,7 +540,7 @@ namespace DomainService.Monitor.Services
             catch (MongoBulkWriteException<MonitorConfiguration> ex)
             {
                 // Unordered: the other updates still ran. The failed ones are found by the caller's re-read.
-                // Only counts leave the catch (C20): a write error's errInfo can quote the new Emails values.
+                // Per C20 only counts leave the catch, because a write error's errInfo can quote the new Emails values.
                 matched = ex.Result.MatchedCount;
                 writeErrors = ex.WriteErrors.Count;
             }

@@ -113,7 +113,7 @@ public sealed class AlertRecipientStore : IAlertRecipientStore
         }
         catch (Exception ex)
         {
-            // Only the type name leaves the catch (C20): a driver message may quote the stored data.
+            // Per C20 only the type name leaves the catch, because a driver message may quote the stored data.
             errorType = ex.GetType().Name;
         }
 

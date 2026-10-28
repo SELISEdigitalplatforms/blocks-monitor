@@ -72,7 +72,7 @@ public sealed class AlertRecipientReconciler : IAlertRecipientReconciler
         }
         catch (Exception ex)
         {
-            // Only the type name leaves the catch (C20): the exception itself is never logged.
+            // Per C20 only the type name leaves the catch, and the exception itself is never logged.
             readErrorType = ex.GetType().Name;
         }
 
