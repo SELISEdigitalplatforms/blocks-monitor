@@ -1,4 +1,6 @@
 using Blocks.Genesis.Entities.Monitor;
+using DomainService.AlertRecipients.Models;
+using DomainService.AlertRecipients.Services;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.Services;
@@ -26,6 +28,7 @@ namespace Api.Controllers
         private readonly IMonitorIncidentService _monitorIncidentService;
         private readonly IMonitorPingService _monitorPingService;
         private readonly IReleaseDriverService _releaseDriverService;
+        private readonly IAlertRecipientService _alertRecipientService;
         private readonly IConfiguration _configuration;
         private readonly ILogger<MonitorController> _logger;
 
@@ -35,12 +38,14 @@ namespace Api.Controllers
         /// <param name="monitorConfigurationService">Service for monitor configuration operations.</param>
         /// <param name="monitorPingService">Service for monitor ping operations.</param>
         /// <param name="monitorIncidentService">Service for monitor incident operations.</param>
+        /// <param name="alertRecipientService">Service for the Alert recipients page.</param>
         public MonitorController(
             IMonitorConfigurationService monitorConfigurationService,
             IMonitorPingService monitorPingService,
             IMonitorConfigurationRepoService monitorConfigurationRepoService,
             IMonitorIncidentService monitorIncidentService,
             IReleaseDriverService releaseDriverService,
+            IAlertRecipientService alertRecipientService,
             IConfiguration configuration,
             ILogger<MonitorController> logger)
         {
@@ -49,6 +54,7 @@ namespace Api.Controllers
             _monitorConfigurationRepoService = monitorConfigurationRepoService;
             _monitorIncidentService = monitorIncidentService;
             _releaseDriverService = releaseDriverService;
+            _alertRecipientService = alertRecipientService;
             _configuration = configuration;
             _logger = logger;
         }
@@ -197,6 +203,59 @@ namespace Api.Controllers
                 Data = result,
                 IsSuccess = true
             });
+        }
+
+        /// <summary>
+        /// Lists the project's editable monitors and the people who get their alert emails (the Alert recipients page).
+        /// </summary>
+        /// <param name="projectKey">The project; must be the caller's own, otherwise "Project not found."</param>
+        /// <returns>An <see cref="AlertRecipientsResponse"/> in <c>Data</c>.</returns>
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
+        [HttpGet]
+        public async Task<IActionResult> GetAlertRecipients([FromQuery] string? projectKey)
+        {
+            var result = await _alertRecipientService.GetAsync(projectKey);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Lists up to 50 project members' emails that are not alert recipients yet.
+        /// </summary>
+        /// <param name="projectKey">The project; must be the caller's own, otherwise "Project not found."</param>
+        /// <returns>An <see cref="AlertRecipientSuggestionsResponse"/> in <c>Data</c>.</returns>
+        [ProtectedEndPoint("blocks-monitor::monitor::manage")]
+        [HttpGet]
+        public async Task<IActionResult> GetAlertRecipientSuggestions([FromQuery] string? projectKey)
+        {
+            var result = await _alertRecipientService.GetSuggestionsAsync(projectKey);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Adds or updates an alert recipient: on all editable monitors (and monitors created later) or on the chosen ones.
+        /// </summary>
+        /// <param name="request">The project, the email, and all monitors or up to 500 monitor ids.</param>
+        /// <returns>An <see cref="AlertRecipientChangeResult"/> in <c>Data</c>.</returns>
+        [ProtectedEndPoint("blocks-monitor::monitor::manage")]
+        [HttpPost]
+        public async Task<IActionResult> SaveAlertRecipient([FromBody] SaveAlertRecipientRequest request)
+        {
+            var result = await _alertRecipientService.SaveAsync(request);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Removes an alert recipient from every editable monitor of the project. A POST with the email in the body,
+        /// so no URL or request log carries the address.
+        /// </summary>
+        /// <param name="request">The project and the email.</param>
+        /// <returns>An <see cref="AlertRecipientRemoveResult"/> in <c>Data</c>.</returns>
+        [ProtectedEndPoint("blocks-monitor::monitor::manage")]
+        [HttpPost]
+        public async Task<IActionResult> DeleteAlertRecipient([FromBody] DeleteAlertRecipientRequest request)
+        {
+            var result = await _alertRecipientService.DeleteAsync(request);
+            return Ok(result);
         }
 
         /// <summary>

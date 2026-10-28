@@ -1,6 +1,8 @@
 ﻿using DomainService.Shared.DataAccess;
 using DomainService.Shared.Services;
 using DomainService.Alert.Services;
+using DomainService.AlertRecipients.Models;
+using DomainService.AlertRecipients.Services;
 using DomainService.Health.HealthWorkerService;
 using DomainService.Health.Services;
 using DomainService.Monitor.Models;
@@ -41,6 +43,10 @@ namespace Alert.DomainService
             services.AddSingleton<IMonitorPingRepoService, MonitorPingRepoService>();
             services.AddTransient<IValidator<SaveMonitorConfigurationRequest>, SaveMonitorConfigurationRequestValidator>();
             services.AddTransient<IValidator<UpdateMonitorConfigurationRequest>, UpdateMonitorConfigurationRequestValidator>();
+            services.AddSingleton<IAlertRecipientStore, AlertRecipientStore>();
+            services.AddSingleton<IAlertRecipientService, AlertRecipientService>();
+            services.AddSingleton<IAlertRecipientReconciler, AlertRecipientReconciler>();
+            services.AddTransient<IValidator<SaveAlertRecipientRequest>, SaveAlertRecipientRequestValidator>();
 
         }
     }

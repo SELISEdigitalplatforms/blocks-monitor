@@ -35,6 +35,18 @@ namespace DomainService.Alert.Services
             return result.Select(p => p.UserId).ToList();
         }
 
+        /// <summary>
+        /// The raw emails of the project's members (Alert recipients suggestions); only the Email field is read.
+        /// Read failures propagate.
+        /// </summary>
+        public async Task<List<string>> GetProjectMemberEmailsAsync(string tenantId)
+        {
+            var filter = Builders<ProjectPeople>.Filter.Eq(r => r.TenantId, tenantId);
+            var projection = Builders<ProjectPeople>.Projection.Include(p => p.Email);
+            var result = await _projectPeopleCollection.Find(filter).Project<ProjectPeople>(projection).ToListAsync();
+            return result.Select(p => p.Email).Where(email => !string.IsNullOrWhiteSpace(email)).ToList();
+        }
+
         public async Task<EmailTemplate> GetAlertMailTemplateByNameAsync(string name)
         {
             var filter = Builders<EmailTemplate>.Filter.Eq(t => t.Name, name);

@@ -1,0 +1,140 @@
+using Blocks.Genesis;
+using DomainService.AlertRecipients.Models;
+using Microsoft.Extensions.Logging;
+
+namespace DomainService.AlertRecipients.Services;
+
+/// <summary>One person as stored, merged from every key-value document carrying their email.</summary>
+/// <param name="Entry">The winning value (latest <c>UpdatedAt</c>), with the email normalized.</param>
+/// <param name="ItemIds">The key-value documents for the email, the winner first.</param>
+public sealed record StoredAlertRecipient(AlertRecipientEntry Entry, IReadOnlyList<string> ItemIds);
+
+/// <summary>
+/// The people list in the Genesis key-value store (root DB, multi-value API): one document per person under
+/// <c>monitor:alert-recipients:{tenant}</c>. Reads merge duplicates (latest <c>UpdatedAt</c> wins); writes for a
+/// person remove that person's extra documents. All reads and writes throw on failure, except
+/// <see cref="GetEmailsForNewMonitorAsync"/>, which never fails a monitor create.
+/// </summary>
+public interface IAlertRecipientStore
+{
+    /// <summary>The project's people by normalized email.</summary>
+    Task<Dictionary<string, StoredAlertRecipient>> GetAsync(string tenantId);
+
+    /// <summary>Upserts <paramref name="entry"/> and deletes the person's duplicate documents.</summary>
+    Task SaveAsync(string tenantId, AlertRecipientEntry entry, StoredAlertRecipient? existing);
+
+    /// <summary>Deletes every document of the person.</summary>
+    Task RemoveAsync(StoredAlertRecipient existing);
+
+    /// <summary>For each project with "All monitors" people: those emails, sorted, at most 10.</summary>
+    Task<Dictionary<string, List<string>>> GetAllMonitorsEmailsByTenantAsync();
+
+    /// <summary>
+    /// The emails a new editable monitor of <paramref name="projectKey"/> starts with: its "All monitors" people,
+    /// sorted, at most 10. Empty, with a warning, when the caller belongs to another project (decision Q2) or the
+    /// read fails (C10). Never throws.
+    /// </summary>
+    Task<List<string>> GetEmailsForNewMonitorAsync(string? projectKey);
+}
+
+public sealed class AlertRecipientStore : IAlertRecipientStore
+{
+    private readonly IKeyValueStore _keyValueStore;
+    private readonly ILogger<AlertRecipientStore> _logger;
+
+    public AlertRecipientStore(IKeyValueStore keyValueStore, ILogger<AlertRecipientStore> logger)
+    {
+        _keyValueStore = keyValueStore;
+        _logger = logger;
+    }
+
+    public async Task<Dictionary<string, StoredAlertRecipient>> GetAsync(string tenantId)
+    {
+        var items = await _keyValueStore.GetAllAsync<AlertRecipientEntry>(AlertRecipientRules.Key(tenantId), impersonated: false);
+        return Merge(items);
+    }
+
+    public async Task SaveAsync(string tenantId, AlertRecipientEntry entry, StoredAlertRecipient? existing)
+    {
+        if (existing is null || !await _keyValueStore.UpdateByIdAsync(existing.ItemIds[0], entry, impersonated: false))
+            await _keyValueStore.AddAsync(AlertRecipientRules.Key(tenantId), entry, impersonated: false);
+
+        if (existing is not null)
+        {
+            foreach (var duplicate in existing.ItemIds.Skip(1))
+                await _keyValueStore.DeleteByIdAsync(duplicate, impersonated: false);
+        }
+    }
+
+    public async Task RemoveAsync(StoredAlertRecipient existing)
+    {
+        foreach (var itemId in existing.ItemIds)
+            await _keyValueStore.DeleteByIdAsync(itemId, impersonated: false);
+    }
+
+    public async Task<Dictionary<string, List<string>>> GetAllMonitorsEmailsByTenantAsync()
+    {
+        var items = await _keyValueStore.GetAllByPrefixAsync<AlertRecipientEntry>(AlertRecipientRules.KeyPrefix, impersonated: false);
+        return items
+            .GroupBy(item => item.Key[AlertRecipientRules.KeyPrefix.Length..], StringComparer.Ordinal)
+            .Where(group => group.Key.Length > 0)
+            .Select(group => (Tenant: group.Key, Emails: AllMonitorsEmails(Merge(group))))
+            .Where(tenant => tenant.Emails.Count > 0)
+            .ToDictionary(tenant => tenant.Tenant, tenant => tenant.Emails, StringComparer.Ordinal);
+    }
+
+    public async Task<List<string>> GetEmailsForNewMonitorAsync(string? projectKey)
+    {
+        if (string.IsNullOrWhiteSpace(projectKey))
+            return new List<string>();
+
+        var callerTenantId = BlocksContext.GetContext()?.TenantId;
+        if (!string.IsNullOrEmpty(callerTenantId) && !string.Equals(callerTenantId, projectKey, StringComparison.Ordinal))
+        {
+            _logger.LogWarning("Monitor created for project {ProjectKey} by a caller of another project; its \"All monitors\" alert recipients were not added.", projectKey);
+            return new List<string>();
+        }
+
+        try
+        {
+            return AllMonitorsEmails(await GetAsync(projectKey));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Reading the \"All monitors\" alert recipients of project {ProjectKey} failed; the monitor is created without recipients.", projectKey);
+            return new List<string>();
+        }
+    }
+
+    /// <summary>The "All monitors" people, sorted, at most 10.</summary>
+    public static List<string> AllMonitorsEmails(Dictionary<string, StoredAlertRecipient> people) =>
+        people.Values
+            .Where(person => person.Entry.AllMonitors)
+            .Select(person => person.Entry.Email)
+            .Order(StringComparer.Ordinal)
+            .Take(AlertRecipientRules.MaxEmailsPerMonitor)
+            .ToList();
+
+    /// <summary>Groups documents by normalized email; the latest <c>UpdatedAt</c> wins (then the latest write).</summary>
+    public static Dictionary<string, StoredAlertRecipient> Merge(IEnumerable<KeyValueItem<AlertRecipientEntry>> items) =>
+        items
+            .Where(item => item.Value is not null && !string.IsNullOrWhiteSpace(item.Value.Email))
+            .GroupBy(item => AlertRecipientEmail.Normalize(item.Value.Email), StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group =>
+            {
+                var ordered = group
+                    .OrderByDescending(item => item.Value.UpdatedAt)
+                    .ThenByDescending(item => item.LastUpdatedDate)
+                    .ThenBy(item => item.ItemId, StringComparer.Ordinal)
+                    .ToList();
+                var winner = ordered[0].Value;
+                var entry = new AlertRecipientEntry
+                {
+                    Email = group.Key,
+                    AllMonitors = winner.AllMonitors,
+                    UpdatedBy = winner.UpdatedBy,
+                    UpdatedAt = winner.UpdatedAt,
+                };
+                return new StoredAlertRecipient(entry, ordered.Select(item => item.ItemId).ToList());
+            }, StringComparer.Ordinal);
+}

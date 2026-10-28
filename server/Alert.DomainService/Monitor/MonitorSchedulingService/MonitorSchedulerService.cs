@@ -1,4 +1,5 @@
 ﻿using Blocks.Genesis.Entities.Monitor;
+using DomainService.AlertRecipients.Services;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 
@@ -9,6 +10,7 @@ namespace DomainService.Monitor.Services
         private readonly IMonitorQueueManager _queueManager;
         private readonly IMonitorPingService _pingService;
         private readonly IMonitorConfigurationRepoService _monitorConfigurationRepoService;
+        private readonly IAlertRecipientReconciler _alertRecipientReconciler;
         private readonly ILogger<MonitorSchedulerService> _logger;
 
         private readonly int _workerCount;
@@ -21,6 +23,7 @@ namespace DomainService.Monitor.Services
             IMonitorQueueManager queueManager,
             IMonitorPingService pingService,
             IMonitorConfigurationRepoService monitorConfigurationRepoService,
+            IAlertRecipientReconciler alertRecipientReconciler,
             ILogger<MonitorSchedulerService> logger,
             int workerCount = 10)
         {
@@ -28,6 +31,7 @@ namespace DomainService.Monitor.Services
             _queueManager = queueManager;
             _pingService = pingService;
             _monitorConfigurationRepoService = monitorConfigurationRepoService;
+            _alertRecipientReconciler = alertRecipientReconciler;
             _workerCount = workerCount;
         }
 
@@ -97,16 +101,34 @@ namespace DomainService.Monitor.Services
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                try
-                {
-                    await LoadMonitorsFromDatabaseAsync();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "[MonitorScheduler] Polling failed");
-                }
+                await PollOnceAsync();
 
                 await Task.Delay(_pollingInterval, cancellationToken);
+            }
+        }
+
+        /// <summary>
+        /// One poll: first give monitors created elsewhere (blocks-release) their "All monitors" people, so a lost
+        /// refresh message is corrected within one poll (H19); then reload. A reconcile failure never stops the reload.
+        /// </summary>
+        public async Task PollOnceAsync()
+        {
+            try
+            {
+                await _alertRecipientReconciler.ReconcileAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("[MonitorScheduler] Alert recipient reconciliation failed: {ErrorType}", ex.GetType().Name);
+            }
+
+            try
+            {
+                await LoadMonitorsFromDatabaseAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[MonitorScheduler] Polling failed");
             }
         }
 

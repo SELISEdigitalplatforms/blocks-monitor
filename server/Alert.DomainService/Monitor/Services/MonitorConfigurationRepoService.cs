@@ -400,5 +400,153 @@ namespace DomainService.Monitor.Services
                 return null;
             }
         }
+
+        // ---------------------------------------------------------------- //
+        // Alert recipients                                                  //
+        // ---------------------------------------------------------------- //
+
+        private static readonly MonitorSourceTypes?[] NotEditableSourceTypes =
+            { MonitorSourceTypes.Infrastructure, MonitorSourceTypes.BlocksServices };
+
+        /// <summary>
+        /// The fields the Alert recipients page needs. The legacy <c>MonitorSourcetypes</c> element and <c>TenantId</c>
+        /// are included so a projected legacy Blocks-services monitor still computes as not editable.
+        /// </summary>
+        public static readonly ProjectionDefinition<MonitorConfiguration> AlertRecipientsViewProjection =
+            Builders<MonitorConfiguration>.Projection
+                .Include(m => m.ItemId)
+                .Include(m => m.Name)
+                .Include(m => m.MonitorConfigurationType)
+                .Include(m => m.MonitorSourceType)
+                .Include(m => m.LegacyMonitorSourceType)
+                .Include(m => m.TenantId)
+                .Include(m => m.IsActive)
+                .Include(m => m.Emails);
+
+        /// <summary>
+        /// Editable monitors of <paramref name="tenantId"/>. <c>EffectiveMonitorSourceType</c> is not stored, so its
+        /// precedence is spelled out: <c>MonitorSourceType</c> is not Infrastructure/BlocksServices (a missing or null
+        /// value passes <c>$nin</c>), and when it is null the legacy <c>MonitorSourcetypes</c> is not either.
+        /// </summary>
+        public static FilterDefinition<MonitorConfiguration> EditableMonitorsFilter(string tenantId)
+        {
+            var fb = Builders<MonitorConfiguration>.Filter;
+            return fb.And(
+                fb.Eq(m => m.TenantId, tenantId),
+                fb.Nin(m => m.MonitorSourceType, NotEditableSourceTypes),
+                fb.Not(fb.And(
+                    fb.Eq(m => m.MonitorSourceType, null),
+                    fb.In(m => m.LegacyMonitorSourceType, NotEditableSourceTypes))));
+        }
+
+        /// <summary>
+        /// The write filter of one update: the request's EDIT row filter, the monitor, and its Emails exactly as read.
+        /// An empty read list also matches a missing or null field, so such monitors don't always conflict.
+        /// </summary>
+        public static FilterDefinition<MonitorConfiguration> EmailsUpdateFilter(MonitorEmailsUpdate update, FilterDefinition<MonitorConfiguration> editFilter)
+        {
+            var fb = Builders<MonitorConfiguration>.Filter;
+            var previous = update.PreviousEmails is { Count: > 0 }
+                ? fb.Eq(m => m.Emails, update.PreviousEmails.ToList())
+                : fb.Or(
+                    fb.Eq(m => m.Emails, new List<string>()),
+                    fb.Exists(m => m.Emails, false),
+                    fb.Eq(m => m.Emails, null));
+            return fb.And(editFilter, fb.Eq(m => m.ItemId, update.ItemId), previous);
+        }
+
+        /// <summary><c>$set</c> only: Emails and the audit fields. Nothing else on the monitor is written.</summary>
+        public static UpdateDefinition<MonitorConfiguration> EmailsUpdateDefinition(MonitorEmailsUpdate update) =>
+            Builders<MonitorConfiguration>.Update
+                .Set(m => m.Emails, update.NewEmails)
+                .Set(m => m.LastUpdatedDate, update.UpdatedAt)
+                .Set(m => m.LastUpdatedBy, update.UpdatedBy);
+
+        public async Task<List<MonitorConfiguration>> GetEditableMonitorsForViewAsync(string tenantId)
+        {
+            var scope = await _access.ReadAsync(MonitorSchemas.MonitorConfiguration, EditableMonitorsFilter(tenantId),
+                "MonitorConfigurationRepoService.GetEditableMonitorsForViewAsync");
+            if (!scope.Granted) return new List<MonitorConfiguration>();
+
+            // The resolver's projection wins when there is one, so columns hidden from the caller stay hidden.
+            var items = scope.Projection is null
+                ? await _monitorConfigurationCollection.Find(scope.Filter).Project<MonitorConfiguration>(AlertRecipientsViewProjection).ToListAsync()
+                : await scope.Apply(_monitorConfigurationCollection).ToListAsync();
+            return scope.ForView(items);
+        }
+
+        public async Task<List<MonitorConfiguration>> GetEditableMonitorsAsync(string tenantId, IReadOnlyCollection<string>? itemIds = null)
+        {
+            var filter = EditableMonitorsFilter(tenantId);
+            if (itemIds is not null)
+                filter = Builders<MonitorConfiguration>.Filter.And(filter, Builders<MonitorConfiguration>.Filter.In(m => m.ItemId, itemIds));
+            // Whole documents: the write compares and rewrites the stored Emails list.
+            var scope = await _access.ReadAsync(MonitorSchemas.MonitorConfiguration, filter,
+                "MonitorConfigurationRepoService.GetEditableMonitorsAsync", useProjection: false);
+            return scope.Granted ? await scope.Apply(_monitorConfigurationCollection).ToListAsync() : new List<MonitorConfiguration>();
+        }
+
+        public async Task<List<MonitorConfiguration>> GetEditableMonitorsMissingEmailsAsync(string tenantId, IReadOnlyCollection<string> emails)
+        {
+            var fb = Builders<MonitorConfiguration>.Filter;
+            var filter = fb.And(EditableMonitorsFilter(tenantId), fb.Not(fb.All(m => m.Emails, emails)));
+            var scope = await _access.ReadAsync(MonitorSchemas.MonitorConfiguration, filter,
+                "MonitorConfigurationRepoService.GetEditableMonitorsMissingEmailsAsync", useProjection: false);
+            return scope.Granted ? await scope.Apply(_monitorConfigurationCollection).ToListAsync() : new List<MonitorConfiguration>();
+        }
+
+        public Task<FilterDefinition<MonitorConfiguration>?> GetEmailsEditFilterAsync(string tenantId, IReadOnlyCollection<string> itemIds)
+        {
+            var fb = Builders<MonitorConfiguration>.Filter;
+            return _access.EditFilterAsync(MonitorSchemas.MonitorConfiguration,
+                fb.And(fb.Eq(m => m.TenantId, tenantId), fb.In(m => m.ItemId, itemIds)),
+                "MonitorConfigurationRepoService.GetEmailsEditFilterAsync");
+        }
+
+        public async Task<IReadOnlyList<MonitorEmailsCheckFailure>> CheckEmailsUpdatesAsync(IReadOnlyList<MonitorEmailsUpdate> updates)
+        {
+            const string callSite = "MonitorConfigurationRepoService.CheckEmailsUpdatesAsync";
+            // The resolver caches nothing, so each check costs several tenant-DB reads: run them side by side, bounded.
+            var failures = new MonitorEmailsCheckFailure?[updates.Count];
+            await Parallel.ForEachAsync(Enumerable.Range(0, updates.Count),
+                new ParallelOptions { MaxDegreeOfParallelism = DomainService.AlertRecipients.Models.AlertRecipientRules.CheckParallelism },
+                async (index, _) =>
+                {
+                    try
+                    {
+                        await _access.CheckUpdateAsync(MonitorSchemas.MonitorConfiguration, EmailsUpdateDefinition(updates[index]), callSite);
+                    }
+                    catch (DataValidationException ex)
+                    {
+                        failures[index] = new MonitorEmailsCheckFailure(updates[index].ItemId, ex);
+                    }
+                });
+            return failures.OfType<MonitorEmailsCheckFailure>().ToList();
+        }
+
+        public async Task<long> BulkUpdateEmailsAsync(IReadOnlyList<MonitorEmailsUpdate> updates, FilterDefinition<MonitorConfiguration> editFilter)
+        {
+            if (updates.Count == 0) return 0;
+            var models = updates
+                .Select(u => (WriteModel<MonitorConfiguration>)new UpdateOneModel<MonitorConfiguration>(EmailsUpdateFilter(u, editFilter), EmailsUpdateDefinition(u)))
+                .ToList();
+            try
+            {
+                var result = await _monitorConfigurationCollection.BulkWriteAsync(models, new BulkWriteOptions { IsOrdered = false });
+                return result.MatchedCount;
+            }
+            catch (MongoBulkWriteException<MonitorConfiguration> ex)
+            {
+                // Unordered: the other updates still ran. The failed ones are found by the caller's re-read.
+                _logger.LogError(ex, "Bulk update of monitor alert recipients had {Count} write errors.", ex.WriteErrors.Count);
+                return ex.Result.MatchedCount;
+            }
+        }
+
+        public async Task<bool> UpdateEmailsAsync(MonitorEmailsUpdate update, FilterDefinition<MonitorConfiguration> editFilter)
+        {
+            var result = await _monitorConfigurationCollection.UpdateOneAsync(EmailsUpdateFilter(update, editFilter), EmailsUpdateDefinition(update));
+            return result.MatchedCount > 0;
+        }
     }
 }
