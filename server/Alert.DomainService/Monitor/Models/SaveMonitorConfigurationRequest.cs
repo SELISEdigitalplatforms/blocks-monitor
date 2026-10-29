@@ -27,7 +27,7 @@
 
         public List<string> SuccessHttpResponseCodes { get; set; } = new List<string>();
         public List<string> Regions { get; set; } = new List<string>();
-        public List<string> Emails { get; set; } = new List<string>();
+        // No Emails: recipients are managed on the Alert recipients page. An `emails` property in the JSON is ignored.
     }
 
     public class UpdateMonitorConfigurationRequest : SaveMonitorConfigurationRequest

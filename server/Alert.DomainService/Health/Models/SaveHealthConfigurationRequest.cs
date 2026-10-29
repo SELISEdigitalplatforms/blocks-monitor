@@ -11,7 +11,7 @@
         public int IntervalInSeconds { get; set; }
         public int GracePeriodInSeconds { get; set; }
         public string? MonitorSourceType { get; set; }
-        public List<string> Emails { get; set; } = new List<string>();
+        // No Emails: recipients are managed on the Alert recipients page. An `emails` property in the JSON is ignored.
     }
 
     public class UpdateHealthConfigurationRequest : SaveHealthConfigurationRequest

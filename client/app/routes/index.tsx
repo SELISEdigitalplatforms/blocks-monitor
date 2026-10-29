@@ -1,5 +1,6 @@
 import { navigationMenus } from "@/constants/navigation-menus.constant";
 import { MonitorLayout } from "@/layouts/monitor-layout/monitor-layout";
+import AlertRecipientsPage from "@/pages/alert-recipients";
 import MonitorPage from "@/pages/monitor";
 import IncidentPage from "@/pages/incidents";
 import MonitorDetailsPage from "@/pages/monitor/details";
@@ -99,6 +100,7 @@ export const routes = [
                         path: "monitor/incidents/:id",
                         element: <IncidentPage />,
                       },
+                      { path: "alert-recipients", element: <AlertRecipientsPage /> },
                       { path: "repos", element: <ReposPage /> },
                       { path: "repo/:repoId", element: <RepoDetailsPage /> },
                       { path: "repos/:repoId", element: <RepoDetailsPage /> },

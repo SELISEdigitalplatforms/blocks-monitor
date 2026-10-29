@@ -48,7 +48,8 @@ namespace XUnitTest.Api
 
             var configuration = new Mock<IConfiguration>();
             configuration.Setup(c => c["AlertServiceUrl"]).Returns("http://alert");
-            var healthConfig = new HealthConfigurationService(new Mock<ILogger<HealthConfigurationService>>().Object, healthCheck, configuration.Object, healthRepo);
+            var healthConfig = new HealthConfigurationService(new Mock<ILogger<HealthConfigurationService>>().Object, healthCheck, configuration.Object, healthRepo,
+                new Mock<DomainService.AlertRecipients.Services.IAlertRecipientStore>().Object);
 
             return new HealthController(healthConfig, healthCheck);
         }

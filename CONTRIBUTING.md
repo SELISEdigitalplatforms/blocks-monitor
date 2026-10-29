@@ -56,9 +56,8 @@ process in [SECURITY.md](SECURITY.md).
 ## Product vocabulary
 
 - The product is **Blocks Monitor** (short: **Monitor**). **"Observability" is retired**: do
-  not introduce it in new code, comments, or copy. The one remaining externally-breaking use is
-  the published NuGet `PackageId` (`SeliseBlocks.ObservabilityDriver`), which needs a separate
-  deprecation window before it can be renamed.
+  not introduce it in new code, comments, or copy. The published NuGet `PackageId` is
+  `SeliseBlocks.MonitorDriver.OS`.
 - Each check type has exactly one user-facing name:
   - **HTTP Check**: "we ping you" (domain enum `OutboundPing`, `MonitorConfigurationType = request`).
   - **Heartbeat**: "you ping us" (domain enum `InboundPing`, `MonitorConfigurationType = callback`).

@@ -21,6 +21,16 @@ namespace XUnitTest.Health
 {
     public class HealthConfigurationServiceTests
     {
+        // The create hook's source of "All monitors" people; by default nobody.
+        private readonly Mock<DomainService.AlertRecipients.Services.IAlertRecipientStore> _alertRecipientStore = CreateStore();
+
+        private static Mock<DomainService.AlertRecipients.Services.IAlertRecipientStore> CreateStore()
+        {
+            var store = new Mock<DomainService.AlertRecipients.Services.IAlertRecipientStore>();
+            store.Setup(s => s.GetEmailsForNewMonitorAsync(It.IsAny<string?>())).ReturnsAsync(new List<string>());
+            return store;
+        }
+
         private HealthConfigurationService Build(
             IEnumerable<MonitorConfiguration> configs = null,
             IEnumerable<MonitorIncident> incidents = null)
@@ -58,7 +68,7 @@ namespace XUnitTest.Health
             configuration.Setup(c => c["AlertServiceUrl"]).Returns("http://alert");
 
             return new HealthConfigurationService(
-                new Mock<ILogger<HealthConfigurationService>>().Object, healthCheck, configuration.Object, healthRepo);
+                new Mock<ILogger<HealthConfigurationService>>().Object, healthCheck, configuration.Object, healthRepo, _alertRecipientStore.Object);
         }
 
         // Same wiring as Build, but with a caller-supplied MonitorConfiguration collection so that
@@ -94,7 +104,7 @@ namespace XUnitTest.Health
             configuration.Setup(c => c["AlertServiceUrl"]).Returns("http://alert");
 
             return new HealthConfigurationService(
-                new Mock<ILogger<HealthConfigurationService>>().Object, healthCheck, configuration.Object, healthRepo);
+                new Mock<ILogger<HealthConfigurationService>>().Object, healthCheck, configuration.Object, healthRepo, _alertRecipientStore.Object);
         }
 
         [Fact]
@@ -194,20 +204,20 @@ namespace XUnitTest.Health
         }
 
         [Fact]
-        public async Task UpdateConfigurationAsync_WhenEmailsProvided_ReplacesEmails()
+        public async Task UpdateConfigurationAsync_KeepsTheExistingEmails()
         {
+            // C11: an update never changes Emails; an old client's `emails` is ignored when the JSON binds.
             var existing = new MonitorConfiguration { ItemId = "m1", Name = "old", Emails = new List<string> { "old@test" } };
-            var request = new UpdateHealthConfigurationRequest
-            {
-                ItemId = "m1",
-                Name = "new",
-                Emails = new List<string> { "a@test", "b@test" }
-            };
+            var request = System.Text.Json.JsonSerializer.Deserialize<UpdateHealthConfigurationRequest>(
+                "{\"itemId\":\"m1\",\"name\":\"new\",\"emails\":[\"a@test\",\"b@test\"]}",
+                new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
 
             var result = await Build(configs: new List<MonitorConfiguration> { existing }).UpdateConfigurationAsync(request);
 
             var updated = result.Data.Should().BeOfType<MonitorConfiguration>().Subject;
-            updated.Emails.Should().BeEquivalentTo("a@test", "b@test");
+            updated.Name.Should().Be("new");
+            updated.Emails.Should().Equal("old@test");
+            _alertRecipientStore.Verify(s => s.GetEmailsForNewMonitorAsync(It.IsAny<string?>()), Times.Never);
         }
 
         [Fact]
@@ -363,6 +373,28 @@ namespace XUnitTest.Health
             var result = await BuildWithConfigCollection(coll).DeleteConfigurationAsync("m1");
 
             result.IsSuccess.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task SaveConfigurationAsync_H9_ANewHeartbeatStartsWithTheAllMonitorsPeople()
+        {
+            _alertRecipientStore.Setup(s => s.GetEmailsForNewMonitorAsync("p")).ReturnsAsync(new List<string> { "ops@x.com" });
+
+            var result = await Build().SaveConfigurationAsync(new SaveHealthConfigurationRequest { ProjectKey = "p", Name = "hb", IntervalInSeconds = 30 });
+
+            result.IsSuccess.Should().BeTrue();
+            result.Data.Should().BeOfType<MonitorConfiguration>().Which.Emails.Should().Equal("ops@x.com");
+        }
+
+        [Fact]
+        public async Task SaveConfigurationAsync_ABlocksServicesHeartbeat_GetsNoRecipients()
+        {
+            _alertRecipientStore.Setup(s => s.GetEmailsForNewMonitorAsync(It.IsAny<string?>())).ReturnsAsync(new List<string> { "ops@x.com" });
+
+            var result = await Build().SaveConfigurationAsync(new SaveHealthConfigurationRequest { ProjectKey = "p", Name = "hb", MonitorSourceType = "BlocksServices" });
+
+            result.Data.Should().BeOfType<MonitorConfiguration>().Which.Emails.Should().BeEmpty();
+            _alertRecipientStore.Verify(s => s.GetEmailsForNewMonitorAsync(It.IsAny<string?>()), Times.Never);
         }
 
         private static void SetCaller(string tenantId)

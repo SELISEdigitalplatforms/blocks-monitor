@@ -27,6 +27,7 @@ namespace XUnitTest.Api
         private readonly Mock<IMonitorIncidentService> _incidentService = new();
         private readonly Mock<IMonitorPingService> _pingService = new();
         private readonly Mock<ReleaseDriver.IReleaseDriverService> _releaseDriver = new();
+        private readonly Mock<DomainService.AlertRecipients.Services.IAlertRecipientService> _alertRecipients = new();
         private readonly Mock<IConfiguration> _configuration = new();
         private readonly Mock<ILogger<MonitorController>> _logger = new();
 
@@ -768,6 +769,10 @@ namespace XUnitTest.Api
         [InlineData(nameof(MonitorController.SaveMonitor), "blocks-monitor::monitor::manage")]
         [InlineData(nameof(MonitorController.UpdateMonitor), "blocks-monitor::monitor::manage")]
         [InlineData(nameof(MonitorController.DeleteMonitor), "blocks-monitor::monitor::manage")]
+        [InlineData(nameof(MonitorController.GetAlertRecipients), "blocks-monitor::monitor::read")]
+        [InlineData(nameof(MonitorController.GetAlertRecipientSuggestions), "blocks-monitor::monitor::manage")]
+        [InlineData(nameof(MonitorController.SaveAlertRecipient), "blocks-monitor::monitor::manage")]
+        [InlineData(nameof(MonitorController.DeleteAlertRecipient), "blocks-monitor::monitor::manage")]
         public void Action_IsProtectedByNamedPermission(string methodName, string expectedPermission)
         {
             var method = typeof(MonitorController).GetMethod(methodName)!;
@@ -789,6 +794,90 @@ namespace XUnitTest.Api
                 Attribute.GetCustomAttribute(action, typeof(ProtectedEndPointAttribute))
                     .Should().NotBeNull($"{action.Name} must carry a ProtectedEndPoint");
             }
+        }
+
+        // ---------- Alert recipients (C5; Q3: the delete is a POST with the email in the body) ----------
+
+        [Theory]
+        [InlineData(nameof(MonitorController.GetAlertRecipients), typeof(HttpGetAttribute))]
+        [InlineData(nameof(MonitorController.GetAlertRecipientSuggestions), typeof(HttpGetAttribute))]
+        [InlineData(nameof(MonitorController.SaveAlertRecipient), typeof(HttpPostAttribute))]
+        [InlineData(nameof(MonitorController.DeleteAlertRecipient), typeof(HttpPostAttribute))]
+        public void AlertRecipientAction_UsesTheControllerRouteAndMethod(string methodName, Type verb)
+        {
+            var method = typeof(MonitorController).GetMethod(methodName)!;
+
+            var attribute = method.GetCustomAttributes(typeof(Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute), false)
+                .Cast<Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute>().Single();
+            attribute.Should().BeOfType(verb);
+            attribute.Template.Should().BeNull("the route is the controller's [controller]/[action]");
+        }
+
+        [Fact]
+        public void DeleteAlertRecipient_TakesTheEmailFromTheBody()
+        {
+            var parameter = typeof(MonitorController).GetMethod(nameof(MonitorController.DeleteAlertRecipient))!.GetParameters()
+                .Single(p => p.ParameterType != typeof(DomainService.AlertRecipients.Services.IAlertRecipientService));
+
+            parameter.ParameterType.Should().Be(typeof(DomainService.AlertRecipients.Models.DeleteAlertRecipientRequest));
+            parameter.GetCustomAttributes(typeof(FromBodyAttribute), false).Should().ContainSingle();
+        }
+
+        [Theory]
+        [InlineData(nameof(MonitorController.GetAlertRecipients))]
+        [InlineData(nameof(MonitorController.GetAlertRecipientSuggestions))]
+        [InlineData(nameof(MonitorController.SaveAlertRecipient))]
+        [InlineData(nameof(MonitorController.DeleteAlertRecipient))]
+        public void AlertRecipientAction_ResolvesTheServiceFromTheRequestServices(string methodName)
+        {
+            // Not a request value: bound from DI, so it never shows in the API contract.
+            var parameter = typeof(MonitorController).GetMethod(methodName)!.GetParameters()
+                .Single(p => p.ParameterType == typeof(DomainService.AlertRecipients.Services.IAlertRecipientService));
+
+            parameter.GetCustomAttributes(typeof(FromServicesAttribute), false).Should().ContainSingle();
+        }
+
+        [Fact]
+        public async Task AlertRecipientActions_ReturnTheServiceResult()
+        {
+            var get = new BaseApiResponse { IsSuccess = true, Message = "get" };
+            var suggestions = new BaseApiResponse { IsSuccess = true, Message = "suggestions" };
+            var save = new BaseApiResponse { IsSuccess = true, Message = "save" };
+            var delete = new BaseApiResponse { IsSuccess = true, Message = "delete" };
+            var saveRequest = new DomainService.AlertRecipients.Models.SaveAlertRecipientRequest { ProjectKey = "p", Email = "a@x.com", AllMonitors = true };
+            var deleteRequest = new DomainService.AlertRecipients.Models.DeleteAlertRecipientRequest { ProjectKey = "p", Email = "a@x.com" };
+            _alertRecipients.Setup(s => s.GetAsync("p")).ReturnsAsync(get);
+            _alertRecipients.Setup(s => s.GetSuggestionsAsync("p")).ReturnsAsync(suggestions);
+            _alertRecipients.Setup(s => s.SaveAsync(saveRequest)).ReturnsAsync(save);
+            _alertRecipients.Setup(s => s.DeleteAsync(deleteRequest)).ReturnsAsync(delete);
+            var sut = CreateSut();
+
+            Body<BaseApiResponse>(await sut.GetAlertRecipients("p", _alertRecipients.Object)).Should().BeSameAs(get);
+            Body<BaseApiResponse>(await sut.GetAlertRecipientSuggestions("p", _alertRecipients.Object)).Should().BeSameAs(suggestions);
+            Body<BaseApiResponse>(await sut.SaveAlertRecipient(saveRequest, _alertRecipients.Object)).Should().BeSameAs(save);
+            Body<BaseApiResponse>(await sut.DeleteAlertRecipient(deleteRequest, _alertRecipients.Object)).Should().BeSameAs(delete);
+        }
+
+        [Fact]
+        public void AlertRecipientResponses_SerializeInTheCamelCaseContractTheClientReads()
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(new BaseApiResponse
+            {
+                IsSuccess = true,
+                Message = "m",
+                Data = new DomainService.AlertRecipients.Models.AlertRecipientsResponse
+                {
+                    Monitors = { new() { ItemId = "m1", Name = "api", Kind = "HttpCheck", IsActive = true, EmailCount = 1 } },
+                    Recipients = { new() { Email = "a@x.com", AllMonitors = true, AllMonitorsChoice = true, MonitorIds = { "m1" } } },
+                },
+            }, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
+
+            json.Should().Contain("\"isSuccess\":true").And.Contain("\"message\":\"m\"")
+                .And.Contain("\"data\":{\"maxEmailsPerMonitor\":10,\"monitors\":[{\"itemId\":\"m1\",\"name\":\"api\",\"kind\":\"HttpCheck\",\"isActive\":true,\"emailCount\":1}]")
+                .And.Contain("\"recipients\":[{\"email\":\"a@x.com\",\"allMonitors\":true,\"allMonitorsChoice\":true,\"monitorIds\":[\"m1\"]}],\"monitorsWithoutRecipients\":[]");
+            System.Text.Json.JsonSerializer.Serialize<object>(new DomainService.AlertRecipients.Models.AlertRecipientRemoveResult { Email = "a@x.com", Removed = 2 },
+                    new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))
+                .Should().Be("{\"email\":\"a@x.com\",\"removed\":2,\"conflicted\":[],\"denied\":[]}");
         }
     }
 }

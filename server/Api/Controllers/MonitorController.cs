@@ -1,4 +1,6 @@
 using Blocks.Genesis.Entities.Monitor;
+using DomainService.AlertRecipients.Models;
+using DomainService.AlertRecipients.Services;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.Services;
@@ -197,6 +199,63 @@ namespace Api.Controllers
                 Data = result,
                 IsSuccess = true
             });
+        }
+
+        /// <summary>
+        /// Lists the project's editable monitors and the people who get their alert emails (the Alert recipients page).
+        /// </summary>
+        /// <param name="projectKey">The project; must be the caller's own, otherwise "Project not found."</param>
+        /// <param name="alertRecipientService">Service for the Alert recipients page, resolved per request.</param>
+        /// <returns>An <see cref="AlertRecipientsResponse"/> in <c>Data</c>.</returns>
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
+        [HttpGet]
+        public async Task<IActionResult> GetAlertRecipients([FromQuery] string? projectKey, [FromServices] IAlertRecipientService alertRecipientService)
+        {
+            var result = await alertRecipientService.GetAsync(projectKey);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Lists up to 50 project members' emails that are not alert recipients yet.
+        /// </summary>
+        /// <param name="projectKey">The project; must be the caller's own, otherwise "Project not found."</param>
+        /// <param name="alertRecipientService">Service for the Alert recipients page, resolved per request.</param>
+        /// <returns>An <see cref="AlertRecipientSuggestionsResponse"/> in <c>Data</c>.</returns>
+        [ProtectedEndPoint("blocks-monitor::monitor::manage")]
+        [HttpGet]
+        public async Task<IActionResult> GetAlertRecipientSuggestions([FromQuery] string? projectKey, [FromServices] IAlertRecipientService alertRecipientService)
+        {
+            var result = await alertRecipientService.GetSuggestionsAsync(projectKey);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Adds or updates an alert recipient: on all editable monitors (and monitors created later) or on the chosen ones.
+        /// </summary>
+        /// <param name="request">The project, the email, and all monitors or up to 500 monitor ids.</param>
+        /// <param name="alertRecipientService">Service for the Alert recipients page, resolved per request.</param>
+        /// <returns>An <see cref="AlertRecipientChangeResult"/> in <c>Data</c>.</returns>
+        [ProtectedEndPoint("blocks-monitor::monitor::manage")]
+        [HttpPost]
+        public async Task<IActionResult> SaveAlertRecipient([FromBody] SaveAlertRecipientRequest request, [FromServices] IAlertRecipientService alertRecipientService)
+        {
+            var result = await alertRecipientService.SaveAsync(request);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Removes an alert recipient from every editable monitor of the project. A POST with the email in the body,
+        /// so no URL or request log carries the address.
+        /// </summary>
+        /// <param name="request">The project and the email.</param>
+        /// <param name="alertRecipientService">Service for the Alert recipients page, resolved per request.</param>
+        /// <returns>An <see cref="AlertRecipientRemoveResult"/> in <c>Data</c>.</returns>
+        [ProtectedEndPoint("blocks-monitor::monitor::manage")]
+        [HttpPost]
+        public async Task<IActionResult> DeleteAlertRecipient([FromBody] DeleteAlertRecipientRequest request, [FromServices] IAlertRecipientService alertRecipientService)
+        {
+            var result = await alertRecipientService.DeleteAsync(request);
+            return Ok(result);
         }
 
         /// <summary>

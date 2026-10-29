@@ -102,6 +102,39 @@
             <param name="endDate">The end date of the range (optional).</param>
             <returns>The response time logs for the monitor.</returns>
         </member>
+        <member name="M:Api.Controllers.MonitorController.GetAlertRecipients(System.String,DomainService.AlertRecipients.Services.IAlertRecipientService)">
+            <summary>
+            Lists the project's editable monitors and the people who get their alert emails (the Alert recipients page).
+            </summary>
+            <param name="projectKey">The project; must be the caller's own, otherwise "Project not found."</param>
+            <param name="alertRecipientService">Service for the Alert recipients page, resolved per request.</param>
+            <returns>An <see cref="T:DomainService.AlertRecipients.Models.AlertRecipientsResponse"/> in <c>Data</c>.</returns>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.GetAlertRecipientSuggestions(System.String,DomainService.AlertRecipients.Services.IAlertRecipientService)">
+            <summary>
+            Lists up to 50 project members' emails that are not alert recipients yet.
+            </summary>
+            <param name="projectKey">The project; must be the caller's own, otherwise "Project not found."</param>
+            <param name="alertRecipientService">Service for the Alert recipients page, resolved per request.</param>
+            <returns>An <see cref="T:DomainService.AlertRecipients.Models.AlertRecipientSuggestionsResponse"/> in <c>Data</c>.</returns>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.SaveAlertRecipient(DomainService.AlertRecipients.Models.SaveAlertRecipientRequest,DomainService.AlertRecipients.Services.IAlertRecipientService)">
+            <summary>
+            Adds or updates an alert recipient: on all editable monitors (and monitors created later) or on the chosen ones.
+            </summary>
+            <param name="request">The project, the email, and all monitors or up to 500 monitor ids.</param>
+            <param name="alertRecipientService">Service for the Alert recipients page, resolved per request.</param>
+            <returns>An <see cref="T:DomainService.AlertRecipients.Models.AlertRecipientChangeResult"/> in <c>Data</c>.</returns>
+        </member>
+        <member name="M:Api.Controllers.MonitorController.DeleteAlertRecipient(DomainService.AlertRecipients.Models.DeleteAlertRecipientRequest,DomainService.AlertRecipients.Services.IAlertRecipientService)">
+            <summary>
+            Removes an alert recipient from every editable monitor of the project. A POST with the email in the body,
+            so no URL or request log carries the address.
+            </summary>
+            <param name="request">The project and the email.</param>
+            <param name="alertRecipientService">Service for the Alert recipients page, resolved per request.</param>
+            <returns>An <see cref="T:DomainService.AlertRecipients.Models.AlertRecipientRemoveResult"/> in <c>Data</c>.</returns>
+        </member>
         <member name="M:Api.Controllers.MonitorController.GetReposList">
             <summary>
             Retrieves the deployed repository list for the caller, sourced from this API rather than

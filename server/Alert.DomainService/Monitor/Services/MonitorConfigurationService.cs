@@ -5,6 +5,7 @@ using Azure.Core;
 using Blocks.Genesis;
 using Blocks.Genesis.DataAccess.Rules;
 using Blocks.Genesis.Entities.Monitor;
+using DomainService.AlertRecipients.Services;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Shared.DataAccess;
@@ -26,6 +27,7 @@ namespace DomainService.Monitor.Services
         private readonly IMonitorIncidentRepoService _monitorIncidentRepoService;
         private readonly IValidator<SaveMonitorConfigurationRequest> _saveValidator;
         private readonly IValidator<UpdateMonitorConfigurationRequest> _updateValidator;
+        private readonly IAlertRecipientStore _alertRecipientStore;
 
         public MonitorConfigurationService(
                                             ILogger<MonitorConfigurationService> logger,
@@ -33,7 +35,8 @@ namespace DomainService.Monitor.Services
                                             IMonitorConfigurationRepoService monitorConfigurationRepoService,
                                             IValidator<SaveMonitorConfigurationRequest> saveValidator,
                                             IMonitorIncidentRepoService monitorIncidentRepoService,
-                                            IValidator<UpdateMonitorConfigurationRequest> updateValidator)
+                                            IValidator<UpdateMonitorConfigurationRequest> updateValidator,
+                                            IAlertRecipientStore alertRecipientStore)
         {
             _logger = logger;
             _messageClient = messageClient;
@@ -41,6 +44,7 @@ namespace DomainService.Monitor.Services
             _saveValidator = saveValidator;
             _updateValidator = updateValidator;
             _monitorIncidentRepoService = monitorIncidentRepoService;
+            _alertRecipientStore = alertRecipientStore;
         }
 
         public async Task<BaseApiResponse> GetConfigurationByIdAsync(string monitorId)
@@ -190,6 +194,10 @@ namespace DomainService.Monitor.Services
                 };
 
                 UpdateMonitorConfiguration(request, monitorConfiguration);
+
+                // A new editable monitor starts with the project's "All monitors" people (H9); never Blocks services.
+                if (monitorSourceTypeEnum != MonitorSourceTypes.BlocksServices)
+                    monitorConfiguration.Emails = await _alertRecipientStore.GetEmailsForNewMonitorAsync(request.ProjectKey);
 
                 await _monitorConfigurationRepoService.SaveConfigurationAsync(monitorConfiguration);
                 try
@@ -375,8 +383,7 @@ namespace DomainService.Monitor.Services
             if (request.Regions != null && request.Regions.Count > 0)
                 monitorConfiguration.Regions = request.Regions;
 
-            if (request.Emails != null && request.Emails.Count > 0)
-                monitorConfiguration.Emails = request.Emails;
+            // Emails are never taken from a create or update request (C11): see the Alert recipients page.
         }
 
         [ExcludeFromCodeCoverage]

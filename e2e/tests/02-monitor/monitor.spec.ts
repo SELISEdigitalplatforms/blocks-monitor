@@ -2,8 +2,10 @@ import type { Page } from "@playwright/test";
 import { test, expect } from "../../support/test-base";
 import {
   getRowActionButton,
+  openFirstEditableMonitor,
   openFirstMonitor,
   openMonitorList,
+  openRowActionMenu,
 } from "../../support/monitor-helpers";
 
 async function resetToMonitorList(page: Page) {
@@ -38,7 +40,7 @@ test.describe("Monitor - full page workflow", () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
       const menuItem = page.getByRole("menuitem").first();
       await expect(menuItem).toHaveText(/Pause|Resume/);
       await page.keyboard.press("Escape");
@@ -48,7 +50,7 @@ test.describe("Monitor - full page workflow", () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
       const pauseItem = page.getByRole("menuitem", { name: "Pause" });
       if (await pauseItem.isVisible().catch(() => false)) {
         await pauseItem.click();
@@ -67,7 +69,7 @@ test.describe("Monitor - full page workflow", () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
       const resumeItem = page.getByRole("menuitem", { name: "Resume" });
       if (await resumeItem.isVisible().catch(() => false)) {
         await resumeItem.click();
@@ -86,7 +88,7 @@ test.describe("Monitor - full page workflow", () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
       await page.getByRole("menuitem", { name: /Pause|Resume/ }).click();
       await page.getByRole("button", { name: "Confirm" }).click();
       await expect(page.getByText(/Monitor (paused|resumed) successfully/).first()).toBeVisible({
@@ -98,7 +100,7 @@ test.describe("Monitor - full page workflow", () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
       await page.getByRole("menuitem", { name: /Pause|Resume/ }).click();
       await page.getByRole("button", { name: "Cancel" }).click();
       await expect(
@@ -110,7 +112,7 @@ test.describe("Monitor - full page workflow", () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
       await page.getByRole("menuitem", { name: "Delete" }).click();
       await expect(page.getByRole("heading", { name: "Remove monitor?" })).toBeVisible();
       await expect(
@@ -135,7 +137,7 @@ test.describe("Monitor - full page workflow", () => {
       const actionButton = firstRow.locator('[aria-haspopup="menu"]').first();
       const visible = await actionButton.isVisible({ timeout: 10_000 }).catch(() => false);
       test.skip(!visible, "No monitor with a row action menu is available.");
-      await actionButton.click();
+      await openRowActionMenu(page, actionButton);
       await page.getByRole("menuitem", { name: "Delete" }).click();
       await page.getByRole("button", { name: "Confirm" }).click();
       await expect(page.getByRole("heading", { name: "Monitor" })).toBeVisible({ timeout: 15_000 });
@@ -155,7 +157,7 @@ test.describe("Monitor - full page workflow", () => {
       await openMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
       await page.getByRole("menuitem", { name: "Delete" }).click();
       const confirmButton = page.getByRole("button", { name: "Confirm" });
       const cancelButton = page.getByRole("button", { name: "Cancel" });
@@ -192,13 +194,8 @@ test.describe("Monitor - full page workflow", () => {
       const deleteMenuItem = page.getByRole("menuitem", { name: "Delete" });
 
       await actionButton.waitFor({ state: "visible", timeout: 15_000 });
-      await actionButton.click();
-      try {
-        await deleteMenuItem.click({ timeout: 10_000 });
-      } catch {
-        await actionButton.click();
-        await deleteMenuItem.click({ timeout: 15_000 });
-      }
+      await openRowActionMenu(page, actionButton);
+      await deleteMenuItem.click();
 
       await page.getByRole("button", { name: "Confirm" }).click();
       await expect(page.getByText(monitorName)).not.toBeVisible({ timeout: 30_000 });
@@ -208,7 +205,7 @@ test.describe("Monitor - full page workflow", () => {
       await resetToMonitorList(page);
       const actionButton = await getRowActionButton(page);
       test.skip(!actionButton, "No monitor with a row action menu is available.");
-      await actionButton!.click();
+      await openRowActionMenu(page, actionButton!);
 
       const pauseItem = page.getByRole("menuitem", { name: "Pause" });
       if (await pauseItem.isVisible().catch(() => false)) {
@@ -262,7 +259,8 @@ test.describe("Monitor - full page workflow", () => {
 
     await test.step("Details — Configure button opens the edit modal", async () => {
       await openMonitorList(page);
-      await openFirstMonitor(page);
+      // Row 1 can be an Infrastructure monitor, whose details hide the recipients (#256 Q10).
+      await openFirstEditableMonitor(page);
       await page.getByRole("button", { name: "Configure" }).click();
       await expect(page.getByRole("heading", { name: "Configure" })).toBeVisible({
         timeout: 15_000,
@@ -273,19 +271,16 @@ test.describe("Monitor - full page workflow", () => {
       });
     });
 
-    await test.step("Details — Notification Settings opens with Add email control", async () => {
-      await page.getByRole("button", { name: "Notification Settings" }).click();
-      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeVisible({
-        timeout: 15_000,
-      });
-      await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
-      await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
-      await expect(page.getByRole("button", { name: "Add email" })).toBeVisible();
-      await expect(page.getByRole("button", { name: "Save" })).toBeDisabled();
-      await page.getByRole("button", { name: "Cancel" }).click();
-      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeHidden({
-        timeout: 5_000,
-      });
+    await test.step("Details — no Notification Settings button; recipients are read-only (H12)", async () => {
+      await expect(page.getByRole("button", { name: "Configure" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Notification Settings" })).toHaveCount(0);
+      await expect(page.getByText("Notification recipients", { exact: true })).toBeVisible();
+      await expect(
+        page
+          .getByRole("list", { name: "Notification recipients" })
+          .or(page.getByText("No recipients", { exact: true })),
+      ).toBeVisible();
+      await expect(page.getByRole("link", { name: "Open Alert recipients" })).toBeVisible();
     });
 
     await test.step("Details — Back button returns to the Monitor list", async () => {
@@ -414,9 +409,8 @@ test.describe("Monitor - full page workflow", () => {
 
     await test.step("List — Row click navigates to monitor details", async () => {
       await openMonitorList(page);
-      const firstRow = page.getByRole("row").nth(1);
-      const monitorName = (await firstRow.locator("td").first().innerText()).trim();
-      await firstRow.locator("td").first().click();
+      // The first EDITABLE row: the H12 and Configure steps below need recipients and Configure.
+      const monitorName = await openFirstEditableMonitor(page);
       await expect(page).toHaveURL(/\/monitor\/[^/]+$/, { timeout: 15_000 });
       await expect(page.getByRole("heading", { name: monitorName, exact: true })).toBeVisible({
         timeout: 15_000,
@@ -468,40 +462,27 @@ test.describe("Monitor - full page workflow", () => {
       });
     });
 
-    await test.step("Details — Notification Settings rejects invalid email format", async () => {
-      await page.getByRole("button", { name: "Notification Settings" }).click();
-      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeVisible({
-        timeout: 15_000,
-      });
-
-      await page.getByRole("button", { name: "Add email" }).click();
-      await page.getByPlaceholder("Enter email address").first().fill("not-an-email");
-      await expect(page.getByText("Please enter a valid email address").first()).toBeVisible({
-        timeout: 5_000,
-      });
-
-      await page.getByRole("button", { name: "Cancel" }).click();
-      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeHidden({
-        timeout: 5_000,
-      });
+    await test.step("Details — recipients have no edit control after Configure saves (H12)", async () => {
+      await expect(page.getByText("Notification recipients", { exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Notification Settings" })).toHaveCount(0);
+      await expect(
+        page.getByRole("button", { name: /Add email|Edit notification recipients/ }),
+      ).toHaveCount(0);
+      await expect(page.getByPlaceholder("Enter email address")).toHaveCount(0);
     });
 
-    await test.step("Details — Notification Settings adds and saves a valid email", async () => {
-      const uniqueEmail = `e2e-${Date.now()}@example.com`;
-      await page.getByRole("button", { name: "Notification Settings" }).click();
-      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeVisible({
+    await test.step("Details — 'Open Alert recipients' opens the Alert recipients page (H12)", async () => {
+      const detailsUrl = page.url();
+      await page.getByRole("link", { name: "Open Alert recipients" }).click();
+      await expect(page).toHaveURL(/\/alert-recipients\/?$/, { timeout: 15_000 });
+      await expect(page.getByRole("heading", { name: "Alert recipients", level: 1 })).toBeVisible({
         timeout: 15_000,
       });
 
-      await page.getByRole("button", { name: "Add email" }).click();
-      await page.getByPlaceholder("Enter email address").first().fill(uniqueEmail);
-      await page.getByRole("button", { name: "Save" }).click();
-
-      await expect(page.getByText("Monitor successfully updated.", { exact: true })).toBeVisible({
+      await page.goBack({ waitUntil: "domcontentloaded" });
+      await expect(page).toHaveURL(detailsUrl, { timeout: 15_000 });
+      await expect(page.getByRole("button", { name: "Configure" })).toBeVisible({
         timeout: 15_000,
-      });
-      await expect(page.getByRole("heading", { name: "Notification settings" })).toBeHidden({
-        timeout: 5_000,
       });
     });
 

@@ -116,5 +116,25 @@ namespace XUnitTest.Alert
             result.Should().NotBeNull();
             result!.Host.Should().Be("smtp.test");
         }
+
+        [Fact]
+        public async Task GetProjectMemberEmails_ReturnsTheMembersEmails_ReadingOnlyTheEmailField()
+        {
+            var people = MongoMocks.Collection(new List<ProjectPeople>());
+            FindOptions<ProjectPeople, ProjectPeople>? options = null;
+            people.Setup(c => c.FindAsync(It.IsAny<FilterDefinition<ProjectPeople>>(), It.IsAny<FindOptions<ProjectPeople, ProjectPeople>>(), It.IsAny<System.Threading.CancellationToken>()))
+                .Callback<FilterDefinition<ProjectPeople>, FindOptions<ProjectPeople, ProjectPeople>, System.Threading.CancellationToken>((_, o, _) => options = o)
+                .ReturnsAsync(() => MongoMocks.Cursor(new List<ProjectPeople>
+                {
+                    new() { Email = "a@x.com" }, new() { Email = " " }, new() { Email = null! }, new() { Email = "B@x.com" },
+                }).Object);
+            var db = new MongoMocks.DbBuilder().With(people).With(new List<EmailTemplate>()).With(new List<MailServerConfiguration>());
+
+            var result = await new AlertRepoService(db.Provider, MongoMocks.BlocksSecret().Object).GetProjectMemberEmailsAsync("t");
+
+            result.Should().Equal("a@x.com", "B@x.com");
+            options!.Projection.Render(new RenderArgs<ProjectPeople>(BsonSerializer.LookupSerializer<ProjectPeople>(), BsonSerializer.SerializerRegistry))
+                .Document.Names.Should().Equal("Email");
+        }
     }
 }

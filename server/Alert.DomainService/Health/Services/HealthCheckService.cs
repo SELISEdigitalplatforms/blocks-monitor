@@ -123,7 +123,8 @@ namespace DomainService.Health.Services
             }
         }
 
-        public async Task LoadMonitorsFromDatabaseAsync()
+        /// <summary>Reloads the heartbeat cache. Virtual so callers' tests can count reloads.</summary>
+        public virtual async Task LoadMonitorsFromDatabaseAsync()
         {
             var configs = await _healthConfigurationRepoService.GetAllActiveConfigurationsAsync();
 
