@@ -29,6 +29,7 @@ import {
   type MonitorFormValues,
   type SourceType,
 } from "./schema";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 type RepoOption = {
   itemId: string;
@@ -57,6 +58,7 @@ export const useMonitorFormController = ({
   projectKey,
   onSuccess,
 }: UseMonitorFormControllerParams) => {
+  const { t } = useT("monitor.monitors");
   const navigate = useNavigate();
   const scoped = useScopedPath();
   const isEditMode = mode === "edit";
@@ -146,24 +148,26 @@ export const useMonitorFormController = ({
 
   const sourceError = useMemo(() => {
     if (sourceType === "deployed" && !selectedRepoId) {
-      if (isLoadingRepos) return "Loading repos...";
+      if (isLoadingRepos) return t("MONITOR_FORM_CONTROLLER.LOADING_REPOS");
       // A failed request must not read as "this project has no repositories": without this the
       // 400/500 the endpoint returns is indistinguishable from an empty list, and the user is
       // invited to pick from a list that never loaded.
-      if (isReposError) return "Failed to get repos.";
-      return "Select a deployed repo.";
+      if (isReposError) return t("MONITOR_FORM_CONTROLLER.FAILED_TO_GET_REPOS");
+      return t("MONITOR_FORM_CONTROLLER.SELECT_DEPLOYED_REPO");
     }
 
     if (sourceType === "my-services" && !selectedServiceId) {
-      return isLoadingServices ? "Loading services..." : "Select a service.";
+      return isLoadingServices
+        ? t("MONITOR_FORM_CONTROLLER.LOADING_SERVICES")
+        : t("MONITOR_FORM_CONTROLLER.SELECT_SERVICE");
     }
 
     if (repoDuplicate) {
-      return "A monitor already exists for this deployed repo.";
+      return t("MONITOR_FORM_CONTROLLER.REPO_DUPLICATE");
     }
 
     if (serviceDuplicate) {
-      return "A monitor already exists for this service.";
+      return t("MONITOR_FORM_CONTROLLER.SERVICE_DUPLICATE");
     }
 
     return "";
@@ -176,6 +180,7 @@ export const useMonitorFormController = ({
     isLoadingServices,
     repoDuplicate,
     serviceDuplicate,
+    t,
   ]);
 
   const isSourceBlocked = Boolean(sourceError);
@@ -282,7 +287,9 @@ export const useMonitorFormController = ({
 
       showSuccessToast({
         description:
-          mode === "add" ? "Monitor successfully created." : "Monitor successfully updated.",
+          mode === "add"
+            ? t("MONITOR_FORM_CONTROLLER.CREATED")
+            : t("MONITOR_FORM_CONTROLLER.UPDATED"),
       });
 
       onSuccess?.();

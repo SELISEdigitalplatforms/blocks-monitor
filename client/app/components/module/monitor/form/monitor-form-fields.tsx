@@ -19,6 +19,7 @@ import type {
   MonitorFormMode,
   SourceType,
 } from "./schema";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 type RepoOption = {
   itemId: string;
@@ -30,31 +31,7 @@ type ServiceOption = {
   name: string;
 };
 
-const MONITOR_TYPE_OPTIONS: {
-  id: string;
-  value: MonitorConfigurationType;
-  label: string;
-}[] = [
-  { id: "monitor-type-request", value: "request", label: "HTTP Check" },
-  { id: "monitor-type-callback", value: "callback", label: "Heartbeat" },
-];
-
-const SOURCE_TYPE_OPTIONS: { id: string; value: SourceType; label: string }[] = [
-  { id: "monitor-source-none", value: "none", label: "None" },
-  { id: "monitor-source-deployed", value: "deployed", label: "Deployed" },
-  {
-    id: "monitor-source-my-services",
-    value: "my-services",
-    label: "My services",
-  },
-];
-
 const MONITOR_INTERVAL_TICKS = ["30s", "1min", "5min", "30min", "1h"];
-const MONITOR_INTERVAL_TOOLTIP =
-  "How frequently the system will check your endpoint for availability and performance";
-const TIMEOUT_TOOLTIP =
-  "Maximum time to wait for a response from your endpoint before considering it timed out";
-const REQUEST_JSON_TOOLTIP = "Set Content-Type header to application/json for API requests";
 
 type MonitorFormFieldsProps = {
   form: UseFormReturn<MonitorFormValues>;
@@ -96,6 +73,26 @@ export const MonitorFormFields = ({
   onRepoChange,
   onServiceChange,
 }: MonitorFormFieldsProps) => {
+  const { t } = useT("monitor.monitors");
+  const monitorTypeOptions: { id: string; value: MonitorConfigurationType; label: string }[] = [
+    { id: "monitor-type-request", value: "request", label: t("MONITOR_FORM_FIELDS.HTTP_CHECK") },
+    { id: "monitor-type-callback", value: "callback", label: t("MONITOR_FORM_FIELDS.HEARTBEAT") },
+  ];
+  const sourceTypeOptions: { id: string; value: SourceType; label: string }[] = [
+    { id: "monitor-source-none", value: "none", label: t("MONITOR_FORM_FIELDS.SOURCE_NONE") },
+    {
+      id: "monitor-source-deployed",
+      value: "deployed",
+      label: t("MONITOR_FORM_FIELDS.SOURCE_DEPLOYED"),
+    },
+    {
+      id: "monitor-source-my-services",
+      value: "my-services",
+      label: t("MONITOR_FORM_FIELDS.SOURCE_MY_SERVICES"),
+    },
+  ];
+  const monitorIntervalTooltip = t("MONITOR_FORM_FIELDS.INTERVAL_TOOLTIP");
+  const timeoutTooltip = t("MONITOR_FORM_FIELDS.TIMEOUT_TOOLTIP");
   const httpMethod = form.watch("requestConfiguration.http_methods");
   const sendAsJson = form.watch("requestConfiguration.json_switcher");
 
@@ -115,7 +112,9 @@ export const MonitorFormFields = ({
               name="monitorConfigurationType"
               render={({ field }) => (
                 <FormItem className="flex flex-col gap-1">
-                  <FormLabel className="block text-sm font-medium">Monitor type</FormLabel>
+                  <FormLabel className="block text-sm font-medium">
+                    {t("MONITOR_FORM_FIELDS.MONITOR_TYPE")}
+                  </FormLabel>
                   <FormControl className="flex items-center gap-2">
                     <RadioGroup
                       value={field.value}
@@ -126,7 +125,7 @@ export const MonitorFormFields = ({
                       className="flex items-center gap-4"
                       disabled={isEditMode}
                     >
-                      {MONITOR_TYPE_OPTIONS.map((option) => (
+                      {monitorTypeOptions.map((option) => (
                         <LabeledRadioOption
                           key={option.id}
                           id={option.id}
@@ -149,9 +148,13 @@ export const MonitorFormFields = ({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t("common:NAME")}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Enter monitor name" disabled={isEditMode} />
+                    <Input
+                      {...field}
+                      placeholder={t("MONITOR_FORM_FIELDS.NAME_PLACEHOLDER")}
+                      disabled={isEditMode}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -164,7 +167,9 @@ export const MonitorFormFields = ({
                 name="sourceType"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-1">
-                    <FormLabel className="block text-sm font-medium">Tag a Service</FormLabel>
+                    <FormLabel className="block text-sm font-medium">
+                      {t("MONITOR_FORM_FIELDS.TAG_A_SERVICE")}
+                    </FormLabel>
                     <FormControl className="flex items-center gap-2">
                       <RadioGroup
                         value={field.value}
@@ -175,7 +180,7 @@ export const MonitorFormFields = ({
                         className="flex flex-wrap gap-4"
                         disabled={isEditMode}
                       >
-                        {SOURCE_TYPE_OPTIONS.map((option) => (
+                        {sourceTypeOptions.map((option) => (
                           <LabeledRadioOption
                             key={option.id}
                             id={option.id}
@@ -196,18 +201,24 @@ export const MonitorFormFields = ({
                 <EntitySelectField
                   control={form.control}
                   name="selectedRepoId"
-                  label="Select repo"
-                  placeholder={isLoadingRepos ? "Loading repos..." : "Select a repo"}
+                  label={t("MONITOR_FORM_FIELDS.SELECT_REPO")}
+                  placeholder={
+                    isLoadingRepos
+                      ? t("MONITOR_FORM_FIELDS.LOADING_REPOS")
+                      : t("MONITOR_FORM_FIELDS.SELECT_A_REPO")
+                  }
                   disabled={isEditMode || isLoadingRepos}
                   options={deployedRepos}
                   getOptionKey={(repo) => repo.itemId}
                   getOptionValue={(repo) => repo.itemId}
                   getOptionLabel={(repo) => repo.repoName}
                   onValueChange={onRepoChange}
-                  emptyMessage="No items available."
+                  emptyMessage={t("MONITOR_FORM_FIELDS.NO_ITEMS")}
                 />
                 {showEmptyRepos && (
-                  <p className="text-sm text-muted-foreground">No deployed repos available.</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("MONITOR_FORM_FIELDS.NO_DEPLOYED_REPOS")}
+                  </p>
                 )}
               </RenderConditionally>
 
@@ -215,25 +226,31 @@ export const MonitorFormFields = ({
                 <EntitySelectField
                   control={form.control}
                   name="selectedServiceId"
-                  label="Select service"
-                  placeholder={isLoadingServices ? "Loading services..." : "Select a service"}
+                  label={t("MONITOR_FORM_FIELDS.SELECT_SERVICE")}
+                  placeholder={
+                    isLoadingServices
+                      ? t("MONITOR_FORM_FIELDS.LOADING_SERVICES")
+                      : t("MONITOR_FORM_FIELDS.SELECT_A_SERVICE")
+                  }
                   disabled={isEditMode || isLoadingServices}
                   options={services}
                   getOptionKey={(service) => service.serviceId}
                   getOptionValue={(service) => service.serviceId}
                   getOptionLabel={(service) => service.name}
                   onValueChange={onServiceChange}
-                  emptyMessage="No items available."
+                  emptyMessage={t("MONITOR_FORM_FIELDS.NO_ITEMS")}
                 />
                 {showEmptyServices && (
-                  <p className="text-sm text-muted-foreground">No services available.</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("MONITOR_FORM_FIELDS.NO_SERVICES")}
+                  </p>
                 )}
               </RenderConditionally>
               {sourceError && <p className="text-sm text-destructive">{sourceError}</p>}
 
               {isEditMode && (
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Monitor source cannot be changed for existing monitors.
+                  {t("MONITOR_FORM_FIELDS.SOURCE_LOCKED")}
                 </p>
               )}
             </div>
@@ -244,9 +261,13 @@ export const MonitorFormFields = ({
                 name="urlMonitor"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>URL to monitor</FormLabel>
+                    <FormLabel>{t("MONITOR_FORM_FIELDS.URL_TO_MONITOR")}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Enter URL to monitor" disabled={isEditMode} />
+                      <Input
+                        {...field}
+                        placeholder={t("MONITOR_FORM_FIELDS.URL_PLACEHOLDER")}
+                        disabled={isEditMode}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -268,14 +289,14 @@ export const MonitorFormFields = ({
           >
             <AccordionItem value="monitorSettings">
               <AccordionTrigger className="flex-row-reverse justify-end gap-4 hover:no-underline">
-                Monitor settings
+                {t("MONITOR_FORM_FIELDS.MONITOR_SETTINGS")}
               </AccordionTrigger>
               <AccordionContent className="flex flex-col gap-4 px-1 pt-1">
                 <IntervalSliderField
                   control={form.control}
                   name="monitorSettings.monitor_interval"
-                  label="Monitor interval"
-                  tooltipContent={MONITOR_INTERVAL_TOOLTIP}
+                  label={t("MONITOR_FORM_FIELDS.MONITOR_INTERVAL")}
+                  tooltipContent={monitorIntervalTooltip}
                   tickLabels={MONITOR_INTERVAL_TICKS}
                 />
 
@@ -285,8 +306,8 @@ export const MonitorFormFields = ({
                     <IntervalSliderField
                       control={form.control}
                       name="monitorSettings.request_timeout"
-                      label="Request timeout"
-                      tooltipContent={TIMEOUT_TOOLTIP}
+                      label={t("MONITOR_FORM_FIELDS.REQUEST_TIMEOUT")}
+                      tooltipContent={timeoutTooltip}
                       tickLabels={MONITOR_INTERVAL_TICKS}
                     />
                   }
@@ -294,8 +315,8 @@ export const MonitorFormFields = ({
                     <IntervalSliderField
                       control={form.control}
                       name="monitorSettings.grace_time"
-                      label="Grace Time"
-                      tooltipContent={TIMEOUT_TOOLTIP}
+                      label={t("MONITOR_FORM_FIELDS.GRACE_TIME")}
+                      tooltipContent={timeoutTooltip}
                       tickLabels={MONITOR_INTERVAL_TICKS}
                     />
                   }
@@ -306,7 +327,7 @@ export const MonitorFormFields = ({
             <RenderConditionally condition={monitorType === "request"}>
               <AccordionItem value="requestConfig">
                 <AccordionTrigger className="flex-row-reverse justify-end gap-4 hover:no-underline">
-                  Request Configuration
+                  {t("MONITOR_FORM_FIELDS.REQUEST_CONFIGURATION")}
                 </AccordionTrigger>
                 <AccordionContent className="flex flex-col gap-4 px-1 pt-1">
                   <FormField
@@ -314,7 +335,7 @@ export const MonitorFormFields = ({
                     name="requestConfiguration.http_methods"
                     render={({ field }) => (
                       <FormItem className="space-y-3">
-                        <FormLabel>HTTP method</FormLabel>
+                        <FormLabel>{t("MONITOR_FORM_FIELDS.HTTP_METHOD")}</FormLabel>
                         <FormControl>
                           <RadioGroup
                             onValueChange={field.onChange}
@@ -342,10 +363,10 @@ export const MonitorFormFields = ({
                     name="requestConfiguration.request_body"
                     render={({ field }) => (
                       <FormItem className="md:col-span-2">
-                        <FormLabel>Request body</FormLabel>
+                        <FormLabel>{t("MONITOR_FORM_FIELDS.REQUEST_BODY")}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Enter request body content..."
+                            placeholder={t("MONITOR_FORM_FIELDS.REQUEST_BODY_PLACEHOLDER")}
                             rows={3}
                             disabled={httpMethod !== "2"}
                             {...field}
@@ -361,8 +382,8 @@ export const MonitorFormFields = ({
                     render={({ field }) => (
                       <FormItem className="flex items-center justify-between">
                         <FormLabel className="flex items-center gap-2">
-                          Send as JSON (application/json)
-                          <InfoTooltip content={REQUEST_JSON_TOOLTIP} />
+                          {t("MONITOR_FORM_FIELDS.SEND_AS_JSON")}
+                          <InfoTooltip content={t("MONITOR_FORM_FIELDS.JSON_TOOLTIP")} />
                         </FormLabel>
                         <FormControl>
                           <Switch
@@ -377,7 +398,9 @@ export const MonitorFormFields = ({
 
                   <RenderConditionally condition={sendAsJson}>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <span className="text-lg font-semibold md:col-span-2">Request headers</span>
+                      <span className="text-lg font-semibold md:col-span-2">
+                        {t("MONITOR_FORM_FIELDS.REQUEST_HEADERS")}
+                      </span>
 
                       <FormField
                         control={form.control}
@@ -386,7 +409,10 @@ export const MonitorFormFields = ({
                           <FormItem>
                             <FormLabel>X-Header-Name</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="Enter header name" />
+                              <Input
+                                {...field}
+                                placeholder={t("MONITOR_FORM_FIELDS.HEADER_NAME_PLACEHOLDER")}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -397,9 +423,12 @@ export const MonitorFormFields = ({
                         name="requestConfiguration.value"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Value</FormLabel>
+                            <FormLabel>{t("MONITOR_FORM_FIELDS.VALUE")}</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="Enter value" />
+                              <Input
+                                {...field}
+                                placeholder={t("MONITOR_FORM_FIELDS.VALUE_PLACEHOLDER")}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -413,8 +442,8 @@ export const MonitorFormFields = ({
           </Accordion>
 
           <FormActionsRow
-            cancelLabel="Cancel"
-            saveLabel="Save"
+            cancelLabel={t("common:CANCEL")}
+            saveLabel={t("common:SAVE")}
             isSaveDisabled={isSubmitting || !form.formState.isValid || Boolean(isSourceBlocked)}
           />
         </div>

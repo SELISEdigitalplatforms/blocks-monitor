@@ -2,9 +2,8 @@ import { createParser } from "nuqs";
 import { MONITOR_SOURCE_TYPES } from "@/constants/alert.constant";
 
 export const MONITOR_TABS = {
-  all: { label: "My monitors", monitorSourceType: null },
+  all: { monitorSourceType: null },
   services: {
-    label: "Blocks services",
     monitorSourceType: MONITOR_SOURCE_TYPES.BlocksServices,
   },
 } as const;

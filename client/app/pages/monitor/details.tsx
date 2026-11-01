@@ -24,6 +24,7 @@ import { useProjectStore } from "@seliseblocks/genesis-os/store";
 import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 /** How often the page refreshes the monitor's status, its uptime figures and the chart. */
 export const DETAILS_POLL_MS = 10_000;
@@ -112,7 +113,10 @@ const getBorderColorClass = (index: number) => {
  * has never had one. `lastIncidentAt` is nullable, and C#'s `DateTime.MinValue` (year 1, or year 0
  * after a positive UTC offset) also means "never". Null when neither date is usable.
  */
-const statusSince = (lastIncidentAt: string | null | undefined, createdAt: string): number | null => {
+const statusSince = (
+  lastIncidentAt: string | null | undefined,
+  createdAt: string,
+): number | null => {
   const last = lastIncidentAt ? new Date(lastIncidentAt) : null;
   if (last && !Number.isNaN(last.getTime()) && last.getUTCFullYear() > 1) return last.getTime();
   const created = new Date(createdAt).getTime();
@@ -127,7 +131,9 @@ const MonitorSummary = ({
   asOf,
   isActive,
 }: MonitorSummaryProps) => {
-  const toMilliseconds = (value: string): number => Number.parseInt(value, 10) * 24 * 60 * 60 * 1000;
+  const { t } = useT("monitor.monitors");
+  const toMilliseconds = (value: string): number =>
+    Number.parseInt(value, 10) * 24 * 60 * 60 * 1000;
   // Ticks, so "Currently up for ..." keeps counting while the page is open. Only that line: the
   // uptime cards use `asOf`, or they would drift between polls against downtime fetched earlier.
   const now = useNow(1000);
@@ -157,13 +163,15 @@ const MonitorSummary = ({
               key={`status-${index}`} //nosonar
               className={`flex flex-1 flex-col rounded-md border-0 border-l-8 shadow-none ${statusBorderColor} bg-transparent py-2 pl-4`}
             >
-              <CardTitle className="text-base font-medium">Current Status</CardTitle>
+              <CardTitle className="text-base font-medium">
+                {t("MONITOR_DETAILS_PAGE.CURRENT_STATUS")}
+              </CardTitle>
               <CardContent className="mt-3 flex flex-col gap-3">
                 {isPaused ? (
                   // w-fit: Badge is a block-level flex element and this column is flex-col, so
                   // without it the badge stretches into a full-width strip.
                   <Badge variant="secondary" className="w-fit">
-                    Paused
+                    {t("MONITOR_DETAILS_PAGE.PAUSED")}
                   </Badge>
                 ) : (
                   <>
@@ -172,11 +180,16 @@ const MonitorSummary = ({
                         status ? "text-green-500" : "text-red-500"
                       }`}
                     >
-                      {item.status}
+                      {status
+                        ? t("MONITOR_DETAILS_PAGE.STATUS_UP")
+                        : t("MONITOR_DETAILS_PAGE.STATUS_DOWN")}
                     </span>
                     <span className="text-xs font-medium text-medium-emphasis">
-                      {" "}
-                      Currently {status ? "up" : "down"} for {statusDuration}
+                      {status
+                        ? t("MONITOR_DETAILS_PAGE.CURRENTLY_UP_FOR", { duration: statusDuration })
+                        : t("MONITOR_DETAILS_PAGE.CURRENTLY_DOWN_FOR", {
+                            duration: statusDuration,
+                          })}
                     </span>
                   </>
                 )}
@@ -194,16 +207,21 @@ const MonitorSummary = ({
           <Card
             key={item.range}
             className={`flex flex-1 flex-col gap-2 rounded-md border-0 border-l-8 bg-transparent py-1 pl-4 shadow-none ${getBorderColorClass(
-              index
+              index,
             )}`}
           >
             <CardTitle className="text-base font-medium">
-              Last {item.range?.slice(0, -1)} days
+              {t("MONITOR_DETAILS_PAGE.LAST_DAYS", {
+                count: Number.parseInt(item.range ?? "0", 10),
+              })}
             </CardTitle>
             <CardContent className="mt-3 flex flex-col gap-3">
               <span className="text-xl font-semibold">{uptimePercentage}%</span>
               <span className="text-xs font-medium text-primary">
-                {item.incidentCount} incidents, {formatDuration(item.totalDurationMs!)} down
+                {t("MONITOR_DETAILS_PAGE.INCIDENTS_DOWN", {
+                  count: item.incidentCount ?? 0,
+                  duration: formatDuration(item.totalDurationMs!),
+                })}
               </span>
             </CardContent>
           </Card>
@@ -214,6 +232,7 @@ const MonitorSummary = ({
 };
 
 const MonitorDetailsPage = () => {
+  const { t } = useT("monitor.monitors");
   const navigate = useNavigate();
   const scoped = useScopedPath();
   const { id } = useParams();
@@ -289,7 +308,7 @@ const MonitorDetailsPage = () => {
               onClick={() => setOpen((open) => !open)}
             >
               <Settings className="mr-2 h-4 w-4" />
-              Configure
+              {t("MONITOR_DETAILS_PAGE.CONFIGURE")}
             </Button>
             <AlertAction
               monitorId={monitorId as string}
@@ -299,7 +318,7 @@ const MonitorDetailsPage = () => {
               projectKey={projectKey}
               monitorSourceType={monitorSourceType}
             >
-              <Button variant="outline" size="icon" aria-label="Actions">
+              <Button variant="outline" size="icon" aria-label={t("common:ACTIONS")}>
                 <EllipsisVertical className="h-4 w-4" />
               </Button>
             </AlertAction>
@@ -348,13 +367,15 @@ const MonitorDetailsPage = () => {
             <Separator orientation="horizontal" className="mb-6" />
             <div className="flex flex-col gap-5">
               <div className="flex w-full justify-between">
-                <span className="text-lg font-semibold">Latest incidents</span>
+                <span className="text-lg font-semibold">
+                  {t("MONITOR_DETAILS_PAGE.LATEST_INCIDENTS")}
+                </span>
                 {data?.monitorIncidents && data.monitorIncidents.length > 4 && (
                   <Button
                     variant="outline"
                     onClick={() => navigate(scoped(`monitor/incidents/${monitorId}`))}
                   >
-                    View all incidents
+                    {t("MONITOR_DETAILS_PAGE.VIEW_ALL_INCIDENTS")}
                   </Button>
                 )}
               </div>
