@@ -8,6 +8,7 @@ import {
   getDeploymentLogEventBadgeClassName,
   isLiveBuildStatus,
 } from "@/utils/deployment-logs.utils";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 const DEPLOYMENT_DATE_FORMAT: Intl.DateTimeFormatOptions = {
   month: "short",
@@ -29,11 +30,10 @@ function commitUrl(build: IBuild): string | null {
 }
 
 export function LatestBuildCard({ build }: Readonly<{ build: IBuild }>) {
+  const { t } = useT("monitor.repos");
   const durationLabel = isLiveBuildStatus(build.status)
-    ? "Running…"
-    : formatElapsedTime(
-        Date.parse(build.lastUpdatedDate) - Date.parse(build.createdDate),
-      );
+    ? t("LATEST_BUILD_CARD.RUNNING")
+    : formatElapsedTime(Date.parse(build.lastUpdatedDate) - Date.parse(build.createdDate));
   const url = deploysTo(build);
   const cUrl = commitUrl(build);
   const shortSha = build.commit?.slice(0, 7);
@@ -41,51 +41,68 @@ export function LatestBuildCard({ build }: Readonly<{ build: IBuild }>) {
   return (
     <Card data-testid="latest-build-card">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">Latest build</CardTitle>
+        <CardTitle className="text-base">{t("LATEST_BUILD_CARD.TITLE")}</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3 sm:grid-cols-2 text-sm">
-        <Field label="Status">
+        <Field label={t("common:STATUS")}>
           <span className={getDeploymentLogEventBadgeClassName(build.status)}>{build.status}</span>
         </Field>
-        <Field label="Build ID">
+        <Field label={t("LATEST_BUILD_CARD.BUILD_ID")}>
           <span className="font-mono text-xs">{build.itemId}</span>
           <Button
             type="button"
             variant="ghost"
             size="sm"
             className="ml-1 h-6 w-6 p-0"
-            aria-label="Copy build id"
+            aria-label={t("LATEST_BUILD_CARD.COPY_BUILD_ID")}
             onClick={() => void navigator.clipboard?.writeText(build.itemId)}
           >
             <Copy className="h-3 w-3" />
           </Button>
         </Field>
-        <Field label="Branch">{build.branch}</Field>
-        <Field label="Commit">
+        <Field label={t("LATEST_BUILD_CARD.BRANCH")}>{build.branch}</Field>
+        <Field label={t("LATEST_BUILD_CARD.COMMIT")}>
           {cUrl && shortSha ? (
-            <a href={cUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline inline-flex items-center gap-1">
+            <a
+              href={cUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline inline-flex items-center gap-1"
+            >
               {shortSha} <ExternalLink className="h-3 w-3" />
             </a>
           ) : (
             shortSha || "—"
           )}
         </Field>
-        <Field label="Started">
-          {build.createdDate ? formatDate(new Date(build.createdDate), DEPLOYMENT_DATE_FORMAT) : "—"}
+        <Field label={t("LATEST_BUILD_CARD.STARTED")}>
+          {build.createdDate
+            ? formatDate(new Date(build.createdDate), DEPLOYMENT_DATE_FORMAT)
+            : "—"}
         </Field>
-        <Field label="Duration">{durationLabel}</Field>
-        <Field label="Deploys to">
+        <Field label={t("LATEST_BUILD_CARD.DURATION")}>{durationLabel}</Field>
+        <Field label={t("LATEST_BUILD_CARD.DEPLOYS_TO")}>
           {url ? (
-            <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary underline inline-flex items-center gap-1">
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline inline-flex items-center gap-1"
+            >
               {url.replace(/^https?:\/\//, "").slice(0, 48)} <ExternalLink className="h-3 w-3" />
             </a>
           ) : (
             "—"
           )}
         </Field>
-        <Field label="Pipeline">
+        <Field label={t("LATEST_BUILD_CARD.PIPELINE")}>
           {build.html_url && build.pipelineRunName ? (
-            <a href={build.html_url} target="_blank" rel="noopener noreferrer" className="text-primary underline inline-flex items-center gap-1">
+            <a
+              href={build.html_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline inline-flex items-center gap-1"
+            >
               {build.pipelineRunName} <ExternalLink className="h-3 w-3" />
             </a>
           ) : (
@@ -98,10 +115,11 @@ export function LatestBuildCard({ build }: Readonly<{ build: IBuild }>) {
 }
 
 export function NoBuildCard() {
+  const { t } = useT("monitor.repos");
   return (
     <Card data-testid="no-build-card">
       <CardContent className="p-6 text-sm text-muted-foreground">
-        This repository has not been deployed yet
+        {t("LATEST_BUILD_CARD.NOT_DEPLOYED")}
       </CardContent>
     </Card>
   );

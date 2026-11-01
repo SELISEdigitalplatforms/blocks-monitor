@@ -4,6 +4,7 @@ import monitors from "./monitor.monitors.en.json";
 import alerts from "./monitor.alerts.en.json";
 import console from "./monitor.console.en.json";
 import alert_recipients from "./monitor.alert-recipients.en.json";
+import repos from "./monitor.repos.en.json";
 
 // One English dictionary per module. German comes from the localization service.
 const modules: Record<string, Record<string, string>> = {
@@ -12,6 +13,7 @@ const modules: Record<string, Record<string, string>> = {
   "monitor.alerts": alerts,
   "monitor.console": console,
   "monitor.alert-recipients": alert_recipients,
+  "monitor.repos": repos,
 };
 
 for (const [module, dictionary] of Object.entries(modules)) {

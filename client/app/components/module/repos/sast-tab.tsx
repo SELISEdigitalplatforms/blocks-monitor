@@ -18,6 +18,7 @@ import {
   ReportNoDataCard,
 } from "@/components/module/repos/report-states";
 import { getDeploymentLogEventBadgeClassName } from "@/utils/deployment-logs.utils";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 const MISSING = "-";
 
@@ -43,6 +44,7 @@ export function SastTab({
   buildId: string | undefined;
   isActive: boolean;
 }>) {
+  const { t } = useT("monitor.repos");
   const { data, isLoading, isError, refetch } = useGetReport(projectKey, buildId, "sast", isActive);
 
   const details = data?.data?.details ?? null;
@@ -52,7 +54,7 @@ export function SastTab({
     [details],
   );
 
-  if (isLoading) return <ReportLoadingCard label="Loading SAST report..." />;
+  if (isLoading) return <ReportLoadingCard label={t("SAST_TAB.LOADING")} />;
   if (isError) return <ReportErrorCard onRetry={() => refetch()} />;
   if (hasNoReport(data?.data ?? null)) return <ReportNoDataCard />;
   if (!newView || !overallView) return <ReportNoDataCard />;
@@ -60,21 +62,21 @@ export function SastTab({
   return (
     <Card data-testid="sast-tab">
       <CardHeader className="mb-0 flex flex-col gap-4">
-        <CardTitle className="text-lg">Overview</CardTitle>
+        <CardTitle className="text-lg">{t("SAST_TAB.OVERVIEW")}</CardTitle>
         <div className="flex flex-wrap gap-2 text-xs">
           <div>
-            <span className="text-low-emphasis">Quality Gate</span>
+            <span className="text-low-emphasis">{t("SAST_TAB.QUALITY_GATE")}</span>
             <span
               data-testid="sast-quality-gate"
               className={`${getDeploymentLogEventBadgeClassName(
                 newView.qualityGate === MISSING ? "Pending" : newView.qualityGate,
               )} ml-2`}
             >
-              {newView.qualityGate}
+              {qualityGateText(newView.qualityGate, t)}
             </span>
           </div>
           <div>
-            <span className="text-low-emphasis">Lines of code</span>
+            <span className="text-low-emphasis">{t("SAST_TAB.LINES_OF_CODE")}</span>
             <span className="pl-2" data-testid="sast-ncloc">
               {newView.ncloc}
             </span>
@@ -85,8 +87,8 @@ export function SastTab({
         <Separator orientation="horizontal" className="my-4 w-full" />
         <Tabs defaultValue="new">
           <TabsList>
-            <TabsTrigger value="new">New Code</TabsTrigger>
-            <TabsTrigger value="overall">Overall Code</TabsTrigger>
+            <TabsTrigger value="new">{t("SAST_TAB.TAB_NEW_CODE")}</TabsTrigger>
+            <TabsTrigger value="overall">{t("SAST_TAB.TAB_OVERALL_CODE")}</TabsTrigger>
           </TabsList>
           <TabsContent value="new" className="mt-4 space-y-3">
             <NewCodeView view={newView} />
@@ -101,70 +103,75 @@ export function SastTab({
 }
 
 function NewCodeView({ view }: Readonly<{ view: SastView }>) {
+  const { t } = useT("monitor.repos");
   const failed = view.failedConditions !== "0";
   return (
     <>
       {view.newCodeSince && (
-        <p className="text-xs text-medium-emphasis">New code: Since {view.newCodeSince}</p>
+        <p className="text-xs text-medium-emphasis">
+          {t("SAST_TAB.NEW_CODE_SINCE", { since: view.newCodeSince })}
+        </p>
       )}
 
       <div className="space-y-1 rounded-md border border-border p-3 text-xs">
         {failed ? (
           <>
-            <p className="font-medium text-red-700">{view.failedConditions} conditions failed</p>
+            <p className="font-medium text-red-700">
+              {t("SAST_TAB.CONDITIONS_FAILED", { count: Number(view.failedConditions) })}
+            </p>
             <ul className="space-y-1 text-medium-emphasis">
               <li>
-                <span className="font-medium text-high-emphasis">{view.coverage}</span> Coverage is
-                less than {view.requiredCoverage}
+                <span className="font-medium text-high-emphasis">{view.coverage}</span>{" "}
+                {t("SAST_TAB.COVERAGE_BELOW", { required: view.requiredCoverage })}
               </li>
               <li>
                 <span className="font-medium text-high-emphasis">{view.hotspotsReviewed}</span>{" "}
-                Security Hotspots Reviewed is less than 100.0%
+                {t("SAST_TAB.HOTSPOTS_REVIEWED_BELOW")}
               </li>
               <li>
-                <span className="font-medium text-high-emphasis">{view.newIssues}</span> Issues is
-                greater than 0
+                <span className="font-medium text-high-emphasis">{view.newIssues}</span>{" "}
+                {t("SAST_TAB.ISSUES_ABOVE_ZERO")}
               </li>
             </ul>
           </>
         ) : (
-          <p className="text-green-700">All conditions passed</p>
+          <p className="text-green-700">{t("SAST_TAB.ALL_PASSED")}</p>
         )}
       </div>
 
       <div className={STATS_GRID}>
         <MetricBlock
-          title="New issues"
+          title={t("SAST_TAB.METRIC_NEW_ISSUES")}
           value={view.newIssues}
           failed
-          helper="Required = 0"
+          helper={t("SAST_TAB.HELPER_REQUIRED_ZERO")}
           testId="sast-reliability"
         />
         <MetricBlock
-          title="Accepted issues"
+          title={t("SAST_TAB.METRIC_ACCEPTED_ISSUES")}
           value={view.accepted}
-          helper="Valid issues that were not fixed"
+          helper={t("SAST_TAB.HELPER_ACCEPTED")}
         />
         <MetricBlock
-          title="Coverage"
+          title={t("SAST_TAB.METRIC_COVERAGE")}
           value={view.coverage}
           failed
-          helper={`Required >= ${view.requiredCoverage}`}
-          visual={<Donut percent={view.coverageNum} label="coverage" />}
+          helper={t("SAST_TAB.HELPER_REQUIRED_COVERAGE", { required: view.requiredCoverage })}
+          visual={<Donut percent={view.coverageNum} label={t("SAST_TAB.DONUT_COVERAGE")} />}
           testId="sast-coverage"
         />
         <MetricBlock
-          title="Duplications"
+          title={t("SAST_TAB.METRIC_DUPLICATIONS")}
           value={view.duplications}
-          helper={`On ${view.duplicatedLines} new lines`}
-          visual={<Donut percent={view.dupNum} label="duplications" />}
+          helper={t("SAST_TAB.HELPER_ON_NEW_LINES", { lines: view.duplicatedLines })}
+          visual={<Donut percent={view.dupNum} label={t("SAST_TAB.DONUT_DUPLICATIONS")} />}
           testId="sast-duplications"
         />
         <MetricBlock
-          title="Security hotspots"
+          title={t("SAST_TAB.METRIC_SECURITY_HOTSPOTS")}
           value={view.hotspots}
           failed={view.hotspotsWarn}
-          helper="Required >= 100.0%"
+          helper={t("SAST_TAB.HELPER_REQUIRED_HOTSPOTS")}
           visual={<GradeCircle letter={view.securityGrade} />}
           testId="sast-hotspots"
         />
@@ -176,56 +183,61 @@ function NewCodeView({ view }: Readonly<{ view: SastView }>) {
 }
 
 function OverallCodeView({ view }: Readonly<{ view: SastView }>) {
+  const { t } = useT("monitor.repos");
   return (
     <>
       <div className={STATS_GRID}>
         <MetricBlock
-          title="Security"
+          title={t("SAST_TAB.METRIC_SECURITY")}
           value={view.securityIssues}
-          helper="Open issues"
+          helper={t("SAST_TAB.HELPER_OPEN_ISSUES")}
           visual={<GradeCircle letter={view.securityGrade} />}
           testId="sast-security"
         />
         <MetricBlock
-          title="Reliability"
+          title={t("SAST_TAB.METRIC_RELIABILITY")}
           value={view.bugs}
-          helper="Open issues"
+          helper={t("SAST_TAB.HELPER_OPEN_ISSUES")}
           visual={<GradeCircle letter={view.reliabilityGrade} />}
           testId="sast-reliability"
         />
         <MetricBlock
-          title="Maintainability"
+          title={t("SAST_TAB.METRIC_MAINTAINABILITY")}
           value={view.codeSmells}
-          helper="Open issues"
+          helper={t("SAST_TAB.HELPER_OPEN_ISSUES")}
           visual={<GradeCircle letter={view.maintainabilityGrade} />}
           testId="sast-maintainability"
         />
         <MetricBlock
-          title="Accepted issues"
+          title={t("SAST_TAB.METRIC_ACCEPTED_ISSUES")}
           value={view.accepted}
-          helper="Valid issues that were not fixed"
+          helper={t("SAST_TAB.HELPER_ACCEPTED")}
         />
         <MetricBlock
-          title="Coverage"
+          title={t("SAST_TAB.METRIC_COVERAGE")}
           value={view.coverage}
-          helper={`On ${view.linesToCover} lines to cover`}
-          visual={<Donut percent={view.coverageNum} label="coverage" />}
+          helper={t("SAST_TAB.HELPER_ON_LINES_TO_COVER", { lines: view.linesToCover })}
+          visual={<Donut percent={view.coverageNum} label={t("SAST_TAB.DONUT_COVERAGE")} />}
           testId="sast-coverage"
         />
         <MetricBlock
-          title="Duplications"
+          title={t("SAST_TAB.METRIC_DUPLICATIONS")}
           value={view.duplications}
-          helper={`On ${view.duplicatedLines} lines`}
-          visual={<Donut percent={view.dupNum} label="duplications" />}
+          helper={t("SAST_TAB.HELPER_ON_LINES", { lines: view.duplicatedLines })}
+          visual={<Donut percent={view.dupNum} label={t("SAST_TAB.DONUT_DUPLICATIONS")} />}
           testId="sast-duplications"
         />
         <MetricBlock
-          title="Security hotspots"
+          title={t("SAST_TAB.METRIC_SECURITY_HOTSPOTS")}
           value={view.hotspots}
           visual={<GradeCircle letter={view.hotspotsWarn ? "E" : view.securityGrade} />}
           testId="sast-hotspots"
         />
-        <MetricBlock title="Technical debt" value={view.newDebt} testId="sast-new-debt" />
+        <MetricBlock
+          title={t("SAST_TAB.METRIC_TECHNICAL_DEBT")}
+          value={view.newDebt}
+          testId="sast-new-debt"
+        />
       </div>
 
       <SeverityChips view={view} />
@@ -248,6 +260,7 @@ function MetricBlock({
   visual?: ReactNode;
   testId?: string;
 }>) {
+  const { t } = useT("monitor.repos");
   return (
     <div className="flex h-20 items-start gap-4" data-testid={testId}>
       <div className="flex-1">
@@ -255,7 +268,7 @@ function MetricBlock({
           <p className="text-sm text-high-emphasis">{title}</p>
           {failed && (
             <span className={`${getDeploymentLogEventBadgeClassName("Failed")} text-[10px]`}>
-              Failed
+              {t("SAST_TAB.FAILED")}
             </span>
           )}
         </div>
@@ -270,15 +283,16 @@ function MetricBlock({
 }
 
 function SeverityChips({ view }: Readonly<{ view: SastView }>) {
+  const { t } = useT("monitor.repos");
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium text-high-emphasis">Issues by severity</p>
+      <p className="text-xs font-medium text-high-emphasis">{t("SAST_TAB.ISSUES_BY_SEVERITY")}</p>
       <div className="flex flex-wrap gap-2">
-        <Chip>Blocker {view.blocker}</Chip>
-        <Chip>High {view.high}</Chip>
-        <Chip>Medium {view.medium}</Chip>
-        <Chip>Low {view.low}</Chip>
-        <Chip>Info {view.info}</Chip>
+        <Chip>{t("SAST_TAB.SEVERITY_BLOCKER", { value: view.blocker })}</Chip>
+        <Chip>{t("SAST_TAB.SEVERITY_HIGH", { value: view.high })}</Chip>
+        <Chip>{t("SAST_TAB.SEVERITY_MEDIUM", { value: view.medium })}</Chip>
+        <Chip>{t("SAST_TAB.SEVERITY_LOW", { value: view.low })}</Chip>
+        <Chip>{t("SAST_TAB.SEVERITY_INFO", { value: view.info })}</Chip>
       </div>
     </div>
   );
@@ -311,7 +325,12 @@ function Donut({ percent, label }: Readonly<{ percent: number | null; label: str
   const offset = c - (p / 100) * c;
   return (
     <div className="relative h-16 w-16">
-      <svg className="h-full w-full" viewBox="0 0 64 64" aria-label={label} data-testid="sast-donut">
+      <svg
+        className="h-full w-full"
+        viewBox="0 0 64 64"
+        aria-label={label}
+        data-testid="sast-donut"
+      >
         <circle
           cx="32"
           cy="32"
@@ -453,6 +472,13 @@ function formatPercent(value: string | undefined): string {
   const n = Number(value);
   if (!Number.isFinite(n)) return MISSING;
   return `${n.toFixed(1)}%`;
+}
+
+/** The shown text of a quality gate result; the stored value stays English because logic reads it. */
+function qualityGateText(value: string, t: (key: string) => string): string {
+  if (value === "Passed") return t("SAST_TAB.GATE_PASSED");
+  if (value === "Failed") return t("SAST_TAB.GATE_FAILED");
+  return value;
 }
 
 function qualityGateLabel(status: string | undefined): string {
