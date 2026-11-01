@@ -103,7 +103,15 @@ export async function loginThroughOidc(page: Page, options?: { loginPath?: strin
  */
 export async function ensureAuthenticated(page: Page) {
   const base = e2eBaseUrl()
-  await page.goto(`${base}/app/console`, { waitUntil: "domcontentloaded" })
+  try {
+    await page.goto(`${base}/app/console`, { waitUntil: "domcontentloaded" })
+  } catch (error) {
+    // The app's own client-side redirect (e.g. a project dashboard bouncing to the console)
+    // can abort this navigation. Let that navigation settle, then go to the console once more.
+    if (!/net::ERR_ABORTED/.test(String(error))) throw error
+    await page.waitForLoadState("domcontentloaded")
+    await page.goto(`${base}/app/console`, { waitUntil: "domcontentloaded" })
+  }
 
   if (await consoleHeading(page).isVisible({ timeout: 15_000 }).catch(() => false)) {
     return

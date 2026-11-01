@@ -172,7 +172,6 @@ export interface IUpdateMonitor {
   customPayload?: string;
   successHttpResponseCodes?: string[];
   regions?: string[];
-  emails?: string[];
 }
 export interface IAlertResponse<T> {
   errors: string[] | null;
@@ -384,6 +383,10 @@ export interface IMonitorDetails {
   monitorConfigurationType: number;
   gracePeriodInSeconds: number;
   monitorSourceTypes: number;
+  /** The stored source type. Null on legacy records, which carry only `monitorSourceTypes`. */
+  monitorSourceType?: number | null;
+  /** The source type the server resolved, with the legacy field as fallback. */
+  effectiveMonitorSourceType?: number | null;
   checkSSLErrors?: boolean;
   sslExpiryReminders?: boolean;
   domainExpiryReminders?: boolean;

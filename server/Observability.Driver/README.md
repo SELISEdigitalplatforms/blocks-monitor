@@ -1,21 +1,21 @@
-# SeliseBlocks.ObservabilityDriver
+# SeliseBlocks.MonitorDriver.OS
 
 NuGet package that exposes the **Monitor** and **Health** APIs from `blocks-observability` as a single injectable service: `IObservabilityDriverService`. Consuming services (e.g. `blocks-logic`) can host these endpoints locally without depending on the full observability stack.
 
-The driver mirrors the public surface of [`MonitorController`](../Api/Controllers/MonitorController.cs) and [`HealthController`](../Api/Controllers/HealthController.cs).
+The driver mirrors the public surface of [`MonitorController`](../Api/Controllers/MonitorController.cs) and [`HealthController`](../Api/Controllers/HealthController.cs), except the Alert recipients endpoints (`GetAlertRecipients`, `GetAlertRecipientSuggestions`, `SaveAlertRecipient`, `DeleteAlertRecipient`), which are API-only and not on `IObservabilityDriverService`.
 
 ---
 
 ## Install
 
 ```xml
-<PackageReference Include="SeliseBlocks.ObservabilityDriver" />
+<PackageReference Include="SeliseBlocks.MonitorDriver.OS" />
 ```
 
 With Central Package Management, also add to `Directory.Packages.props`:
 
 ```xml
-<PackageVersion Include="SeliseBlocks.ObservabilityDriver" Version="10.0.0-preview.2" />
+<PackageVersion Include="SeliseBlocks.MonitorDriver.OS" Version="5.0.0" />
 ```
 
 ## Register
@@ -40,6 +40,16 @@ public class MonitorController(IObservabilityDriverService observability) : Cont
         => observability.GetMonitorListAsync(projectKey, monitorSourceType, pageNumber, pageSize);
 }
 ```
+
+---
+
+## Release notes
+
+### 5.0.0
+
+- **Breaking:** `Emails` is removed from `SaveMonitorConfigurationRequest` (and so `UpdateMonitorConfigurationRequest`) and from `SaveHealthConfigurationRequest` (and so `UpdateHealthConfigurationRequest`). Manage recipients on the Monitor app's **Alert recipients** page. JSON that still sends `emails` is ignored, and an update never changes a monitor's existing emails.
+- A monitor or health check created through the driver starts with its project's "All monitors" recipients, read from the Genesis key-value store (`IKeyValueStore`, registered by Genesis `ConfigureServices`). If that read fails, the monitor is created without recipients and a warning is logged.
+- The Alert recipients endpoints are API-only: they are not on `IObservabilityDriverService`.
 
 ---
 
@@ -141,8 +151,7 @@ Task<BaseApiResponse> SaveMonitorAsync(SaveMonitorConfigurationRequest request);
   "customHttpHeaders": null,
   "customPayload": null,
   "successHttpResponseCodes": ["200", "204"],
-  "regions": ["eu-west-1"],
-  "emails": ["oncall@example.com"]
+  "regions": ["eu-west-1"]
 }
 ```
 
@@ -174,8 +183,7 @@ Task<BaseApiResponse> UpdateMonitorAsync(UpdateMonitorConfigurationRequest reque
   "monitorSourceType": "DeployedServices",
   "expectedContent": "OK",
   "successHttpResponseCodes": ["200"],
-  "regions": ["eu-west-1", "us-east-1"],
-  "emails": ["oncall@example.com"]
+  "regions": ["eu-west-1", "us-east-1"]
 }
 ```
 
@@ -274,8 +282,7 @@ Task<BaseApiResponse> SaveHealthAsync(SaveHealthConfigurationRequest request);
   "isActive": true,
   "intervalInSeconds": 60,
   "gracePeriodInSeconds": 30,
-  "monitorSourceType": "DeployedServices",
-  "emails": ["oncall@example.com"]
+  "monitorSourceType": "DeployedServices"
 }
 ```
 
@@ -300,8 +307,7 @@ Task<BaseApiResponse> UpdateHealthAsync(UpdateHealthConfigurationRequest request
   "isActive": true,
   "intervalInSeconds": 120,
   "gracePeriodInSeconds": 60,
-  "monitorSourceType": "DeployedServices",
-  "emails": ["oncall@example.com"]
+  "monitorSourceType": "DeployedServices"
 }
 ```
 

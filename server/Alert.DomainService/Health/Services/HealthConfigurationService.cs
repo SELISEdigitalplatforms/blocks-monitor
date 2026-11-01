@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using Blocks.Genesis;
 using Blocks.Genesis.DataAccess.Rules;
+using DomainService.AlertRecipients.Services;
 using DomainService.Shared.DataAccess;
 using DomainService.Health.Models;
 using Blocks.Genesis.Entities.Monitor;
@@ -16,17 +17,20 @@ namespace DomainService.Health.Services
         private readonly HealthConfigurationRepoService _healthConfigurationRepoService;
         private readonly HealthCheckService _healthCheckService;
         private readonly IConfiguration _configuration;
+        private readonly IAlertRecipientStore _alertRecipientStore;
 
         public HealthConfigurationService(
             ILogger<HealthConfigurationService> logger,
             HealthCheckService healthCheckService,
             IConfiguration configuration,
-            HealthConfigurationRepoService healthConfigurationRepoService)
+            HealthConfigurationRepoService healthConfigurationRepoService,
+            IAlertRecipientStore alertRecipientStore)
         {
             _logger = logger;
             _healthConfigurationRepoService = healthConfigurationRepoService;
             _healthCheckService = healthCheckService;
             _configuration = configuration;
+            _alertRecipientStore = alertRecipientStore;
         }
 
         public async Task<BaseApiResponse> SaveConfigurationAsync(SaveHealthConfigurationRequest request)
@@ -82,6 +86,10 @@ namespace DomainService.Health.Services
                     CreatedDate = DateTime.UtcNow,
                     CreatedBy = BlocksContext.GetContext()?.UserId
                 };
+
+                // A new editable heartbeat starts with the project's "All monitors" people (H9); never Blocks services.
+                if (monitorSourceTypeEnum != MonitorSourceTypes.BlocksServices)
+                    healthConfiguration.Emails = await _alertRecipientStore.GetEmailsForNewMonitorAsync(request.ProjectKey);
 
                 await _healthConfigurationRepoService.SaveOrUpdateConfigurationAsync(healthConfiguration);
                 await _healthCheckService.LoadMonitorsFromDatabaseAsync();
@@ -147,8 +155,7 @@ namespace DomainService.Health.Services
                 existing.IsActive = request.IsActive;
                 existing.LastUpdatedDate = DateTime.UtcNow;
                 existing.LastUpdatedBy = BlocksContext.GetContext()?.UserId;
-                if (request.Emails != null && request.Emails.Count > 0)
-                    existing.Emails = request.Emails;
+                // Emails are never taken from an update request (C11): see the Alert recipients page.
 
                 await _healthConfigurationRepoService.SaveOrUpdateConfigurationAsync(existing);
                 await _healthCheckService.LoadMonitorsFromDatabaseAsync();

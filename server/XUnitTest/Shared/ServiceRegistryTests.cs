@@ -34,8 +34,25 @@ namespace XUnitTest.Shared
 
             // A hosted background worker is registered for the health checks.
             services.Should().Contain(d => d.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService));
-            // Both request validators are registered as transients.
-            services.Count(d => d.ServiceType.Name.StartsWith("IValidator")).Should().Be(2);
+            // The three request validators (monitor save, monitor update, alert recipient save) are registered as transients.
+            services.Count(d => d.ServiceType.Name.StartsWith("IValidator")).Should().Be(3);
+        }
+
+        [Fact]
+        public void AddApplicationServices_RegistersTheAlertRecipientServices()
+        {
+            var services = new ServiceCollection();
+
+            services.AddApplicationServices();
+
+            services.Should().Contain(d => d.ServiceType == typeof(DomainService.AlertRecipients.Services.IAlertRecipientService)
+                && d.ImplementationType == typeof(DomainService.AlertRecipients.Services.AlertRecipientService));
+            services.Should().Contain(d => d.ServiceType == typeof(DomainService.AlertRecipients.Services.IAlertRecipientStore)
+                && d.ImplementationType == typeof(DomainService.AlertRecipients.Services.AlertRecipientStore));
+            services.Should().Contain(d => d.ServiceType == typeof(DomainService.AlertRecipients.Services.IAlertRecipientReconciler)
+                && d.ImplementationType == typeof(DomainService.AlertRecipients.Services.AlertRecipientReconciler));
+            services.Should().Contain(d => d.ServiceType == typeof(FluentValidation.IValidator<DomainService.AlertRecipients.Models.SaveAlertRecipientRequest>)
+                && d.ImplementationType == typeof(DomainService.Validators.SaveAlertRecipientRequestValidator));
         }
     }
 }

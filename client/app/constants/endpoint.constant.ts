@@ -54,6 +54,11 @@ export const ALERT_ENDPOINTS = {
   GET_MONITOR_BY_ID: `${API_BASE}${MONITOR_SUBPATH}/GetMonitorById`,
   GET_MONITOR_RESPONSE_TIME: `${API_BASE}${MONITOR_SUBPATH}/GetMonitorResponseTime`,
   GET_MONITOR_DOWN_TIME: `${API_BASE}${MONITOR_SUBPATH}/GetMonitorDownTime`,
+  GET_ALERT_RECIPIENTS: `${API_BASE}${MONITOR_SUBPATH}/GetAlertRecipients`,
+  GET_ALERT_RECIPIENT_SUGGESTIONS: `${API_BASE}${MONITOR_SUBPATH}/GetAlertRecipientSuggestions`,
+  SAVE_ALERT_RECIPIENT: `${API_BASE}${MONITOR_SUBPATH}/SaveAlertRecipient`,
+  // POST with the email in the body, so no URL or request log carries an address (#256 Q3).
+  DELETE_ALERT_RECIPIENT: `${API_BASE}${MONITOR_SUBPATH}/DeleteAlertRecipient`,
   SAVE_HEALTH: `${API_BASE}${HEALTH_SUBPATH}/SaveHealth`,
   UPDATE_HEALTH: `${API_BASE}${HEALTH_SUBPATH}/UpdateHealth`,
   DELETE_HEALTH: `${API_BASE}${HEALTH_SUBPATH}/DeleteHealth`,

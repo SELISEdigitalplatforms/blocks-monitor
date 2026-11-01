@@ -14,6 +14,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The email rule's shared test list (decision Q12); the client runs a copy of the same file in Vitest. -->
+    <None Update="AlertRecipients/alert-recipient-emails.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
 	<ProjectReference Include="..\Api\Api.csproj" />
 	<ProjectReference Include="..\Worker\Worker.csproj" />
   </ItemGroup>

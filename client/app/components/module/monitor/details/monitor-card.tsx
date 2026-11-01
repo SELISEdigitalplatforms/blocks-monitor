@@ -1,14 +1,18 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/core";
-import { Pencil, Layers } from "lucide-react";
+import { Badge, Card, CardContent, CardHeader, CardTitle } from "@/components/core";
+import { hasManagedRecipients } from "@/components/module/alert-recipients/alert-recipients.utils";
+import { ArrowRight, Layers } from "lucide-react";
 import { iconMap } from "@/models";
 import { RenderConditionally } from "@seliseblocks/genesis-os/components";
+import { Link } from "react-router";
 
 type IMonitorCard = {
-  onOpenChange: (value: boolean) => void;
   url: string;
   request: boolean;
   emails: string[];
-  monitorSourceType: number;
+  /** Effective source type; undefined when the API sent none. */
+  monitorSourceType?: number;
+  /** Where "Open Alert recipients" goes. */
+  alertRecipientsPath: string;
   repoName?: string | null;
   externalServiceName?: string | null;
 };
@@ -20,7 +24,7 @@ const MonitorCard = ({
   request,
   emails,
   monitorSourceType,
-  onOpenChange,
+  alertRecipientsPath,
 }: IMonitorCard) => {
   const GithubIcon = iconMap["github"];
   return (
@@ -81,28 +85,35 @@ const MonitorCard = ({
           <div className="text-foreground">{request ? "HTTP Check" : "Heartbeat"}</div>
         </div>
 
-        {/* Notification recipients */}
-        {monitorSourceType !== 2 && (
+        {/* Notification recipients: read-only, managed on the Alert recipients page (H12). */}
+        {hasManagedRecipients(monitorSourceType) && (
           <div className="sm:col-span-2">
-            <div className="mb-1 text-xs font-medium text-foreground">Notification recipients</div>
-            <div className="flex flex-wrap items-center gap-1">
-              <span className="text-foreground">{emails[0]}</span>
-              <span className="text-sm text-muted-foreground">
-                {(() => {
-                  if (emails.length === 0) return "Add recipient";
-                  if (emails.length === 1) return "";
-                  return `+ ${emails.length - 1} more`;
-                })()}
-              </span>
-              <button
-                type="button"
-                aria-label="Edit notification recipients"
-                className="cursor-pointer text-blue-500 hover:underline"
-                onClick={() => onOpenChange(true)}
-              >
-                <Pencil className="ml-1 inline h-4 w-4" />
-              </button>
+            <div className="mb-1.5 text-xs font-medium text-foreground">
+              Notification recipients
             </div>
+            {emails.length > 0 ? (
+              <ul
+                className="flex flex-wrap items-center gap-1.5"
+                aria-label="Notification recipients"
+              >
+                {emails.map((email) => (
+                  <li key={email}>
+                    <Badge variant="outline" className="rounded-full px-2.5 font-normal">
+                      {email}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <span className="text-muted-foreground">No recipients</span>
+            )}
+            <Link
+              to={alertRecipientsPath}
+              className="mt-2 inline-flex min-h-8 items-center gap-1 text-[13px] font-semibold text-primary hover:underline"
+            >
+              Open Alert recipients
+              <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
+            </Link>
           </div>
         )}
       </CardContent>

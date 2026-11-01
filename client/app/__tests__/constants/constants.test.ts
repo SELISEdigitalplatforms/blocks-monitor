@@ -17,6 +17,7 @@ import {
   MIGRATION_ENDPOINTS,
 } from "@/constants/endpoint.constant";
 import { navigationMenus } from "@/constants/navigation-menus.constant";
+import { Mail } from "lucide-react";
 import { MONITOR_TABS, parseAsMonitorTabKey } from "@/constants/monitor.constant";
 
 describe("alert.constant", () => {
@@ -61,6 +62,15 @@ describe("endpoint.constant", () => {
     expect(ALERT_ENDPOINTS.GET_REPORTS).toBe("/api/Monitor/reports");
   });
 
+  it("exposes the four Alert recipients endpoints (#256)", () => {
+    expect(ALERT_ENDPOINTS.GET_ALERT_RECIPIENTS).toBe("/api/Monitor/GetAlertRecipients");
+    expect(ALERT_ENDPOINTS.GET_ALERT_RECIPIENT_SUGGESTIONS).toBe(
+      "/api/Monitor/GetAlertRecipientSuggestions",
+    );
+    expect(ALERT_ENDPOINTS.SAVE_ALERT_RECIPIENT).toBe("/api/Monitor/SaveAlertRecipient");
+    expect(ALERT_ENDPOINTS.DELETE_ALERT_RECIPIENT).toBe("/api/Monitor/DeleteAlertRecipient");
+  });
+
   it("exposes migration endpoints", () => {
     expect(MIGRATION_ENDPOINTS.GET_STATUS).toBe("/api/migration/status");
   });
@@ -73,13 +83,24 @@ describe("navigation constants", () => {
     expect(navigationMenus.some((m) => m.type === "separator")).toBe(true);
   });
 
-  it("places Repos immediately after Monitor (H4)", () => {
+  it("orders the menu Monitor, Alert recipients, Repos (#256 H1)", () => {
     const ids = navigationMenus.filter((m) => m.type === "menu").map((m) => m.id);
     const monitorIdx = ids.indexOf("monitor");
-    expect(ids[monitorIdx + 1]).toBe("repos");
+    expect(ids.slice(monitorIdx, monitorIdx + 3)).toEqual(["monitor", "alert-recipients", "repos"]);
     const repos = navigationMenus.find((m) => m.id === "repos");
     expect(repos?.path).toBe("/app/repos");
     expect(repos?.name).toBe("Repos");
+  });
+
+  it("adds an Alert recipients item with the mail icon (#256 H1)", () => {
+    const item = navigationMenus.find((m) => m.id === "alert-recipients");
+    expect(item).toMatchObject({
+      type: "menu",
+      name: "Alert recipients",
+      // Same path style as /app/monitor: the shell scopes it to /app/{projectId}/alert-recipients.
+      path: "/app/alert-recipients",
+      icon: Mail,
+    });
   });
 });
 
