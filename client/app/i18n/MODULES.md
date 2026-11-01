@@ -6,4 +6,5 @@ English lives here (`<module>.en.json`); German is served by the localization se
 |---|---|---|
 | monitor.shared | components/common, components/core, constants, hooks, utils, routes, layouts | 17 |
 | monitor.monitors | pages/monitor, components/module/monitor, constants/monitor.constant.ts, constants/alert.constant.ts | 104 |
-| **Total** | | **121** |
+| monitor.alerts | components/module/alert, hooks/use-alerts.ts, models/alerts.model.ts | 25 |
+| **Total** | | **146** |

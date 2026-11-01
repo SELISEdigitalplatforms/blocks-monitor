@@ -1,6 +1,7 @@
 import { Card } from "@/components/core";
 import { IIncidentSummaries } from "@/models/alerts.model";
 import React, { useState, useMemo } from "react";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 type IProgressBar = {
   incidents: IIncidentSummaries[];
@@ -81,6 +82,7 @@ const IndividualBar = ({
   endTime: Date;
   downtimePercentage: number;
 }) => {
+  const { t } = useT("monitor.alerts");
   const [showTooltip, setShowTooltip] = useState(false);
 
   const formatTime = (date: Date) => {
@@ -119,8 +121,9 @@ const IndividualBar = ({
               </span>
             </div>
             <span className="font-semibold">
-              {status ? "Up " : "Down "}
-              {status ? "100" : downtimePercentage.toFixed(1)}%
+              {status
+                ? t("PROGRESS_BAR.UP", { percent: "100" })
+                : t("PROGRESS_BAR.DOWN", { percent: downtimePercentage.toFixed(1) })}
             </span>
           </div>
         </Card>
