@@ -11,7 +11,7 @@ import {
 import type { IAlertRecipient, IAlertRecipientMonitor } from "@/models/alert-recipients.model";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import { countMonitors } from "./alert-recipients.utils";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 /** Chips shown per row before "+K more" (#256 Q6). */
 export const MAX_VISIBLE_CHIPS = 5;
@@ -21,6 +21,7 @@ type MonitorChipsProps = {
 };
 
 const MonitorChips = ({ names }: MonitorChipsProps) => {
+  const { t } = useT("monitor.alert-recipients");
   const [expanded, setExpanded] = useState(false);
   const hidden = names.length - MAX_VISIBLE_CHIPS;
   const visible = expanded || hidden <= 0 ? names : names.slice(0, MAX_VISIBLE_CHIPS);
@@ -46,7 +47,9 @@ const MonitorChips = ({ names }: MonitorChipsProps) => {
           aria-expanded={expanded}
           onClick={() => setExpanded((value) => !value)}
         >
-          {expanded ? "Show less" : `+${hidden} more`}
+          {expanded
+            ? t("RECIPIENTS_TABLE.SHOW_LESS")
+            : t("RECIPIENTS_TABLE.MORE", { count: hidden })}
         </Button>
       )}
     </>
@@ -70,6 +73,7 @@ const RecipientRow = ({
   onEdit,
   onRemove,
 }: RecipientRowProps) => {
+  const { t } = useT("monitor.alert-recipients");
   const names = recipient.monitorIds
     .map((id) => monitorsById.get(id)?.name)
     .filter((name): name is string => !!name)
@@ -93,14 +97,18 @@ const RecipientRow = ({
           {recipient.allMonitors ? (
             <>
               <Badge className="inline-flex rounded-full px-3">
-                All monitors ({totalMonitors})
+                {t("RECIPIENTS_TABLE.ALL_MONITORS", { total: totalMonitors })}
               </Badge>
-              <span className="text-[13px] text-muted-foreground">New monitors too</span>
+              <span className="text-[13px] text-muted-foreground">
+                {t("RECIPIENTS_TABLE.NEW_MONITORS_TOO")}
+              </span>
             </>
           ) : (
             <>
               <span className="mr-1 text-[13px] font-semibold text-foreground">
-                {names.length === 0 ? "No monitors" : `${countMonitors(names.length)}:`}
+                {names.length === 0
+                  ? t("RECIPIENTS_TABLE.NO_MONITORS")
+                  : t("RECIPIENTS_TABLE.MONITORS_LABEL", { count: names.length })}
               </span>
               <MonitorChips names={names} />
             </>
@@ -113,10 +121,10 @@ const RecipientRow = ({
             type="button"
             variant="outline"
             size="sm"
-            aria-label={`Edit ${recipient.email}`}
+            aria-label={t("RECIPIENTS_TABLE.EDIT_ARIA", { email: recipient.email })}
             onClick={() => onEdit(recipient)}
           >
-            Edit
+            {t("common:EDIT")}
           </Button>
           {/* blocks-error-800 meets AA in both themes (about 9.7:1 light, 11.3:1 dark); --destructive does not. */}
           <Button
@@ -124,12 +132,12 @@ const RecipientRow = ({
             variant="outline"
             size="sm"
             className="text-blocks-error-800 hover:text-blocks-error-800"
-            aria-label={`Remove ${recipient.email} from all monitors`}
+            aria-label={t("RECIPIENTS_TABLE.REMOVE_ARIA", { email: recipient.email })}
             disabled={isRemoving}
             onClick={() => onRemove(recipient)}
           >
             {isRemoving && <Loader2 aria-hidden="true" className="mr-1 h-4 w-4 animate-spin" />}
-            Remove
+            {t("common:REMOVE")}
           </Button>
         </div>
       </TableCell>
@@ -158,29 +166,38 @@ const RecipientsTable = ({
   removingEmail,
   onEdit,
   onRemove,
-}: RecipientsTableProps) => (
-  <Table className="min-w-[760px]">
-    <TableHeader>
-      <TableRow>
-        <TableHead className="w-[30%] text-foreground">Recipient</TableHead>
-        <TableHead className="text-foreground">Gets alerts for</TableHead>
-        <TableHead className="w-[180px] text-right text-foreground">Actions</TableHead>
-      </TableRow>
-    </TableHeader>
-    <TableBody>
-      {recipients.map((recipient) => (
-        <RecipientRow
-          key={recipient.email}
-          recipient={recipient}
-          monitorsById={monitorsById}
-          totalMonitors={totalMonitors}
-          isRemoving={removingEmail === recipient.email}
-          onEdit={onEdit}
-          onRemove={onRemove}
-        />
-      ))}
-    </TableBody>
-  </Table>
-);
+}: RecipientsTableProps) => {
+  const { t } = useT("monitor.alert-recipients");
+  return (
+    <Table className="min-w-[760px]">
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[30%] text-foreground">
+            {t("RECIPIENTS_TABLE.COLUMN_RECIPIENT")}
+          </TableHead>
+          <TableHead className="text-foreground">
+            {t("RECIPIENTS_TABLE.COLUMN_GETS_ALERTS_FOR")}
+          </TableHead>
+          <TableHead className="w-[180px] text-right text-foreground">
+            {t("common:ACTIONS")}
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {recipients.map((recipient) => (
+          <RecipientRow
+            key={recipient.email}
+            recipient={recipient}
+            monitorsById={monitorsById}
+            totalMonitors={totalMonitors}
+            isRemoving={removingEmail === recipient.email}
+            onEdit={onEdit}
+            onRemove={onRemove}
+          />
+        ))}
+      </TableBody>
+    </Table>
+  );
+};
 
 export default RecipientsTable;

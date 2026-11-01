@@ -8,4 +8,5 @@ English lives here (`<module>.en.json`); German is served by the localization se
 | monitor.monitors | pages/monitor, components/module/monitor, constants/monitor.constant.ts, constants/alert.constant.ts | 104 |
 | monitor.alerts | components/module/alert, hooks/use-alerts.ts, models/alerts.model.ts | 25 |
 | monitor.console | pages/incidents, components/module/incident | 10 |
-| **Total** | | **156** |
+| monitor.alert-recipients | pages/alert-recipients, components/module/alert-recipients | 64 |
+| **Total** | | **220** |

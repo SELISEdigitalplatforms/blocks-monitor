@@ -20,21 +20,17 @@ import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { IAlertRecipient, IAlertRecipientMonitor } from "@/models/alert-recipients.model";
 import {
-  INVALID_EMAIL_MESSAGE,
+  getInvalidEmailMessage,
   normalizeAlertRecipientEmail,
 } from "@/utils/alert-recipient-email.util";
 import { ErrorTransformer } from "@seliseblocks/genesis-os/utils";
 import { Loader2, Search } from "lucide-react";
 import { type SubmitEvent, useId, useMemo, useState } from "react";
-import {
-  countMonitors,
-  monitorKindLabel,
-  recipientCountLabel,
-  storedAllMonitors,
-} from "./alert-recipients.utils";
+import { monitorKindLabel, recipientCountLabel, storedAllMonitors } from "./alert-recipients.utils";
+import { tStatic, useT } from "@seliseblocks/genesis-os/i18n";
 
-export const DUPLICATE_RECIPIENT_MESSAGE =
-  "This person already gets alerts. Use Edit to change their monitors.";
+export const getDuplicateRecipientMessage = () =>
+  tStatic("monitor.alert-recipients", "RECIPIENT_DIALOG.DUPLICATE_RECIPIENT");
 
 type Scope = "all" | "selected";
 
@@ -66,8 +62,8 @@ const getEmailState = (
   const normalized = isEdit ? (storedEmail ?? null) : normalizeAlertRecipientEmail(typed);
   const isDuplicate = !isEdit && !!normalized && recipientEmails.has(normalized);
   let emailError: string | null = null;
-  if (!normalized) emailError = INVALID_EMAIL_MESSAGE;
-  else if (isDuplicate) emailError = DUPLICATE_RECIPIENT_MESSAGE;
+  if (!normalized) emailError = getInvalidEmailMessage();
+  else if (isDuplicate) emailError = getDuplicateRecipientMessage();
   const visibleEmailError = isDuplicate || revealInvalid ? emailError : null;
   return { normalized, emailError, visibleEmailError };
 };
@@ -78,15 +74,24 @@ const getSaveLabel = (
   selectedCount: number,
   monitorCount: number,
 ) => {
-  if (isEdit) return "Save";
-  if (scope === "selected") return `Add to ${countMonitors(selectedCount)}`;
-  return monitorCount === 1 ? "Add to 1 monitor" : `Add to all ${monitorCount} monitors`;
+  if (isEdit) return tStatic("monitor.alert-recipients", "common:SAVE");
+  if (scope === "selected") {
+    return tStatic("monitor.alert-recipients", "RECIPIENT_DIALOG.ADD_TO_MONITORS", {
+      count: selectedCount,
+    });
+  }
+  return monitorCount === 1
+    ? tStatic("monitor.alert-recipients", "RECIPIENT_DIALOG.ADD_TO_MONITORS", { count: 1 })
+    : tStatic("monitor.alert-recipients", "RECIPIENT_DIALOG.ADD_TO_ALL_MONITORS", {
+        count: monitorCount,
+      });
 };
 
 const fullMonitorsNote = (fullCount: number, maxEmailsPerMonitor: number) =>
-  fullCount === 1
-    ? `1 monitor already has ${maxEmailsPerMonitor} recipients and will be skipped.`
-    : `${fullCount} monitors already have ${maxEmailsPerMonitor} recipients and will be skipped.`;
+  tStatic("monitor.alert-recipients", "RECIPIENT_DIALOG.FULL_MONITORS_NOTE", {
+    count: fullCount,
+    max: maxEmailsPerMonitor,
+  });
 
 const filterMonitors = (monitors: IAlertRecipientMonitor[], filter: string) => {
   const filterText = filter.trim().toLowerCase();
@@ -114,6 +119,7 @@ const RecipientDialog = ({
   maxEmailsPerMonitor,
   onClose,
 }: RecipientDialogProps) => {
+  const { t } = useT("monitor.alert-recipients");
   const isEdit = mode === "edit" && !!recipient;
   const id = useId();
   const emailId = `${id}-email`;
@@ -190,10 +196,12 @@ const RecipientDialog = ({
         monitorIds: scope === "all" ? [] : selectedIds,
       });
       if (!response?.isSuccess) {
-        showErrorToast({ errors: response?.message || "The recipient was not saved." });
+        showErrorToast({
+          errors: response?.message || t("RECIPIENT_DIALOG.SAVE_FAILED"),
+        });
         return;
       }
-      showSuccessToast({ description: response.message || "Recipient saved." });
+      showSuccessToast({ description: response.message || t("RECIPIENT_DIALOG.SAVED") });
       onClose();
     } catch (error) {
       showErrorToast({ errors: ErrorTransformer(error) });
@@ -206,24 +214,24 @@ const RecipientDialog = ({
         <form noValidate onSubmit={handleSubmit}>
           <DialogHeader className="px-6 pb-3 pt-6 text-left">
             <DialogTitle className="text-xl">
-              {isEdit ? "Edit recipient" : "Add recipient"}
+              {isEdit ? t("RECIPIENT_DIALOG.EDIT_TITLE") : t("RECIPIENT_DIALOG.ADD_TITLE")}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              This person gets an email when a chosen monitor goes down or comes back up.
+              {t("RECIPIENT_DIALOG.DESCRIPTION")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col gap-5 px-6">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor={emailId} className="font-semibold">
-                Email
+                {t("common:EMAIL")}
               </Label>
               <Input
                 id={emailId}
                 type="email"
                 inputMode="email"
                 autoComplete="off"
-                placeholder="name@company.com"
+                placeholder={t("RECIPIENT_DIALOG.EMAIL_PLACEHOLDER")}
                 value={isEdit ? recipient.email : email}
                 readOnly={isEdit}
                 aria-readonly={isEdit || undefined}
@@ -240,7 +248,9 @@ const RecipientDialog = ({
               )}
               {memberEmails.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  <span className="text-xs text-muted-foreground">Project members:</span>
+                  <span className="text-xs text-muted-foreground">
+                    {t("RECIPIENT_DIALOG.PROJECT_MEMBERS")}
+                  </span>
                   {memberEmails.map((member) => (
                     <Button
                       key={member}
@@ -262,7 +272,7 @@ const RecipientDialog = ({
 
             <fieldset className="flex flex-col gap-2">
               <legend id={legendId} className="pb-2 text-sm font-semibold">
-                Send alerts for
+                {t("RECIPIENT_DIALOG.SEND_ALERTS_FOR")}
               </legend>
               <RadioGroup
                 aria-labelledby={legendId}
@@ -274,19 +284,21 @@ const RecipientDialog = ({
                   <RadioGroupItem id={`${id}-all`} value="all" className="mt-0.5" />
                   <span className="flex flex-col gap-0.5">
                     <span className="text-[15px] font-semibold">
-                      All monitors ({monitors.length})
+                      {t("RECIPIENT_DIALOG.ALL_MONITORS", { total: monitors.length })}
                     </span>
                     <span className="text-[13px] font-normal text-muted-foreground">
-                      Also added to monitors you create later.
+                      {t("RECIPIENT_DIALOG.ALL_MONITORS_HINT")}
                     </span>
                   </span>
                 </Label>
                 <Label htmlFor={`${id}-selected`} className={scopeCardClass(scope === "selected")}>
                   <RadioGroupItem id={`${id}-selected`} value="selected" className="mt-0.5" />
                   <span className="flex flex-col gap-0.5">
-                    <span className="text-[15px] font-semibold">Selected monitors</span>
+                    <span className="text-[15px] font-semibold">
+                      {t("RECIPIENT_DIALOG.SELECTED_MONITORS")}
+                    </span>
                     <span className="text-[13px] font-normal text-muted-foreground">
-                      Choose which ones.
+                      {t("RECIPIENT_DIALOG.SELECTED_MONITORS_HINT")}
                     </span>
                   </span>
                 </Label>
@@ -307,14 +319,17 @@ const RecipientDialog = ({
                     />
                     <Input
                       type="search"
-                      aria-label="Filter monitors"
-                      placeholder="Filter monitors"
+                      aria-label={t("RECIPIENT_DIALOG.FILTER_MONITORS")}
+                      placeholder={t("RECIPIENT_DIALOG.FILTER_MONITORS")}
                       value={filter}
                       className="h-9 pl-8"
                       onChange={(event) => setFilter(event.target.value)}
                     />
                   </div>
-                  <ul className="max-h-64 overflow-y-auto" aria-label="Monitors">
+                  <ul
+                    className="max-h-64 overflow-y-auto"
+                    aria-label={t("RECIPIENT_DIALOG.MONITORS_LIST")}
+                  >
                     {visibleMonitors.map((monitor) => {
                       const full = isFull(monitor);
                       const checkboxId = `${id}-monitor-${monitor.itemId}`;
@@ -340,8 +355,14 @@ const RecipientDialog = ({
                             </span>
                             <span className="text-xs text-muted-foreground">
                               {full
-                                ? `Full (${monitor.emailCount} of ${maxEmailsPerMonitor})`
-                                : `${monitorKindLabel(monitor.kind)} · ${recipientCountLabel(monitor.emailCount)}`}
+                                ? t("RECIPIENT_DIALOG.FULL", {
+                                    current: monitor.emailCount,
+                                    max: maxEmailsPerMonitor,
+                                  })
+                                : t("RECIPIENT_DIALOG.MONITOR_META", {
+                                    kind: monitorKindLabel(monitor.kind),
+                                    recipients: recipientCountLabel(monitor.emailCount),
+                                  })}
                             </span>
                           </Label>
                         </li>
@@ -349,7 +370,7 @@ const RecipientDialog = ({
                     })}
                     {visibleMonitors.length === 0 && (
                       <li className="px-3 py-3 text-sm text-muted-foreground">
-                        No monitors match.
+                        {t("RECIPIENT_DIALOG.NO_MONITORS_MATCH")}
                       </li>
                     )}
                   </ul>
@@ -360,7 +381,7 @@ const RecipientDialog = ({
 
           <DialogFooter className="flex-wrap px-6 pb-6 pt-5 sm:gap-3">
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+              {t("common:CANCEL")}
             </Button>
             <Button type="submit" disabled={!canSave}>
               {saveMutation.isPending && (
