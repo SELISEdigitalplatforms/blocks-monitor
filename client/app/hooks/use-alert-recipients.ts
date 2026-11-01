@@ -4,6 +4,7 @@ import type {
   ISaveAlertRecipientPayload,
 } from "@/models/alert-recipients.model";
 import { alertRecipientsService } from "@/services/alert-recipients.service";
+import { tStatic } from "@seliseblocks/genesis-os/i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const ALERT_RECIPIENTS_QUERY_KEY = "alert-recipients";
@@ -15,7 +16,9 @@ const unwrap = async <T>(
 ): Promise<T> => {
   const response = await request;
   if (!response?.isSuccess || response.data == null) {
-    throw new Error(response?.message || "The request was refused.");
+    throw new Error(
+      response?.message || tStatic("monitor.shared", "USE_ALERT_RECIPIENTS.REQUEST_REFUSED"),
+    );
   }
   return response.data;
 };

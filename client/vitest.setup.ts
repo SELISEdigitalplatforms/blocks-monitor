@@ -1,7 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach } from "vitest";
-import "./app/i18n";
 
 // Ensure the DOM is reset between tests.
 afterEach(() => {
@@ -79,3 +78,6 @@ if (typeof window !== "undefined" && !window.matchMedia) {
       dispatchEvent: () => false,
     }) as unknown as MediaQueryList;
 }
+
+// Last, because the i18n runtime reads matchMedia when it loads, so the stub above must exist first.
+await import("./app/i18n");

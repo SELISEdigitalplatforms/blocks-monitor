@@ -2,15 +2,19 @@ import * as React from "react";
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type ButtonProps, buttonVariants } from "@/components/core/button/button";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
-const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
-  <nav
-    role="navigation"
-    aria-label="pagination"
-    className={cn("mx-auto flex w-full justify-center", className)}
-    {...props}
-  />
-);
+const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => {
+  const { t } = useT("monitor.shared");
+  return (
+    <nav
+      role="navigation"
+      aria-label={t("PAGINATION.NAV_LABEL")}
+      className={cn("mx-auto flex w-full justify-center", className)}
+      {...props}
+    />
+  );
+};
 Pagination.displayName = "Pagination";
 
 const PaginationContent = React.forwardRef<HTMLUListElement, React.ComponentProps<"ul">>(
@@ -49,31 +53,33 @@ const PaginationPrevious = ({
   className,
   ...props
 }: React.ComponentProps<typeof PaginationLink>) => {
+  const { t } = useT("monitor.shared");
   const ChevronLeftIcon = ChevronLeft;
   return (
     <PaginationLink
-      aria-label="Go to previous page"
+      aria-label={t("PAGINATION.GO_TO_PREVIOUS")}
       size="default"
       className={cn("gap-1 pl-2.5", className)}
       {...props}
     >
       <ChevronLeftIcon className="h-4 w-4" />
-      <span>Previous</span>
+      <span>{t("common:PREVIOUS")}</span>
     </PaginationLink>
   );
 };
 PaginationPrevious.displayName = "PaginationPrevious";
 
 const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => {
+  const { t } = useT("monitor.shared");
   const ChevronRightIcon = ChevronRight;
   return (
     <PaginationLink
-      aria-label="Go to next page"
+      aria-label={t("PAGINATION.GO_TO_NEXT")}
       size="default"
       className={cn("gap-1 pr-2.5", className)}
       {...props}
     >
-      <span>Next</span>
+      <span>{t("common:NEXT")}</span>
       <ChevronRightIcon className="h-4 w-4" />
     </PaginationLink>
   );
@@ -81,6 +87,7 @@ const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof Pag
 PaginationNext.displayName = "PaginationNext";
 
 const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<"span">) => {
+  const { t } = useT("monitor.shared");
   const MoreHorizontalIcon = MoreHorizontal;
   return (
     <span
@@ -89,7 +96,7 @@ const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<"span"
       {...props}
     >
       <MoreHorizontalIcon className="h-4 w-4" />
-      <span className="sr-only">More pages</span>
+      <span className="sr-only">{t("PAGINATION.MORE_PAGES")}</span>
     </span>
   );
 };
