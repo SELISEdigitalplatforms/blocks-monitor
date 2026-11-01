@@ -85,7 +85,6 @@ const BreadcrumbEllipsis = ({ className, ...props }: React.ComponentProps<"span"
   const { t } = useT("monitor.shared");
   return (
     <span
-      role="presentation"
       aria-hidden="true"
       className={cn("flex h-9 w-9 items-center justify-center", className)}
       {...props}

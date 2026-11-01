@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { tStatic } from "@seliseblocks/genesis-os/i18n";
 
+const MONITOR_MONITORS_MODULE = "monitor.monitors";
+
 export type MonitorFormMode = "add" | "edit";
 export type MonitorConfigurationType = "request" | "callback";
 export type SourceType = "deployed" | "my-services" | "none";
@@ -29,7 +31,7 @@ const requestConfigurationSchema = z
     if (data.http_methods === "2" && data.request_body.length === 0) {
       ctx.addIssue({
         code: "custom",
-        message: tStatic("monitor.monitors", "SCHEMA.REQUEST_BODY_REQUIRED"),
+        message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.REQUEST_BODY_REQUIRED"),
         path: ["request_body"],
       });
     }
@@ -37,7 +39,7 @@ const requestConfigurationSchema = z
     if (data.json_switcher && data.x_header_name.length === 0) {
       ctx.addIssue({
         code: "custom",
-        message: tStatic("monitor.monitors", "SCHEMA.HEADER_NAME_REQUIRED"),
+        message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.HEADER_NAME_REQUIRED"),
         path: ["x_header_name"],
       });
     }
@@ -45,7 +47,7 @@ const requestConfigurationSchema = z
     if (data.json_switcher && data.value.length === 0) {
       ctx.addIssue({
         code: "custom",
-        message: tStatic("monitor.monitors", "SCHEMA.HEADER_VALUE_REQUIRED"),
+        message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.HEADER_VALUE_REQUIRED"),
         path: ["value"],
       });
     }
@@ -56,13 +58,13 @@ export const monitorFormSchema = z
     name: z
       .string()
       .max(100, {
-        error: () => tStatic("monitor.monitors", "SCHEMA.NAME_TOO_LONG"),
+        error: () => tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.NAME_TOO_LONG"),
       })
       .superRefine((value, ctx) => {
         if (value.length === 0) {
           ctx.addIssue({
             code: "custom",
-            message: tStatic("monitor.monitors", "SCHEMA.NAME_REQUIRED"),
+            message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.NAME_REQUIRED"),
           });
           return;
         }
@@ -70,7 +72,7 @@ export const monitorFormSchema = z
         if (value.trim().length === 0) {
           ctx.addIssue({
             code: "custom",
-            message: tStatic("monitor.monitors", "SCHEMA.NAME_ONLY_SPACES"),
+            message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.NAME_ONLY_SPACES"),
           });
         }
       }),
@@ -86,7 +88,7 @@ export const monitorFormSchema = z
     if (data.sourceType === "deployed" && !data.selectedRepoId) {
       ctx.addIssue({
         code: "custom",
-        message: tStatic("monitor.monitors", "SCHEMA.SELECT_DEPLOYED_REPO"),
+        message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.SELECT_DEPLOYED_REPO"),
         path: ["selectedRepoId"],
       });
     }
@@ -94,7 +96,7 @@ export const monitorFormSchema = z
     if (data.sourceType === "my-services" && !data.selectedServiceId) {
       ctx.addIssue({
         code: "custom",
-        message: tStatic("monitor.monitors", "SCHEMA.SELECT_SERVICE"),
+        message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.SELECT_SERVICE"),
         path: ["selectedServiceId"],
       });
     }
@@ -103,13 +105,13 @@ export const monitorFormSchema = z
       if (!data.urlMonitor) {
         ctx.addIssue({
           code: "custom",
-          message: tStatic("monitor.monitors", "SCHEMA.URL_REQUIRED"),
+          message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.URL_REQUIRED"),
           path: ["urlMonitor"],
         });
       } else if (!URL_REGEX.test(data.urlMonitor)) {
         ctx.addIssue({
           code: "custom",
-          message: tStatic("monitor.monitors", "SCHEMA.URL_INVALID"),
+          message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.URL_INVALID"),
           path: ["urlMonitor"],
         });
       }
@@ -118,7 +120,7 @@ export const monitorFormSchema = z
     if (data.monitorConfigurationType === "callback" && !data.monitorSettings.grace_time) {
       ctx.addIssue({
         code: "custom",
-        message: tStatic("monitor.monitors", "SCHEMA.GRACE_TIME_REQUIRED"),
+        message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.GRACE_TIME_REQUIRED"),
         path: ["monitorSettings", "grace_time"],
       });
     }

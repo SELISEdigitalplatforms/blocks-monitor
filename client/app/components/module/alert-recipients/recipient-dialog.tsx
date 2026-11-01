@@ -29,8 +29,10 @@ import { type SubmitEvent, useId, useMemo, useState } from "react";
 import { monitorKindLabel, recipientCountLabel, storedAllMonitors } from "./alert-recipients.utils";
 import { tStatic, useT } from "@seliseblocks/genesis-os/i18n";
 
+const MONITOR_ALERT_RECIPIENTS_MODULE = "monitor.alert-recipients";
+
 export const getDuplicateRecipientMessage = () =>
-  tStatic("monitor.alert-recipients", "RECIPIENT_DIALOG.DUPLICATE_RECIPIENT");
+  tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "RECIPIENT_DIALOG.DUPLICATE_RECIPIENT");
 
 type Scope = "all" | "selected";
 
@@ -74,21 +76,21 @@ const getSaveLabel = (
   selectedCount: number,
   monitorCount: number,
 ) => {
-  if (isEdit) return tStatic("monitor.alert-recipients", "common:SAVE");
+  if (isEdit) return tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "common:SAVE");
   if (scope === "selected") {
-    return tStatic("monitor.alert-recipients", "RECIPIENT_DIALOG.ADD_TO_MONITORS", {
+    return tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "RECIPIENT_DIALOG.ADD_TO_MONITORS", {
       count: selectedCount,
     });
   }
   return monitorCount === 1
-    ? tStatic("monitor.alert-recipients", "RECIPIENT_DIALOG.ADD_TO_MONITORS", { count: 1 })
-    : tStatic("monitor.alert-recipients", "RECIPIENT_DIALOG.ADD_TO_ALL_MONITORS", {
+    ? tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "RECIPIENT_DIALOG.ADD_TO_MONITORS", { count: 1 })
+    : tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "RECIPIENT_DIALOG.ADD_TO_ALL_MONITORS", {
         count: monitorCount,
       });
 };
 
 const fullMonitorsNote = (fullCount: number, maxEmailsPerMonitor: number) =>
-  tStatic("monitor.alert-recipients", "RECIPIENT_DIALOG.FULL_MONITORS_NOTE", {
+  tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "RECIPIENT_DIALOG.FULL_MONITORS_NOTE", {
     count: fullCount,
     max: maxEmailsPerMonitor,
   });
@@ -119,7 +121,7 @@ const RecipientDialog = ({
   maxEmailsPerMonitor,
   onClose,
 }: RecipientDialogProps) => {
-  const { t } = useT("monitor.alert-recipients");
+  const { t } = useT(MONITOR_ALERT_RECIPIENTS_MODULE);
   const isEdit = mode === "edit" && !!recipient;
   const id = useId();
   const emailId = `${id}-email`;

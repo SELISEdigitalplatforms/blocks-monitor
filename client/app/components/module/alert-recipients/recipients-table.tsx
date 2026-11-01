@@ -13,6 +13,8 @@ import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useT } from "@seliseblocks/genesis-os/i18n";
 
+const MONITOR_ALERT_RECIPIENTS_MODULE = "monitor.alert-recipients";
+
 /** Chips shown per row before "+K more" (#256 Q6). */
 export const MAX_VISIBLE_CHIPS = 5;
 
@@ -21,7 +23,7 @@ type MonitorChipsProps = {
 };
 
 const MonitorChips = ({ names }: MonitorChipsProps) => {
-  const { t } = useT("monitor.alert-recipients");
+  const { t } = useT(MONITOR_ALERT_RECIPIENTS_MODULE);
   const [expanded, setExpanded] = useState(false);
   const hidden = names.length - MAX_VISIBLE_CHIPS;
   const visible = expanded || hidden <= 0 ? names : names.slice(0, MAX_VISIBLE_CHIPS);
@@ -73,7 +75,7 @@ const RecipientRow = ({
   onEdit,
   onRemove,
 }: RecipientRowProps) => {
-  const { t } = useT("monitor.alert-recipients");
+  const { t } = useT(MONITOR_ALERT_RECIPIENTS_MODULE);
   const names = recipient.monitorIds
     .map((id) => monitorsById.get(id)?.name)
     .filter((name): name is string => !!name)
@@ -167,7 +169,7 @@ const RecipientsTable = ({
   onEdit,
   onRemove,
 }: RecipientsTableProps) => {
-  const { t } = useT("monitor.alert-recipients");
+  const { t } = useT(MONITOR_ALERT_RECIPIENTS_MODULE);
   return (
     <Table className="min-w-[760px]">
       <TableHeader>

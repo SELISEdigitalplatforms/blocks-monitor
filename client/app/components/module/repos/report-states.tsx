@@ -1,8 +1,10 @@
 import { useT } from "@seliseblocks/genesis-os/i18n";
 import { Button, Card, CardContent, Skeleton } from "@/components/core";
 
+const MONITOR_REPOS_MODULE = "monitor.repos";
+
 export function ReportLoadingCard({ label }: Readonly<{ label?: string }>) {
-  const { t } = useT("monitor.repos");
+  const { t } = useT(MONITOR_REPOS_MODULE);
   return (
     <Card data-testid="report-loading" className="p-0">
       <div className="px-6 py-4">
@@ -30,7 +32,7 @@ export function ReportLoadingCard({ label }: Readonly<{ label?: string }>) {
 }
 
 export function ReportNoDataCard() {
-  const { t } = useT("monitor.repos");
+  const { t } = useT(MONITOR_REPOS_MODULE);
   return (
     <Card data-testid="report-no-data">
       <CardContent className="p-6 text-sm text-muted-foreground">
@@ -41,7 +43,7 @@ export function ReportNoDataCard() {
 }
 
 export function ReportErrorCard({ onRetry }: Readonly<{ onRetry?: () => void }>) {
-  const { t } = useT("monitor.repos");
+  const { t } = useT(MONITOR_REPOS_MODULE);
   return (
     <Card data-testid="report-error">
       <CardContent className="flex flex-col items-start gap-3 p-6">
@@ -63,7 +65,7 @@ export function PageErrorCard({
   message: string;
   onRetry?: () => void;
 }>) {
-  const { t } = useT("monitor.repos");
+  const { t } = useT(MONITOR_REPOS_MODULE);
   return (
     <Card data-testid="page-error">
       <CardContent className="flex flex-col items-start gap-3 p-6">

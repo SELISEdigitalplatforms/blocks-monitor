@@ -20,6 +20,9 @@ import {
 import { getDeploymentLogEventBadgeClassName } from "@/utils/deployment-logs.utils";
 import { useT } from "@seliseblocks/genesis-os/i18n";
 
+const MONITOR_REPOS_MODULE = "monitor.repos";
+const SAST_TAB_HELPER_OPEN_ISSUES = "SAST_TAB.HELPER_OPEN_ISSUES";
+
 const MISSING = "-";
 
 type RatingLetter = "A" | "B" | "C" | "D" | "E";
@@ -44,7 +47,7 @@ export function SastTab({
   buildId: string | undefined;
   isActive: boolean;
 }>) {
-  const { t } = useT("monitor.repos");
+  const { t } = useT(MONITOR_REPOS_MODULE);
   const { data, isLoading, isError, refetch } = useGetReport(projectKey, buildId, "sast", isActive);
 
   const details = data?.data?.details ?? null;
@@ -103,7 +106,7 @@ export function SastTab({
 }
 
 function NewCodeView({ view }: Readonly<{ view: SastView }>) {
-  const { t } = useT("monitor.repos");
+  const { t } = useT(MONITOR_REPOS_MODULE);
   const failed = view.failedConditions !== "0";
   return (
     <>
@@ -183,28 +186,28 @@ function NewCodeView({ view }: Readonly<{ view: SastView }>) {
 }
 
 function OverallCodeView({ view }: Readonly<{ view: SastView }>) {
-  const { t } = useT("monitor.repos");
+  const { t } = useT(MONITOR_REPOS_MODULE);
   return (
     <>
       <div className={STATS_GRID}>
         <MetricBlock
           title={t("SAST_TAB.METRIC_SECURITY")}
           value={view.securityIssues}
-          helper={t("SAST_TAB.HELPER_OPEN_ISSUES")}
+          helper={t(SAST_TAB_HELPER_OPEN_ISSUES)}
           visual={<GradeCircle letter={view.securityGrade} />}
           testId="sast-security"
         />
         <MetricBlock
           title={t("SAST_TAB.METRIC_RELIABILITY")}
           value={view.bugs}
-          helper={t("SAST_TAB.HELPER_OPEN_ISSUES")}
+          helper={t(SAST_TAB_HELPER_OPEN_ISSUES)}
           visual={<GradeCircle letter={view.reliabilityGrade} />}
           testId="sast-reliability"
         />
         <MetricBlock
           title={t("SAST_TAB.METRIC_MAINTAINABILITY")}
           value={view.codeSmells}
-          helper={t("SAST_TAB.HELPER_OPEN_ISSUES")}
+          helper={t(SAST_TAB_HELPER_OPEN_ISSUES)}
           visual={<GradeCircle letter={view.maintainabilityGrade} />}
           testId="sast-maintainability"
         />
@@ -260,7 +263,7 @@ function MetricBlock({
   visual?: ReactNode;
   testId?: string;
 }>) {
-  const { t } = useT("monitor.repos");
+  const { t } = useT(MONITOR_REPOS_MODULE);
   return (
     <div className="flex h-20 items-start gap-4" data-testid={testId}>
       <div className="flex-1">
@@ -283,7 +286,7 @@ function MetricBlock({
 }
 
 function SeverityChips({ view }: Readonly<{ view: SastView }>) {
-  const { t } = useT("monitor.repos");
+  const { t } = useT(MONITOR_REPOS_MODULE);
   return (
     <div className="space-y-2">
       <p className="text-xs font-medium text-high-emphasis">{t("SAST_TAB.ISSUES_BY_SEVERITY")}</p>

@@ -6,33 +6,35 @@ import type {
 } from "@/models/alert-recipients.model";
 import { tStatic } from "@seliseblocks/genesis-os/i18n";
 
+const MONITOR_ALERT_RECIPIENTS_MODULE = "monitor.alert-recipients";
+
 /** "1 monitor" / "3 monitors". */
 export const countMonitors = (count: number) =>
-  tStatic("monitor.alert-recipients", "ALERT_RECIPIENTS_UTILS.MONITOR_COUNT", { count });
+  tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.MONITOR_COUNT", { count });
 
 export const monitorKindLabel = (kind: AlertRecipientMonitorKind) =>
   kind === "Heartbeat"
-    ? tStatic("monitor.alert-recipients", "ALERT_RECIPIENTS_UTILS.KIND_HEARTBEAT")
-    : tStatic("monitor.alert-recipients", "ALERT_RECIPIENTS_UTILS.KIND_HTTP_CHECK");
+    ? tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.KIND_HEARTBEAT")
+    : tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.KIND_HTTP_CHECK");
 
 export const recipientCountLabel = (count: number) =>
-  tStatic("monitor.alert-recipients", "ALERT_RECIPIENTS_UTILS.RECIPIENT_COUNT", { count });
+  tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.RECIPIENT_COUNT", { count });
 
 /** The coverage badge's text. The text states the meaning; colour only repeats it. */
 export const coverageText = (total: number, withoutRecipients: number) => {
   if (withoutRecipients === 0) {
     return total === 1
-      ? tStatic("monitor.alert-recipients", "ALERT_RECIPIENTS_UTILS.COVERAGE_ALL_ONE")
-      : tStatic("monitor.alert-recipients", "ALERT_RECIPIENTS_UTILS.COVERAGE_ALL", { total });
+      ? tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.COVERAGE_ALL_ONE")
+      : tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.COVERAGE_ALL", { total });
   }
   if (withoutRecipients === 1) {
     return total === 1
-      ? tStatic("monitor.alert-recipients", "ALERT_RECIPIENTS_UTILS.COVERAGE_ONE_OF_ONE")
-      : tStatic("monitor.alert-recipients", "ALERT_RECIPIENTS_UTILS.COVERAGE_ONE_OF_MANY", {
+      ? tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.COVERAGE_ONE_OF_ONE")
+      : tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.COVERAGE_ONE_OF_MANY", {
           total,
         });
   }
-  return tStatic("monitor.alert-recipients", "ALERT_RECIPIENTS_UTILS.COVERAGE_MANY", {
+  return tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.COVERAGE_MANY", {
     withoutRecipients,
     total,
   });
@@ -40,7 +42,7 @@ export const coverageText = (total: number, withoutRecipients: number) => {
 
 /** The removal notice (H7). */
 export const removedNotice = (email: string, removed: number) =>
-  tStatic("monitor.alert-recipients", "ALERT_RECIPIENTS_UTILS.REMOVED_NOTICE", {
+  tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.REMOVED_NOTICE", {
     email,
     count: removed,
   });
@@ -95,4 +97,4 @@ export const hasManagedRecipients = (sourceType: number | undefined) =>
 
 /** Shown when every monitor the removed person was on has been deleted since, so Undo has nothing to restore. */
 export const getUndoNothingLeft = () =>
-  tStatic("monitor.alert-recipients", "ALERT_RECIPIENTS_UTILS.UNDO_NOTHING_LEFT");
+  tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.UNDO_NOTHING_LEFT");

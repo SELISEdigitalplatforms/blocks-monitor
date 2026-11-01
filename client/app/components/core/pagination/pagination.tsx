@@ -4,8 +4,10 @@ import { cn } from "@/lib/utils";
 import { type ButtonProps, buttonVariants } from "@/components/core/button/button";
 import { useT } from "@seliseblocks/genesis-os/i18n";
 
+const MONITOR_SHARED_MODULE = "monitor.shared";
+
 const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => {
-  const { t } = useT("monitor.shared");
+  const { t } = useT(MONITOR_SHARED_MODULE);
   return (
     <nav
       role="navigation"
@@ -53,7 +55,7 @@ const PaginationPrevious = ({
   className,
   ...props
 }: React.ComponentProps<typeof PaginationLink>) => {
-  const { t } = useT("monitor.shared");
+  const { t } = useT(MONITOR_SHARED_MODULE);
   const ChevronLeftIcon = ChevronLeft;
   return (
     <PaginationLink
@@ -70,7 +72,7 @@ const PaginationPrevious = ({
 PaginationPrevious.displayName = "PaginationPrevious";
 
 const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => {
-  const { t } = useT("monitor.shared");
+  const { t } = useT(MONITOR_SHARED_MODULE);
   const ChevronRightIcon = ChevronRight;
   return (
     <PaginationLink
@@ -87,7 +89,7 @@ const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof Pag
 PaginationNext.displayName = "PaginationNext";
 
 const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<"span">) => {
-  const { t } = useT("monitor.shared");
+  const { t } = useT(MONITOR_SHARED_MODULE);
   const MoreHorizontalIcon = MoreHorizontal;
   return (
     <span

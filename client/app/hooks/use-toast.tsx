@@ -3,6 +3,8 @@ import { handleErrorMessages } from "@seliseblocks/genesis-os/utils";
 import { ToastActionElement, ToastProps } from "@/components/core";
 import { tStatic } from "@seliseblocks/genesis-os/i18n";
 
+const MONITOR_SHARED_MODULE = "monitor.shared";
+
 const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1000000;
 
@@ -178,7 +180,7 @@ type ErrorToastOptions = {
 };
 
 export const showSuccessToast = ({
-  title = tStatic("monitor.shared", "common:SUCCESS"),
+  title = tStatic(MONITOR_SHARED_MODULE, "common:SUCCESS"),
   description,
 }: SuccessToastOptions) => {
   toast({
@@ -189,7 +191,7 @@ export const showSuccessToast = ({
 };
 
 export const showInfoToast = ({
-  title = tStatic("monitor.shared", "USE_TOAST.INFO"),
+  title = tStatic(MONITOR_SHARED_MODULE, "USE_TOAST.INFO"),
   description,
 }: InfoToastOptions) => {
   toast({
@@ -200,7 +202,7 @@ export const showInfoToast = ({
 };
 
 export const showErrorToast = ({
-  title = tStatic("monitor.shared", "USE_TOAST.FAILED"),
+  title = tStatic(MONITOR_SHARED_MODULE, "USE_TOAST.FAILED"),
   errors,
   customMessages,
 }: ErrorToastOptions) => {

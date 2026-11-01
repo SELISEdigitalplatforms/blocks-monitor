@@ -1,6 +1,8 @@
 import type { IScaVulnerability } from "@/models/repos.model";
 import { tStatic } from "@seliseblocks/genesis-os/i18n";
 
+const MONITOR_REPOS_MODULE = "monitor.repos";
+
 export type ScaSeverity = "Critical" | "High" | "Medium" | "Low" | "Unassigned";
 
 export interface ScaDependencyRow {
@@ -37,15 +39,15 @@ const SEVERITY_ORDER: Record<ScaSeverity, number> = {
 export function getSeverityLabel(severity: ScaSeverity): string {
   switch (severity) {
     case "Critical":
-      return tStatic("monitor.repos", "SCA_TRANSFORM.SEVERITY_CRITICAL");
+      return tStatic(MONITOR_REPOS_MODULE, "SCA_TRANSFORM.SEVERITY_CRITICAL");
     case "High":
-      return tStatic("monitor.repos", "SCA_TRANSFORM.SEVERITY_HIGH");
+      return tStatic(MONITOR_REPOS_MODULE, "SCA_TRANSFORM.SEVERITY_HIGH");
     case "Medium":
-      return tStatic("monitor.repos", "SCA_TRANSFORM.SEVERITY_MEDIUM");
+      return tStatic(MONITOR_REPOS_MODULE, "SCA_TRANSFORM.SEVERITY_MEDIUM");
     case "Low":
-      return tStatic("monitor.repos", "SCA_TRANSFORM.SEVERITY_LOW");
+      return tStatic(MONITOR_REPOS_MODULE, "SCA_TRANSFORM.SEVERITY_LOW");
     default:
-      return tStatic("monitor.repos", "SCA_TRANSFORM.SEVERITY_UNASSIGNED");
+      return tStatic(MONITOR_REPOS_MODULE, "SCA_TRANSFORM.SEVERITY_UNASSIGNED");
   }
 }
 
@@ -55,7 +57,7 @@ export function transformVulnerabilities(
 ): ScaDependencyRow[] {
   if (!Array.isArray(vulnerabilities) || vulnerabilities.length === 0) return [];
 
-  const unknown = tStatic("monitor.repos", "SCA_TRANSFORM.UNKNOWN");
+  const unknown = tStatic(MONITOR_REPOS_MODULE, "SCA_TRANSFORM.UNKNOWN");
   const transformed = vulnerabilities.map((vuln, index) => {
     const score = vuln.score;
     const cvss = score != null && score !== "" ? Number.parseFloat(String(score)) : null;
@@ -73,7 +75,7 @@ export function transformVulnerabilities(
       severity: SEVERITY_MAP[vuln.severity ?? ""] ?? "Unassigned",
       epss,
       cweName: vuln.cweName ?? unknown,
-      description: vuln.description ?? tStatic("monitor.repos", "SCA_TRANSFORM.NO_DESCRIPTION"),
+      description: vuln.description ?? tStatic(MONITOR_REPOS_MODULE, "SCA_TRANSFORM.NO_DESCRIPTION"),
       latestVersion: vuln.latestVersion ?? unknown,
       epssScore: vuln.epssScore,
     } satisfies ScaDependencyRow;

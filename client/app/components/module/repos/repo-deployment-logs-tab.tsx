@@ -9,6 +9,9 @@ import {
   getDeploymentLogEventBadgeClassName,
 } from "@/utils/deployment-logs.utils";
 
+const MONITOR_REPOS_MODULE = "monitor.repos";
+const DEPLOYMENT_LOGS_TAB_NOT_AVAILABLE = "DEPLOYMENT_LOGS_TAB.NOT_AVAILABLE";
+
 const DEPLOYMENT_DATE_FORMAT: Intl.DateTimeFormatOptions = {
   month: "short",
   day: "numeric",
@@ -53,7 +56,7 @@ function GeneralInformationCard({
   repo: IRepo | null;
   build: IBuild;
 }>) {
-  const { t } = useT("monitor.repos");
+  const { t } = useT(MONITOR_REPOS_MODULE);
   const repoUrl = repo?.repoUrl || build.repoUrl || "";
   const deploysTo = build.customDeploymentUrl || build.defaultDeploymentUrl || "";
   const customUrl = build.customDeploymentUrl || "";
@@ -73,21 +76,21 @@ function GeneralInformationCard({
             {repoUrl ? (
               <ExternalValue href={repoUrl} value={repoUrl} />
             ) : (
-              t("DEPLOYMENT_LOGS_TAB.NOT_AVAILABLE")
+              t(DEPLOYMENT_LOGS_TAB_NOT_AVAILABLE)
             )}
           </InfoField>
           <InfoField label={t("DEPLOYMENT_LOGS_TAB.DEPLOYS_TO")}>
             {deploysTo ? (
               <ExternalValue href={deploysTo} value={deploysTo} />
             ) : (
-              t("DEPLOYMENT_LOGS_TAB.NOT_AVAILABLE")
+              t(DEPLOYMENT_LOGS_TAB_NOT_AVAILABLE)
             )}
           </InfoField>
           <InfoField label={t("DEPLOYMENT_LOGS_TAB.CUSTOM_DEPLOYMENT_URL")}>
             {customUrl ? (
               <ExternalValue href={customUrl} value={customUrl} />
             ) : (
-              t("DEPLOYMENT_LOGS_TAB.NOT_AVAILABLE")
+              t(DEPLOYMENT_LOGS_TAB_NOT_AVAILABLE)
             )}
           </InfoField>
         </div>
@@ -101,7 +104,7 @@ function GeneralInformationCard({
           <InfoField label={t("DEPLOYMENT_LOGS_TAB.LATEST_DEPLOYMENT_DATE")}>
             {build.createdDate
               ? formatDate(new Date(build.createdDate), DEPLOYMENT_DATE_FORMAT)
-              : t("DEPLOYMENT_LOGS_TAB.NOT_AVAILABLE")}
+              : t(DEPLOYMENT_LOGS_TAB_NOT_AVAILABLE)}
           </InfoField>
         </div>
       </div>
@@ -110,7 +113,7 @@ function GeneralInformationCard({
 }
 
 function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
-  const { t } = useT("monitor.repos");
+  const { t } = useT(MONITOR_REPOS_MODULE);
   const steps = useMemo(() => buildSteps(build), [build]);
   const [expanded, setExpanded] = useState<Set<string>>(
     () => new Set(steps[0]?.logs.length ? [steps[0].id] : []),
@@ -221,7 +224,7 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
 }
 
 function NoBuildCard() {
-  const { t } = useT("monitor.repos");
+  const { t } = useT(MONITOR_REPOS_MODULE);
   return (
     <section
       className="rounded-sm border bg-background p-6 text-sm text-muted-foreground"
@@ -248,7 +251,7 @@ function InfoField({
 }
 
 function ExternalValue({ href, value }: Readonly<{ href: string; value: string }>) {
-  const { t } = useT("monitor.repos");
+  const { t } = useT(MONITOR_REPOS_MODULE);
   return (
     <span className="flex max-w-full items-center gap-2">
       <a
@@ -360,11 +363,11 @@ function displayStepName(name: string): string {
     case "Sca":
       return name.toUpperCase();
     case "Clone":
-      return tStatic("monitor.repos", "DEPLOYMENT_LOGS_TAB.STEP_CLONE");
+      return tStatic(MONITOR_REPOS_MODULE, "DEPLOYMENT_LOGS_TAB.STEP_CLONE");
     case "Build":
-      return tStatic("monitor.repos", "DEPLOYMENT_LOGS_TAB.STEP_BUILD");
+      return tStatic(MONITOR_REPOS_MODULE, "DEPLOYMENT_LOGS_TAB.STEP_BUILD");
     case "Deploy":
-      return tStatic("monitor.repos", "DEPLOYMENT_LOGS_TAB.STEP_DEPLOY");
+      return tStatic(MONITOR_REPOS_MODULE, "DEPLOYMENT_LOGS_TAB.STEP_DEPLOY");
     default:
       return name;
   }

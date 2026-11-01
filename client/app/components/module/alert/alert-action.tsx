@@ -26,6 +26,8 @@ import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useT } from "@seliseblocks/genesis-os/i18n";
 
+const MONITOR_ALERTS_MODULE = "monitor.alerts";
+
 type AlertActionProps = {
   monitorId: string;
   isActive: boolean;
@@ -47,7 +49,7 @@ const AlertAction = ({
   monitorSourceType,
   children = <EllipsisVertical className="h-5 w-5" />,
 }: AlertActionProps) => {
-  const { t } = useT("monitor.alerts");
+  const { t } = useT(MONITOR_ALERTS_MODULE);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState<boolean>(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
 
@@ -125,7 +127,7 @@ const UpdateMonitorDialog = ({
   name,
   projectKey,
 }: UpdateMonitorDialogProps) => {
-  const { t } = useT("monitor.alerts");
+  const { t } = useT(MONITOR_ALERTS_MODULE);
   const updateMutation = useUpdateSingleMonitor();
   const updateHealth = useUpdateHealth();
   const queryClient = useQueryClient();
@@ -212,7 +214,7 @@ const DeleteMonitorDialog = ({
   goBack = true,
   request,
 }: DeleteMonitorDialogProps) => {
-  const { t } = useT("monitor.alerts");
+  const { t } = useT(MONITOR_ALERTS_MODULE);
   const navigate = useNavigate();
   // Only call the hook when the dialog is open
   const deleteMutation = useDeleteMonitor();
