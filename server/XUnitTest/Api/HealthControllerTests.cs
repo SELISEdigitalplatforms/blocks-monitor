@@ -35,7 +35,7 @@ namespace XUnitTest.Api
 
             var healthRepo = new HealthConfigurationRepoService(new Mock<ILogger<HealthConfigurationRepoService>>().Object, db.Provider, secret, PassThroughMonitorDataAccess.Instance);
             var alertRepo = new AlertRepoService(db.Provider, secret);
-            var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo);
+            var email = new EmailAlertService(new Mock<ILogger<EmailAlertService>>().Object, alertRepo, AlertMailTestDoubles.PasswordResolver());
             var http = new Mock<IHttpHelperServices>();
             http.Setup(h => h.MakeHttpRequest<NotificationResponse>(
                     It.IsAny<string>(), It.IsAny<string>(), It.IsAny<HttpMethod>(),
@@ -48,7 +48,8 @@ namespace XUnitTest.Api
 
             var configuration = new Mock<IConfiguration>();
             configuration.Setup(c => c["AlertServiceUrl"]).Returns("http://alert");
-            var healthConfig = new HealthConfigurationService(new Mock<ILogger<HealthConfigurationService>>().Object, healthCheck, configuration.Object, healthRepo);
+            var healthConfig = new HealthConfigurationService(new Mock<ILogger<HealthConfigurationService>>().Object, healthCheck, configuration.Object, healthRepo,
+                new Mock<DomainService.AlertRecipients.Services.IAlertRecipientStore>().Object);
 
             return new HealthController(healthConfig, healthCheck);
         }

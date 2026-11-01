@@ -66,10 +66,18 @@ export default defineConfig({
       dependencies: ["monitor-setup"],
     },
     {
+      // Alert recipients page (#256). Runs after `monitor`, which deletes the first monitors in
+      // the list, so it never removes this spec's fixtures mid-run.
+      name: "alert-recipients",
+      testMatch: /03-alert-recipients[\\/]alert-recipients\.spec\.ts$/,
+      use: { ...devices["Desktop Chrome"] },
+      dependencies: ["monitor"],
+    },
+    {
       name: "monitor-teardown",
       testMatch: /suite[\\/]suite\.teardown\.spec\.ts$/,
       use: { ...devices["Desktop Chrome"] },
-      dependencies: ["monitor"],
+      dependencies: ["monitor", "alert-recipients"],
     },
   ],
 })

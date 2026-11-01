@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <Version>4.1.0</Version>
+    <Version>5.0.0</Version>
     <PackageId>SeliseBlocks.MonitorDriver.OS</PackageId>
     <Authors>SeliseBlocks</Authors>
     <Company>SeliseBlocks</Company>
@@ -11,6 +11,7 @@
     <IncludeOutputAssemblies>true</IncludeOutputAssemblies>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>5.0.0 (breaking): Emails is removed from SaveMonitorConfigurationRequest and SaveHealthConfigurationRequest (and their Update requests); manage recipients on the Alert recipients page. New monitors and health checks start with the project's "All monitors" recipients. The Alert recipients endpoints are API-only.</PackageReleaseNotes>
     <PackageTags>Genesis, BlocksGenesis, SeliseBlocksGenesis, Observability, Monitor, Health, Driver</PackageTags>
     <RepositoryUrl>https://github.com/SELISEdigitalplatforms/blocks-monitor</RepositoryUrl>
     <ImplicitUsings>enable</ImplicitUsings>

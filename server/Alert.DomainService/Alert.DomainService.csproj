@@ -11,6 +11,7 @@
     <PackageReference Include="MailKit" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" />
     <PackageReference Include="SeliseBlocks.Genesis.OS" />
+    <PackageReference Include="SeliseBlocks.Secrets.OS" />
   </ItemGroup>
 
 </Project>

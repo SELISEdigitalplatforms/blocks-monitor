@@ -1,4 +1,5 @@
 using Blocks.Genesis;
+using Blocks.Secrets;
 using Worker;
 using Worker.Configuration;
 using DomainService.Shared.Entity;
@@ -42,6 +43,8 @@ IHostBuilder CreateHostBuilder(string[] args) =>
 
             #region Identifier Service Consumers
             Alert.DomainService.ServiceRegistry.AddApplicationServices(services);
+            // Alert mail reads root mail-configuration passwords from Blocks Secrets (blocks-monitor#253).
+            services.AddBlocksSecrets();
             services.AddSingleton<IConsumer<MonitorConfigurationUpdateQueue>, MonitorConfigurationUpdateConsumer>();
 
             ApplicationConfigurations.ConfigureWorker(services, MonitorConstants.GetWorkerMessageConfiguration(secret.MessageConnectionString));

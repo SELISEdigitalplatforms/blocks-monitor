@@ -97,7 +97,7 @@ npm run report
 
 ## Lifecycle
 
-Playwright projects: **`monitor-setup` → `monitor` → `monitor-teardown`**
+Playwright projects: **`monitor-setup` → `monitor` → `alert-recipients` → `monitor-teardown`**
 
 1. **Suite setup** (`tests/suite/suite.setup.spec.ts`) — OIDC login, reuse or create one shared project, write `monitor-project.json`, then save `monitor-session.json` **after** the dashboard is open (so localStorage keeps project/env).
 2. **Features** (`tests/monitor/*.spec.ts`) — use session; open shared dashboard via `openMonitorList` → direct `goto` `/app/{itemId}/dashboard`.
@@ -116,6 +116,7 @@ e2e/
       suite.setup.spec.ts         # login + shared project
       suite.teardown.spec.ts      # OS delete when suite passed
     monitor/                      # feature specs only
+    03-alert-recipients/          # Alert recipients page; removes the people and monitors it adds
   support/
     env.ts                        # Monitor URL + OS derivation
     login-helper.ts

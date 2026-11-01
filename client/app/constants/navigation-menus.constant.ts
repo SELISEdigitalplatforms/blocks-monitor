@@ -1,5 +1,5 @@
 import type { Menu } from "@seliseblocks/genesis-os/types";
-import { Activity, FolderGit2, Home, Package } from "lucide-react";
+import { Activity, FolderGit2, Home, Mail, Package } from "lucide-react";
 
 export const navigationMenus: Menu[] = [
   {
@@ -19,6 +19,13 @@ export const navigationMenus: Menu[] = [
     name: "Monitor",
     path: "/app/monitor",
     icon: Activity,
+  },
+  {
+    id: "alert-recipients",
+    type: "menu",
+    name: "Alert recipients",
+    path: "/app/alert-recipients",
+    icon: Mail,
   },
   {
     id: "repos",

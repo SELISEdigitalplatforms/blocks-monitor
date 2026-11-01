@@ -4,7 +4,7 @@ import { Badge, Button, Skeleton } from "@/components/core";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/core/card/card";
 import { Separator } from "@/components/core/separator/separator";
 import AlertAction from "@/components/module/alert/alert-action";
-import NotificationModal from "@/components/module/alert/notification-modal";
+import { resolveMonitorSourceType } from "@/components/module/alert-recipients/alert-recipients.utils";
 import IncidentList from "@/components/module/incident/incident-list";
 import MonitorCard from "@/components/module/monitor/details/monitor-card";
 import {
@@ -219,7 +219,6 @@ const MonitorDetailsPage = () => {
   const { id } = useParams();
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
 
-  const [openNotificationSettings, setOpenNotificationSettings] = useState(false);
   const [open, setOpen] = useState(false);
   const [timeRange, setTimeRange] = useState("1h");
 
@@ -236,7 +235,8 @@ const MonitorDetailsPage = () => {
     isLoading,
     dataUpdatedAt: detailsUpdatedAt,
   } = useGetMonitorDetails(monitorId, { refetchInterval: DETAILS_POLL_MS });
-  const monitorSourceType = monitorData?.data?.monitorSourceTypes;
+  // The API returns `effectiveMonitorSourceType` / `monitorSourceType`, never `monitorSourceTypes`.
+  const monitorSourceType = resolveMonitorSourceType(monitorData?.data);
   const {
     data: rtData,
     isLoading: isRTLoading,
@@ -286,14 +286,6 @@ const MonitorDetailsPage = () => {
             <Button
               variant="outline"
               className="flex-1 sm:flex-none"
-              onClick={() => setOpenNotificationSettings((open) => !open)}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Notification Settings
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1 sm:flex-none"
               onClick={() => setOpen((open) => !open)}
             >
               <Settings className="mr-2 h-4 w-4" />
@@ -316,13 +308,13 @@ const MonitorDetailsPage = () => {
       </div>
       <div className="flex flex-col gap-5">
         <MonitorCard
-          onOpenChange={setOpenNotificationSettings}
           repoName={monitorData?.data?.repoName}
           externalServiceName={monitorData?.data?.externalServiceName}
           url={monitorData?.data?.url || ""}
           request={request}
           emails={monitorData?.data?.emails || []}
-          monitorSourceType={monitorData?.data?.monitorSourceTypes ?? 0}
+          monitorSourceType={monitorSourceType}
+          alertRecipientsPath={scoped("alert-recipients")}
         />
         <Card className="flex flex-col px-6 py-2">
           <CardHeader className="text-lg font-semibold">
@@ -377,20 +369,6 @@ const MonitorDetailsPage = () => {
           <MonitorModal open={open} onOpenChange={setOpen} itemId={monitorId}>
             <EditSingleMonitorForm itemId={monitorId} onSuccess={() => setOpen(false)} />
           </MonitorModal>
-          <NotificationModal
-            open={openNotificationSettings}
-            onOpenChange={setOpenNotificationSettings}
-            data={{
-              name: monitorData?.data?.name || "",
-              repoId: monitorData?.data?.repoId || "",
-              repoName: monitorData?.data?.repoName || "",
-              itemId: monitorId || "",
-              emails: monitorData?.data?.emails || [],
-              isActive: monitorData?.data?.isActive || false,
-              projectKey: projectKey,
-            }}
-            request={request}
-          />
         </Card>
       </div>
     </div>

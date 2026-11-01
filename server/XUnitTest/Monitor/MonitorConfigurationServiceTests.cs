@@ -26,6 +26,7 @@ namespace XUnitTest.Monitor
         private readonly Mock<IMonitorIncidentRepoService> _incidentRepo = new();
         private readonly Mock<IValidator<SaveMonitorConfigurationRequest>> _saveValidator = new();
         private readonly Mock<IValidator<UpdateMonitorConfigurationRequest>> _updateValidator = new();
+        private readonly Mock<DomainService.AlertRecipients.Services.IAlertRecipientStore> _alertRecipientStore = new();
 
         public MonitorConfigurationServiceTests()
         {
@@ -37,10 +38,12 @@ namespace XUnitTest.Monitor
             _incidentRepo.Setup(r => r.GetIncidentsListByMonitorIdsAndDateRangeAsync(
                     It.IsAny<List<string>>(), It.IsAny<DateTime>(), It.IsAny<DateTime>()))
                 .ReturnsAsync(new List<MonitorIncident>());
+            // Default: the project has no "All monitors" people.
+            _alertRecipientStore.Setup(s => s.GetEmailsForNewMonitorAsync(It.IsAny<string?>())).ReturnsAsync(new List<string>());
         }
 
         private MonitorConfigurationService CreateSut() =>
-            new(_logger.Object, _messageClient.Object, _repo.Object, _saveValidator.Object, _incidentRepo.Object, _updateValidator.Object);
+            new(_logger.Object, _messageClient.Object, _repo.Object, _saveValidator.Object, _incidentRepo.Object, _updateValidator.Object, _alertRecipientStore.Object);
 
         private static SaveMonitorConfigurationRequest ValidSaveRequest() => new()
         {
@@ -461,8 +464,10 @@ namespace XUnitTest.Monitor
         }
 
         [Fact]
-        public async Task SaveConfigurationAsync_AppliesAllOptionalFields()
+        public async Task SaveConfigurationAsync_AppliesAllOptionalFields_AndOnlyTheAllMonitorsPeopleAsEmails()
         {
+            // C11: Emails is no longer on the request; a new monitor gets only the "All monitors" people.
+            _alertRecipientStore.Setup(s => s.GetEmailsForNewMonitorAsync("proj")).ReturnsAsync(new List<string> { "ops@x.com" });
             var request = ValidSaveRequest();
             request.MonitorType = "HTTP";
             request.ProtocolType = "HTTPS";
@@ -475,7 +480,6 @@ namespace XUnitTest.Monitor
             request.CustomPayload = "{}";
             request.SuccessHttpResponseCodes = new List<string> { "200" };
             request.Regions = new List<string> { "eu" };
-            request.Emails = new List<string> { "a@test" };
 
             var result = await CreateSut().SaveConfigurationAsync(request);
 
@@ -488,7 +492,7 @@ namespace XUnitTest.Monitor
             saved.TimeoutInSeconds.Should().Be(90);
             saved.SuccessHttpResponseCodes.Should().ContainSingle();
             saved.Regions.Should().ContainSingle();
-            saved.Emails.Should().ContainSingle();
+            saved.Emails.Should().Equal("ops@x.com");
         }
 
         [Fact]
@@ -516,6 +520,86 @@ namespace XUnitTest.Monitor
 
             result.IsSuccess.Should().BeFalse();
             result.Message.Should().Contain("Error saving");
+        }
+
+        // ---------- Alert recipients create hook (H9, C10, C11, E8, E10) ----------
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("DeployedServices")]
+        [InlineData("ExternalServices")]
+        [InlineData("OtherServices")]
+        public async Task SaveConfigurationAsync_E8_ANewEditableMonitorStartsWithTheAllMonitorsPeople(string? sourceType)
+        {
+            _alertRecipientStore.Setup(s => s.GetEmailsForNewMonitorAsync("proj")).ReturnsAsync(new List<string> { "ops@x.com" });
+            var request = ValidSaveRequest();
+            request.MonitorSourceType = sourceType;
+            MonitorConfiguration? saved = null;
+            _repo.Setup(r => r.SaveConfigurationAsync(It.IsAny<MonitorConfiguration>())).Callback<MonitorConfiguration>(m => saved = m).ReturnsAsync(true);
+
+            var result = await CreateSut().SaveConfigurationAsync(request);
+
+            result.IsSuccess.Should().BeTrue();
+            saved!.Emails.Should().Equal("ops@x.com");
+        }
+
+        [Fact]
+        public async Task SaveConfigurationAsync_ABlocksServicesMonitor_GetsNoRecipients()
+        {
+            var request = ValidSaveRequest();
+            request.MonitorSourceType = "BlocksServices";
+
+            var result = await CreateSut().SaveConfigurationAsync(request);
+
+            result.Data.Should().BeOfType<MonitorConfiguration>().Which.Emails.Should().BeEmpty();
+            _alertRecipientStore.Verify(s => s.GetEmailsForNewMonitorAsync(It.IsAny<string?>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task SaveConfigurationAsync_C10_WhenThePeopleCantBeRead_TheMonitorIsStillCreatedWithNoEmails()
+        {
+            // The store never throws for the create hook: it logs and returns nobody (AlertRecipientStoreTests).
+            _alertRecipientStore.Setup(s => s.GetEmailsForNewMonitorAsync("proj")).ReturnsAsync(new List<string>());
+
+            var result = await CreateSut().SaveConfigurationAsync(ValidSaveRequest());
+
+            result.IsSuccess.Should().BeTrue();
+            result.Data.Should().BeOfType<MonitorConfiguration>().Which.Emails.Should().BeEmpty();
+            _repo.Verify(r => r.SaveConfigurationAsync(It.IsAny<MonitorConfiguration>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task C11_AnOldClientsEmails_AreIgnoredWhenTheRequestBinds()
+        {
+            // The SPA ships with the API, but an old client's `emails` must not fail or apply.
+            var web = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
+            var create = System.Text.Json.JsonSerializer.Deserialize<SaveMonitorConfigurationRequest>(
+                "{\"projectKey\":\"proj\",\"name\":\"n\",\"url\":\"http://x\",\"emails\":[\"new@x.com\"]}", web)!;
+            typeof(SaveMonitorConfigurationRequest).GetProperty("Emails").Should().BeNull();
+            typeof(DomainService.Health.Models.SaveHealthConfigurationRequest).GetProperty("Emails").Should().BeNull();
+
+            var created = await CreateSut().SaveConfigurationAsync(create);
+
+            created.Data.Should().BeOfType<MonitorConfiguration>().Which.Emails.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task UpdateConfigurationAsync_E10_KeepsTheMonitorsEmails()
+        {
+            var stored = new MonitorConfiguration
+            {
+                ItemId = "m1", MonitorSourceType = MonitorSourceTypes.DeployedServices, Emails = new List<string> { "ops@x.com", "ali@x.com" },
+            };
+            _repo.Setup(r => r.GetConfigurationAsync("m1")).ReturnsAsync(stored);
+            var request = System.Text.Json.JsonSerializer.Deserialize<UpdateMonitorConfigurationRequest>(
+                "{\"itemId\":\"m1\",\"isActive\":true,\"emails\":[\"new@x.com\"]}",
+                new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
+
+            var result = await CreateSut().UpdateConfigurationAsync(request);
+
+            result.IsSuccess.Should().BeTrue();
+            result.Data.Should().BeOfType<MonitorConfiguration>().Which.Emails.Should().Equal("ops@x.com", "ali@x.com");
+            _alertRecipientStore.Verify(s => s.GetEmailsForNewMonitorAsync(It.IsAny<string?>()), Times.Never);
         }
 
         private static void SetCaller(string tenantId)

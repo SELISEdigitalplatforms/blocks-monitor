@@ -1,4 +1,4 @@
-import { type Page, expect } from "@playwright/test"
+import { type Locator, type Page, expect } from "@playwright/test"
 import { openSharedProjectDashboard } from "./suite-helpers"
 
 export async function waitForRowsLoaded(page: Page) {
@@ -70,6 +70,23 @@ export async function getRowActionButton(page: Page) {
   return null
 }
 
+/**
+ * Opens a row's actions menu and waits until it is open. A click that lands while the list is
+ * still re-rendering after a reload or a pause/resume refetch can be lost (the menu never opens,
+ * and a following `menuitem` click would wait for the whole test timeout), so click again until
+ * the menu shows. Never clicks an already open menu, which would close it.
+ */
+export async function openRowActionMenu(page: Page, trigger: Locator): Promise<Locator> {
+  const menu = page.getByRole("menu")
+  await expect(async () => {
+    if (!(await menu.isVisible())) {
+      await trigger.click({ timeout: 5_000 })
+    }
+    await expect(menu).toBeVisible({ timeout: 2_000 })
+  }).toPass({ timeout: 30_000 })
+  return menu
+}
+
 export async function openFirstMonitor(page: Page) {
   await waitForRowsLoaded(page)
   const firstRow = page.getByRole("row").nth(1)
@@ -83,6 +100,37 @@ export async function openFirstMonitor(page: Page) {
       if (attempt === 3) throw error
     }
   }
+}
+
+/**
+ * Opens the first monitor in the list whose details page offers "Open Alert recipients", i.e. an
+ * editable monitor (#256 Q10 hides recipients on Infrastructure and Blocks services details).
+ * "My monitors" also lists Infrastructure monitors, so row 1 is not always editable.
+ * Returns the opened monitor's name. Tries at most `maxRows` rows.
+ */
+export async function openFirstEditableMonitor(page: Page, maxRows = 10): Promise<string> {
+  await waitForRowsLoaded(page)
+  const listUrl = page.url()
+  const rows = page.getByRole("row")
+  const count = Math.min(await rows.count(), maxRows + 1)
+  for (let r = 1; r < count; r++) {
+    const cell = rows.nth(r).locator("td").first()
+    const name = (await cell.innerText()).trim()
+    await cell.click()
+    await expect(page).toHaveURL(/\/monitor\/[^/]+$/, { timeout: 15_000 })
+    await expect(page.getByRole("heading", { name, exact: true })).toBeVisible({
+      timeout: 15_000,
+    })
+    const editable = await page
+      .getByRole("link", { name: "Open Alert recipients" })
+      .waitFor({ state: "visible", timeout: 10_000 })
+      .then(() => true)
+      .catch(() => false)
+    if (editable) return name
+    await page.goto(listUrl, { waitUntil: "domcontentloaded" })
+    await waitForRowsLoaded(page)
+  }
+  throw new Error(`None of the first ${maxRows} monitors in the list is editable.`)
 }
 
 /** Open the shared suite project dashboard, then navigate to the Monitor list. */
