@@ -250,26 +250,24 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
           const request = row.original.monitorConfigurationType === 0 ? true : false;
           const name = row.original?.name;
           const monitorSourceType = resolveMonitorSourceType(row.original);
+          // Blocks-managed monitors cannot be paused, resumed or deleted from here.
+          if (isManagedByBlocks(monitorSourceType)) return null;
           return (
-            <>
-              {!isManagedByBlocks(monitorSourceType) ? (
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
-                  className="flex justify-center"
-                >
-                  <AlertAction
-                    monitorId={row.original.itemId as string}
-                    isActive={row.original.isActive ?? false}
-                    goBack={false}
-                    request={request}
-                    name={name as string}
-                    projectKey={projectKey}
-                    monitorSourceType={monitorSourceType}
-                  />
-                </div>
-              ) : null}
-            </>
+            <div
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+              className="flex justify-center"
+            >
+              <AlertAction
+                monitorId={row.original.itemId as string}
+                isActive={row.original.isActive ?? false}
+                goBack={false}
+                request={request}
+                name={name as string}
+                projectKey={projectKey}
+                monitorSourceType={monitorSourceType}
+              />
+            </div>
           );
         },
       },
