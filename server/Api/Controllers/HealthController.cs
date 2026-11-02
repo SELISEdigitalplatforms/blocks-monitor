@@ -42,7 +42,7 @@ namespace Api.Controllers
         public async Task<IActionResult> UpdateHealth([FromBody] UpdateHealthConfigurationRequest request)
         {
             var result = await _healthConfigurationService.UpdateConfigurationAsync(request);
-            return Ok(result);
+            return this.OkOrForbidden(result);
         }
 
         [HttpGet("{itemId}")]
@@ -57,7 +57,7 @@ namespace Api.Controllers
         public async Task<IActionResult> DeleteHealth([FromQuery] string itemId)
         {
             var result = await _healthConfigurationService.DeleteConfigurationAsync(itemId);
-            return Ok(result);
+            return this.OkOrForbidden(result);
         }
     }
 }

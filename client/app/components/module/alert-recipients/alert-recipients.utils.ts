@@ -90,10 +90,17 @@ export const resolveMonitorSourceType = (monitor?: {
 }): number | undefined =>
   monitor?.effectiveMonitorSourceType ?? monitor?.monitorSourceType ?? undefined;
 
+/**
+ * Infrastructure (0) and Blocks services (2) monitors are run by Blocks: every project sees them, but
+ * the server refuses to pause, configure or delete them, so no such action may be offered.
+ */
+export const isManagedByBlocks = (sourceType: number | undefined) =>
+  sourceType === Number(MONITOR_SOURCE_TYPES.Infrastructure) ||
+  sourceType === Number(MONITOR_SOURCE_TYPES.BlocksServices);
+
 /** Infrastructure (0) and Blocks services (2) monitors are not on the Alert recipients page. */
 export const hasManagedRecipients = (sourceType: number | undefined) =>
-  sourceType !== Number(MONITOR_SOURCE_TYPES.Infrastructure) &&
-  sourceType !== Number(MONITOR_SOURCE_TYPES.BlocksServices);
+  !isManagedByBlocks(sourceType);
 
 /** Shown when every monitor the removed person was on has been deleted since, so Undo has nothing to restore. */
 export const getUndoNothingLeft = () =>

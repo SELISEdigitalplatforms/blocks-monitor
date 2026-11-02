@@ -10,6 +10,7 @@ using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.Services;
 using DomainService.Shared.Models;
+using DomainService.Shared.Utilities;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -110,6 +111,32 @@ namespace XUnitTest.Api
             var result = await CreateSut().DeleteMonitor("m1");
 
             Body<BaseApiResponse>(result).Should().BeSameAs(expected);
+        }
+
+        [Fact]
+        public async Task UpdateMonitor_ManagedMonitorRefusal_IsA403WithTheBody()
+        {
+            var refused = ManagedMonitors.Refused();
+            _configService.Setup(s => s.UpdateConfigurationAsync(It.IsAny<UpdateMonitorConfigurationRequest>())).ReturnsAsync(refused);
+
+            var result = await CreateSut().UpdateMonitor(new UpdateMonitorConfigurationRequest { ItemId = "m1", IsActive = false });
+
+            var objectResult = result.Should().BeOfType<ObjectResult>().Subject;
+            objectResult.StatusCode.Should().Be(403);
+            objectResult.Value.Should().BeSameAs(refused);
+        }
+
+        [Fact]
+        public async Task DeleteMonitor_ManagedMonitorRefusal_IsA403WithTheBody()
+        {
+            var refused = ManagedMonitors.Refused();
+            _configService.Setup(s => s.DeleteConfigurationAsync("m1")).ReturnsAsync(refused);
+
+            var result = await CreateSut().DeleteMonitor("m1");
+
+            var objectResult = result.Should().BeOfType<ObjectResult>().Subject;
+            objectResult.StatusCode.Should().Be(403);
+            objectResult.Value.Should().BeSameAs(refused);
         }
 
         [Fact]
