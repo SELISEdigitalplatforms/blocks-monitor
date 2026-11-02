@@ -185,7 +185,7 @@ jobs:
 
       # Optional: Specify tool versions (defaults shown)
       DOTNET_VERSION: ${{ needs.initialization.outputs.dotnet_version }}
-      # DOTNET_COVERAGE_VERSION: "17.13.1" # Use 17.13.1 for .NET 6 or older
+      DOTNET_COVERAGE_VERSION: "18.12.0" # Use 17.13.1 for .NET 6 or older
       DOTNET_SONARSCANNER_VERSION: "5.15.0" # SonarScanner version
       JAVA_VERSION: "17" # Java for SonarScanner
       # Optional: Skip quality gate check (default: false)
