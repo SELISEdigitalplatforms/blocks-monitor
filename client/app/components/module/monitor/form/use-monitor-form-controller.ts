@@ -14,6 +14,7 @@ import {
   toFormValuesFromMonitorDetails,
   toUpdateCallbackPayload,
   toUpdateRequestPayload,
+  type SubmitContext,
 } from "./util";
 import { ErrorTransformer } from "@seliseblocks/genesis-os/utils";
 import { useScopedPath, useGetAllServices } from "@seliseblocks/genesis-os/hooks";
@@ -243,6 +244,18 @@ export const useMonitorFormController = ({
     form.setValue("urlMonitor", service.url || "", { shouldValidate: true });
   };
 
+  // The create or update call for the form's monitor type (request or callback).
+  const saveMonitor = (values: MonitorFormValues, context: SubmitContext) => {
+    if (values.monitorConfigurationType === "request") {
+      return mode === "add"
+        ? addMutation.mutateAsync(toCreateRequestPayload(values, context))
+        : updateRequestMutation.mutateAsync(toUpdateRequestPayload(values, context));
+    }
+    return mode === "add"
+      ? saveHealthMutation.mutateAsync(toCreateCallbackPayload(values, context))
+      : updateHealthMutation.mutateAsync(toUpdateCallbackPayload(values, context));
+  };
+
   const submit = async (values: MonitorFormValues) => {
     if (isSourceBlocked) return;
 
@@ -257,32 +270,13 @@ export const useMonitorFormController = ({
     };
 
     try {
-      if (values.monitorConfigurationType === "request") {
-        const res =
-          mode === "add"
-            ? await addMutation.mutateAsync(toCreateRequestPayload(values, context))
-            : await updateRequestMutation.mutateAsync(toUpdateRequestPayload(values, context));
+      const res = await saveMonitor(values, context);
+      if (!res.isSuccess) {
+        return showErrorToast({ errors: res.message });
+      }
 
-        if (!res.isSuccess) {
-          return showErrorToast({ errors: res.message });
-        }
-
-        if (mode === "add") {
-          navigate(scoped(`monitor/${res?.data?.itemId}`));
-        }
-      } else {
-        const res =
-          mode === "add"
-            ? await saveHealthMutation.mutateAsync(toCreateCallbackPayload(values, context))
-            : await updateHealthMutation.mutateAsync(toUpdateCallbackPayload(values, context));
-
-        if (!res.isSuccess) {
-          return showErrorToast({ errors: res.message });
-        }
-
-        if (mode === "add") {
-          navigate(scoped(`monitor/${res?.data?.itemId}`));
-        }
+      if (mode === "add") {
+        navigate(scoped(`monitor/${res?.data?.itemId}`));
       }
 
       showSuccessToast({
