@@ -109,6 +109,34 @@ describe("AlertsList", () => {
     expect(screen.queryByTestId("alert-action")).toBeNull();
   });
 
+  it("hides actions for an Infrastructure monitor too (Rollbar #420/#1945)", () => {
+    render(
+      <AlertsList
+        data={[alert({ monitorSourceType: 0 })]}
+        isLoading={false}
+        sortQueryParams={sort}
+        onSortChange={vi.fn()}
+      />,
+      { wrapper: wrapper() },
+    );
+    expect(screen.queryByTestId("alert-action")).toBeNull();
+  });
+
+  it("uses the effective source type when the API sends one", () => {
+    // A legacy Infrastructure row: no stored type, only the effective one.
+    const legacy = { ...alert({ monitorSourceType: 1 }), effectiveMonitorSourceType: 0 };
+    render(
+      <AlertsList
+        data={[legacy]}
+        isLoading={false}
+        sortQueryParams={sort}
+        onSortChange={vi.fn()}
+      />,
+      { wrapper: wrapper() },
+    );
+    expect(screen.queryByTestId("alert-action")).toBeNull();
+  });
+
   it("navigates to the monitor detail when a row is clicked", async () => {
     render(
       <AlertsList

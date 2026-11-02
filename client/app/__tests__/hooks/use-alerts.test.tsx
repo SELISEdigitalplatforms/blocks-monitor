@@ -195,6 +195,34 @@ describe("use-alerts mutations", () => {
     expect(alertsService.updateSingleMonitor).toHaveBeenCalled();
   });
 
+  it("useUpdateSingleMonitor hands back a refused answer without data instead of throwing (Rollbar #420/#1945)", async () => {
+    const refused = { isSuccess: false, data: null, message: "not found" };
+    vi.mocked(alertsService.updateSingleMonitor).mockResolvedValueOnce(refused as never);
+    const { result } = renderHook(() => hooks.useUpdateSingleMonitor(), { wrapper });
+
+    let answer: unknown;
+    await act(async () => {
+      answer = await result.current.mutateAsync({ itemId: "m1", isActive: false } as never);
+    });
+
+    expect(answer).toEqual(refused);
+    expect(result.current.isError).toBe(false);
+  });
+
+  it("useUpdateHealth hands back a refused answer without data instead of throwing", async () => {
+    const refused = { isSuccess: false, data: null, message: "not found" };
+    vi.mocked(alertsService.updateHealth).mockResolvedValueOnce(refused as never);
+    const { result } = renderHook(() => hooks.useUpdateHealth(), { wrapper });
+
+    let answer: unknown;
+    await act(async () => {
+      answer = await result.current.mutateAsync({ itemId: "h1", isActive: false } as never);
+    });
+
+    expect(answer).toEqual(refused);
+    expect(result.current.isError).toBe(false);
+  });
+
   it("useDeleteMonitor deletes by id", async () => {
     const { result } = renderHook(() => hooks.useDeleteMonitor(), { wrapper });
     await act(async () => {

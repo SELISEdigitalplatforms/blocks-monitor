@@ -4,7 +4,10 @@ import { Badge, Button, Skeleton } from "@/components/core";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/core/card/card";
 import { Separator } from "@/components/core/separator/separator";
 import AlertAction from "@/components/module/alert/alert-action";
-import { resolveMonitorSourceType } from "@/components/module/alert-recipients/alert-recipients.utils";
+import {
+  isManagedByBlocks,
+  resolveMonitorSourceType,
+} from "@/components/module/alert-recipients/alert-recipients.utils";
 import IncidentList from "@/components/module/incident/incident-list";
 import MonitorCard from "@/components/module/monitor/details/monitor-card";
 import {
@@ -281,7 +284,8 @@ const MonitorDetailsPage = () => {
             {monitorData?.data?.name}
           </h1>
         </div>
-        {monitorSourceType !== 2 && (
+        {/* Blocks-managed monitors (Infrastructure, Blocks services) cannot be changed (Rollbar #420/#1945). */}
+        {!isManagedByBlocks(monitorSourceType) && (
           <div className="flex items-center gap-2">
             <Button
               variant="outline"

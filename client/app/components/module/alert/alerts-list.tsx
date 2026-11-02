@@ -13,6 +13,10 @@ import {
   TableRow,
 } from "@/components/core";
 import AlertAction from "@/components/module/alert/alert-action";
+import {
+  isManagedByBlocks,
+  resolveMonitorSourceType,
+} from "@/components/module/alert-recipients/alert-recipients.utils";
 import ProgressBar from "@/components/module/alert/progress-bar";
 import { AlertTree } from "@/models/alerts.model";
 import { formatDate } from "@seliseblocks/genesis-os/utils";
@@ -239,10 +243,10 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
         cell: ({ row }) => {
           const request = row.original.monitorConfigurationType === 0 ? true : false;
           const name = row.original?.name;
-          const monitorSourceType = row.original.monitorSourceType;
+          const monitorSourceType = resolveMonitorSourceType(row.original);
           return (
             <>
-              {monitorSourceType !== 2 ? (
+              {!isManagedByBlocks(monitorSourceType) ? (
                 <div
                   onClick={(e) => e.stopPropagation()}
                   onKeyDown={(e) => e.stopPropagation()}

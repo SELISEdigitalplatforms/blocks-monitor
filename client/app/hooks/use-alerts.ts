@@ -28,7 +28,9 @@ export const useUpdateSingleMonitor = () => {
     mutationKey: ["update-individual-monitor"],
     mutationFn: (payload: Partial<IUpdateSingleMonitorPayload>) =>
       alertsService.updateSingleMonitor(payload),
-    onSuccess: (variables) => {
+    // The first argument is the server's answer, the second what was sent. A refused update answers
+    // without `data`, so the monitor id comes from the request (Rollbar #420/#1945).
+    onSuccess: (_response, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["get-monitor-details"],
       });
@@ -42,9 +44,11 @@ export const useUpdateSingleMonitor = () => {
         queryKey: ["health-monitor-list"],
       });
 
-      queryClient.refetchQueries({
-        queryKey: ["get-monitor-by-id", variables.data.itemId],
-      });
+      if (variables.itemId) {
+        queryClient.refetchQueries({
+          queryKey: ["get-monitor-by-id", variables.itemId],
+        });
+      }
     },
   });
 };
@@ -284,7 +288,8 @@ export const useUpdateHealth = () => {
   return useMutation({
     mutationKey: ["update-health"],
     mutationFn: (payload: Partial<IUpdateHealth>) => alertsService.updateHealth(payload),
-    onSuccess: (variables) => {
+    // The first argument is the server's answer; a refused update carries no `data`.
+    onSuccess: (response) => {
       // Invalidate ALL queries that start with these prefixes
 
       queryClient.invalidateQueries({
@@ -304,9 +309,12 @@ export const useUpdateHealth = () => {
       });
 
       // Also try refetching specific queries
-      queryClient.refetchQueries({
-        queryKey: ["get-monitor-by-id", variables.data.tenantId],
-      });
+      const tenantId = response?.data?.tenantId;
+      if (tenantId) {
+        queryClient.refetchQueries({
+          queryKey: ["get-monitor-by-id", tenantId],
+        });
+      }
     },
   });
 };
