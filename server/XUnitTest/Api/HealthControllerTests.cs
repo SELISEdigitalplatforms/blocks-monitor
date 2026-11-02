@@ -12,6 +12,7 @@ using DomainService.Health.Models;
 using DomainService.Health.Services;
 using Blocks.Genesis.Entities.Monitor;
 using DomainService.Shared.Models;
+using DomainService.Shared.Utilities;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -103,6 +104,33 @@ namespace XUnitTest.Api
 
             var body = (BaseApiResponse)result.Should().BeOfType<OkObjectResult>().Subject.Value;
             body.IsSuccess.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task UpdateHealth_InfrastructureHeartbeat_IsA403WithAReason()
+        {
+            // A direct API call (e.g. Postman) to pause a Blocks-managed heartbeat.
+            var config = new MonitorConfiguration { ItemId = "m1", MonitorSourceType = MonitorSourceTypes.Infrastructure, IsActive = true };
+
+            var result = await Build(new List<MonitorConfiguration> { config })
+                .UpdateHealth(new UpdateHealthConfigurationRequest { ItemId = "m1", IsActive = false });
+
+            var objectResult = result.Should().BeOfType<ObjectResult>().Subject;
+            objectResult.StatusCode.Should().Be(403);
+            objectResult.Value.Should().BeOfType<BaseApiResponse>().Which.Message.Should().Be(ManagedMonitors.RefusedMessage);
+            config.IsActive.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task DeleteHealth_BlocksServicesHeartbeat_IsA403WithAReason()
+        {
+            var config = new MonitorConfiguration { ItemId = "m1", MonitorSourceType = MonitorSourceTypes.BlocksServices };
+
+            var result = await Build(new List<MonitorConfiguration> { config }).DeleteHealth("m1");
+
+            var objectResult = result.Should().BeOfType<ObjectResult>().Subject;
+            objectResult.StatusCode.Should().Be(403);
+            objectResult.Value.Should().BeOfType<BaseApiResponse>().Which.Message.Should().Be(ManagedMonitors.RefusedMessage);
         }
 
         // Owner decision 2026-10-14: health changes need blocks-monitor::health::manage.
