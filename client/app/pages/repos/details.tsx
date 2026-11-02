@@ -18,15 +18,14 @@ import { useGetRepoDetails, getHttpStatus } from "@/hooks/use-repos";
 import { RepoDeploymentLogsTab } from "@/components/module/repos/repo-deployment-logs-tab";
 import { SastTab } from "@/components/module/repos/sast-tab";
 import { ScaTab } from "@/components/module/repos/sca-tab";
-import {
-  PageErrorCard,
-  PageLoadingSkeleton,
-} from "@/components/module/repos/report-states";
+import { PageErrorCard, PageLoadingSkeleton } from "@/components/module/repos/report-states";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 const TAB_VALUES = ["deployment-logs", "sast", "sca"] as const;
 type TabValue = (typeof TAB_VALUES)[number];
 
 const RepoDetailsPage = () => {
+  const { t } = useT("monitor.repos");
   const { repoId = "" } = useParams<{ repoId: string }>();
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
   const scoped = useScopedPath();
@@ -45,16 +44,14 @@ const RepoDetailsPage = () => {
 
   // C8: fall back to deployment logs when SAST/SCA is requested without a build.
   const effectiveTab: TabValue =
-    !hasBuild && (tab === "sast" || tab === "sca")
-      ? "deployment-logs"
-      : (tab ?? "deployment-logs");
+    !hasBuild && (tab === "sast" || tab === "sca") ? "deployment-logs" : (tab ?? "deployment-logs");
 
   const shortName = repo?.repoName?.split("/").pop() || repo?.repoName || repoId;
 
   if (!projectKey) {
     return (
       <main className="space-y-4">
-        <p className="text-sm text-muted-foreground">Select a project to view repository details.</p>
+        <p className="text-sm text-muted-foreground">{t("REPO_DETAILS_PAGE.SELECT_PROJECT")}</p>
       </main>
     );
   }
@@ -70,9 +67,9 @@ const RepoDetailsPage = () => {
   if (is404) {
     return (
       <main className="space-y-4" data-testid="repo-not-found">
-        <p className="text-sm">Repository not found</p>
+        <p className="text-sm">{t("REPO_DETAILS_PAGE.NOT_FOUND")}</p>
         <Link to={scoped("repos")} className="text-primary underline">
-          Back to Repos
+          {t("REPO_DETAILS_PAGE.BACK_TO_REPOS")}
         </Link>
       </main>
     );
@@ -81,7 +78,7 @@ const RepoDetailsPage = () => {
   if (isError) {
     return (
       <main className="space-y-4">
-        <PageErrorCard message="Failed to load repository details." onRetry={() => refetch()} />
+        <PageErrorCard message={t("REPO_DETAILS_PAGE.LOAD_FAILED")} onRetry={() => refetch()} />
       </main>
     );
   }
@@ -90,7 +87,7 @@ const RepoDetailsPage = () => {
     <main className="space-y-4" data-testid="repo-details-page">
       <div className="flex items-center gap-2">
         <Button asChild variant="ghost" className="pl-0">
-          <Link to={scoped("repos")} aria-label="Back to Repos">
+          <Link to={scoped("repos")} aria-label={t("REPO_DETAILS_PAGE.BACK_TO_REPOS")}>
             <ChevronLeft size={20} />
           </Link>
         </Button>
@@ -100,7 +97,9 @@ const RepoDetailsPage = () => {
       <TooltipProvider>
         <Tabs value={effectiveTab} onValueChange={(v) => setTab(v as TabValue)}>
           <TabsList>
-            <TabsTrigger value="deployment-logs">Deployment Logs</TabsTrigger>
+            <TabsTrigger value="deployment-logs">
+              {t("REPO_DETAILS_PAGE.TAB_DEPLOYMENT_LOGS")}
+            </TabsTrigger>
             {hasBuild ? (
               <TabsTrigger value="sast">SAST</TabsTrigger>
             ) : (
@@ -112,7 +111,7 @@ const RepoDetailsPage = () => {
                     </TabsTrigger>
                   </span>
                 </TooltipTrigger>
-                <TooltipContent>Available after the first build</TooltipContent>
+                <TooltipContent>{t("REPO_DETAILS_PAGE.AVAILABLE_AFTER_BUILD")}</TooltipContent>
               </Tooltip>
             )}
             {hasBuild ? (
@@ -126,7 +125,7 @@ const RepoDetailsPage = () => {
                     </TabsTrigger>
                   </span>
                 </TooltipTrigger>
-                <TooltipContent>Available after the first build</TooltipContent>
+                <TooltipContent>{t("REPO_DETAILS_PAGE.AVAILABLE_AFTER_BUILD")}</TooltipContent>
               </Tooltip>
             )}
           </TabsList>

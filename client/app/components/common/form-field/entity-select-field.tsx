@@ -1,6 +1,7 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/core";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/core";
 import { type Control, type FieldValues, type Path } from "react-hook-form";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 type EntitySelectFieldProps<TFormValues extends FieldValues, TOption> = {
   control: Control<TFormValues>;
@@ -29,6 +30,7 @@ export const EntitySelectField = <TFormValues extends FieldValues, TOption>({
   onValueChange,
   emptyMessage,
 }: EntitySelectFieldProps<TFormValues, TOption>) => {
+  const { t } = useT("monitor.shared");
   return (
     <FormField
       control={control}
@@ -56,7 +58,7 @@ export const EntitySelectField = <TFormValues extends FieldValues, TOption>({
                     className="min-w-0 items-start py-2 text-muted-foreground"
                   >
                     <span className="block max-w-full whitespace-normal break-all leading-5">
-                      {emptyMessage ?? "No items available."}
+                      {emptyMessage ?? t("ENTITY_SELECT_FIELD.NO_ITEMS")}
                     </span>
                   </SelectItem>
                 ) : (

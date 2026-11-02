@@ -24,6 +24,9 @@ import {
 import { useNavigate } from "react-router";
 import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useT } from "@seliseblocks/genesis-os/i18n";
+
+const MONITOR_ALERTS_MODULE = "monitor.alerts";
 
 type AlertActionProps = {
   monitorId: string;
@@ -46,7 +49,7 @@ const AlertAction = ({
   monitorSourceType,
   children = <EllipsisVertical className="h-5 w-5" />,
 }: AlertActionProps) => {
-  const activityState = isActive ? "Pause" : "Resume";
+  const { t } = useT(MONITOR_ALERTS_MODULE);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState<boolean>(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
 
@@ -62,7 +65,7 @@ const AlertAction = ({
               setIsUpdateDialogOpen(true);
             }}
           >
-            <span>{activityState}</span>
+            <span>{isActive ? t("ALERT_ACTION.PAUSE") : t("ALERT_ACTION.RESUME")}</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             className="gap-2 cursor-pointer text-destructive"
@@ -71,7 +74,7 @@ const AlertAction = ({
               setIsDeleteDialogOpen(true);
             }}
           >
-            <span>Delete</span>
+            <span>{t("common:DELETE")}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -80,7 +83,6 @@ const AlertAction = ({
         <UpdateMonitorDialog
           monitorId={monitorId}
           isActive={isActive}
-          activityState={activityState}
           isOpen={isUpdateDialogOpen}
           onOpenChange={setIsUpdateDialogOpen}
           name={name}
@@ -105,9 +107,6 @@ const AlertAction = ({
 
 export default AlertAction;
 
-const UPDATE_FAILED = "Failed to update monitor status";
-const DELETE_FAILED = "Failed to delete monitor status";
-
 /**
  * The server's reason for a refusal, else `fallback`. A 403 (a Blocks-managed monitor) arrives as an
  * HttpError whose `errors` is the response body; a 200 refusal arrives as the body itself. Any other
@@ -123,7 +122,6 @@ const refusalMessage = (source: unknown, fallback: string): string => {
 type UpdateMonitorDialogProps = {
   monitorId: string;
   isActive: boolean;
-  activityState: string;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   name: string;
@@ -135,13 +133,13 @@ type UpdateMonitorDialogProps = {
 const UpdateMonitorDialog = ({
   monitorId,
   isActive,
-  activityState,
   isOpen,
   onOpenChange,
   request,
   name,
   projectKey,
 }: UpdateMonitorDialogProps) => {
+  const { t } = useT(MONITOR_ALERTS_MODULE);
   const updateMutation = useUpdateSingleMonitor();
   const updateHealth = useUpdateHealth();
   const queryClient = useQueryClient();
@@ -165,24 +163,26 @@ const UpdateMonitorDialog = ({
       if (!res?.isSuccess) {
         toast({
           variant: "destructive",
-          title: "Failed",
-          description: refusalMessage(res, UPDATE_FAILED),
+          title: t("ALERT_ACTION.FAILED"),
+          description: refusalMessage(res, t("ALERT_ACTION.UPDATE_FAILED")),
         });
         return;
       }
 
       toast({
         variant: "success",
-        title: "Success",
-        description: isActive ? "Monitor paused successfully" : "Monitor resumed successfully",
+        title: t("common:SUCCESS"),
+        description: isActive
+          ? t("ALERT_ACTION.PAUSED_SUCCESS")
+          : t("ALERT_ACTION.RESUMED_SUCCESS"),
       });
 
       onOpenChange(false);
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed",
-        description: refusalMessage(error, UPDATE_FAILED),
+        title: t("ALERT_ACTION.FAILED"),
+        description: refusalMessage(error, t("ALERT_ACTION.UPDATE_FAILED")),
       });
     } finally {
       await queryClient.invalidateQueries({
@@ -199,19 +199,19 @@ const UpdateMonitorDialog = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{activityState} monitor?</DialogTitle>
+          <DialogTitle>
+            {isActive ? t("ALERT_ACTION.PAUSE_TITLE") : t("ALERT_ACTION.RESUME_TITLE")}
+          </DialogTitle>
           <DialogDescription>
-            {isActive
-              ? "This will temporarily stop all checks for this monitor until resumed."
-              : "Checks will start running again based on the configured interval."}
+            {isActive ? t("ALERT_ACTION.PAUSE_DESCRIPTION") : t("ALERT_ACTION.RESUME_DESCRIPTION")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" disabled={isLoading} onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("common:CANCEL")}
           </Button>
           <Button onClick={handleUpdate} disabled={isLoading}>
-            {isLoading ? "Updating..." : "Confirm"}
+            {isLoading ? t("ALERT_ACTION.UPDATING") : t("common:CONFIRM")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -234,6 +234,7 @@ const DeleteMonitorDialog = ({
   goBack = true,
   request,
 }: DeleteMonitorDialogProps) => {
+  const { t } = useT(MONITOR_ALERTS_MODULE);
   const navigate = useNavigate();
   // Only call the hook when the dialog is open
   const deleteMutation = useDeleteMonitor();
@@ -249,8 +250,8 @@ const DeleteMonitorDialog = ({
       if (!res?.isSuccess) {
         toast({
           variant: "destructive",
-          title: "Failed",
-          description: refusalMessage(res, DELETE_FAILED),
+          title: t("ALERT_ACTION.FAILED"),
+          description: refusalMessage(res, t("ALERT_ACTION.DELETE_FAILED")),
         });
         return;
       }
@@ -262,8 +263,8 @@ const DeleteMonitorDialog = ({
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed",
-        description: refusalMessage(error, DELETE_FAILED),
+        title: t("ALERT_ACTION.FAILED"),
+        description: refusalMessage(error, t("ALERT_ACTION.DELETE_FAILED")),
       });
     }
   };
@@ -272,11 +273,8 @@ const DeleteMonitorDialog = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Remove monitor?</DialogTitle>
-          <DialogDescription>
-            This action will permanently delete the monitor and its related history. This cannot be
-            undone.
-          </DialogDescription>
+          <DialogTitle>{t("ALERT_ACTION.REMOVE_TITLE")}</DialogTitle>
+          <DialogDescription>{t("ALERT_ACTION.REMOVE_DESCRIPTION")}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button
@@ -284,14 +282,14 @@ const DeleteMonitorDialog = ({
             disabled={deleteMutation.isPending}
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t("common:CANCEL")}
           </Button>
           <Button
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            Confirm
+            {t("common:CONFIRM")}
           </Button>
         </DialogFooter>
       </DialogContent>

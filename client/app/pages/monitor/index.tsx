@@ -24,8 +24,14 @@ import { getRuntimeEnv } from "@seliseblocks/genesis-os/lib";
 import { useProjectStore } from "@seliseblocks/genesis-os/store";
 import { BookOpen, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 const MonitorPage = () => {
+  const { t } = useT("monitor.monitors");
+  const tabLabels: Record<MonitorTabKey, string> = {
+    all: t("MONITOR_PAGE.TAB_MY_MONITORS"),
+    services: t("MONITOR_PAGE.TAB_BLOCKS_SERVICES"),
+  };
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
   const { queryParams, setQueryParams } = useAlertFilterQueryParams();
   const [open, setOpen] = useState(false);
@@ -71,7 +77,7 @@ const MonitorPage = () => {
   return (
     <main className="space-y-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-lg font-semibold md:text-2xl">Monitor</h1>
+        <h1 className="text-lg font-semibold md:text-2xl">{t("MONITOR_PAGE.TITLE")}</h1>
         <a
           href={getRuntimeEnv("BLOCKS_MONITOR_BASE_URL") + "/swagger/index.html"}
           target="_blank"
@@ -79,7 +85,7 @@ const MonitorPage = () => {
         >
           <Button variant="outline" className="gap-2 items-center justify-center">
             <BookOpen className="h-3.5 w-3.5" />
-            API Docs
+            {t("MONITOR_PAGE.API_DOCS")}
           </Button>
         </a>
       </div>
@@ -94,9 +100,9 @@ const MonitorPage = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(MONITOR_TABS).map(([key, { label }]) => (
+                  {(Object.keys(MONITOR_TABS) as MonitorTabKey[]).map((key) => (
                     <SelectItem key={key} value={key}>
-                      {label}
+                      {tabLabels[key]}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -106,9 +112,9 @@ const MonitorPage = () => {
             {/* Desktop Tabs */}
             <div className="hidden md:block">
               <TabsList>
-                {Object.entries(MONITOR_TABS).map(([key, { label }]) => (
+                {(Object.keys(MONITOR_TABS) as MonitorTabKey[]).map((key) => (
                   <TabsTrigger key={key} value={key}>
-                    {label}
+                    {tabLabels[key]}
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -123,7 +129,7 @@ const MonitorPage = () => {
           className="gap-1 items-center justify-center"
         >
           <Plus size={16} />
-          Add Monitor
+          {t("MONITOR_PAGE.ADD_MONITOR")}
         </Button>
       </div>
 

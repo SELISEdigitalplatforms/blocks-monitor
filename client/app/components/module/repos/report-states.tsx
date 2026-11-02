@@ -1,6 +1,10 @@
+import { useT } from "@seliseblocks/genesis-os/i18n";
 import { Button, Card, CardContent, Skeleton } from "@/components/core";
 
-export function ReportLoadingCard({ label = "Loading report…" }: Readonly<{ label?: string }>) {
+const MONITOR_REPOS_MODULE = "monitor.repos";
+
+export function ReportLoadingCard({ label }: Readonly<{ label?: string }>) {
+  const { t } = useT(MONITOR_REPOS_MODULE);
   return (
     <Card data-testid="report-loading" className="p-0">
       <div className="px-6 py-4">
@@ -22,29 +26,31 @@ export function ReportLoadingCard({ label = "Loading report…" }: Readonly<{ la
           ))}
         </div>
       </div>
-      <span className="sr-only">{label}</span>
+      <span className="sr-only">{label ?? t("REPORT_STATES.LOADING_REPORT")}</span>
     </Card>
   );
 }
 
 export function ReportNoDataCard() {
+  const { t } = useT(MONITOR_REPOS_MODULE);
   return (
     <Card data-testid="report-no-data">
       <CardContent className="p-6 text-sm text-muted-foreground">
-        No report available for this build
+        {t("REPORT_STATES.NO_REPORT")}
       </CardContent>
     </Card>
   );
 }
 
 export function ReportErrorCard({ onRetry }: Readonly<{ onRetry?: () => void }>) {
+  const { t } = useT(MONITOR_REPOS_MODULE);
   return (
     <Card data-testid="report-error">
       <CardContent className="flex flex-col items-start gap-3 p-6">
-        <p className="text-sm text-destructive">Failed to load report.</p>
+        <p className="text-sm text-destructive">{t("REPORT_STATES.LOAD_FAILED")}</p>
         {onRetry && (
           <Button type="button" variant="outline" size="sm" onClick={onRetry}>
-            Retry
+            {t("common:RETRY")}
           </Button>
         )}
       </CardContent>
@@ -59,13 +65,14 @@ export function PageErrorCard({
   message: string;
   onRetry?: () => void;
 }>) {
+  const { t } = useT(MONITOR_REPOS_MODULE);
   return (
     <Card data-testid="page-error">
       <CardContent className="flex flex-col items-start gap-3 p-6">
         <p className="text-sm text-destructive">{message}</p>
         {onRetry && (
           <Button type="button" variant="outline" size="sm" onClick={onRetry}>
-            Retry
+            {t("common:RETRY")}
           </Button>
         )}
       </CardContent>

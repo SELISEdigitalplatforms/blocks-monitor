@@ -27,6 +27,7 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useAlertFilterQueryParams } from "./use-alert-filter-query-params";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 type AlertsListProps = {
   data: AlertTree[];
@@ -67,6 +68,7 @@ const toValidDate = (value: Date | string | null | undefined): Date | null => {
 const isNeverSentinel = (date: Date) => date.getUTCFullYear() <= 1;
 
 export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: AlertsListProps) {
+  const { t } = useT("monitor.alerts");
   const navigate = useNavigate();
   const scoped = useScopedPath();
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
@@ -80,7 +82,7 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
           <FilterControls.SortHeader
             key={"name"}
             id="name"
-            label="Name"
+            label={t("common:NAME")}
             value={sortQueryParams}
             defaultValue={{ property: "name", isDescending: false }}
             onChange={onSortChange}
@@ -88,7 +90,8 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
           />
         ),
         cell: ({ row }) => {
-          const name = row.original?.name || row.original.operationName || "N/A";
+          const name =
+            row.original?.name || row.original.operationName || t("ALERTS_LIST.NOT_AVAILABLE");
           return (
             <div className="ml-2 flex flex-row items-center sm:ml-0 w-[180px] sm:w-[150px]">
               <span className="break-all">{name}</span>
@@ -102,7 +105,7 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
           <FilterControls.SortHeader
             key={"monitor_type"}
             id="monitor_type"
-            label="Monitor Type"
+            label={t("ALERTS_LIST.COLUMN_MONITOR_TYPE")}
             value={sortQueryParams}
             onChange={onSortChange}
             className="sm:w-[150px] w-[180px]"
@@ -110,7 +113,9 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
         ),
         cell: ({ row }) => {
           const monitorType =
-            row.original.monitorConfigurationType === 0 ? "HTTP Check" : "Heartbeat";
+            row.original.monitorConfigurationType === 0
+              ? t("ALERTS_LIST.HTTP_CHECK")
+              : t("ALERTS_LIST.HEARTBEAT");
           return (
             <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
               <span className="break-all">{monitorType}</span>
@@ -124,14 +129,15 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
           <FilterControls.SortHeader
             key={"url"}
             id="url"
-            label="URL"
+            label={t("ALERTS_LIST.COLUMN_URL")}
             value={sortQueryParams}
             onChange={onSortChange}
             className="sm:w-[150px] w-[180px]"
           />
         ),
         cell: ({ row }) => {
-          const url = row.original.url || row.original.request?.url || "N/A";
+          const url =
+            row.original.url || row.original.request?.url || t("ALERTS_LIST.NOT_AVAILABLE");
           return (
             <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
               <span className="break-all">{url}</span>
@@ -146,7 +152,7 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
           <FilterControls.SortHeader
             key={"tagged_service"}
             id="tagged_service"
-            label="Tagged Service"
+            label={t("ALERTS_LIST.COLUMN_TAGGED_SERVICE")}
             value={sortQueryParams}
             onChange={onSortChange}
             className="sm:w-[150px] w-[180px]"
@@ -169,7 +175,7 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
           <FilterControls.SortHeader
             key={"uptime"}
             id="uptime"
-            label="Uptime"
+            label={t("ALERTS_LIST.COLUMN_UPTIME")}
             value={sortQueryParams}
             onChange={onSortChange}
             className="sm:w-[150px] w-[180px]"
@@ -210,7 +216,7 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
           <FilterControls.SortHeader
             key={"status"}
             id="status"
-            label="Status"
+            label={t("common:STATUS")}
             value={sortQueryParams}
             onChange={onSortChange}
           />
@@ -228,7 +234,7 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
                 // Replaces the bar rather than sitting beside it: 24 hours of green/red is a
                 // health display, and health is not meaningful while a monitor is paused.
                 <Badge variant="secondary" className="w-fit">
-                  Paused
+                  {t("ALERTS_LIST.PAUSED")}
                 </Badge>
               ) : (
                 <ProgressBar incidents={incidentList} status={status} />
@@ -244,31 +250,29 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
           const request = row.original.monitorConfigurationType === 0 ? true : false;
           const name = row.original?.name;
           const monitorSourceType = resolveMonitorSourceType(row.original);
+          // Blocks-managed monitors cannot be paused, resumed or deleted from here.
+          if (isManagedByBlocks(monitorSourceType)) return null;
           return (
-            <>
-              {!isManagedByBlocks(monitorSourceType) ? (
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
-                  className="flex justify-center"
-                >
-                  <AlertAction
-                    monitorId={row.original.itemId as string}
-                    isActive={row.original.isActive ?? false}
-                    goBack={false}
-                    request={request}
-                    name={name as string}
-                    projectKey={projectKey}
-                    monitorSourceType={monitorSourceType}
-                  />
-                </div>
-              ) : null}
-            </>
+            <div
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+              className="flex justify-center"
+            >
+              <AlertAction
+                monitorId={row.original.itemId as string}
+                isActive={row.original.isActive ?? false}
+                goBack={false}
+                request={request}
+                name={name as string}
+                projectKey={projectKey}
+                monitorSourceType={monitorSourceType}
+              />
+            </div>
           );
         },
       },
     ],
-    [onSortChange, sortQueryParams, projectKey],
+    [onSortChange, sortQueryParams, projectKey, t],
   );
   // TanStack Table returns fresh functions each render, so the React Compiler skips this
   // component; the compiler is not enabled here, and no compiler-safe table API exists.
@@ -331,7 +335,7 @@ export function AlertsList({ data, isLoading, sortQueryParams, onSortChange }: A
                   colSpan={table.getAllColumns().length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  No results.
+                  {t("ALERTS_LIST.NO_RESULTS")}
                 </TableCell>
               </TableRow>
             )}

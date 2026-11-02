@@ -1,4 +1,5 @@
-import type { ScaSeverity } from "@/components/module/repos/sca-transform";
+import { useT } from "@seliseblocks/genesis-os/i18n";
+import { getSeverityLabel, type ScaSeverity } from "@/components/module/repos/sca-transform";
 
 const SEVERITIES: ScaSeverity[] = ["Critical", "High", "Medium", "Low", "Unassigned"];
 
@@ -7,11 +8,12 @@ export function ScaSummaryHeader({
 }: Readonly<{
   details: Record<string, string>;
 }>) {
+  const { t } = useT("monitor.repos");
   return (
     <div className="flex flex-wrap gap-6 text-sm" data-testid="sca-header">
-      <Stat label="Total components" value={details.components} />
-      <Stat label="Vulnerable components" value={details.vulnerableComponents} />
-      <Stat label="Risk Score" value={details.inheritedRiskScore} />
+      <Stat label={t("SCA_SUMMARY.TOTAL_COMPONENTS")} value={details.components} />
+      <Stat label={t("SCA_SUMMARY.VULNERABLE_COMPONENTS")} value={details.vulnerableComponents} />
+      <Stat label={t("SCA_SUMMARY.RISK_SCORE")} value={details.inheritedRiskScore} />
     </div>
   );
 }
@@ -25,6 +27,7 @@ export function ScaSummaryTiles({
   activeSeverity: ScaSeverity | null;
   onToggleSeverity: (s: ScaSeverity) => void;
 }>) {
+  const { t } = useT("monitor.repos");
   const counts: Record<ScaSeverity | "Total", string> = {
     Total: details.vulnerabilities ?? "—",
     Critical: details.critical ?? "0",
@@ -37,7 +40,7 @@ export function ScaSummaryTiles({
   return (
     <div className="grid gap-3 sm:grid-cols-3 md:grid-cols-6" data-testid="sca-summary-tiles">
       <div className="rounded-lg border p-3" data-testid="sca-tile-total">
-        <p className="text-xs text-muted-foreground">Total vulnerabilities</p>
+        <p className="text-xs text-muted-foreground">{t("SCA_SUMMARY.TOTAL_VULNERABILITIES")}</p>
         <p className="text-lg font-semibold">{counts.Total}</p>
       </div>
       {SEVERITIES.map((s) => {
@@ -51,7 +54,7 @@ export function ScaSummaryTiles({
             className={`rounded-lg border p-3 text-left transition ${active ? "border-primary bg-primary/5" : "hover:bg-muted/40"}`}
             onClick={() => onToggleSeverity(s)}
           >
-            <p className="text-xs text-muted-foreground">{s}</p>
+            <p className="text-xs text-muted-foreground">{getSeverityLabel(s)}</p>
             <p className="text-lg font-semibold">{counts[s]}</p>
           </button>
         );

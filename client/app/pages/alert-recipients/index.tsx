@@ -15,7 +15,7 @@ import {
   removedNotice,
   sortByEmail,
   storedAllMonitors,
-  UNDO_NOTHING_LEFT,
+  getUndoNothingLeft,
 } from "@/components/module/alert-recipients/alert-recipients.utils";
 import CoverageBadge from "@/components/module/alert-recipients/coverage-badge";
 import RecipientDialog from "@/components/module/alert-recipients/recipient-dialog";
@@ -33,6 +33,7 @@ import { ErrorTransformer } from "@seliseblocks/genesis-os/utils";
 import { AlertCircle, Loader2, Plus, Search } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 type DialogState = { mode: "add" } | { mode: "edit"; recipient: IAlertRecipient } | null;
 
@@ -46,7 +47,6 @@ type RemovedNotice = {
 
 const LOADING_ROWS = 5;
 
-
 const LoadingRows = () => (
   <div className="flex flex-col gap-3 p-6" data-testid="recipients-loading">
     {Array.from({ length: LOADING_ROWS }, (_, index) => (
@@ -56,9 +56,10 @@ const LoadingRows = () => (
 );
 
 const AlertRecipientsPage = () => {
+  const { t } = useT("monitor.alert-recipients");
   const project = useProjectStore()?.selectedProject;
   const projectKey = project?.tenantId || "";
-  const projectName = project?.name || "this project";
+  const projectName = project?.name || t("ALERT_RECIPIENTS_PAGE.THIS_PROJECT");
   const scoped = useScopedPath();
 
   const [search, setSearch] = useState("");
@@ -99,7 +100,7 @@ const AlertRecipientsPage = () => {
     try {
       const response = await deleteMutation.mutateAsync({ projectKey, email: recipient.email });
       if (!response?.isSuccess) {
-        showErrorToast({ errors: response?.message || "The recipient was not removed." });
+        showErrorToast({ errors: response?.message || t("ALERT_RECIPIENTS_PAGE.REMOVE_FAILED") });
         return;
       }
       focusUndoRef.current = true;
@@ -123,7 +124,7 @@ const AlertRecipientsPage = () => {
       : notice.monitorIds.filter((id) => monitorsById.has(id));
     if (!notice.allMonitors && monitorIds.length === 0) {
       setNotice(null);
-      showErrorToast({ errors: UNDO_NOTHING_LEFT });
+      showErrorToast({ errors: getUndoNothingLeft() });
       return;
     }
     try {
@@ -134,11 +135,14 @@ const AlertRecipientsPage = () => {
         monitorIds,
       });
       if (!response?.isSuccess) {
-        showErrorToast({ errors: response?.message || "The recipient was not restored." });
+        showErrorToast({ errors: response?.message || t("ALERT_RECIPIENTS_PAGE.RESTORE_FAILED") });
         return;
       }
       setNotice(null);
-      showSuccessToast({ description: response.message || `${notice.email} restored.` });
+      showSuccessToast({
+        description:
+          response.message || t("ALERT_RECIPIENTS_PAGE.RESTORED", { email: notice.email }),
+      });
     } catch (undoError) {
       showErrorToast({ errors: ErrorTransformer(undoError) });
     }
@@ -154,9 +158,9 @@ const AlertRecipientsPage = () => {
         <div className="p-6">
           <Alert variant="destructive">
             <AlertCircle aria-hidden="true" />
-            <AlertTitle>Alert recipients could not be loaded.</AlertTitle>
+            <AlertTitle>{t("ALERT_RECIPIENTS_PAGE.LOAD_FAILED")}</AlertTitle>
             <AlertDescription>
-              <p>{error instanceof Error ? error.message : "Try again."}</p>
+              <p>{error instanceof Error ? error.message : t("ALERT_RECIPIENTS_PAGE.TRY_AGAIN")}</p>
               <Button
                 type="button"
                 variant="outline"
@@ -166,7 +170,7 @@ const AlertRecipientsPage = () => {
                 onClick={() => refetch()}
               >
                 {isFetching && <Loader2 aria-hidden="true" className="mr-2 h-4 w-4 animate-spin" />}
-                Retry
+                {t("common:RETRY")}
               </Button>
             </AlertDescription>
           </Alert>
@@ -176,12 +180,14 @@ const AlertRecipientsPage = () => {
     if (!hasMonitors) {
       return (
         <div className="flex flex-col items-center gap-2 px-6 py-12 text-center">
-          <p className="font-medium text-foreground">Add a monitor first.</p>
+          <p className="font-medium text-foreground">
+            {t("ALERT_RECIPIENTS_PAGE.ADD_MONITOR_FIRST")}
+          </p>
           <Link
             to={scoped("monitor")}
             className="text-sm font-semibold text-primary hover:underline"
           >
-            Go to Monitor
+            {t("ALERT_RECIPIENTS_PAGE.GO_TO_MONITOR")}
           </Link>
         </div>
       );
@@ -189,17 +195,21 @@ const AlertRecipientsPage = () => {
     if (recipients.length === 0) {
       return (
         <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
-          <p className="font-medium text-foreground">No one gets alert emails yet.</p>
+          <p className="font-medium text-foreground">
+            {t("ALERT_RECIPIENTS_PAGE.NO_RECIPIENTS_YET")}
+          </p>
           <Button type="button" onClick={() => setDialog({ mode: "add" })} className="gap-1">
             <Plus aria-hidden="true" size={16} />
-            Add recipient
+            {t("ALERT_RECIPIENTS_PAGE.ADD_RECIPIENT")}
           </Button>
         </div>
       );
     }
     if (rows.length === 0) {
       return (
-        <p className="px-6 py-12 text-center text-muted-foreground">No people or monitors match.</p>
+        <p className="px-6 py-12 text-center text-muted-foreground">
+          {t("ALERT_RECIPIENTS_PAGE.NO_MATCH")}
+        </p>
       );
     }
     return (
@@ -222,9 +232,9 @@ const AlertRecipientsPage = () => {
     <main className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1.5">
-          <h1 className="text-lg font-semibold md:text-2xl">Alert recipients</h1>
+          <h1 className="text-lg font-semibold md:text-2xl">{t("ALERT_RECIPIENTS_PAGE.TITLE")}</h1>
           <p className="text-muted-foreground">
-            People who get an email when a monitor in {projectName} goes down or comes back up.
+            {t("ALERT_RECIPIENTS_PAGE.SUBTITLE", { projectName })}
           </p>
         </div>
         <Button
@@ -234,7 +244,7 @@ const AlertRecipientsPage = () => {
           onClick={() => setDialog({ mode: "add" })}
         >
           <Plus aria-hidden="true" size={16} />
-          Add recipient
+          {t("ALERT_RECIPIENTS_PAGE.ADD_RECIPIENT")}
         </Button>
       </div>
 
@@ -256,7 +266,7 @@ const AlertRecipientsPage = () => {
                 {undoMutation.isPending && (
                   <Loader2 aria-hidden="true" className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Undo
+                {t("ALERT_RECIPIENTS_PAGE.UNDO")}
               </Button>
             )}
           </div>
@@ -273,8 +283,8 @@ const AlertRecipientsPage = () => {
               />
               <Input
                 type="search"
-                aria-label="Search people or monitors"
-                placeholder="Search people or monitors"
+                aria-label={t("ALERT_RECIPIENTS_PAGE.SEARCH")}
+                placeholder={t("ALERT_RECIPIENTS_PAGE.SEARCH")}
                 value={search}
                 className="pl-9"
                 onChange={(event) => setSearch(event.target.value)}
@@ -286,8 +296,7 @@ const AlertRecipientsPage = () => {
         <CardContent className="p-0">{renderBody()}</CardContent>
         {hasData && (
           <div className="border-t bg-muted/40 px-6 py-3.5 text-[13px] text-muted-foreground">
-            Alerts are sent to the emails saved on each monitor. A monitor can have up to{" "}
-            {maxEmailsPerMonitor}.
+            {t("ALERT_RECIPIENTS_PAGE.FOOTER", { max: maxEmailsPerMonitor })}
           </div>
         )}
       </Card>

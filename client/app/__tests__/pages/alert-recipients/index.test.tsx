@@ -3,7 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import type { IAlertRecipientsData } from "@/models/alert-recipients.model";
-import { UNDO_NOTHING_LEFT } from "@/components/module/alert-recipients/alert-recipients.utils";
+import { getUndoNothingLeft } from "@/components/module/alert-recipients/alert-recipients.utils";
 import { MONITORS, recipient } from "../../module/alert-recipients/fixtures";
 
 type QueryState = {
@@ -271,7 +271,7 @@ describe("AlertRecipientsPage", () => {
     );
     await userEvent.click(screen.getByRole("button", { name: "Undo" }));
     expect(h.saveAsync).not.toHaveBeenCalled();
-    expect(h.error).toHaveBeenCalledWith({ errors: UNDO_NOTHING_LEFT });
+    expect(h.error).toHaveBeenCalledWith({ errors: getUndoNothingLeft() });
     expect(screen.getByRole("status")).toBeEmptyDOMElement();
   });
 

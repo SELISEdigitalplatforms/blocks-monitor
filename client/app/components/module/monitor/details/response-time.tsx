@@ -23,6 +23,7 @@ import {
 } from "recharts";
 import { formatDuration } from "@seliseblocks/genesis-os/utils";
 import { formatUptime, observedWindowMs } from "@/utils/uptime.util";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 type DowntimeLog = {
   startTime: string;
@@ -80,6 +81,7 @@ const CustomTooltip = ({
   active?: boolean;
   payload?: { payload: ChartPoint }[];
 }) => {
+  const { t } = useT("monitor.monitors");
   if (!active || !payload?.length) return null;
   const d: ChartPoint = payload[0]?.payload;
   return (
@@ -88,10 +90,12 @@ const CustomTooltip = ({
       <div
         className={d.status === 1 ? "font-semibold text-green-600" : "font-semibold text-red-600"}
       >
-        {d.status === 1 ? "Up" : "Down"}
+        {d.status === 1 ? t("RESPONSE_TIME.UP") : t("RESPONSE_TIME.DOWN")}
       </div>
       {d.duration !== undefined && (
-        <div className="mt-1 text-gray-600">Duration: {formatDuration(d.duration * 1000)}</div>
+        <div className="mt-1 text-gray-600">
+          {t("RESPONSE_TIME.DURATION", { duration: formatDuration(d.duration * 1000) })}
+        </div>
       )}
     </div>
   );
@@ -107,7 +111,7 @@ const processDowntimePoints = (
   rangeStart: number,
   now: number,
   isActive: boolean,
-  pts: ChartPoint[]
+  pts: ChartPoint[],
 ) => {
   for (const d of relevant) {
     const s = Math.max(d.start, rangeStart);
@@ -156,6 +160,7 @@ const ResponseTime = ({
   createdAt,
   now,
 }: ResponseTimeProps) => {
+  const { t } = useT("monitor.monitors");
   const windowMs = TIME_RANGES[timeRange] ?? TIME_RANGES["1h"];
   const rangeStart = now - windowMs;
   // Where observation starts: the window start, or the monitor's creation if that is later.
@@ -229,7 +234,7 @@ const ResponseTime = ({
     <Card className="mb-6 border-none p-0 shadow-none">
       <CardHeader>
         <CardTitle className="flex w-full items-center justify-between gap-4">
-          <span>Status Overview</span>
+          <span>{t("RESPONSE_TIME.STATUS_OVERVIEW")}</span>
 
           <div className="flex items-center gap-2">
             <Select value={timeRange} onValueChange={setTimeRange}>
@@ -237,11 +242,11 @@ const ResponseTime = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1h">Last 1 Hour</SelectItem>
-                <SelectItem value="3h">Last 3 Hours</SelectItem>
-                <SelectItem value="6h">Last 6 Hours</SelectItem>
-                <SelectItem value="12h">Last 12 Hours</SelectItem>
-                <SelectItem value="24h">Last 24 Hours</SelectItem>
+                <SelectItem value="1h">{t("RESPONSE_TIME.RANGE_1H")}</SelectItem>
+                <SelectItem value="3h">{t("RESPONSE_TIME.RANGE_3H")}</SelectItem>
+                <SelectItem value="6h">{t("RESPONSE_TIME.RANGE_6H")}</SelectItem>
+                <SelectItem value="12h">{t("RESPONSE_TIME.RANGE_12H")}</SelectItem>
+                <SelectItem value="24h">{t("RESPONSE_TIME.RANGE_24H")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -249,13 +254,13 @@ const ResponseTime = ({
 
         <CardDescription className="flex flex-wrap gap-6">
           <span className="flex items-baseline gap-2">
-            <span className="text-sm text-gray-600">Monitor interval</span>
+            <span className="text-sm text-gray-600">{t("RESPONSE_TIME.MONITOR_INTERVAL")}</span>
             <span className="font-semibold">{formatDuration(interval * 1000)}</span>
           </span>
 
           <span className="flex items-baseline gap-2">
             <span className="text-sm text-gray-600">
-              {request ? "Request timeout" : "Grace Period"}
+              {request ? t("RESPONSE_TIME.REQUEST_TIMEOUT") : t("RESPONSE_TIME.GRACE_PERIOD")}
             </span>
             <span className="font-semibold">{formatDuration(timeout * 1000)}</span>
           </span>
@@ -266,17 +271,17 @@ const ResponseTime = ({
         {/* Metrics */}
         <div className="mb-6 grid grid-cols-3 gap-4">
           <div className="rounded border border-green-200 bg-green-50 p-4">
-            <div className="text-sm text-gray-600">Uptime</div>
+            <div className="text-sm text-gray-600">{t("RESPONSE_TIME.UPTIME")}</div>
             <div className="text-2xl font-bold text-green-700">{metrics.uptimePercentage}%</div>
           </div>
 
           <div className="rounded border border-red-200 bg-red-50 p-4">
-            <div className="text-sm text-gray-600">Total Downtime</div>
+            <div className="text-sm text-gray-600">{t("RESPONSE_TIME.TOTAL_DOWNTIME")}</div>
             <div className="text-2xl font-bold text-red-700">{metrics.totalDowntime}</div>
           </div>
 
           <div className="rounded border border-blue-200 bg-blue-50 p-4">
-            <div className="text-sm text-gray-600">Incidents</div>
+            <div className="text-sm text-gray-600">{t("RESPONSE_TIME.INCIDENTS")}</div>
             <div className="text-2xl font-bold text-blue-700">{metrics.downtimeCount}</div>
           </div>
         </div>
@@ -311,7 +316,7 @@ const ResponseTime = ({
             <YAxis
               domain={[0, 1]}
               ticks={[0, 1]}
-              tickFormatter={(v) => (v === 1 ? "Up" : "Down")}
+              tickFormatter={(v) => (v === 1 ? t("RESPONSE_TIME.UP") : t("RESPONSE_TIME.DOWN"))}
               width={60}
               tick={{ fontSize: 12 }}
               axisLine={{ stroke: "#d1d5db" }}

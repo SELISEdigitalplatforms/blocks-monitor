@@ -1,3 +1,4 @@
+import "./i18n";
 import { Toaster, TooltipProvider } from "@/components/core";
 import { SERVICE_NAME } from "@/constants/service.constant";
 import QueryProvider, { getQueryClient } from "@/providers/query-provider";
