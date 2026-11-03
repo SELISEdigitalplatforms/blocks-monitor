@@ -28,14 +28,16 @@ describe("resolveEnv", () => {
   });
 
   it("routes only exact __BLOCKS_..__ placeholders to build-time env resolution", () => {
-    // An exact placeholder enters the `import.meta.env[key]` branch. That env is
-    // not injected into the externalized blocks-kit module under vitest, so the
-    // branch is exercised but throws here - proving the guard positively
-    // identifies placeholders (a concrete value would have been skipped).
+    // vitest transforms genesis-os (vitest.config.ts), so its import.meta.env is Vite's env: an exact
+    // placeholder is replaced by the build-time value of the same key, or "" when that key is unset.
+    vi.stubEnv("BLOCKS_MONITOR_BASE_URL", "https://env.example.com");
     win.__BLOCKS_ENV__ = {
       BLOCKS_MONITOR_BASE_URL: "__BLOCKS_MONITOR_BASE_URL__",
+      BLOCKS_UNSET_KEY: "__BLOCKS_UNSET_KEY__",
     };
-    expect(() => resolveEnv()).toThrow();
+    resolveEnv();
+    expect(win.__BLOCKS_ENV__?.BLOCKS_MONITOR_BASE_URL).toBe("https://env.example.com");
+    expect(win.__BLOCKS_ENV__?.BLOCKS_UNSET_KEY).toBe("");
   });
 
   it("no-ops when window.__BLOCKS_ENV__ is undefined", () => {
