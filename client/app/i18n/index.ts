@@ -18,7 +18,7 @@ import console from "./monitor.console.en.json";
 import alert_recipients from "./monitor.alert-recipients.en.json";
 import repos from "./monitor.repos.en.json";
 
-// One English dictionary per module. German comes from the localization service.
+// One English dictionary per module. Other languages come from the localization service.
 const modules: Record<string, Record<string, string>> = {
   "monitor.shared": shared,
   "monitor.monitors": monitors,

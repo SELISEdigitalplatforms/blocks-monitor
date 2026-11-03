@@ -1,3 +1,6 @@
+const MSG =
+  "User-facing text must use an i18n key (useT/tStatic) in the module's .en.json, not a hard-coded string.";
+
 module.exports = {
   root: true,
   env: {
@@ -26,6 +29,23 @@ module.exports = {
     "prettier",
   ],
   rules: {
+    // User-facing text goes through i18n keys (English in app/i18n/<module>.en.json; other languages come
+    // from the localization service). Flags JSX text and text attributes with at least two lowercase letters,
+    // so acronyms like "SCA" pass. Genuinely non-translatable tokens use a disable comment with a reason.
+    "no-restricted-syntax": [
+      "error",
+      { selector: "JSXText[value=/[a-z]{2,}/]", message: MSG },
+      {
+        selector:
+          "JSXAttribute[name.name=/^(placeholder|title|alt|aria-label)$/] > Literal[value=/[a-z]{2,}/]",
+        message: MSG,
+      },
+      {
+        selector:
+          "JSXAttribute[name.name=/^(placeholder|title|alt|aria-label)$/] > JSXExpressionContainer > TemplateLiteral[expressions.length=0][quasis.0.value.raw=/[a-z]{2,}/]",
+        message: MSG,
+      },
+    ],
     // Confirmed false positives, disabled with justification (see CONTRIBUTING.md):
     // - react/prop-types is redundant in this TypeScript codebase; props are
     //   type-checked by the compiler, so the rule only fires on typed components.
@@ -82,5 +102,19 @@ module.exports = {
       },
     ],
   },
+  overrides: [
+    {
+      // Tests, stories and test helpers may use literal text.
+      files: [
+        "**/*.test.{ts,tsx}",
+        "**/*.spec.{ts,tsx}",
+        "**/*.stories.{ts,tsx}",
+        "**/__tests__/**",
+        "**/__mocks__/**",
+        "**/test-utils/**",
+      ],
+      rules: { "no-restricted-syntax": "off" },
+    },
+  ],
   ignorePatterns: ["node_modules/", "dist/"],
 };
