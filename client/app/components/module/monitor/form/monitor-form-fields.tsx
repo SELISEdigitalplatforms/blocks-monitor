@@ -407,6 +407,7 @@ export const MonitorFormFields = ({
                         name="requestConfiguration.x_header_name"
                         render={({ field }) => (
                           <FormItem>
+                            {/* eslint-disable-next-line no-restricted-syntax -- literal HTTP header name, not translated */}
                             <FormLabel>X-Header-Name</FormLabel>
                             <FormControl>
                               <Input

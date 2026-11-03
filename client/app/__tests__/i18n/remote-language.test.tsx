@@ -7,7 +7,7 @@ import type { IRepo } from "@/models/repos.model";
 
 const repo = { repoUrl: "", deploymentType: "", customDeploymentUrl: "" } as unknown as IRepo;
 
-describe("German text", () => {
+describe("text in a non-default language", () => {
   afterEach(() => {
     act(() => {
       useAppSettingsStore.getState().setSettings({ language: "en" });
@@ -20,16 +20,16 @@ describe("German text", () => {
     expect(screen.getByText("Deployment type")).toBeInTheDocument();
   });
 
-  it("shows the German text once it is registered and the language is de", () => {
+  it("shows the remote text once it is registered for the selected language", () => {
     render(<RepositoryCard repo={repo} />);
     act(() => {
-      useI18nStore.getState().setRemote("de", "monitor.repos", {
-        "REPOSITORY_CARD.DEPLOYMENT_TYPE": "Bereitstellungstyp",
+      useI18nStore.getState().setRemote("xx", "monitor.repos", {
+        "REPOSITORY_CARD.DEPLOYMENT_TYPE": "[xx] Deployment type",
       });
-      useAppSettingsStore.getState().setSettings({ language: "de" });
+      useAppSettingsStore.getState().setSettings({ language: "xx" });
     });
-    expect(screen.getByText("Bereitstellungstyp")).toBeInTheDocument();
-    // A key without German text falls back to the bundled English.
+    expect(screen.getByText("[xx] Deployment type")).toBeInTheDocument();
+    // A key without remote text falls back to the bundled English.
     expect(screen.getByText("Custom URL")).toBeInTheDocument();
   });
 });
