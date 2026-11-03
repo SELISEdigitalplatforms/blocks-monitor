@@ -53,6 +53,9 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
+    // genesis-os loads the project's languages through import.meta.env; transforming it gives it Vite's env
+    // object in tests instead of undefined (otherwise each render logs an unhandled rejection).
+    server: { deps: { inline: [/@seliseblocks\/genesis-os/] } },
     css: false,
     coverage: {
       all: true,
