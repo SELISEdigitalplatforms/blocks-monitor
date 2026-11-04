@@ -667,7 +667,7 @@ namespace XUnitTest.Api
             var propsPath = LocateDirectoryPackagesProps();
             var props = File.ReadAllText(propsPath);
             props.Should().Contain("Include=\"SeliseBlocks.ReleaseDriver.OS\" Version=\"4.0.3\"");
-            props.Should().Contain("Include=\"SeliseBlocks.Genesis.OS\" Version=\"4.5.4\"");
+            props.Should().Contain("Include=\"SeliseBlocks.Genesis.OS\" Version=\"4.5.7\"");
         }
 
         private static string LocateDirectoryPackagesProps()
