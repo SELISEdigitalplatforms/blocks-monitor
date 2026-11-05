@@ -20,8 +20,10 @@ import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { IAlertRecipient, IAlertRecipientMonitor } from "@/models/alert-recipients.model";
 import {
+  appendAlertRecipientEmail,
   getInvalidEmailMessage,
   normalizeAlertRecipientEmail,
+  splitAlertRecipientEmails,
 } from "@/utils/alert-recipient-email.util";
 import { ErrorTransformer } from "@seliseblocks/genesis-os/utils";
 import { Loader2, Search } from "lucide-react";
@@ -48,27 +50,84 @@ type RecipientDialogProps = {
 };
 
 type EmailState = {
-  normalized: string | null;
+  /** Normalized and without repeats, in the typed order. */
+  emails: string[];
   emailError: string | null;
   visibleEmailError: string | null;
 };
 
-/** The email to save and the error to show: invalid input on blur or submit, a duplicate as soon as it is typed. */
+/** The typed addresses: the normalized ones, and the parts that are not valid emails. */
+const parseEmails = (typed: string) => {
+  const parts = splitAlertRecipientEmails(typed);
+  const emails: string[] = [];
+  const invalid: string[] = [];
+  for (const part of parts) {
+    const normalized = normalizeAlertRecipientEmail(part);
+    if (!normalized) invalid.push(part);
+    else if (!emails.includes(normalized)) emails.push(normalized);
+  }
+  return { parts, emails, invalid };
+};
+
+const invalidEmailsMessage = (parts: string[], invalid: string[]) =>
+  parts.length === 1
+    ? getInvalidEmailMessage()
+    : tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "RECIPIENT_DIALOG.INVALID_EMAILS", {
+        emails: invalid.join(", "),
+      });
+
+const duplicateRecipientsMessage = (emails: string[], duplicates: string[]) =>
+  emails.length === 1
+    ? getDuplicateRecipientMessage()
+    : tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "RECIPIENT_DIALOG.DUPLICATE_RECIPIENTS", {
+        emails: duplicates.join(", "),
+      });
+
+/**
+ * The emails to save and the error to show: invalid input on blur or submit; a duplicate or too
+ * many addresses as soon as they are typed. Add mode takes several addresses, Edit only the stored one.
+ */
 const getEmailState = (
   isEdit: boolean,
   storedEmail: string | undefined,
   typed: string,
   recipientEmails: ReadonlySet<string>,
+  maxEmails: number,
   revealInvalid: boolean,
 ): EmailState => {
-  const normalized = isEdit ? (storedEmail ?? null) : normalizeAlertRecipientEmail(typed);
-  const isDuplicate = !isEdit && !!normalized && recipientEmails.has(normalized);
+  if (isEdit) {
+    const emailError = storedEmail ? null : getInvalidEmailMessage();
+    return { emails: storedEmail ? [storedEmail] : [], emailError, visibleEmailError: null };
+  }
+
+  const { parts, emails, invalid } = parseEmails(typed);
+  const duplicates = emails.filter((email) => recipientEmails.has(email));
   let emailError: string | null = null;
-  if (!normalized) emailError = getInvalidEmailMessage();
-  else if (isDuplicate) emailError = getDuplicateRecipientMessage();
-  const visibleEmailError = isDuplicate || revealInvalid ? emailError : null;
-  return { normalized, emailError, visibleEmailError };
+  let showNow = false;
+  if (parts.length === 0) emailError = getInvalidEmailMessage();
+  else if (invalid.length > 0) emailError = invalidEmailsMessage(parts, invalid);
+  else if (duplicates.length > 0) {
+    emailError = duplicateRecipientsMessage(emails, duplicates);
+    showNow = true;
+  } else if (emails.length > maxEmails) {
+    emailError = tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "RECIPIENT_DIALOG.TOO_MANY_EMAILS", {
+      max: maxEmails,
+    });
+    showNow = true;
+  }
+  const visibleEmailError = showNow || revealInvalid ? emailError : null;
+  return { emails, emailError, visibleEmailError };
 };
+
+/** One address the API refused or that failed in transit, with what to tell the user. */
+type FailedSave = { email: string; error: unknown };
+
+const failureLine = (failure: FailedSave) =>
+  `${failure.email}: ${
+    typeof failure.error === "string" && failure.error
+      ? failure.error
+      : tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "RECIPIENT_DIALOG.SAVE_FAILED")
+  }`;
 
 const getSaveLabel = (
   isEdit: boolean,
@@ -109,8 +168,8 @@ const scopeCardClass = (active: boolean) =>
   );
 
 /**
- * Add or edit one alert recipient: an email, then "All monitors" or a checklist of monitors.
- * Mounted only while open, so every opening starts from a fresh state.
+ * Add alert recipients (one or several emails) or edit one: the email, then "All monitors" or a
+ * checklist of monitors. Mounted only while open, so every opening starts from a fresh state.
  */
 const RecipientDialog = ({
   mode,
@@ -126,6 +185,7 @@ const RecipientDialog = ({
   const id = useId();
   const emailId = `${id}-email`;
   const emailErrorId = `${id}-email-error`;
+  const emailHintId = `${id}-email-hint`;
   const legendId = `${id}-legend`;
 
   const [email, setEmail] = useState(recipient?.email ?? "");
@@ -138,6 +198,8 @@ const RecipientDialog = ({
     () => new Set(recipient?.monitorIds ?? []),
   );
   const [filter, setFilter] = useState("");
+  // Covers the whole run of saves, since the mutation is idle between two of them.
+  const [saving, setSaving] = useState(false);
 
   const saveMutation = useSaveAlertRecipient();
   const suggestions = useGetAlertRecipientSuggestions(projectKey, !isEdit);
@@ -145,21 +207,24 @@ const RecipientDialog = ({
   const recipientEmails = useMemo(() => new Set(recipients.map((r) => r.email)), [recipients]);
   const personMonitorIds = useMemo(() => new Set(recipient?.monitorIds ?? []), [recipient]);
 
-  // Add mode only (a cached list would otherwise show in Edit), and hidden while loading and after
-  // any failure, e.g. a caller without the manage permission.
-  const memberEmails =
-    !isEdit && suggestions.isSuccess
-      ? suggestions.data.memberEmails.filter((member) => !recipientEmails.has(member))
-      : [];
-
   // Invalid input is reported on blur or submit; a duplicate as soon as it is typed.
-  const { normalized, emailError, visibleEmailError } = getEmailState(
+  const { emails, emailError, visibleEmailError } = getEmailState(
     isEdit,
     recipient?.email,
     email,
     recipientEmails,
+    maxEmailsPerMonitor,
     touched || submitted,
   );
+
+  // Add mode only (a cached list would otherwise show in Edit), and hidden while loading and after
+  // any failure, e.g. a caller without the manage permission. A member already typed is hidden too.
+  const memberEmails =
+    !isEdit && suggestions.isSuccess
+      ? suggestions.data.memberEmails.filter(
+          (member) => !recipientEmails.has(member) && !emails.includes(member),
+        )
+      : [];
 
   const isFull = (monitor: IAlertRecipientMonitor) =>
     monitor.emailCount >= maxEmailsPerMonitor && !personMonitorIds.has(monitor.itemId);
@@ -170,12 +235,15 @@ const RecipientDialog = ({
 
   const visibleMonitors = filterMonitors(monitors, filter);
 
+  const isSaving = saving || saveMutation.isPending;
   const canSave =
-    !emailError &&
-    !saveMutation.isPending &&
-    (scope === "all" ? monitors.length > 0 : selectedIds.length > 0);
+    !emailError && !isSaving && (scope === "all" ? monitors.length > 0 : selectedIds.length > 0);
 
   const saveLabel = getSaveLabel(isEdit, scope, selectedIds.length, monitors.length);
+
+  let emailDescribedBy: string | undefined;
+  if (visibleEmailError) emailDescribedBy = emailErrorId;
+  else if (!isEdit) emailDescribedBy = emailHintId;
 
   const toggleMonitor = (monitorId: string, checked: boolean) => {
     setSelected((current) => {
@@ -186,28 +254,66 @@ const RecipientDialog = ({
     });
   };
 
+  /** The API's message for one saved email; throws on a transport failure. */
+  const saveOne = async (address: string) => {
+    const response = await saveMutation.mutateAsync({
+      projectKey,
+      email: address,
+      allMonitors: scope === "all",
+      monitorIds: scope === "all" ? [] : selectedIds,
+    });
+    if (!response?.isSuccess) {
+      return { ok: false, message: response?.message || t("RECIPIENT_DIALOG.SAVE_FAILED") };
+    }
+    return { ok: true, message: response.message || t("RECIPIENT_DIALOG.SAVED") };
+  };
+
+  /** One person: the API's own message, as before several emails were allowed. */
+  const reportOne = (failed: FailedSave[], lastMessage: string) => {
+    if (failed.length > 0) {
+      showErrorToast({ errors: failed[0].error });
+      return;
+    }
+    showSuccessToast({ description: lastMessage });
+    onClose();
+  };
+
+  /** Several people: the refused ones stay typed in the field, so a retry sends only them. */
+  const reportMany = (failed: FailedSave[], total: number) => {
+    const savedCount = total - failed.length;
+    if (failed.length === 0) {
+      showSuccessToast({ description: t("RECIPIENT_DIALOG.SAVED_MANY", { count: total }) });
+      onClose();
+      return;
+    }
+    setEmail(failed.map((failure) => failure.email).join(", "));
+    showErrorToast({
+      title: t("RECIPIENT_DIALOG.SOME_NOT_SAVED", { count: savedCount, total }),
+      errors: failed.map(failureLine),
+    });
+  };
+
+  // One request per email, in order: the server applies its per-person rules (the "All monitors"
+  // limit, full monitors) to each, and one refusal does not stop the others.
   const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitted(true);
-    if (!canSave || !normalized) return;
-    try {
-      const response = await saveMutation.mutateAsync({
-        projectKey,
-        email: normalized,
-        allMonitors: scope === "all",
-        monitorIds: scope === "all" ? [] : selectedIds,
-      });
-      if (!response?.isSuccess) {
-        showErrorToast({
-          errors: response?.message || t("RECIPIENT_DIALOG.SAVE_FAILED"),
-        });
-        return;
+    if (!canSave || emails.length === 0) return;
+    setSaving(true);
+    const failed: FailedSave[] = [];
+    let lastMessage = "";
+    for (const address of emails) {
+      try {
+        const result = await saveOne(address);
+        if (result.ok) lastMessage = result.message;
+        else failed.push({ email: address, error: result.message });
+      } catch (error) {
+        failed.push({ email: address, error: ErrorTransformer(error) });
       }
-      showSuccessToast({ description: response.message || t("RECIPIENT_DIALOG.SAVED") });
-      onClose();
-    } catch (error) {
-      showErrorToast({ errors: ErrorTransformer(error) });
     }
+    setSaving(false);
+    if (emails.length === 1) reportOne(failed, lastMessage);
+    else reportMany(failed, emails.length);
   };
 
   return (
@@ -228,17 +334,22 @@ const RecipientDialog = ({
               <Label htmlFor={emailId} className="font-semibold">
                 {t("common:EMAIL")}
               </Label>
+              {/* Add mode is a text field: an email field rewrites a typed list in some browsers. */}
               <Input
                 id={emailId}
-                type="email"
+                type={isEdit ? "email" : "text"}
                 inputMode="email"
                 autoComplete="off"
-                placeholder={t("RECIPIENT_DIALOG.EMAIL_PLACEHOLDER")}
+                placeholder={
+                  isEdit
+                    ? t("RECIPIENT_DIALOG.EMAIL_PLACEHOLDER")
+                    : t("RECIPIENT_DIALOG.EMAILS_PLACEHOLDER")
+                }
                 value={isEdit ? recipient.email : email}
                 readOnly={isEdit}
                 aria-readonly={isEdit || undefined}
                 aria-invalid={visibleEmailError ? true : undefined}
-                aria-describedby={visibleEmailError ? emailErrorId : undefined}
+                aria-describedby={emailDescribedBy}
                 className={cn(isEdit && "bg-muted", visibleEmailError && "border-destructive")}
                 onChange={(event) => setEmail(event.target.value)}
                 onBlur={() => setTouched(true)}
@@ -246,6 +357,11 @@ const RecipientDialog = ({
               {visibleEmailError && (
                 <p id={emailErrorId} className="text-sm text-destructive">
                   {visibleEmailError}
+                </p>
+              )}
+              {!isEdit && !visibleEmailError && (
+                <p id={emailHintId} className="text-[13px] text-muted-foreground">
+                  {t("RECIPIENT_DIALOG.EMAILS_HINT", { max: maxEmailsPerMonitor })}
                 </p>
               )}
               {memberEmails.length > 0 && (
@@ -261,7 +377,7 @@ const RecipientDialog = ({
                       size="xxs"
                       className="h-7 rounded-full border-dashed border-primary px-2.5 text-xs font-normal text-primary"
                       onClick={() => {
-                        setEmail(member);
+                        setEmail((current) => appendAlertRecipientEmail(current, member));
                         setTouched(true);
                       }}
                     >
@@ -386,9 +502,7 @@ const RecipientDialog = ({
               {t("common:CANCEL")}
             </Button>
             <Button type="submit" disabled={!canSave}>
-              {saveMutation.isPending && (
-                <Loader2 aria-hidden="true" className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {isSaving && <Loader2 aria-hidden="true" className="mr-2 h-4 w-4 animate-spin" />}
               {saveLabel}
             </Button>
           </DialogFooter>

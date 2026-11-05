@@ -4,7 +4,9 @@ import {
   ALERT_RECIPIENT_EMAIL_MAX_LENGTH,
   getInvalidEmailMessage,
   alertRecipientEmailSchema,
+  appendAlertRecipientEmail,
   normalizeAlertRecipientEmail,
+  splitAlertRecipientEmails,
 } from "@/utils/alert-recipient-email.util";
 
 type EmailCase = { input: string; valid: boolean; normalized?: string; reason?: string };
@@ -35,5 +37,33 @@ describe("alert-recipient email rule (shared fixture)", () => {
     const result = alertRecipientEmailSchema.safeParse(input);
     expect(result.success).toBe(false);
     expect(result.error?.issues[0]?.message).toBe(getInvalidEmailMessage());
+  });
+});
+
+describe("splitAlertRecipientEmails", () => {
+  it("splits on commas, semicolons, spaces and new lines, dropping empty parts", () => {
+    expect(splitAlertRecipientEmails(" a@x.com, b@x.com;c@x.com\nd@x.com  e@x.com,, ")).toEqual([
+      "a@x.com",
+      "b@x.com",
+      "c@x.com",
+      "d@x.com",
+      "e@x.com",
+    ]);
+  });
+
+  it("returns nothing for blank input", () => {
+    expect(splitAlertRecipientEmails("  ,; \n")).toEqual([]);
+  });
+});
+
+describe("appendAlertRecipientEmail", () => {
+  it("fills an empty field", () => {
+    expect(appendAlertRecipientEmail("  ", "a@x.com")).toBe("a@x.com");
+  });
+
+  it("adds after the typed list, without a doubled separator", () => {
+    expect(appendAlertRecipientEmail("a@x.com", "b@x.com")).toBe("a@x.com, b@x.com");
+    expect(appendAlertRecipientEmail("a@x.com, ", "b@x.com")).toBe("a@x.com, b@x.com");
+    expect(appendAlertRecipientEmail("a@x.com;", "b@x.com")).toBe("a@x.com, b@x.com");
   });
 });
