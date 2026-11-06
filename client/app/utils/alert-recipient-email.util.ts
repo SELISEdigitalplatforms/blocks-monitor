@@ -22,3 +22,16 @@ export const normalizeAlertRecipientEmail = (raw: string): string | null => {
   const result = alertRecipientEmailSchema.safeParse(raw);
   return result.success ? result.data : null;
 };
+
+/** The addresses typed into one field: commas, semicolons, spaces and new lines separate them. */
+export const splitAlertRecipientEmails = (raw: string): string[] =>
+  raw.split(/[\s,;]+/).filter((part) => part.length > 0);
+
+/** The typed list with `email` appended, e.g. after picking a suggestion. */
+export const appendAlertRecipientEmail = (raw: string, email: string): string => {
+  const current = raw
+    .trim()
+    .replace(/[,;]+$/, "")
+    .trim();
+  return current ? `${current}, ${email}` : email;
+};

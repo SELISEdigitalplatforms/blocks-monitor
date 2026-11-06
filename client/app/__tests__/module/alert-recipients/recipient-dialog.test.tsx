@@ -200,6 +200,83 @@ describe("RecipientDialog — add", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
+  it("saves several emails one at a time, normalized and without repeats", async () => {
+    const { onClose } = renderDialog();
+    await userEvent.type(emailInput(), "Rina@x.com, sam@x.com;rina@x.com{enter}");
+    expect(h.mutateAsync).toHaveBeenCalledTimes(2);
+    expect(h.mutateAsync).toHaveBeenNthCalledWith(1, {
+      projectKey: "p1",
+      email: "rina@x.com",
+      allMonitors: true,
+      monitorIds: [],
+    });
+    expect(h.mutateAsync).toHaveBeenNthCalledWith(2, {
+      projectKey: "p1",
+      email: "sam@x.com",
+      allMonitors: true,
+      monitorIds: [],
+    });
+    expect(h.success).toHaveBeenCalledWith({ description: "2 recipients added." });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("names the parts of a list that are not valid emails, on blur", async () => {
+    renderDialog();
+    await userEvent.type(emailInput(), "rina@x.com, sam@, bob");
+    expect(screen.queryByText(/Not valid email addresses/)).toBeNull();
+    await userEvent.tab();
+    expect(screen.getByText("Not valid email addresses: sam@, bob.")).toBeInTheDocument();
+    expect(saveButton("Add to all 3 monitors")).toBeDisabled();
+  });
+
+  it("names existing recipients in a list as soon as they are typed", async () => {
+    renderDialog();
+    await userEvent.type(emailInput(), "rina@x.com, OPS@x.com");
+    expect(
+      screen.getByText(
+        "Already get alerts: ops@x.com. Take them out of this list, and use Edit to change their monitors.",
+      ),
+    ).toBeInTheDocument();
+    expect(saveButton("Add to all 3 monitors")).toBeDisabled();
+  });
+
+  it("refuses more emails than a monitor can hold", async () => {
+    renderDialog({ maxEmailsPerMonitor: 2 });
+    expect(
+      screen.getByText("Add up to 2 people at once: separate the emails with commas."),
+    ).toBeInTheDocument();
+    await userEvent.type(emailInput(), "a@x.com, b@x.com, c@x.com");
+    expect(screen.getByText("Add at most 2 people at once.")).toBeInTheDocument();
+    expect(saveButton("Add to all 3 monitors")).toBeDisabled();
+  });
+
+  it("keeps only the refused emails in the field and lists why (C17)", async () => {
+    h.mutateAsync
+      .mockResolvedValueOnce({ isSuccess: true, message: "Added to 3 monitors." })
+      .mockResolvedValueOnce({
+        isSuccess: false,
+        message: "At most 10 people can get alerts for all monitors.",
+      });
+    const { onClose } = renderDialog();
+    await userEvent.type(emailInput(), "rina@x.com, sam@x.com");
+    await userEvent.click(saveButton("Add to all 3 monitors"));
+    expect(h.mutateAsync).toHaveBeenCalledTimes(2);
+    expect(h.error).toHaveBeenCalledWith({
+      title: "1 of 2 added. The rest are still in the Email field:",
+      errors: ["sam@x.com: At most 10 people can get alerts for all monitors."],
+    });
+    expect(onClose).not.toHaveBeenCalled();
+    expect(emailInput()).toHaveValue("sam@x.com");
+  });
+
+  it("adds a picked suggestion to the typed list and hides it", async () => {
+    renderDialog();
+    await userEvent.type(emailInput(), "rina@x.com");
+    await userEvent.click(screen.getByRole("button", { name: "nadia@x.com" }));
+    expect(emailInput()).toHaveValue("rina@x.com, nadia@x.com");
+    expect(screen.queryByRole("button", { name: "nadia@x.com" })).toBeNull();
+  });
+
   it("shows a spinner and disables Save while saving", () => {
     h.isPending = true;
     renderDialog();
