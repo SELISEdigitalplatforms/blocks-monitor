@@ -208,6 +208,14 @@ describe("MonitorDetailsPage", () => {
     expect(screen.queryByRole("button", { name: "Actions" })).not.toBeInTheDocument();
   });
 
+  it("hides the header actions for an Infrastructure monitor (effective source type 0, Rollbar #420/#1945)", () => {
+    // Listed in every project, but the server refuses to change it, so Pause/Resume must not be offered.
+    h.monitor.data.data.effectiveMonitorSourceType = 0;
+    renderPage();
+    expect(screen.queryByText("Configure")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Actions" })).not.toBeInTheDocument();
+  });
+
   it("falls back to monitorSourceType when the effective type is missing (Q10)", () => {
     h.monitor.data.data.effectiveMonitorSourceType = undefined;
     h.monitor.data.data.monitorSourceType = 2;

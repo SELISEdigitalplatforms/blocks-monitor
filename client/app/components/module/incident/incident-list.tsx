@@ -22,6 +22,7 @@ import {
 import { useCallback, useMemo } from "react";
 import { useIncidentFilterQueryParams } from "./use-incident-query-filter-params";
 import { formatDuration } from "@seliseblocks/genesis-os/utils";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 const parseFailureReason = (reason?: string | null): string | undefined => {
   if (!reason) return undefined; // instead of null
@@ -56,6 +57,7 @@ const IncidentList = ({
   sortQueryParams,
   onSortChange,
 }: IncidentListProps) => {
+  const { t } = useT("monitor.console");
   const { queryParams, setQueryParams } = useIncidentFilterQueryParams({
     property: sortQueryParams?.property || "started_time",
     isDescending: sortQueryParams?.isDescending || true,
@@ -104,7 +106,7 @@ const IncidentList = ({
           <FilterControls.SortHeader
             key={"status"}
             id="status"
-            label="Status"
+            label={t("common:STATUS")}
             value={sortingValue}
             onChange={handleSortChange}
             isSortingEnabled={enableSorting}
@@ -117,7 +119,9 @@ const IncidentList = ({
             : "text-red-600 bg-red-100 px-2 py-1 rounded-full";
           return (
             <div className="ml-2 flex w-[100px] flex-row items-center gap-2 sm:ml-0">
-              <span className={statusClass}>{isResolved ? "Resolved" : "Unresolved"}</span>
+              <span className={statusClass}>
+                {isResolved ? t("INCIDENT_LIST.RESOLVED") : t("INCIDENT_LIST.UNRESOLVED")}
+              </span>
             </div>
           );
         },
@@ -130,7 +134,7 @@ const IncidentList = ({
                 <FilterControls.SortHeader
                   key={"lastStatusCode"}
                   id="lastStatusCode"
-                  label="Status Code"
+                  label={t("INCIDENT_LIST.COLUMN_STATUS_CODE")}
                   value={sortingValue}
                   onChange={handleSortChange}
                 />
@@ -149,7 +153,7 @@ const IncidentList = ({
           <FilterControls.SortHeader
             key={"rootCause"}
             id="rootCause"
-            label="Root cause"
+            label={t("INCIDENT_LIST.COLUMN_ROOT_CAUSE")}
             value={sortingValue}
             onChange={handleSortChange}
             isSortingEnabled={enableSorting}
@@ -167,7 +171,7 @@ const IncidentList = ({
           <FilterControls.SortHeader
             key={"started_time"}
             id="started_time"
-            label="Start time"
+            label={t("INCIDENT_LIST.COLUMN_START_TIME")}
             value={sortingValue}
             defaultValue={{ property: "started_time", isDescending: true }}
             onChange={handleSortChange}
@@ -189,7 +193,7 @@ const IncidentList = ({
           <FilterControls.SortHeader
             key={"end_time"}
             id="end_time"
-            label="End time"
+            label={t("INCIDENT_LIST.COLUMN_END_TIME")}
             value={sortingValue}
             onChange={handleSortChange}
             isSortingEnabled={enableSorting}
@@ -201,7 +205,7 @@ const IncidentList = ({
           const isOngoing = !endTime || endTime < startTime;
           return (
             <div className="ml-2 flex w-[180px] items-center sm:ml-0 sm:w-[150px]">
-              <span>{isOngoing ? "Ongoing" : endTime?.toLocaleString()}</span>
+              <span>{isOngoing ? t("INCIDENT_LIST.ONGOING") : endTime?.toLocaleString()}</span>
             </div>
           );
         },
@@ -212,7 +216,7 @@ const IncidentList = ({
           <FilterControls.SortHeader
             key={"duration"}
             id="duration"
-            label="Duration"
+            label={t("INCIDENT_LIST.COLUMN_DURATION")}
             value={sortingValue}
             onChange={handleSortChange}
             isSortingEnabled={enableSorting}
@@ -234,7 +238,7 @@ const IncidentList = ({
       },
     ];
     return cols;
-  }, [showLastStatus, sortingValue, handleSortChange, enableSorting]);
+  }, [showLastStatus, sortingValue, handleSortChange, enableSorting, t]);
 
   // TanStack Table returns fresh functions each render, so the React Compiler skips this
   // component; the compiler is not enabled here, and no compiler-safe table API exists.
@@ -287,7 +291,7 @@ const IncidentList = ({
                   colSpan={table.getAllColumns().length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  No results.
+                  {t("INCIDENT_LIST.NO_RESULTS")}
                 </TableCell>
               </TableRow>
             )}

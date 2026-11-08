@@ -4,6 +4,7 @@ import {
   coverageText,
   filterRecipients,
   hasManagedRecipients,
+  isManagedByBlocks,
   removedNotice,
   resolveMonitorSourceType,
   sortByEmail,
@@ -87,6 +88,17 @@ describe("alert-recipients utils", () => {
     ).toBe(0);
     expect(resolveMonitorSourceType({})).toBeUndefined();
     expect(resolveMonitorSourceType(undefined)).toBeUndefined();
+  });
+
+  it("treats only Infrastructure and Blocks services as managed by Blocks", () => {
+    expect([0, 1, 2, 3, 4, undefined].map(isManagedByBlocks)).toEqual([
+      true,
+      false,
+      true,
+      false,
+      false,
+      false,
+    ]);
   });
 
   it("manages recipients for every source except Infrastructure and Blocks services", () => {

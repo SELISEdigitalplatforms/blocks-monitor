@@ -16,7 +16,8 @@ import {
   ALERT_ENDPOINTS,
   MIGRATION_ENDPOINTS,
 } from "@/constants/endpoint.constant";
-import { navigationMenus } from "@/constants/navigation-menus.constant";
+import { tStatic } from "@seliseblocks/genesis-os/i18n";
+import { getNavigationMenus } from "@/constants/navigation-menus.constant";
 import { Mail } from "lucide-react";
 import { MONITOR_TABS, parseAsMonitorTabKey } from "@/constants/monitor.constant";
 
@@ -77,6 +78,8 @@ describe("endpoint.constant", () => {
 });
 
 describe("navigation constants", () => {
+  const navigationMenus = getNavigationMenus((key) => tStatic("monitor.shared", key));
+
   it("provides navigation menu entries", () => {
     const menu = navigationMenus.find((m) => m.id === "monitor");
     expect(menu?.path).toBe("/app/monitor");

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import fixture from "../__fixtures__/alert-recipient-emails.json";
 import {
   ALERT_RECIPIENT_EMAIL_MAX_LENGTH,
-  INVALID_EMAIL_MESSAGE,
+  getInvalidEmailMessage,
   alertRecipientEmailSchema,
   normalizeAlertRecipientEmail,
 } from "@/utils/alert-recipient-email.util";
@@ -34,6 +34,6 @@ describe("alert-recipient email rule (shared fixture)", () => {
     expect(normalizeAlertRecipientEmail(input)).toBeNull();
     const result = alertRecipientEmailSchema.safeParse(input);
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0]?.message).toBe(INVALID_EMAIL_MESSAGE);
+    expect(result.error?.issues[0]?.message).toBe(getInvalidEmailMessage());
   });
 });

@@ -16,6 +16,7 @@ import {
 } from "@/components/core";
 import type { IRepoListItem } from "@/models/alerts.model";
 import { getDeploymentLogEventBadgeClassName } from "@/utils/deployment-logs.utils";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 const DEPLOYMENT_DATE_FORMAT: Intl.DateTimeFormatOptions = {
   month: "short",
@@ -41,6 +42,7 @@ function shortName(repoName: string): string {
 }
 
 export function ReposListTable({ rows }: Readonly<{ rows: RepoRow[] }>) {
+  const { t } = useT("monitor.repos");
   const navigate = useNavigate();
   const scoped = useScopedPath();
   const [search, setSearch] = useState("");
@@ -66,7 +68,7 @@ export function ReposListTable({ rows }: Readonly<{ rows: RepoRow[] }>) {
         <div className="w-full max-w-md md:w-[42%]">
           <Input
             data-testid="repos-search"
-            placeholder="Search repositories..."
+            placeholder={t("REPOS_LIST_TABLE.SEARCH_PLACEHOLDER")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -84,11 +86,11 @@ export function ReposListTable({ rows }: Readonly<{ rows: RepoRow[] }>) {
                     data-testid="sort-last-deployment"
                     aria-label={
                       sortDesc
-                        ? "Sort repositories by oldest deployment"
-                        : "Sort repositories by newest deployment"
+                        ? t("REPOS_LIST_TABLE.SORT_OLDEST")
+                        : t("REPOS_LIST_TABLE.SORT_NEWEST")
                     }
                   >
-                    Repository
+                    {t("REPOS_LIST_TABLE.COLUMN_REPOSITORY")}
                     {sortDesc ? (
                       <ArrowDown className="h-3.5 w-3.5" aria-hidden />
                     ) : (
@@ -96,16 +98,17 @@ export function ReposListTable({ rows }: Readonly<{ rows: RepoRow[] }>) {
                     )}
                   </button>
                 </TableHead>
-                <TableHead>Branch</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last deployment</TableHead>
-                <TableHead>Deploys to</TableHead>
+                <TableHead>{t("REPOS_LIST_TABLE.COLUMN_BRANCH")}</TableHead>
+                <TableHead>{t("common:STATUS")}</TableHead>
+                <TableHead>{t("REPOS_LIST_TABLE.COLUMN_LAST_DEPLOYMENT")}</TableHead>
+                <TableHead>{t("REPOS_LIST_TABLE.COLUMN_DEPLOYS_TO")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.map((row) => {
                 const url = deploysTo(row);
-                const status = row.lastDeploymentStatus || "No build";
+                const hasStatus = Boolean(row.lastDeploymentStatus);
+                const status = row.lastDeploymentStatus || t("REPOS_LIST_TABLE.NO_BUILD");
                 return (
                   <TableRow
                     key={row.itemId}
@@ -128,7 +131,7 @@ export function ReposListTable({ rows }: Readonly<{ rows: RepoRow[] }>) {
                     <TableCell>
                       <span
                         className={getDeploymentLogEventBadgeClassName(
-                          status === "No build" ? "NoBuild" : status,
+                          hasStatus ? status : "NoBuild",
                         )}
                       >
                         {status}
@@ -161,7 +164,7 @@ export function ReposListTable({ rows }: Readonly<{ rows: RepoRow[] }>) {
               {filtered.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center text-sm text-muted-foreground">
-                    No repositories match your search.
+                    {t("REPOS_LIST_TABLE.NO_MATCH")}
                   </TableCell>
                 </TableRow>
               )}

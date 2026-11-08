@@ -1,6 +1,9 @@
 import * as React from "react";
 import { handleErrorMessages } from "@seliseblocks/genesis-os/utils";
 import { ToastActionElement, ToastProps } from "@/components/core";
+import { tStatic } from "@seliseblocks/genesis-os/i18n";
+
+const MONITOR_SHARED_MODULE = "monitor.shared";
 
 const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1000000;
@@ -176,7 +179,10 @@ type ErrorToastOptions = {
   customMessages?: Record<string, string>;
 };
 
-export const showSuccessToast = ({ title = "Success", description }: SuccessToastOptions) => {
+export const showSuccessToast = ({
+  title = tStatic(MONITOR_SHARED_MODULE, "common:SUCCESS"),
+  description,
+}: SuccessToastOptions) => {
   toast({
     variant: "success",
     title,
@@ -184,7 +190,10 @@ export const showSuccessToast = ({ title = "Success", description }: SuccessToas
   });
 };
 
-export const showInfoToast = ({ title = "Info", description }: InfoToastOptions) => {
+export const showInfoToast = ({
+  title = tStatic(MONITOR_SHARED_MODULE, "USE_TOAST.INFO"),
+  description,
+}: InfoToastOptions) => {
   toast({
     variant: "info",
     title,
@@ -192,7 +201,11 @@ export const showInfoToast = ({ title = "Info", description }: InfoToastOptions)
   });
 };
 
-export const showErrorToast = ({ title = "Failed", errors, customMessages }: ErrorToastOptions) => {
+export const showErrorToast = ({
+  title = tStatic(MONITOR_SHARED_MODULE, "USE_TOAST.FAILED"),
+  errors,
+  customMessages,
+}: ErrorToastOptions) => {
   const message = handleErrorMessages(errors, customMessages);
   toast({
     variant: "destructive",

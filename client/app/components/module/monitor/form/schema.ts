@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { tStatic } from "@seliseblocks/genesis-os/i18n";
+
+const MONITOR_MONITORS_MODULE = "monitor.monitors";
 
 export type MonitorFormMode = "add" | "edit";
 export type MonitorConfigurationType = "request" | "callback";
@@ -28,7 +31,7 @@ const requestConfigurationSchema = z
     if (data.http_methods === "2" && data.request_body.length === 0) {
       ctx.addIssue({
         code: "custom",
-        message: "Request body is required for POST requests",
+        message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.REQUEST_BODY_REQUIRED"),
         path: ["request_body"],
       });
     }
@@ -36,7 +39,7 @@ const requestConfigurationSchema = z
     if (data.json_switcher && data.x_header_name.length === 0) {
       ctx.addIssue({
         code: "custom",
-        message: "Header name is required when sending JSON",
+        message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.HEADER_NAME_REQUIRED"),
         path: ["x_header_name"],
       });
     }
@@ -44,7 +47,7 @@ const requestConfigurationSchema = z
     if (data.json_switcher && data.value.length === 0) {
       ctx.addIssue({
         code: "custom",
-        message: "Header value is required when sending JSON",
+        message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.HEADER_VALUE_REQUIRED"),
         path: ["value"],
       });
     }
@@ -54,12 +57,14 @@ export const monitorFormSchema = z
   .object({
     name: z
       .string()
-      .max(100, "Service name too long. Maximum 100 characters allowed.")
+      .max(100, {
+        error: () => tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.NAME_TOO_LONG"),
+      })
       .superRefine((value, ctx) => {
         if (value.length === 0) {
           ctx.addIssue({
             code: "custom",
-            message: "Name is required",
+            message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.NAME_REQUIRED"),
           });
           return;
         }
@@ -67,7 +72,7 @@ export const monitorFormSchema = z
         if (value.trim().length === 0) {
           ctx.addIssue({
             code: "custom",
-            message: "Name cannot contain only spaces",
+            message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.NAME_ONLY_SPACES"),
           });
         }
       }),
@@ -83,7 +88,7 @@ export const monitorFormSchema = z
     if (data.sourceType === "deployed" && !data.selectedRepoId) {
       ctx.addIssue({
         code: "custom",
-        message: "Select a deployed repo.",
+        message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.SELECT_DEPLOYED_REPO"),
         path: ["selectedRepoId"],
       });
     }
@@ -91,7 +96,7 @@ export const monitorFormSchema = z
     if (data.sourceType === "my-services" && !data.selectedServiceId) {
       ctx.addIssue({
         code: "custom",
-        message: "Select a service.",
+        message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.SELECT_SERVICE"),
         path: ["selectedServiceId"],
       });
     }
@@ -100,13 +105,13 @@ export const monitorFormSchema = z
       if (!data.urlMonitor) {
         ctx.addIssue({
           code: "custom",
-          message: "URL is required",
+          message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.URL_REQUIRED"),
           path: ["urlMonitor"],
         });
       } else if (!URL_REGEX.test(data.urlMonitor)) {
         ctx.addIssue({
           code: "custom",
-          message: "Please enter a valid URL (must start with http:// or https://)",
+          message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.URL_INVALID"),
           path: ["urlMonitor"],
         });
       }
@@ -115,7 +120,7 @@ export const monitorFormSchema = z
     if (data.monitorConfigurationType === "callback" && !data.monitorSettings.grace_time) {
       ctx.addIssue({
         code: "custom",
-        message: "Grace time is required",
+        message: tStatic(MONITOR_MONITORS_MODULE, "SCHEMA.GRACE_TIME_REQUIRED"),
         path: ["monitorSettings", "grace_time"],
       });
     }

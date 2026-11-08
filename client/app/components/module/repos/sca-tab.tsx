@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/core";
 import { useGetReport } from "@/hooks/use-repos";
 import {
   hasNoReport,
+  getSeverityLabel,
   transformVulnerabilities,
   type ScaSeverity,
 } from "@/components/module/repos/sca-transform";
@@ -12,6 +13,7 @@ import {
   ReportLoadingCard,
   ReportNoDataCard,
 } from "@/components/module/repos/report-states";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 const SEVERITIES: Array<ScaSeverity | "Total"> = [
   "Total",
@@ -63,6 +65,7 @@ export function ScaTab({
   buildId: string | undefined;
   isActive: boolean;
 }>) {
+  const { t } = useT("monitor.repos");
   const { data, isLoading, isError, refetch } = useGetReport(
     projectKey,
     buildId,
@@ -74,10 +77,12 @@ export function ScaTab({
   const details = data?.data?.details ?? null;
   const rows = useMemo(
     () => transformVulnerabilities(data?.data?.vulnerabilities),
-    [data?.data?.vulnerabilities],
+    // `t` changes with the language, and the rows carry translated fallback text.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [data?.data?.vulnerabilities, t],
   );
 
-  if (isLoading) return <ReportLoadingCard label="Loading SCA report..." />;
+  if (isLoading) return <ReportLoadingCard label={t("SCA_TAB.LOADING")} />;
   if (isError) return <ReportErrorCard onRetry={() => refetch()} />;
   if (hasNoReport(data?.data ?? null)) return <ReportNoDataCard />;
   if (!details) return <ReportNoDataCard />;
@@ -85,14 +90,17 @@ export function ScaTab({
   return (
     <Card data-testid="sca-tab">
       <CardHeader className="flex flex-col gap-5">
-        <CardTitle className="flex items-center text-lg">Software library package</CardTitle>
+        <CardTitle className="flex items-center text-lg">{t("SCA_TAB.TITLE")}</CardTitle>
         <div
           className="flex flex-col gap-3 text-xs font-medium sm:flex-row"
           data-testid="sca-header"
         >
-          <InlineStat label="Total components" value={details.components} />
-          <InlineStat label="Vulnerable components" value={details.vulnerableComponents} />
-          <InlineStat label="Risk Score" value={details.inheritedRiskScore} />
+          <InlineStat label={t("SCA_TAB.TOTAL_COMPONENTS")} value={details.components} />
+          <InlineStat
+            label={t("SCA_TAB.VULNERABLE_COMPONENTS")}
+            value={details.vulnerableComponents}
+          />
+          <InlineStat label={t("SCA_TAB.RISK_SCORE")} value={details.inheritedRiskScore} />
         </div>
       </CardHeader>
 
@@ -105,7 +113,9 @@ export function ScaTab({
             {SEVERITIES.map((item) => (
               <SeverityMetric
                 key={item}
-                label={item === "Total" ? "Total vulnerabilities" : item}
+                label={
+                  item === "Total" ? t("SCA_TAB.TOTAL_VULNERABILITIES") : getSeverityLabel(item)
+                }
                 value={countFor(details, item)}
                 severity={item}
                 active={severity === item}

@@ -13,11 +13,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/core";
-import type { ScaDependencyRow, ScaSeverity } from "@/components/module/repos/sca-transform";
+import {
+  getSeverityLabel,
+  type ScaDependencyRow,
+  type ScaSeverity,
+} from "@/components/module/repos/sca-transform";
+import { useT } from "@seliseblocks/genesis-os/i18n";
 
 const PAGE_SIZE = 5;
-
-const HEADERS = ["Component", "Package", "Version", "Vulnerability", "CVSS", "EPSS %"];
 
 const SEVERITY_BADGE: Record<ScaSeverity, string> = {
   Critical: "bg-red-100 text-red-700 border-red-200",
@@ -34,6 +37,15 @@ export function ScaDependenciesTable({
   rows: ScaDependencyRow[];
   severityFilter: ScaSeverity | null;
 }>) {
+  const { t } = useT("monitor.repos");
+  const headers = [
+    t("SCA_DEPENDENCIES_TABLE.COLUMN_COMPONENT"),
+    t("SCA_DEPENDENCIES_TABLE.COLUMN_PACKAGE"),
+    t("SCA_DEPENDENCIES_TABLE.COLUMN_VERSION"),
+    t("SCA_DEPENDENCIES_TABLE.COLUMN_VULNERABILITY"),
+    t("SCA_DEPENDENCIES_TABLE.COLUMN_CVSS"),
+    t("SCA_DEPENDENCIES_TABLE.COLUMN_EPSS"),
+  ];
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<ScaDependencyRow | null>(null);
@@ -67,7 +79,7 @@ export function ScaDependenciesTable({
           type="text"
           data-testid="sca-search"
           className="w-full rounded-md border bg-background py-2 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-hidden focus:ring-1 focus:ring-blue-500"
-          placeholder="Search dependencies..."
+          placeholder={t("SCA_DEPENDENCIES_TABLE.SEARCH_PLACEHOLDER")}
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -80,7 +92,7 @@ export function ScaDependenciesTable({
         <Table>
           <TableHeader>
             <TableRow>
-              {HEADERS.map((head) => (
+              {headers.map((head) => (
                 <TableHead key={head}>
                   <span className="flex items-center">
                     <span className="font-semibold text-medium-emphasis">{head}</span>
@@ -94,11 +106,11 @@ export function ScaDependenciesTable({
             {empty ? (
               <TableRow>
                 <TableCell
-                  colSpan={HEADERS.length}
+                  colSpan={headers.length}
                   className="h-24 text-center text-muted-foreground"
                   data-testid="sca-empty"
                 >
-                  No dependencies found.
+                  {t("SCA_DEPENDENCIES_TABLE.NO_DEPENDENCIES")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -140,18 +152,22 @@ export function ScaDependenciesTable({
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-medium text-high-emphasis">
-                        {row.cvss == null ? "N/A" : row.cvss.toFixed(1)}
+                        {row.cvss == null
+                          ? t("SCA_DEPENDENCIES_TABLE.NOT_AVAILABLE")
+                          : row.cvss.toFixed(1)}
                       </span>
                       <span
                         className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${SEVERITY_BADGE[row.severity]}`}
                       >
-                        {row.severity}
+                        {getSeverityLabel(row.severity)}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="text-sm font-medium text-medium-emphasis">
-                      {row.epss == null ? "N/A" : `${row.epss.toFixed(2)}%`}
+                      {row.epss == null
+                        ? t("SCA_DEPENDENCIES_TABLE.NOT_AVAILABLE")
+                        : `${row.epss.toFixed(2)}%`}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -165,8 +181,8 @@ export function ScaDependenciesTable({
         <div className="flex items-center justify-between">
           <span className="text-xs text-low-emphasis" data-testid="sca-footer">
             {empty
-              ? "Showing 1-0 of 0 entries"
-              : `Showing ${from}-${to} of ${filtered.length} entries`}
+              ? t("SCA_DEPENDENCIES_TABLE.SHOWING", { from: 1, to: 0, total: 0 })
+              : t("SCA_DEPENDENCIES_TABLE.SHOWING", { from, to, total: filtered.length })}
           </span>
           <div className="flex items-center gap-1">
             <button
@@ -176,7 +192,7 @@ export function ScaDependenciesTable({
               className="px-3 py-2 text-xs text-low-emphasis hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
               onClick={() => setPage(Math.max(0, currentPage - 1))}
             >
-              Previous
+              {t("common:PREVIOUS")}
             </button>
 
             {pageNumbers.map((pageNum) => (
@@ -214,7 +230,7 @@ export function ScaDependenciesTable({
               className="px-3 py-2 text-xs text-low-emphasis hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
               onClick={() => setPage(currentPage + 1)}
             >
-              Next
+              {t("common:NEXT")}
             </button>
           </div>
         </div>
@@ -223,36 +239,42 @@ export function ScaDependenciesTable({
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
         <DialogContent data-testid="sca-dialog">
           <DialogHeader className="p-2">
-            <DialogTitle>Vulnerability details</DialogTitle>
+            <DialogTitle>{t("SCA_DEPENDENCIES_TABLE.DETAILS_TITLE")}</DialogTitle>
             <DialogDescription asChild>
               <div className="py-4">
-                <DetailField label="Name" first>
-                  {selected?.component || "No name available."}
+                <DetailField label={t("common:NAME")} first>
+                  {selected?.component || t("SCA_DEPENDENCIES_TABLE.NO_NAME")}
                 </DetailField>
-                <DetailField label="Group">{selected?.group || "No group available."}</DetailField>
-                <DetailField label="Version">
-                  {selected?.version || "No version available."}
+                <DetailField label={t("SCA_DEPENDENCIES_TABLE.DETAIL_GROUP")}>
+                  {selected?.group || t("SCA_DEPENDENCIES_TABLE.NO_GROUP")}
                 </DetailField>
-                <DetailField label="Latest Version">
-                  {selected?.latestVersion || "No data available."}
+                <DetailField label={t("SCA_DEPENDENCIES_TABLE.COLUMN_VERSION")}>
+                  {selected?.version || t("SCA_DEPENDENCIES_TABLE.NO_VERSION")}
                 </DetailField>
-                <DetailField label="Vulnerability">
-                  {selected?.vulnerability || "No vulnerability available."}
+                <DetailField label={t("SCA_DEPENDENCIES_TABLE.DETAIL_LATEST_VERSION")}>
+                  {selected?.latestVersion || t("SCA_DEPENDENCIES_TABLE.NO_DATA")}
                 </DetailField>
-                <DetailField label="CVSS">
-                  {selected?.cvss == null ? "No CVSS available." : selected.cvss.toFixed(1)}
+                <DetailField label={t("SCA_DEPENDENCIES_TABLE.COLUMN_VULNERABILITY")}>
+                  {selected?.vulnerability || t("SCA_DEPENDENCIES_TABLE.NO_VULNERABILITY")}
                 </DetailField>
-                <DetailField label="EPSS Percentile">
-                  {selected?.epss == null ? "No EPSS available." : `${selected.epss.toFixed(2)}%`}
+                <DetailField label={t("SCA_DEPENDENCIES_TABLE.COLUMN_CVSS")}>
+                  {selected?.cvss == null
+                    ? t("SCA_DEPENDENCIES_TABLE.NO_CVSS")
+                    : selected.cvss.toFixed(1)}
                 </DetailField>
-                <DetailField label="EPSS Score">
-                  {selected?.epssScore ?? "No EPSS Score available."}
+                <DetailField label={t("SCA_DEPENDENCIES_TABLE.DETAIL_EPSS_PERCENTILE")}>
+                  {selected?.epss == null
+                    ? t("SCA_DEPENDENCIES_TABLE.NO_EPSS")
+                    : `${selected.epss.toFixed(2)}%`}
                 </DetailField>
-                <DetailField label="CWE Name">
-                  {selected?.cweName || "No CWE Name available."}
+                <DetailField label={t("SCA_DEPENDENCIES_TABLE.DETAIL_EPSS_SCORE")}>
+                  {selected?.epssScore ?? t("SCA_DEPENDENCIES_TABLE.NO_EPSS_SCORE")}
                 </DetailField>
-                <DetailField label="Description">
-                  {selected?.description || "No description available."}
+                <DetailField label={t("SCA_DEPENDENCIES_TABLE.DETAIL_CWE_NAME")}>
+                  {selected?.cweName || t("SCA_DEPENDENCIES_TABLE.NO_CWE_NAME")}
+                </DetailField>
+                <DetailField label={t("common:DESCRIPTION")}>
+                  {selected?.description || t("SCA_DEPENDENCIES_TABLE.NO_DESCRIPTION")}
                 </DetailField>
               </div>
             </DialogDescription>

@@ -1,4 +1,4 @@
-import { navigationMenus } from "@/constants/navigation-menus.constant";
+import { getNavigationMenus } from "@/constants/navigation-menus.constant";
 import { MonitorLayout } from "@/layouts/monitor-layout/monitor-layout";
 import AlertRecipientsPage from "@/pages/alert-recipients";
 import MonitorPage from "@/pages/monitor";
@@ -16,12 +16,22 @@ import {
   ProfilePage,
 } from "@seliseblocks/genesis-os/pages";
 
+import { useT } from "@seliseblocks/genesis-os/i18n";
+import { useMemo } from "react";
 import { Navigate, Outlet, type RouteObject } from "react-router";
 
 const redirectPaths: Record<string, string> = {
   "/app/monitor/monitor/*": "/app/monitor",
   "/app/monitor/monitor/incidents/*": "/app/monitor",
 };
+
+// Rebuilds the menu labels when the language changes.
+function MonitorDashboardRoute() {
+  // `t` changes with the language and when its text arrives, so the labels are rebuilt then.
+  const { t } = useT("monitor.shared");
+  const navigationMenus = useMemo(() => getNavigationMenus(t), [t]);
+  return <DashboardRoute redirectPaths={redirectPaths} navigationMenus={navigationMenus} />;
+}
 
 export const routes = [
   {
@@ -75,9 +85,7 @@ export const routes = [
               {
                 // impersonate
                 path: ":itemId",
-                element: (
-                  <DashboardRoute redirectPaths={redirectPaths} navigationMenus={navigationMenus} />
-                ),
+                element: <MonitorDashboardRoute />,
                 children: [
                   {
                     index: true,

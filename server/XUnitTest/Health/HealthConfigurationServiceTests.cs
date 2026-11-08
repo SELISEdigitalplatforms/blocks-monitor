@@ -11,6 +11,7 @@ using DomainService.Health.Models;
 using DomainService.Health.Services;
 using Blocks.Genesis.Entities.Monitor;
 using DomainService.Shared.Models;
+using DomainService.Shared.Utilities;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -297,7 +298,25 @@ namespace XUnitTest.Health
             var result = await Build(configs: new List<MonitorConfiguration> { existing }).DeleteConfigurationAsync("m1");
 
             result.IsSuccess.Should().BeFalse();
-            result.Message.Should().Contain("not found");
+            result.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            result.Message.Should().Be(ManagedMonitors.RefusedMessage);
+        }
+
+        [Theory]
+        [InlineData(MonitorSourceTypes.BlocksServices)]
+        [InlineData(MonitorSourceTypes.Infrastructure)]
+        public async Task UpdateConfigurationAsync_WhenManagedByBlocks_IsRefusedWithAReason(MonitorSourceTypes sourceType)
+        {
+            // A direct API call (Postman) must not pause or edit a Blocks-managed heartbeat either.
+            var existing = new MonitorConfiguration { ItemId = "m1", MonitorSourceType = sourceType, IsActive = true };
+
+            var result = await Build(configs: new List<MonitorConfiguration> { existing })
+                .UpdateConfigurationAsync(new UpdateHealthConfigurationRequest { ItemId = "m1", IsActive = false });
+
+            result.IsSuccess.Should().BeFalse();
+            result.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            result.Message.Should().Be(ManagedMonitors.RefusedMessage);
+            existing.IsActive.Should().BeTrue();
         }
 
         [Fact]
@@ -310,7 +329,8 @@ namespace XUnitTest.Health
             var result = await Build(configs: new List<MonitorConfiguration> { existing }).DeleteConfigurationAsync("m1");
 
             result.IsSuccess.Should().BeFalse();
-            result.Message.Should().Contain("not found");
+            result.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            result.Message.Should().Be(ManagedMonitors.RefusedMessage);
         }
 
         [Theory]
@@ -329,18 +349,27 @@ namespace XUnitTest.Health
         }
 
         [Fact]
-        public async Task DeleteConfigurationAsync_RefusalsAreIndistinguishableFromAbsence()
+        public async Task DeleteConfigurationAsync_CrossTenantRefusalIsIndistinguishableFromAbsence()
         {
-            // All three refusal paths deliberately return the same "not found" message, so a
-            // caller cannot probe for the existence of a heartbeat it may not touch. If one of
-            // them ever starts saying "forbidden", that becomes an enumeration oracle.
-            var platformOwned = new MonitorConfiguration { ItemId = "m1", MonitorSourceType = MonitorSourceTypes.Infrastructure };
+            // Another tenant's heartbeat must look exactly like a missing one, so a caller cannot
+            // probe for the existence of a heartbeat it may not touch; a "forbidden" there would be
+            // an enumeration oracle. Blocks-managed heartbeats are the one exception (owner decision
+            // 2026-11-03): every tenant already sees them listed, so the 403 "managed by Blocks"
+            // (ManagedMonitors) reveals nothing new and tells a direct API caller why.
+            var otherTenants = new MonitorConfiguration { ItemId = "m1", TenantId = "tenant-a", MonitorSourceType = MonitorSourceTypes.DeployedServices };
+            try
+            {
+                SetCaller("tenant-b");
+                var missing = await Build().DeleteConfigurationAsync("m1");
+                var refused = await Build(configs: new List<MonitorConfiguration> { otherTenants }).DeleteConfigurationAsync("m1");
 
-            var missing = await Build().DeleteConfigurationAsync("m1");
-            var refused = await Build(configs: new List<MonitorConfiguration> { platformOwned }).DeleteConfigurationAsync("m1");
-
-            refused.Message.Should().Be(missing.Message);
-            refused.StatusCode.Should().Be(missing.StatusCode);
+                refused.Message.Should().Be(missing.Message);
+                refused.StatusCode.Should().Be(missing.StatusCode);
+            }
+            finally
+            {
+                Blocks.Genesis.BlocksContext.ClearContext();
+            }
         }
 
         [Fact]
