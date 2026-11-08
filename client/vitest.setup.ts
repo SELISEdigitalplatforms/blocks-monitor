@@ -80,4 +80,8 @@ if (typeof window !== "undefined" && !window.matchMedia) {
 }
 
 // Last, because the i18n runtime reads matchMedia when it loads, so the stub above must exist first.
+const { configureI18n } = await import("@seliseblocks/genesis-os/i18n");
+// Use bundled translations and test-provided remote dictionaries. Localization
+// requests need runtime env that externalized packages do not receive in Vitest.
+configureI18n({ baseUrl: () => "", blocksKey: () => "" });
 await import("./app/i18n");
