@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Blocks.Genesis;
@@ -10,6 +11,7 @@ using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.Services;
 using DomainService.Shared.Entity;
 using DomainService.Shared.Models;
+using DomainService.Shared.Utilities;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
@@ -266,6 +268,24 @@ namespace XUnitTest.Monitor
             var result = await CreateSut().UpdateConfigurationAsync(new UpdateMonitorConfigurationRequest { ItemId = "m1", Url = "http://x" });
 
             result.IsSuccess.Should().BeFalse();
+            result.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            result.Message.Should().Be(ManagedMonitors.RefusedMessage);
+            _repo.Verify(r => r.SaveConfigurationAsync(It.IsAny<MonitorConfiguration>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateConfigurationAsync_PauseInfrastructure_IsRefusedWithAReason()
+        {
+            // Rollbar #420/#1945: Pause on an Infrastructure monitor (listed in every project) got a 200
+            // "not found" with no data, and the client crashed reading it.
+            _repo.Setup(r => r.GetConfigurationAsync("m1"))
+                .ReturnsAsync(new MonitorConfiguration { ItemId = "m1", MonitorSourceType = MonitorSourceTypes.Infrastructure, IsActive = true });
+
+            var result = await CreateSut().UpdateConfigurationAsync(new UpdateMonitorConfigurationRequest { ItemId = "m1", IsActive = false });
+
+            result.IsSuccess.Should().BeFalse();
+            result.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            result.Message.Should().Be(ManagedMonitors.RefusedMessage);
             _repo.Verify(r => r.SaveConfigurationAsync(It.IsAny<MonitorConfiguration>()), Times.Never);
         }
 
@@ -309,6 +329,8 @@ namespace XUnitTest.Monitor
             var result = await CreateSut().DeleteConfigurationAsync("m1");
 
             result.IsSuccess.Should().BeFalse();
+            result.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            result.Message.Should().Be(ManagedMonitors.RefusedMessage);
             _repo.Verify(r => r.DeleteConfigurationAsync(It.IsAny<string>()), Times.Never);
         }
 

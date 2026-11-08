@@ -1,4 +1,7 @@
 import type { IScaVulnerability } from "@/models/repos.model";
+import { tStatic } from "@seliseblocks/genesis-os/i18n";
+
+const MONITOR_REPOS_MODULE = "monitor.repos";
 
 export type ScaSeverity = "Critical" | "High" | "Medium" | "Low" | "Unassigned";
 
@@ -32,32 +35,48 @@ const SEVERITY_ORDER: Record<ScaSeverity, number> = {
   Unassigned: 5,
 };
 
+/** The shown name of a severity; the value itself stays English because it is a filter key. */
+export function getSeverityLabel(severity: ScaSeverity): string {
+  switch (severity) {
+    case "Critical":
+      return tStatic(MONITOR_REPOS_MODULE, "SCA_TRANSFORM.SEVERITY_CRITICAL");
+    case "High":
+      return tStatic(MONITOR_REPOS_MODULE, "SCA_TRANSFORM.SEVERITY_HIGH");
+    case "Medium":
+      return tStatic(MONITOR_REPOS_MODULE, "SCA_TRANSFORM.SEVERITY_MEDIUM");
+    case "Low":
+      return tStatic(MONITOR_REPOS_MODULE, "SCA_TRANSFORM.SEVERITY_LOW");
+    default:
+      return tStatic(MONITOR_REPOS_MODULE, "SCA_TRANSFORM.SEVERITY_UNASSIGNED");
+  }
+}
+
 /** Fixed transform: null-safe EPSS/CVSS; severity then CVSS desc, nulls last. */
 export function transformVulnerabilities(
   vulnerabilities: IScaVulnerability[] | null | undefined,
 ): ScaDependencyRow[] {
   if (!Array.isArray(vulnerabilities) || vulnerabilities.length === 0) return [];
 
+  const unknown = tStatic(MONITOR_REPOS_MODULE, "SCA_TRANSFORM.UNKNOWN");
   const transformed = vulnerabilities.map((vuln, index) => {
     const score = vuln.score;
-    const cvss =
-      score != null && score !== "" ? Number.parseFloat(String(score)) : null;
+    const cvss = score != null && score !== "" ? Number.parseFloat(String(score)) : null;
     const epss =
       vuln.epssPercentile != null && Number.isFinite(vuln.epssPercentile)
         ? vuln.epssPercentile * 100
         : null;
     return {
       id: String(index + 1),
-      component: vuln.name ?? "Unknown",
-      group: vuln.group ?? "Unknown",
-      version: vuln.version ?? "Unknown",
-      vulnerability: vuln.id ?? "Unknown",
+      component: vuln.name ?? unknown,
+      group: vuln.group ?? unknown,
+      version: vuln.version ?? unknown,
+      vulnerability: vuln.id ?? unknown,
       cvss: cvss != null && Number.isFinite(cvss) ? cvss : null,
       severity: SEVERITY_MAP[vuln.severity ?? ""] ?? "Unassigned",
       epss,
-      cweName: vuln.cweName ?? "Unknown",
-      description: vuln.description ?? "No description available",
-      latestVersion: vuln.latestVersion ?? "Unknown",
+      cweName: vuln.cweName ?? unknown,
+      description: vuln.description ?? tStatic(MONITOR_REPOS_MODULE, "SCA_TRANSFORM.NO_DESCRIPTION"),
+      latestVersion: vuln.latestVersion ?? unknown,
       epssScore: vuln.epssScore,
     } satisfies ScaDependencyRow;
   });

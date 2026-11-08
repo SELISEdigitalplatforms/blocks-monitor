@@ -39,8 +39,9 @@ namespace XUnitTest.Shared
             services.AddSingleton(new Mock<IKeyValueStore>().Object);
 
             services.AddApplicationServices();
-            // The Database store needs no vault; the env-selected overload is what Program.cs calls.
-            services.AddBlocksSecrets(SecretValueStoreType.Database);
+            // A fake value store needs no vault; AddBlocksSecrets() keeps it (TryAdd) and is what Program.cs calls.
+            services.AddSingleton(new Mock<ISecretValueStore>().Object);
+            services.AddBlocksSecrets();
 
             return services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
         }

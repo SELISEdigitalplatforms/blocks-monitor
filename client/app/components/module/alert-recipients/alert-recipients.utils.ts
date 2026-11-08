@@ -4,29 +4,48 @@ import type {
   IAlertRecipient,
   IAlertRecipientMonitor,
 } from "@/models/alert-recipients.model";
+import { tStatic } from "@seliseblocks/genesis-os/i18n";
+
+const MONITOR_ALERT_RECIPIENTS_MODULE = "monitor.alert-recipients";
 
 /** "1 monitor" / "3 monitors". */
-export const countMonitors = (count: number) => `${count} ${count === 1 ? "monitor" : "monitors"}`;
+export const countMonitors = (count: number) =>
+  tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.MONITOR_COUNT", { count });
 
 export const monitorKindLabel = (kind: AlertRecipientMonitorKind) =>
-  kind === "Heartbeat" ? "Heartbeat" : "HTTP Check";
+  kind === "Heartbeat"
+    ? tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.KIND_HEARTBEAT")
+    : tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.KIND_HTTP_CHECK");
 
 export const recipientCountLabel = (count: number) =>
-  `${count} ${count === 1 ? "recipient" : "recipients"}`;
+  tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.RECIPIENT_COUNT", { count });
 
 /** The coverage badge's text. The text states the meaning; colour only repeats it. */
 export const coverageText = (total: number, withoutRecipients: number) => {
   if (withoutRecipients === 0) {
-    return total === 1 ? "The 1 monitor emails someone" : `All ${total} monitors email someone`;
+    return total === 1
+      ? tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.COVERAGE_ALL_ONE")
+      : tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.COVERAGE_ALL", { total });
   }
-  return `${withoutRecipients} of ${countMonitors(total)} ${
-    withoutRecipients === 1 ? "emails" : "email"
-  } no one`;
+  if (withoutRecipients === 1) {
+    return total === 1
+      ? tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.COVERAGE_ONE_OF_ONE")
+      : tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.COVERAGE_ONE_OF_MANY", {
+          total,
+        });
+  }
+  return tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.COVERAGE_MANY", {
+    withoutRecipients,
+    total,
+  });
 };
 
 /** The removal notice (H7). */
 export const removedNotice = (email: string, removed: number) =>
-  `${email} removed from ${countMonitors(removed)}. They no longer get alert emails.`;
+  tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.REMOVED_NOTICE", {
+    email,
+    count: removed,
+  });
 
 /** The "All monitors" choice to show and resend: the stored flag when the API sends it (#256 Q4). */
 export const storedAllMonitors = (recipient: IAlertRecipient) =>
@@ -71,11 +90,18 @@ export const resolveMonitorSourceType = (monitor?: {
 }): number | undefined =>
   monitor?.effectiveMonitorSourceType ?? monitor?.monitorSourceType ?? undefined;
 
+/**
+ * Infrastructure (0) and Blocks services (2) monitors are run by Blocks: every project sees them, but
+ * the server refuses to pause, configure or delete them, so no such action may be offered.
+ */
+export const isManagedByBlocks = (sourceType: number | undefined) =>
+  sourceType === Number(MONITOR_SOURCE_TYPES.Infrastructure) ||
+  sourceType === Number(MONITOR_SOURCE_TYPES.BlocksServices);
+
 /** Infrastructure (0) and Blocks services (2) monitors are not on the Alert recipients page. */
 export const hasManagedRecipients = (sourceType: number | undefined) =>
-  sourceType !== Number(MONITOR_SOURCE_TYPES.Infrastructure) &&
-  sourceType !== Number(MONITOR_SOURCE_TYPES.BlocksServices);
+  !isManagedByBlocks(sourceType);
 
 /** Shown when every monitor the removed person was on has been deleted since, so Undo has nothing to restore. */
-export const UNDO_NOTHING_LEFT =
-  "Nothing to restore: the monitors this person was on no longer exist.";
+export const getUndoNothingLeft = () =>
+  tStatic(MONITOR_ALERT_RECIPIENTS_MODULE, "ALERT_RECIPIENTS_UTILS.UNDO_NOTHING_LEFT");

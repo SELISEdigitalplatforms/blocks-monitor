@@ -6,6 +6,7 @@ using DomainService.Shared.DataAccess;
 using DomainService.Health.Models;
 using Blocks.Genesis.Entities.Monitor;
 using DomainService.Shared.Models;
+using DomainService.Shared.Utilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -132,6 +133,13 @@ namespace DomainService.Health.Services
                     };
                 }
 
+                // Same rule as the monitor update: a Blocks-managed heartbeat is never changed, whoever asks.
+                if (ManagedMonitors.IsManagedByBlocks(existing.EffectiveMonitorSourceType))
+                {
+                    _logger.LogWarning("HealthConfiguration {ItemId} is managed by Blocks; update refused.", request.ItemId);
+                    return ManagedMonitors.Refused();
+                }
+
                 // Reject cross-tenant mutation: a caller may only update a heartbeat owned by their own tenant.
                 if (IsCrossTenantAccess(existing))
                 {
@@ -203,17 +211,10 @@ namespace DomainService.Health.Services
                     };
                 }
 
-                var effectiveSourceType = existing.EffectiveMonitorSourceType;
-                if (effectiveSourceType == MonitorSourceTypes.Infrastructure ||
-                    effectiveSourceType == MonitorSourceTypes.BlocksServices)
+                if (ManagedMonitors.IsManagedByBlocks(existing.EffectiveMonitorSourceType))
                 {
-                    _logger.LogWarning("HealthConfiguration with ItemId {ItemId} not found.", itemId);
-                    return new BaseApiResponse
-                    {
-                        IsSuccess = false,
-                        StatusCode = HttpStatusCode.OK,
-                        Message = $"HealthConfiguration not found: {itemId}"
-                    };
+                    _logger.LogWarning("HealthConfiguration {ItemId} is managed by Blocks; delete refused.", itemId);
+                    return ManagedMonitors.Refused();
                 }
 
                 // Reject cross-tenant deletes: a caller may only delete a heartbeat owned by their own tenant.

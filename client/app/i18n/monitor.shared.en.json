@@ -1,0 +1,19 @@
+{
+  "ALERT_RECIPIENT_EMAIL_UTIL.INVALID_EMAIL": "Enter a valid email address.",
+  "BACK_BUTTONS.GO_BACK": "Go back",
+  "BREADCRUMB.MORE": "More",
+  "BREADCRUMB.NAV_LABEL": "breadcrumb",
+  "ENTITY_SELECT_FIELD.NO_ITEMS": "No items available.",
+  "NAVIGATION_MENUS.ALERT_RECIPIENTS": "Alert recipients",
+  "NAVIGATION_MENUS.ENVIRONMENTS": "Environments",
+  "NAVIGATION_MENUS.MONITOR": "Monitor",
+  "NAVIGATION_MENUS.OVERVIEW": "Overview",
+  "NAVIGATION_MENUS.REPOS": "Repos",
+  "PAGINATION.GO_TO_NEXT": "Go to next page",
+  "PAGINATION.GO_TO_PREVIOUS": "Go to previous page",
+  "PAGINATION.MORE_PAGES": "More pages",
+  "PAGINATION.NAV_LABEL": "pagination",
+  "USE_ALERT_RECIPIENTS.REQUEST_REFUSED": "The request was refused.",
+  "USE_TOAST.FAILED": "Failed",
+  "USE_TOAST.INFO": "Info"
+}

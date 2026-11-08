@@ -168,6 +168,13 @@
             rather than restating it and drifting from it.
             </summary>
         </member>
+        <member name="M:Api.Controllers.MonitorMutationResults.OkOrForbidden(Microsoft.AspNetCore.Mvc.ControllerBase,DomainService.Shared.Models.BaseApiResponse)">
+            <summary>
+            The answer to a monitor or heartbeat update/delete. A Blocks-managed monitor's refusal
+            (<c>ManagedMonitors.Refused</c>) goes out as a real 403; every other result keeps the 200
+            envelope the clients already read.
+            </summary>
+        </member>
         <member name="T:Api.Middleware.DataValidationExceptionFilter">
             <summary>
             A save refused by a system schema's validation rules (MonitorDataAccess PrepareWriteAsync / CheckUpdateAsync)

@@ -121,7 +121,7 @@ namespace Api.Controllers
         public async Task<IActionResult> UpdateMonitor([FromBody] UpdateMonitorConfigurationRequest request)
         {
             var result = await _monitorConfigurationService.UpdateConfigurationAsync(request);
-            return Ok(result);
+            return this.OkOrForbidden(result);
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace Api.Controllers
         public async Task<IActionResult> DeleteMonitor([FromQuery] string itemId)
         {
             var result = await _monitorConfigurationService.DeleteConfigurationAsync(itemId);
-            return Ok(result);
+            return this.OkOrForbidden(result);
         }
 
         /// <summary>

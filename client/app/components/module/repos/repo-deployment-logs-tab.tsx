@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { tStatic, useT } from "@seliseblocks/genesis-os/i18n";
 import { formatDate } from "@seliseblocks/genesis-os/utils";
 import { CheckCircle2, ChevronDown, ChevronRight, Circle, Copy, XCircle } from "lucide-react";
 import { Button } from "@/components/core";
@@ -7,6 +8,9 @@ import {
   formatElapsedTime,
   getDeploymentLogEventBadgeClassName,
 } from "@/utils/deployment-logs.utils";
+
+const MONITOR_REPOS_MODULE = "monitor.repos";
+const DEPLOYMENT_LOGS_TAB_NOT_AVAILABLE = "DEPLOYMENT_LOGS_TAB.NOT_AVAILABLE";
 
 const DEPLOYMENT_DATE_FORMAT: Intl.DateTimeFormatOptions = {
   month: "short",
@@ -52,6 +56,7 @@ function GeneralInformationCard({
   repo: IRepo | null;
   build: IBuild;
 }>) {
+  const { t } = useT(MONITOR_REPOS_MODULE);
   const repoUrl = repo?.repoUrl || build.repoUrl || "";
   const deploysTo = build.customDeploymentUrl || build.defaultDeploymentUrl || "";
   const customUrl = build.customDeploymentUrl || "";
@@ -61,31 +66,45 @@ function GeneralInformationCard({
       className="flex flex-col items-start gap-4 self-stretch rounded-lg border bg-background p-4 shadow-xs sm:gap-6 sm:p-6"
       data-testid="deployment-general-info"
     >
-      <h2 className="text-lg font-semibold text-high-emphasis">General information</h2>
+      <h2 className="text-lg font-semibold text-high-emphasis">
+        {t("DEPLOYMENT_LOGS_TAB.GENERAL_INFORMATION")}
+      </h2>
 
       <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
         <div className="space-y-4">
-          <InfoField label="Repo URL">
-            {repoUrl ? <ExternalValue href={repoUrl} value={repoUrl} /> : "N/A"}
+          <InfoField label={t("DEPLOYMENT_LOGS_TAB.REPO_URL")}>
+            {repoUrl ? (
+              <ExternalValue href={repoUrl} value={repoUrl} />
+            ) : (
+              t(DEPLOYMENT_LOGS_TAB_NOT_AVAILABLE)
+            )}
           </InfoField>
-          <InfoField label="Deploys To">
-            {deploysTo ? <ExternalValue href={deploysTo} value={deploysTo} /> : "N/A"}
+          <InfoField label={t("DEPLOYMENT_LOGS_TAB.DEPLOYS_TO")}>
+            {deploysTo ? (
+              <ExternalValue href={deploysTo} value={deploysTo} />
+            ) : (
+              t(DEPLOYMENT_LOGS_TAB_NOT_AVAILABLE)
+            )}
           </InfoField>
-          <InfoField label="Custom Deployment URL">
-            {customUrl ? <ExternalValue href={customUrl} value={customUrl} /> : "N/A"}
+          <InfoField label={t("DEPLOYMENT_LOGS_TAB.CUSTOM_DEPLOYMENT_URL")}>
+            {customUrl ? (
+              <ExternalValue href={customUrl} value={customUrl} />
+            ) : (
+              t(DEPLOYMENT_LOGS_TAB_NOT_AVAILABLE)
+            )}
           </InfoField>
         </div>
 
         <div className="space-y-4">
-          <InfoField label="Deployment Status">
+          <InfoField label={t("DEPLOYMENT_LOGS_TAB.DEPLOYMENT_STATUS")}>
             <span className={getDeploymentLogEventBadgeClassName(build.status)}>
-              {build.status || "Unknown"}
+              {build.status || t("DEPLOYMENT_LOGS_TAB.UNKNOWN")}
             </span>
           </InfoField>
-          <InfoField label="Latest Deployment Date">
+          <InfoField label={t("DEPLOYMENT_LOGS_TAB.LATEST_DEPLOYMENT_DATE")}>
             {build.createdDate
               ? formatDate(new Date(build.createdDate), DEPLOYMENT_DATE_FORMAT)
-              : "N/A"}
+              : t(DEPLOYMENT_LOGS_TAB_NOT_AVAILABLE)}
           </InfoField>
         </div>
       </div>
@@ -94,6 +113,7 @@ function GeneralInformationCard({
 }
 
 function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
+  const { t } = useT(MONITOR_REPOS_MODULE);
   const steps = useMemo(() => buildSteps(build), [build]);
   const [expanded, setExpanded] = useState<Set<string>>(
     () => new Set(steps[0]?.logs.length ? [steps[0].id] : []),
@@ -101,7 +121,11 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
 
   let wholeStatus = "";
   if (build) {
-    wholeStatus = build.status === "Failed" ? "Failed" : "Successful";
+    const event = build.eventName || t("DEPLOYMENT_LOGS_TAB.DEFAULT_EVENT");
+    wholeStatus =
+      build.status === "Failed"
+        ? t("DEPLOYMENT_LOGS_TAB.FAILED_AT", { event })
+        : t("DEPLOYMENT_LOGS_TAB.SUCCESSFUL_AT", { event });
   }
   const totalDuration =
     build?.createdDate && build?.lastUpdatedDate
@@ -124,12 +148,14 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
       data-testid="deployment-logs-card"
     >
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-high-emphasis">Deployment logs</h2>
+        <h2 className="text-lg font-semibold text-high-emphasis">
+          {t("DEPLOYMENT_LOGS_TAB.TITLE")}
+        </h2>
         {build && (
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <StatusIcon status={build.status} />
             <span>
-              {wholeStatus} at {build.eventName || "Deploy"}
+              {wholeStatus}
               {totalDuration ? ` · ${totalDuration}` : ""}
             </span>
           </div>
@@ -138,7 +164,7 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
 
       {steps.length === 0 ? (
         <div className="rounded-md border py-8 text-center text-sm text-muted-foreground">
-          No deployment logs available for this build.
+          {t("DEPLOYMENT_LOGS_TAB.NO_LOGS")}
         </div>
       ) : (
         <div className="overflow-hidden rounded-md border">
@@ -168,8 +194,11 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
                 {isExpanded && step.logs.length > 0 && (
                   <div className="bg-secondary">
                     <div className="flex flex-wrap items-center gap-x-2 border-b bg-secondary px-3 py-1.5 text-xs text-medium-emphasis">
-                      Started {formatEventTime(step.startedAt)} - Ended{" "}
-                      {formatEventTime(step.endedAt)} - Took {step.duration}
+                      {t("DEPLOYMENT_LOGS_TAB.STEP_TIMING", {
+                        started: formatEventTime(step.startedAt),
+                        ended: formatEventTime(step.endedAt),
+                        duration: step.duration,
+                      })}
                     </div>
                     <div className="max-h-[360px] overflow-auto font-mono text-xs">
                       {step.logs.map((log, logIndex) => (
@@ -195,12 +224,13 @@ function DeploymentLogsCard({ build }: Readonly<{ build: IBuild | null }>) {
 }
 
 function NoBuildCard() {
+  const { t } = useT(MONITOR_REPOS_MODULE);
   return (
     <section
       className="rounded-sm border bg-background p-6 text-sm text-muted-foreground"
       data-testid="no-build-card"
     >
-      This repository has not been deployed yet
+      {t("DEPLOYMENT_LOGS_TAB.NOT_DEPLOYED")}
     </section>
   );
 }
@@ -221,6 +251,7 @@ function InfoField({
 }
 
 function ExternalValue({ href, value }: Readonly<{ href: string; value: string }>) {
+  const { t } = useT(MONITOR_REPOS_MODULE);
   return (
     <span className="flex max-w-full items-center gap-2">
       <a
@@ -235,7 +266,7 @@ function ExternalValue({ href, value }: Readonly<{ href: string; value: string }
         type="button"
         variant="ghost"
         className="h-auto shrink-0 p-1 transition-colors hover:bg-gray-100"
-        aria-label="Copy value"
+        aria-label={t("DEPLOYMENT_LOGS_TAB.COPY_VALUE")}
         onClick={() => void navigator.clipboard?.writeText(value)}
       >
         <Copy className="h-4 w-4 text-gray-600 hover:text-gray-800" />
@@ -327,7 +358,19 @@ function formatEventTime(value: string | null): string {
 }
 
 function displayStepName(name: string): string {
-  return name === "Sast" || name === "Sca" ? name.toUpperCase() : name;
+  switch (name) {
+    case "Sast":
+    case "Sca":
+      return name.toUpperCase();
+    case "Clone":
+      return tStatic(MONITOR_REPOS_MODULE, "DEPLOYMENT_LOGS_TAB.STEP_CLONE");
+    case "Build":
+      return tStatic(MONITOR_REPOS_MODULE, "DEPLOYMENT_LOGS_TAB.STEP_BUILD");
+    case "Deploy":
+      return tStatic(MONITOR_REPOS_MODULE, "DEPLOYMENT_LOGS_TAB.STEP_DEPLOY");
+    default:
+      return name;
+  }
 }
 
 function StatusIcon({ status }: Readonly<{ status?: string | null }>) {

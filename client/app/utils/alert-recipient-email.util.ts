@@ -1,7 +1,9 @@
 import { z } from "zod";
+import { tStatic } from "@seliseblocks/genesis-os/i18n";
 
 export const ALERT_RECIPIENT_EMAIL_MAX_LENGTH = 254;
-export const INVALID_EMAIL_MESSAGE = "Enter a valid email address.";
+export const getInvalidEmailMessage = () =>
+  tStatic("monitor.shared", "ALERT_RECIPIENT_EMAIL_UTIL.INVALID_EMAIL");
 
 /**
  * The alert-recipient email rule shared with the server (#256 Q12): trim, lower-case, at most 254
@@ -12,8 +14,8 @@ export const alertRecipientEmailSchema = z
   .string()
   .trim()
   .toLowerCase()
-  .max(ALERT_RECIPIENT_EMAIL_MAX_LENGTH, { error: INVALID_EMAIL_MESSAGE })
-  .pipe(z.email({ error: INVALID_EMAIL_MESSAGE }));
+  .max(ALERT_RECIPIENT_EMAIL_MAX_LENGTH, { error: getInvalidEmailMessage })
+  .pipe(z.email({ error: getInvalidEmailMessage }));
 
 /** The normalized address, or null when the input is not a valid email. */
 export const normalizeAlertRecipientEmail = (raw: string): string | null => {

@@ -93,6 +93,54 @@ describe("AlertAction", () => {
     expect(h.navigate).not.toHaveBeenCalled();
   });
 
+  it("shows the server's reason, not success, when a pause is refused with a 200 (Rollbar #420/#1945)", async () => {
+    h.updateReq.mockResolvedValue({ isSuccess: false, data: null, message: "Refused: not yours" });
+    renderAction({ isActive: true, request: true });
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(await screen.findByText("Pause"));
+    await userEvent.click(await screen.findByRole("button", { name: "Confirm" }));
+    await waitFor(() =>
+      expect(h.toast).toHaveBeenCalledWith(
+        expect.objectContaining({ variant: "destructive", description: "Refused: not yours" }),
+      ),
+    );
+    expect(h.toast).not.toHaveBeenCalledWith(expect.objectContaining({ variant: "success" }));
+    expect(screen.getByRole("button", { name: "Confirm" })).toBeInTheDocument();
+  });
+
+  it("shows the reason a 403 carries for a Blocks-managed monitor", async () => {
+    // The HTTP client throws an HttpError whose `errors` is the response body.
+    h.updateHealth.mockRejectedValue({
+      errors: { isSuccess: false, message: "managed by Blocks and cannot be changed." },
+    });
+    renderAction({ isActive: true, request: false });
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(await screen.findByText("Pause"));
+    await userEvent.click(await screen.findByRole("button", { name: "Confirm" }));
+    await waitFor(() =>
+      expect(h.toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: "destructive",
+          description: "managed by Blocks and cannot be changed.",
+        }),
+      ),
+    );
+  });
+
+  it("does not navigate back when a delete is refused", async () => {
+    h.deleteMonitor.mockResolvedValue({ isSuccess: false, message: "Refused" });
+    renderAction({ request: true, goBack: true });
+    await userEvent.click(screen.getByRole("button", { name: "Actions" }));
+    await userEvent.click(await screen.findByText("Delete"));
+    await userEvent.click(await screen.findByRole("button", { name: "Confirm" }));
+    await waitFor(() =>
+      expect(h.toast).toHaveBeenCalledWith(
+        expect.objectContaining({ variant: "destructive", description: "Refused" }),
+      ),
+    );
+    expect(h.navigate).not.toHaveBeenCalled();
+  });
+
   it("shows an error toast when update fails", async () => {
     h.updateReq.mockRejectedValue(new Error("fail"));
     renderAction({ isActive: true, request: true });
@@ -100,7 +148,12 @@ describe("AlertAction", () => {
     await userEvent.click(await screen.findByText("Pause"));
     await userEvent.click(await screen.findByRole("button", { name: "Confirm" }));
     await waitFor(() =>
-      expect(h.toast).toHaveBeenCalledWith(expect.objectContaining({ variant: "destructive" })),
+      expect(h.toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: "destructive",
+          description: "Failed to update monitor status",
+        }),
+      ),
     );
   });
 });

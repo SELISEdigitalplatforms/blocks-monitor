@@ -270,17 +270,10 @@ namespace DomainService.Monitor.Services
                     };
                 }
 
-                var effectiveSourceType = monitorConfiguration.EffectiveMonitorSourceType;
-                if (effectiveSourceType == MonitorSourceTypes.Infrastructure ||
-                    effectiveSourceType == MonitorSourceTypes.BlocksServices)
+                if (ManagedMonitors.IsManagedByBlocks(monitorConfiguration.EffectiveMonitorSourceType))
                 {
-                    _logger.LogError("MonitorConfiguration with ItemId {ItemId} not found.", request.ItemId);
-                    return new BaseApiResponse()
-                    {
-                        IsSuccess = false,
-                        StatusCode = HttpStatusCode.OK,
-                        Message = $"MonitorConfiguration with ItemId {request.ItemId} not found."
-                    };
+                    _logger.LogWarning("MonitorConfiguration {ItemId} is managed by Blocks; update refused.", request.ItemId);
+                    return ManagedMonitors.Refused();
                 }
 
                 // Reject cross-tenant mutation: a caller may only update a monitor owned by their own tenant.
@@ -444,17 +437,10 @@ namespace DomainService.Monitor.Services
                     };
                 }
 
-                var effectiveSourceType = monitorConfiguration.EffectiveMonitorSourceType;
-                if (effectiveSourceType == MonitorSourceTypes.Infrastructure ||
-                    effectiveSourceType == MonitorSourceTypes.BlocksServices)
+                if (ManagedMonitors.IsManagedByBlocks(monitorConfiguration.EffectiveMonitorSourceType))
                 {
-                    _logger.LogError("MonitorConfiguration with ItemId {ItemId} not found.", itemId);
-                    return new BaseApiResponse()
-                    {
-                        IsSuccess = false,
-                        StatusCode = HttpStatusCode.OK,
-                        Message = $"MonitorConfiguration with ItemId {itemId} not found."
-                    };
+                    _logger.LogWarning("MonitorConfiguration {ItemId} is managed by Blocks; delete refused.", itemId);
+                    return ManagedMonitors.Refused();
                 }
 
                 // Reject cross-tenant deletes: a caller may only delete a monitor owned by their own tenant.

@@ -13,7 +13,7 @@ import type {
 import type { MonitorConfigurationType, MonitorFormValues, SourceType } from "./schema";
 import { getMonitorFormDefaultValues } from "./schema";
 
-type SubmitContext = {
+export type SubmitContext = {
   itemId?: string;
   projectKey: string;
   repoName: string;

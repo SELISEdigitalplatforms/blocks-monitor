@@ -234,3 +234,6 @@ deploy.log
 .loop/
 
 /server/Directory.Build.local.props
+
+# --- local architecture notes (never commit) ---
+doc/
