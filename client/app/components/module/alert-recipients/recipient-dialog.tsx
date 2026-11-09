@@ -20,7 +20,7 @@ import { showErrorToast, showSuccessToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { IAlertRecipient, IAlertRecipientMonitor } from "@/models/alert-recipients.model";
 import {
-  appendAlertRecipientEmail,
+  addAlertRecipientEmails,
   getInvalidEmailMessage,
   normalizeAlertRecipientEmail,
   splitAlertRecipientEmails,
@@ -29,6 +29,7 @@ import { ErrorTransformer } from "@seliseblocks/genesis-os/utils";
 import { Loader2, Search } from "lucide-react";
 import { type SubmitEvent, useId, useMemo, useState } from "react";
 import { monitorKindLabel, recipientCountLabel, storedAllMonitors } from "./alert-recipients.utils";
+import EmailChipsInput from "./email-chips-input";
 import { tStatic, useT } from "@seliseblocks/genesis-os/i18n";
 
 const MONITOR_ALERT_RECIPIENTS_MODULE = "monitor.alert-recipients";
@@ -188,7 +189,9 @@ const RecipientDialog = ({
   const emailHintId = `${id}-email-hint`;
   const legendId = `${id}-legend`;
 
-  const [email, setEmail] = useState(recipient?.email ?? "");
+  // Add mode: the emails turned into chips, and the text still being typed.
+  const [chips, setChips] = useState<string[]>([]);
+  const [draft, setDraft] = useState("");
   const [touched, setTouched] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [scope, setScope] = useState<Scope>(
@@ -211,7 +214,7 @@ const RecipientDialog = ({
   const { emails, emailError, visibleEmailError } = getEmailState(
     isEdit,
     recipient?.email,
-    email,
+    [...chips, draft].join(" "),
     recipientEmails,
     maxEmailsPerMonitor,
     touched || submitted,
@@ -286,7 +289,8 @@ const RecipientDialog = ({
       onClose();
       return;
     }
-    setEmail(failed.map((failure) => failure.email).join(", "));
+    setChips(failed.map((failure) => failure.email));
+    setDraft("");
     showErrorToast({
       title: t("RECIPIENT_DIALOG.SOME_NOT_SAVED", { count: savedCount, total }),
       errors: failed.map(failureLine),
@@ -318,9 +322,10 @@ const RecipientDialog = ({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[600px] gap-0 overflow-y-auto rounded-lg p-0 sm:rounded-lg">
-        <form noValidate onSubmit={handleSubmit}>
-          <DialogHeader className="px-6 pb-3 pt-6 text-left">
+      {/* Header and footer stay put; only the body scrolls, so Save is always in reach. */}
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[600px] flex-col gap-0 overflow-hidden rounded-lg p-0 sm:rounded-lg">
+        <form noValidate onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <DialogHeader className="shrink-0 px-6 pb-3 pt-6 text-left">
             <DialogTitle className="text-xl">
               {isEdit ? t("RECIPIENT_DIALOG.EDIT_TITLE") : t("RECIPIENT_DIALOG.ADD_TITLE")}
             </DialogTitle>
@@ -329,31 +334,66 @@ const RecipientDialog = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-col gap-5 px-6">
+          <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-6 pb-5 pt-1">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor={emailId} className="font-semibold">
-                {t("common:EMAIL")}
-              </Label>
-              {/* Add mode is a text field: an email field rewrites a typed list in some browsers. */}
-              <Input
-                id={emailId}
-                type={isEdit ? "email" : "text"}
-                inputMode="email"
-                autoComplete="off"
-                placeholder={
-                  isEdit
-                    ? t("RECIPIENT_DIALOG.EMAIL_PLACEHOLDER")
-                    : t("RECIPIENT_DIALOG.EMAILS_PLACEHOLDER")
-                }
-                value={isEdit ? recipient.email : email}
-                readOnly={isEdit}
-                aria-readonly={isEdit || undefined}
-                aria-invalid={visibleEmailError ? true : undefined}
-                aria-describedby={emailDescribedBy}
-                className={cn(isEdit && "bg-muted", visibleEmailError && "border-destructive")}
-                onChange={(event) => setEmail(event.target.value)}
-                onBlur={() => setTouched(true)}
-              />
+              <div className="flex items-baseline justify-between gap-3">
+                <Label htmlFor={emailId} className="font-semibold">
+                  {t("common:EMAIL")}
+                </Label>
+                {!isEdit && chips.length > 0 && (
+                  <div className="flex items-center gap-3 text-xs">
+                    <span
+                      className={cn(
+                        "tabular-nums",
+                        emails.length > maxEmailsPerMonitor
+                          ? "text-destructive"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {t("RECIPIENT_DIALOG.EMAILS_COUNT", {
+                        count: emails.length,
+                        max: maxEmailsPerMonitor,
+                      })}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={isSaving}
+                      className="font-medium text-primary hover:underline disabled:opacity-50"
+                      onClick={() => {
+                        setChips([]);
+                        setDraft("");
+                      }}
+                    >
+                      {t("RECIPIENT_DIALOG.CLEAR_ALL")}
+                    </button>
+                  </div>
+                )}
+              </div>
+              {isEdit ? (
+                <Input
+                  id={emailId}
+                  type="email"
+                  value={recipient.email}
+                  readOnly
+                  aria-readonly
+                  className="bg-muted"
+                />
+              ) : (
+                <EmailChipsInput
+                  id={emailId}
+                  chips={chips}
+                  draft={draft}
+                  onChipsChange={setChips}
+                  onDraftChange={setDraft}
+                  onBlur={() => setTouched(true)}
+                  isChipRejected={(chip) => recipientEmails.has(chip)}
+                  placeholder={t("RECIPIENT_DIALOG.EMAILS_PLACEHOLDER")}
+                  morePlaceholder={t("RECIPIENT_DIALOG.ADD_MORE_PLACEHOLDER")}
+                  invalid={!!visibleEmailError}
+                  describedBy={emailDescribedBy}
+                  disabled={isSaving}
+                />
+              )}
               {visibleEmailError && (
                 <p id={emailErrorId} className="text-sm text-destructive">
                   {visibleEmailError}
@@ -365,7 +405,7 @@ const RecipientDialog = ({
                 </p>
               )}
               {memberEmails.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <div className="flex max-h-24 flex-wrap items-center gap-1.5 overflow-y-auto pt-1">
                   <span className="text-xs text-muted-foreground">
                     {t("RECIPIENT_DIALOG.PROJECT_MEMBERS")}
                   </span>
@@ -377,7 +417,7 @@ const RecipientDialog = ({
                       size="xxs"
                       className="h-7 rounded-full border-dashed border-primary px-2.5 text-xs font-normal text-primary"
                       onClick={() => {
-                        setEmail((current) => appendAlertRecipientEmail(current, member));
+                        setChips((current) => addAlertRecipientEmails(current, member));
                         setTouched(true);
                       }}
                     >
@@ -497,7 +537,7 @@ const RecipientDialog = ({
             </fieldset>
           </div>
 
-          <DialogFooter className="flex-wrap px-6 pb-6 pt-5 sm:gap-3">
+          <DialogFooter className="shrink-0 flex-wrap border-t px-6 pb-6 pt-4 sm:gap-3">
             <Button type="button" variant="outline" onClick={onClose}>
               {t("common:CANCEL")}
             </Button>

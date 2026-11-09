@@ -4,7 +4,7 @@ import {
   ALERT_RECIPIENT_EMAIL_MAX_LENGTH,
   getInvalidEmailMessage,
   alertRecipientEmailSchema,
-  appendAlertRecipientEmail,
+  addAlertRecipientEmails,
   normalizeAlertRecipientEmail,
   splitAlertRecipientEmails,
 } from "@/utils/alert-recipient-email.util";
@@ -56,14 +56,19 @@ describe("splitAlertRecipientEmails", () => {
   });
 });
 
-describe("appendAlertRecipientEmail", () => {
-  it("fills an empty field", () => {
-    expect(appendAlertRecipientEmail("  ", "a@x.com")).toBe("a@x.com");
+describe("addAlertRecipientEmails", () => {
+  it("appends normalized addresses and skips repeats", () => {
+    expect(addAlertRecipientEmails(["a@x.com"], " B@X.com, a@x.com;A@x.com ")).toEqual([
+      "a@x.com",
+      "b@x.com",
+    ]);
   });
 
-  it("adds after the typed list, without a doubled separator", () => {
-    expect(appendAlertRecipientEmail("a@x.com", "b@x.com")).toBe("a@x.com, b@x.com");
-    expect(appendAlertRecipientEmail("a@x.com, ", "b@x.com")).toBe("a@x.com, b@x.com");
-    expect(appendAlertRecipientEmail("a@x.com;", "b@x.com")).toBe("a@x.com, b@x.com");
+  it("keeps invalid parts as typed so they can be shown", () => {
+    expect(addAlertRecipientEmails([], "sam@ bob")).toEqual(["sam@", "bob"]);
+  });
+
+  it("leaves the list alone for blank text", () => {
+    expect(addAlertRecipientEmails(["a@x.com"], " ,; ")).toEqual(["a@x.com"]);
   });
 });

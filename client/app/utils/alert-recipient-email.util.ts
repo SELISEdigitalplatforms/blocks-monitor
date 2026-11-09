@@ -27,11 +27,15 @@ export const normalizeAlertRecipientEmail = (raw: string): string | null => {
 export const splitAlertRecipientEmails = (raw: string): string[] =>
   raw.split(/[\s,;]+/).filter((part) => part.length > 0);
 
-/** The typed list with `email` appended, e.g. after picking a suggestion. */
-export const appendAlertRecipientEmail = (raw: string, email: string): string => {
-  const current = raw
-    .trim()
-    .replace(/[,;]+$/, "")
-    .trim();
-  return current ? `${current}, ${email}` : email;
+/**
+ * `list` with the addresses in `text` appended: each one normalized when valid (kept as typed when
+ * not, so it can be shown as an error), without repeats.
+ */
+export const addAlertRecipientEmails = (list: readonly string[], text: string): string[] => {
+  const next = [...list];
+  for (const part of splitAlertRecipientEmails(text)) {
+    const value = normalizeAlertRecipientEmail(part) ?? part;
+    if (!next.includes(value)) next.push(value);
+  }
+  return next;
 };
