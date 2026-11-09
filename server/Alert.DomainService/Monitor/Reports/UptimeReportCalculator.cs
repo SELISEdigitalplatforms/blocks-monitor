@@ -42,62 +42,12 @@ namespace DomainService.Monitor.Reports
 
             foreach (var monitor in monitors)
             {
-                // The monitor is judged only while it existed. CreatedDate defaults to MinValue on legacy rows, which
-                // simply means "the whole period".
-                var created = AsUtc(monitor.CreatedDate);
-                var windowStart = created > fromUtc ? created : fromUtc;
-                var windowEnd = toUtc < nowUtc ? toUtc : nowUtc;
-                var observedMs = windowEnd > windowStart ? (long)(windowEnd - windowStart).TotalMilliseconds : 0L;
+                var window = ObservationWindow(monitor, fromUtc, toUtc, nowUtc);
+                var own = byMonitor.TryGetValue(monitor.ItemId, out var list) ? list : new List<MonitorIncident>();
+                var outages = OverlappingOutages(own, fromUtc, toUtc, nowUtc);
 
-                byMonitor.TryGetValue(monitor.ItemId, out var own);
-                own ??= new List<MonitorIncident>();
-
-                var overlapping = new List<(DateTime Start, DateTime End, MonitorIncident Source)>();
-                foreach (var incident in own)
-                {
-                    var start = AsUtc(incident.StartTime);
-                    // An open outage lasts until now. EndTime is also null on a resolved row written before EndTime
-                    // existed; IsResolved without an end is treated as zero-length rather than as still down.
-                    DateTime end;
-                    if (incident.EndTime is { } endTime) end = AsUtc(endTime);
-                    else end = incident.IsResolved ? start : nowUtc;
-                    if (end < start) end = start;
-
-                    if (start < toUtc && end > fromUtc)
-                        overlapping.Add((start, end, incident));
-                }
-
-                var downtimeMs = MergedOverlapMs(overlapping.Select(o => (o.Start, o.End)), windowStart, windowEnd);
-                var resolved = overlapping.Where(o => o.Source.EndTime is not null).ToList();
-
-                rows.Add(new MonitorUptimeRow
-                {
-                    MonitorId = monitor.ItemId,
-                    Name = string.IsNullOrWhiteSpace(monitor.Name) ? monitor.ItemId : monitor.Name,
-                    Url = monitor.Url ?? string.Empty,
-                    MonitorType = (int)monitor.MonitorConfigurationType == 0 ? "HTTP Check" : "Heartbeat",
-                    CurrentStatus = StatusLabel(monitor),
-                    ObservedMs = observedMs,
-                    DowntimeMs = downtimeMs,
-                    UptimePercent = UptimePercent(observedMs, downtimeMs),
-                    IncidentCount = overlapping.Count,
-                    LongestOutageMs = overlapping.Count == 0 ? 0 : overlapping.Max(o => (long)(o.End - o.Start).TotalMilliseconds),
-                    MeanTimeToRecoveryMs = resolved.Count == 0
-                        ? null
-                        : (long)resolved.Average(o => (o.End - o.Start).TotalMilliseconds),
-                    LastIncidentStartUtc = overlapping.Count == 0 ? null : overlapping.Max(o => o.Start),
-                });
-
-                reportIncidents.AddRange(overlapping.Select(o => new UptimeReportIncident
-                {
-                    MonitorName = string.IsNullOrWhiteSpace(monitor.Name) ? monitor.ItemId : monitor.Name,
-                    StartUtc = o.Start,
-                    EndUtc = o.Source.EndTime is null && !o.Source.IsResolved ? null : o.End,
-                    DurationMs = (long)(o.End - o.Start).TotalMilliseconds,
-                    DowntimeInPeriodMs = OverlapMs(o.Start, o.End, windowStart, windowEnd),
-                    LastStatusCode = o.Source.LastStatusCode == 0 ? null : o.Source.LastStatusCode,
-                    FailureReason = o.Source.FailureReason,
-                }));
+                rows.Add(BuildRow(monitor, outages, window));
+                reportIncidents.AddRange(outages.Select(o => BuildIncident(monitor, o, window)));
             }
 
             // Worst first: that is what a reader of an uptime report looks for.
@@ -110,6 +60,89 @@ namespace DomainService.Monitor.Reports
 
             return (rows, reportIncidents);
         }
+
+        /// <summary>One outage as the report sees it: UTC start, end (now while open) and the stored incident.</summary>
+        private readonly record struct Outage(DateTime Start, DateTime End, MonitorIncident Source)
+        {
+            public long DurationMs => (long)(End - Start).TotalMilliseconds;
+        }
+
+        /// <summary>The part of the period a monitor is judged on.</summary>
+        private readonly record struct Window(DateTime Start, DateTime End)
+        {
+            public long Ms => End > Start ? (long)(End - Start).TotalMilliseconds : 0L;
+        }
+
+        /// <summary>
+        /// The monitor is judged only while it existed, and only up to now. CreatedDate defaults to MinValue on legacy
+        /// rows, which simply means "the whole period".
+        /// </summary>
+        private static Window ObservationWindow(MonitorConfiguration monitor, DateTime fromUtc, DateTime toUtc, DateTime nowUtc)
+        {
+            var created = AsUtc(monitor.CreatedDate);
+            return new Window(created > fromUtc ? created : fromUtc, toUtc < nowUtc ? toUtc : nowUtc);
+        }
+
+        private static List<Outage> OverlappingOutages(List<MonitorIncident> incidents, DateTime fromUtc, DateTime toUtc, DateTime nowUtc)
+        {
+            var outages = new List<Outage>();
+            foreach (var incident in incidents)
+            {
+                var start = AsUtc(incident.StartTime);
+                var end = OutageEnd(incident, start, nowUtc);
+                if (start < toUtc && end > fromUtc) outages.Add(new Outage(start, end, incident));
+            }
+            return outages;
+        }
+
+        /// <summary>
+        /// An open outage lasts until now. EndTime is also null on a resolved row written before EndTime existed;
+        /// IsResolved without an end is treated as zero-length rather than as still down.
+        /// </summary>
+        private static DateTime OutageEnd(MonitorIncident incident, DateTime start, DateTime nowUtc)
+        {
+            DateTime end;
+            if (incident.EndTime is { } endTime) end = AsUtc(endTime);
+            else end = incident.IsResolved ? start : nowUtc;
+            return end < start ? start : end;
+        }
+
+        private static MonitorUptimeRow BuildRow(MonitorConfiguration monitor, List<Outage> outages, Window window)
+        {
+            var downtimeMs = MergedOverlapMs(outages.Select(o => (o.Start, o.End)), window.Start, window.End);
+            var resolved = outages.Where(o => o.Source.EndTime is not null).ToList();
+            var hasOutages = outages.Count > 0;
+
+            return new MonitorUptimeRow
+            {
+                MonitorId = monitor.ItemId,
+                Name = DisplayName(monitor),
+                Url = monitor.Url ?? string.Empty,
+                MonitorType = (int)monitor.MonitorConfigurationType == 0 ? "HTTP Check" : "Heartbeat",
+                CurrentStatus = StatusLabel(monitor),
+                ObservedMs = window.Ms,
+                DowntimeMs = downtimeMs,
+                UptimePercent = UptimePercent(window.Ms, downtimeMs),
+                IncidentCount = outages.Count,
+                LongestOutageMs = hasOutages ? outages.Max(o => o.DurationMs) : 0,
+                MeanTimeToRecoveryMs = resolved.Count > 0 ? (long)resolved.Average(o => o.DurationMs) : null,
+                LastIncidentStartUtc = hasOutages ? outages.Max(o => o.Start) : null,
+            };
+        }
+
+        private static UptimeReportIncident BuildIncident(MonitorConfiguration monitor, Outage outage, Window window) => new()
+        {
+            MonitorName = DisplayName(monitor),
+            StartUtc = outage.Start,
+            EndUtc = outage.Source.EndTime is null && !outage.Source.IsResolved ? null : outage.End,
+            DurationMs = outage.DurationMs,
+            DowntimeInPeriodMs = OverlapMs(outage.Start, outage.End, window.Start, window.End),
+            LastStatusCode = outage.Source.LastStatusCode == 0 ? null : outage.Source.LastStatusCode,
+            FailureReason = outage.Source.FailureReason,
+        };
+
+        private static string DisplayName(MonitorConfiguration monitor) =>
+            string.IsNullOrWhiteSpace(monitor.Name) ? monitor.ItemId : monitor.Name;
 
         /// <summary>Total length of the union of <paramref name="intervals"/> inside [windowStart, windowEnd).</summary>
         public static long MergedOverlapMs(IEnumerable<(DateTime Start, DateTime End)> intervals, DateTime windowStart, DateTime windowEnd)

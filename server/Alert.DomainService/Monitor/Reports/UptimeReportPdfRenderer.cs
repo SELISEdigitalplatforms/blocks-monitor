@@ -56,14 +56,14 @@ namespace DomainService.Monitor.Reports
 
         private static void DrawHeader(Context ctx, UptimeReport report)
         {
-            ctx.Text(report.Title, ctx.Font(18, bold: true), Ink, ctx.Left, ctx.Y, ctx.Width);
+            ctx.Text(report.Title, ctx.Font(18, bold: true), Ink, Margin, ctx.Y, ctx.Width);
             ctx.Y += 26;
-            ctx.Text(report.ScopeLabel, ctx.Font(11), Muted, ctx.Left, ctx.Y, ctx.Width);
+            ctx.Text(report.ScopeLabel, ctx.Font(11), Muted, Margin, ctx.Y, ctx.Width);
             ctx.Y += 16;
             var period = $"{Format(report, report.FromUtc)}  to  {Format(report, report.ToUtc)}   ·   {UptimeReportFormatting.ZoneLabel(report.TimeZone, report.ToUtc)}";
-            ctx.Text(period, ctx.Font(10), Muted, ctx.Left, ctx.Y, ctx.Width);
+            ctx.Text(period, ctx.Font(10), Muted, Margin, ctx.Y, ctx.Width);
             ctx.Y += 14;
-            ctx.Text($"Generated {Format(report, report.GeneratedAtUtc)}", ctx.Font(9), Muted, ctx.Left, ctx.Y, ctx.Width);
+            ctx.Text($"Generated {Format(report, report.GeneratedAtUtc)}", ctx.Font(9), Muted, Margin, ctx.Y, ctx.Width);
             ctx.Y += 22;
         }
 
@@ -82,7 +82,7 @@ namespace DomainService.Monitor.Reports
             var width = (ctx.Width - gap * (tiles.Length - 1)) / tiles.Length;
             for (var i = 0; i < tiles.Length; i++)
             {
-                var x = ctx.Left + i * (width + gap);
+                var x = Margin + i * (width + gap);
                 ctx.Gfx.DrawRectangle(new XPen(Rule, 1), new XSolidBrush(Zebra), x, ctx.Y, width, height);
                 ctx.Text(tiles[i].Label, ctx.Font(9), Muted, x + 10, ctx.Y + 8, width - 20);
                 ctx.Text(tiles[i].Value, ctx.Font(18, bold: true), tiles[i].Color, x + 10, ctx.Y + 24, width - 20);
@@ -109,7 +109,7 @@ namespace DomainService.Monitor.Reports
 
             if (report.Monitors.Count == 0)
             {
-                ctx.Text("No monitors in this scope.", ctx.Font(10), Muted, ctx.Left, ctx.Y, ctx.Width);
+                ctx.Text("No monitors in this scope.", ctx.Font(10), Muted, Margin, ctx.Y, ctx.Width);
                 ctx.Y += 24;
                 return;
             }
@@ -144,7 +144,7 @@ namespace DomainService.Monitor.Reports
 
             if (report.Incidents.Count == 0)
             {
-                ctx.Text("No incidents in this period.", ctx.Font(10), Muted, ctx.Left, ctx.Y, ctx.Width);
+                ctx.Text("No incidents in this period.", ctx.Font(10), Muted, Margin, ctx.Y, ctx.Width);
                 ctx.Y += 24;
                 return;
             }
@@ -181,7 +181,7 @@ namespace DomainService.Monitor.Reports
                 ctx.Y += 6;
                 ctx.Text(
                     $"Showing the {MaxPdfIncidents} most recent of {report.Incidents.Count} incidents. Export as Excel for the full list.",
-                    ctx.Font(9), Muted, ctx.Left, ctx.Y, ctx.Width);
+                    ctx.Font(9), Muted, Margin, ctx.Y, ctx.Width);
                 ctx.Y += RowHeight;
             }
             ctx.Y += 20;
@@ -190,11 +190,11 @@ namespace DomainService.Monitor.Reports
         private static void DrawNotes(Context ctx)
         {
             ctx.EnsureSpace(16 + UptimeReportNotes.Lines.Length * 13);
-            ctx.Text("Notes", ctx.Font(9, bold: true), Muted, ctx.Left, ctx.Y, ctx.Width);
+            ctx.Text("Notes", ctx.Font(9, bold: true), Muted, Margin, ctx.Y, ctx.Width);
             ctx.Y += 14;
             foreach (var line in UptimeReportNotes.Lines)
             {
-                ctx.Text("• " + line, ctx.Font(8), Muted, ctx.Left, ctx.Y, ctx.Width);
+                ctx.Text("• " + line, ctx.Font(8), Muted, Margin, ctx.Y, ctx.Width);
                 ctx.Y += 13;
             }
         }
@@ -239,7 +239,6 @@ namespace DomainService.Monitor.Reports
 
             public XGraphics Gfx => _gfx ?? throw new InvalidOperationException("No page.");
             public double Y { get; set; }
-            public double Left => Margin;
             public double Width { get; private set; }
             private double Bottom { get; set; }
 
@@ -278,7 +277,7 @@ namespace DomainService.Monitor.Reports
                 _activeTable = null;
                 // Keep a heading with at least its table header and first row.
                 EnsureSpace(22 + RowHeight * 3);
-                Text(title, Font(12, bold: true), Ink, Left, Y, Width);
+                Text(title, Font(12, bold: true), Ink, Margin, Y, Width);
                 Y += 20;
             }
 
@@ -333,8 +332,8 @@ namespace DomainService.Monitor.Reports
             public void Header()
             {
                 var y = _ctx.Y;
-                _ctx.Gfx.DrawRectangle(new XSolidBrush(HeaderFill), _ctx.Left, y, _ctx.Width, RowHeight);
-                var x = _ctx.Left;
+                _ctx.Gfx.DrawRectangle(new XSolidBrush(HeaderFill), Margin, y, _ctx.Width, RowHeight);
+                var x = Margin;
                 foreach (var col in _columns)
                 {
                     var w = col.Share * _ctx.Width;
@@ -351,10 +350,10 @@ namespace DomainService.Monitor.Reports
                 _ctx.EnsureSpace(height);
                 var y = _ctx.Y;
                 if (_rowIndex++ % 2 == 1)
-                    _ctx.Gfx.DrawRectangle(new XSolidBrush(Zebra), _ctx.Left, y, _ctx.Width, height);
-                _ctx.Gfx.DrawLine(new XPen(Rule, 0.5), _ctx.Left, y + height, _ctx.Left + _ctx.Width, y + height);
+                    _ctx.Gfx.DrawRectangle(new XSolidBrush(Zebra), Margin, y, _ctx.Width, height);
+                _ctx.Gfx.DrawLine(new XPen(Rule, 0.5), Margin, y + height, Margin + _ctx.Width, y + height);
 
-                var x = _ctx.Left;
+                var x = Margin;
                 for (var c = 0; c < _columns.Length; c++)
                 {
                     var col = _columns[c];

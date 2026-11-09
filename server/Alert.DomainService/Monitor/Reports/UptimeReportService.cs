@@ -52,59 +52,23 @@ namespace DomainService.Monitor.Reports
             if (!TryParseFormat(query.Format, out var format))
                 return UptimeReportResult.Invalid("format must be 'pdf' or 'xlsx'.");
 
-            if (!TryParseInstant(query.To, now, out var to))
-                return UptimeReportResult.Invalid("to is not a valid date.");
-            if (to > now) to = now;
+            var periodError = TryResolvePeriod(query, now, out var from, out var to);
+            if (periodError is not null) return UptimeReportResult.Invalid(periodError);
 
-            if (!TryParseInstant(query.From, to - DefaultPeriod, out var from))
-                return UptimeReportResult.Invalid("from is not a valid date.");
-            if (from >= to)
-                return UptimeReportResult.Invalid("from must be earlier than to.");
-            if (to - from > MaxPeriod)
-                return UptimeReportResult.Invalid("The period cannot be longer than 366 days.");
-
-            List<MonitorConfiguration> monitors;
-            string scopeLabel;
-            string fileScope;
-
-            if (!string.IsNullOrWhiteSpace(query.MonitorId))
-            {
-                // Through the configuration service, not the repo, so the export applies exactly the tenant guard and
-                // view masking GetMonitorById does: whoever cannot open the details page cannot export it either.
-                var response = await _configurationService.GetConfigurationByIdAsync(query.MonitorId);
-                if (response.Data is not MonitorConfiguration monitor || string.IsNullOrEmpty(monitor.ItemId))
-                    return UptimeReportResult.Missing("Monitor not found.");
-
-                monitors = new List<MonitorConfiguration> { monitor };
-                scopeLabel = $"Monitor: {monitor.Name}" + (string.IsNullOrWhiteSpace(monitor.Url) ? string.Empty : $" ({monitor.Url})");
-                fileScope = UptimeReportFormatting.Slug(monitor.Name ?? monitor.ItemId);
-            }
-            else
-            {
-                if (string.IsNullOrWhiteSpace(query.ProjectKey))
-                    return UptimeReportResult.Invalid("projectKey or monitorId is required.");
-
-                var loaded = await LoadMonitorsAsync(query.ProjectKey, query.MonitorSourceType, cancellationToken);
-                if (loaded is null)
-                    return UptimeReportResult.Invalid($"The project has more than {MaxMonitors} monitors; export one tab at a time.");
-                monitors = loaded;
-                scopeLabel = string.IsNullOrWhiteSpace(query.MonitorSourceType)
-                    ? "All monitors"
-                    : $"{SourceTypeLabel(query.MonitorSourceType)} monitors";
-                fileScope = UptimeReportFormatting.Slug(scopeLabel);
-            }
+            var (scope, scopeError) = await ResolveScopeAsync(query, cancellationToken);
+            if (scope is null) return scopeError!;
 
             cancellationToken.ThrowIfCancellationRequested();
 
             var incidents = await _incidentRepo.GetIncidentsOverlappingRangeAsync(
-                monitors.Select(m => m.ItemId).ToList(), from, to);
+                scope.Monitors.Select(m => m.ItemId).ToList(), from, to);
 
-            var (rows, reportIncidents) = UptimeReportCalculator.Calculate(monitors, incidents, from, to, now);
+            var (rows, reportIncidents) = UptimeReportCalculator.Calculate(scope.Monitors, incidents, from, to, now);
 
             var report = new UptimeReport
             {
                 Title = "Uptime report",
-                ScopeLabel = scopeLabel,
+                ScopeLabel = scope.Label,
                 FromUtc = from,
                 ToUtc = to,
                 GeneratedAtUtc = now,
@@ -115,14 +79,7 @@ namespace DomainService.Monitor.Reports
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var fileName = string.Create(CultureInfo.InvariantCulture,
-                $"uptime-report_{fileScope}_{report.ToLocal(from):yyyyMMdd}-{report.ToLocal(to):yyyyMMdd}");
-
-            var file = format switch
-            {
-                UptimeReportFormat.Pdf => new UptimeReportFile(UptimeReportPdfRenderer.Render(report), "application/pdf", fileName + ".pdf"),
-                _ => new UptimeReportFile(UptimeReportExcelRenderer.Render(report), XlsxContentType, fileName + ".xlsx"),
-            };
+            var file = Render(report, format, scope.FileScope);
 
             _logger.LogInformation(
                 "Exported uptime report ({Format}) for {MonitorCount} monitors, {IncidentCount} incidents, {From} - {To}",
@@ -133,18 +90,81 @@ namespace DomainService.Monitor.Reports
 
         public const string XlsxContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
+        /// <summary>The monitors a report covers and how the report and its file are named.</summary>
+        private sealed record ReportScope(List<MonitorConfiguration> Monitors, string Label, string FileScope);
+
+        /// <summary>
+        /// Parses and checks the period. A missing <c>to</c> is now and a future one is clamped to now; a missing
+        /// <c>from</c> is 30 days before <c>to</c>. Returns the error message, or null when the period is valid.
+        /// </summary>
+        private static string? TryResolvePeriod(UptimeReportQuery query, DateTime now, out DateTime from, out DateTime to)
+        {
+            from = default;
+            if (!TryParseInstant(query.To, now, out to)) return "to is not a valid date.";
+            if (to > now) to = now;
+
+            if (!TryParseInstant(query.From, to - DefaultPeriod, out from)) return "from is not a valid date.";
+            if (from >= to) return "from must be earlier than to.";
+            if (to - from > MaxPeriod) return "The period cannot be longer than 366 days.";
+            return null;
+        }
+
+        private async Task<(ReportScope? Scope, UptimeReportResult? Error)> ResolveScopeAsync(UptimeReportQuery query, CancellationToken cancellationToken)
+        {
+            if (!string.IsNullOrWhiteSpace(query.MonitorId))
+            {
+                // Through the configuration service, not the repo, so the export applies exactly the tenant guard and
+                // view masking GetMonitorById does: whoever cannot open the details page cannot export it either.
+                var response = await _configurationService.GetConfigurationByIdAsync(query.MonitorId);
+                if (response.Data is not MonitorConfiguration monitor || string.IsNullOrEmpty(monitor.ItemId))
+                    return (null, UptimeReportResult.Missing("Monitor not found."));
+
+                var url = string.IsNullOrWhiteSpace(monitor.Url) ? string.Empty : $" ({monitor.Url})";
+                return (new ReportScope(
+                    new List<MonitorConfiguration> { monitor },
+                    $"Monitor: {monitor.Name}{url}",
+                    UptimeReportFormatting.Slug(monitor.Name ?? monitor.ItemId)), null);
+            }
+
+            if (string.IsNullOrWhiteSpace(query.ProjectKey))
+                return (null, UptimeReportResult.Invalid("projectKey or monitorId is required."));
+
+            var monitors = await LoadMonitorsAsync(query.ProjectKey, query.MonitorSourceType, cancellationToken);
+            if (monitors is null)
+                return (null, UptimeReportResult.Invalid($"The project has more than {MaxMonitors} monitors; export one tab at a time."));
+
+            var label = string.IsNullOrWhiteSpace(query.MonitorSourceType)
+                ? "All monitors"
+                : $"{SourceTypeLabel(query.MonitorSourceType)} monitors";
+            return (new ReportScope(monitors, label, UptimeReportFormatting.Slug(label)), null);
+        }
+
+        private static UptimeReportFile Render(UptimeReport report, UptimeReportFormat format, string fileScope)
+        {
+            var fileName = string.Create(CultureInfo.InvariantCulture,
+                $"uptime-report_{fileScope}_{report.ToLocal(report.FromUtc):yyyyMMdd}-{report.ToLocal(report.ToUtc):yyyyMMdd}");
+
+            return format == UptimeReportFormat.Pdf
+                ? new UptimeReportFile(UptimeReportPdfRenderer.Render(report), "application/pdf", fileName + ".pdf")
+                : new UptimeReportFile(UptimeReportExcelRenderer.Render(report), XlsxContentType, fileName + ".xlsx");
+        }
+
         /// <summary>Every monitor of the tab, paging through the same query the Monitor list uses. Null past <see cref="MaxMonitors"/>.</summary>
         private async Task<List<MonitorConfiguration>?> LoadMonitorsAsync(string projectKey, string? monitorSourceType, CancellationToken cancellationToken)
         {
             var all = new List<MonitorConfiguration>();
-            for (var page = 0; ; page++)
+            var page = 0;
+            var hasMore = true;
+            while (hasMore)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 // Default sort (by name, as the list shows it): a stable order keeps the pages from skipping or repeating.
                 var (items, total) = await _configurationRepo.GetConfigurationListAsync(projectKey, monitorSourceType, page, PageSize, null, false);
                 if (total > MaxMonitors) return null;
                 all.AddRange(items);
-                if (items.Count < PageSize || all.Count >= total) break;
+                // A short page also ends the loop, so a total that changes mid-export cannot make it spin.
+                hasMore = items.Count == PageSize && all.Count < total;
+                page++;
             }
             return all;
         }
