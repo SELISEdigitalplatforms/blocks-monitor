@@ -71,7 +71,7 @@ const EmailChipsInput = ({
     if (event.key === "Backspace" && draft === "" && chips.length > 0) {
       event.preventDefault();
       onChipsChange(chips.slice(0, -1));
-      onDraftChange(chips[chips.length - 1]);
+      onDraftChange(chips.at(-1) ?? "");
     }
   };
 
@@ -99,18 +99,16 @@ const EmailChipsInput = ({
   };
 
   return (
-    // The box itself is not a control: a click on its empty space only moves focus to the text box.
+    // The text box grows to fill the rest of each row, so the box needs no click handler of its own.
     <div
       className={cn(
-        "flex max-h-40 min-h-10 w-full cursor-text flex-wrap items-center gap-1.5 overflow-y-auto rounded-md border border-input bg-background px-2 py-1.5 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+        "flex max-h-40 min-h-10 w-full flex-wrap items-center gap-1.5 overflow-y-auto rounded-md border border-input bg-background px-2 py-1.5 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
         invalid && "border-destructive",
         disabled && "cursor-not-allowed opacity-50",
       )}
-      onClick={() => inputRef.current?.focus()}
     >
       {chips.length > 0 && (
-        // role="list": Safari drops list semantics from an element with display: contents.
-        <ul role="list" className="contents" aria-label={t("RECIPIENT_DIALOG.EMAILS_LIST")}>
+        <ul className="contents" aria-label={t("RECIPIENT_DIALOG.EMAILS_LIST")}>
           {chips.map((chip) => {
             const rejected = !normalizeAlertRecipientEmail(chip) || isChipRejected(chip);
             return (
@@ -132,10 +130,7 @@ const EmailChipsInput = ({
                   disabled={disabled}
                   aria-label={t("RECIPIENT_DIALOG.REMOVE_EMAIL", { email: chip })}
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full opacity-70 hover:bg-foreground/10 hover:opacity-100 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    removeChip(chip);
-                  }}
+                  onClick={() => removeChip(chip)}
                 >
                   <X aria-hidden="true" className="h-3 w-3" />
                 </button>
