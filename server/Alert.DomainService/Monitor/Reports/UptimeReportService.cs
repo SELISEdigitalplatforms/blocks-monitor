@@ -190,7 +190,9 @@ namespace DomainService.Monitor.Reports
             if (string.IsNullOrWhiteSpace(id)) return TimeZoneInfo.Utc;
             if (TimeZoneInfo.TryFindSystemTimeZoneById(id, out var zone)) return zone;
 
-            _logger.LogWarning("Unknown time zone {TimeZone} for uptime report; using UTC.", id);
+            // The value is not logged: it comes straight from the query string (CodeQL cs/log-forging). The report
+            // itself prints the zone it used, so a fallback is still visible to the reader.
+            _logger.LogWarning("Unknown time zone requested for uptime report; using UTC.");
             return TimeZoneInfo.Utc;
         }
 
