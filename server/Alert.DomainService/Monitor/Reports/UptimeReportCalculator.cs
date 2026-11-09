@@ -76,7 +76,7 @@ namespace DomainService.Monitor.Reports
                     Name = string.IsNullOrWhiteSpace(monitor.Name) ? monitor.ItemId : monitor.Name,
                     Url = monitor.Url ?? string.Empty,
                     MonitorType = (int)monitor.MonitorConfigurationType == 0 ? "HTTP Check" : "Heartbeat",
-                    CurrentStatus = !monitor.IsActive ? "Paused" : monitor.CurrentStatus ? "Up" : "Down",
+                    CurrentStatus = StatusLabel(monitor),
                     ObservedMs = observedMs,
                     DowntimeMs = downtimeMs,
                     UptimePercent = UptimePercent(observedMs, downtimeMs),
@@ -124,13 +124,15 @@ namespace DomainService.Monitor.Reports
                 .OrderBy(i => i.Start)
                 .ToList();
 
+            if (clipped.Count == 0) return 0;
+
             long total = 0;
-            DateTime? curStart = null, curEnd = null;
-            foreach (var (start, end) in clipped)
+            var (curStart, curEnd) = clipped[0];
+            foreach (var (start, end) in clipped.Skip(1))
             {
-                if (curEnd is null || start > curEnd)
+                if (start > curEnd)
                 {
-                    if (curStart is not null) total += (long)(curEnd!.Value - curStart.Value).TotalMilliseconds;
+                    total += (long)(curEnd - curStart).TotalMilliseconds;
                     curStart = start;
                     curEnd = end;
                 }
@@ -139,8 +141,14 @@ namespace DomainService.Monitor.Reports
                     curEnd = end;
                 }
             }
-            if (curStart is not null) total += (long)(curEnd!.Value - curStart.Value).TotalMilliseconds;
-            return total;
+            return total + (long)(curEnd - curStart).TotalMilliseconds;
+        }
+
+        /// <summary>Paused wins: a paused monitor is not checked, so its last up/down says nothing current.</summary>
+        private static string StatusLabel(MonitorConfiguration monitor)
+        {
+            if (!monitor.IsActive) return "Paused";
+            return monitor.CurrentStatus ? "Up" : "Down";
         }
 
         private static long OverlapMs(DateTime start, DateTime end, DateTime windowStart, DateTime windowEnd)

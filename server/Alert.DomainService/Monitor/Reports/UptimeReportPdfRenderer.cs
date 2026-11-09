@@ -298,7 +298,8 @@ namespace DomainService.Monitor.Reports
             {
                 text = (text ?? string.Empty).Replace('\r', ' ').Replace('\n', ' ');
                 if (width <= 0 || Gfx.MeasureString(text, font).Width <= width) return text;
-                int lo = 0, hi = text.Length;
+                var lo = 0;
+                var hi = text.Length;
                 while (lo < hi)
                 {
                     var mid = (lo + hi + 1) / 2;
