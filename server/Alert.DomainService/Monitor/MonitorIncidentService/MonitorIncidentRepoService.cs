@@ -513,5 +513,28 @@ namespace DomainService.Monitor.MonitorIncidentService
                 return new List<MonitorIncident>();
             }
         }
+
+        public async Task<List<MonitorIncident>> GetIncidentsOverlappingRangeAsync(IReadOnlyCollection<string> monitorIds, DateTime fromUtc, DateTime toUtc)
+        {
+            if (monitorIds == null || monitorIds.Count == 0) return new List<MonitorIncident>();
+
+            var fb = Builders<MonitorIncident>.Filter;
+            var filter = fb.In(x => x.MonitorId, monitorIds)
+                & fb.Lt(x => x.StartTime, toUtc)
+                & fb.Or(fb.Eq(x => x.EndTime, null), fb.Gt(x => x.EndTime, fromUtc));
+
+            var scope = await _access.ReadAsync(MonitorSchemas.MonitorIncident, filter, "MonitorIncidentRepoService.GetIncidentsOverlappingRangeAsync");
+            if (!scope.Granted) return new List<MonitorIncident>();
+
+            var incidents = await scope.Apply(_monitorIncidentsCollection)
+                .SortByDescending(x => x.StartTime)
+                .ToListAsync();
+
+            _logger.LogInformation(
+                "Fetched {Count} incidents overlapping {Start} - {End} for {MonitorCount} monitors",
+                incidents.Count, fromUtc, toUtc, monitorIds.Count);
+
+            return scope.ForView(incidents);
+        }
     }
 }

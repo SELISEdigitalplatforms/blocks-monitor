@@ -102,6 +102,16 @@
             <param name="endDate">The end date of the range (optional).</param>
             <returns>The response time logs for the monitor.</returns>
         </member>
+        <member name="M:Api.Controllers.MonitorController.ExportUptimeReport(DomainService.Monitor.Reports.UptimeReportQuery,DomainService.Monitor.Reports.IUptimeReportService,System.Threading.CancellationToken)">
+            <summary>
+            Downloads an uptime/downtime report as PDF or Excel: for one monitor (<c>monitorId</c>) or for every monitor
+            of the project in a tab (<c>projectKey</c> + optional <c>monitorSourceType</c>).
+            </summary>
+            <param name="query">Scope, period (<c>from</c>/<c>to</c>, ISO-8601, at most 366 days), <c>format</c> (pdf|xlsx) and <c>timeZone</c> (IANA).</param>
+            <param name="uptimeReportService">Builds the report, resolved per request.</param>
+            <param name="cancellationToken">Aborts the export when the caller goes away.</param>
+            <returns>The file, 400 with a message for a bad query, or 404 when the monitor is not visible to the caller.</returns>
+        </member>
         <member name="M:Api.Controllers.MonitorController.GetAlertRecipients(System.String,DomainService.AlertRecipients.Services.IAlertRecipientService)">
             <summary>
             Lists the project's editable monitors and the people who get their alert emails (the Alert recipients page).

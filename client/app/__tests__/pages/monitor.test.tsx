@@ -8,6 +8,7 @@ const h = vi.hoisted(() => ({
     data: { data: [{ itemId: "a1" }], totalCount: 25 },
     isLoading: false,
   },
+  exportDialog: undefined as { open: boolean; scope: Record<string, unknown> } | undefined,
 }));
 
 vi.mock("@seliseblocks/genesis-os/store", () => ({
@@ -32,6 +33,13 @@ vi.mock("@/components/module/alert/alerts-list", () => ({
       data-loading={String(props.isLoading)}
     />
   ),
+}));
+vi.mock("@/components/module/monitor/export/export-report-dialog", () => ({
+  // Covered by its own suite; this test only checks what the page hands it.
+  ExportReportDialog: (props: { open: boolean; scope: Record<string, unknown> }) => {
+    h.exportDialog = { open: props.open, scope: props.scope };
+    return null;
+  },
 }));
 vi.mock("@/components/module/monitor/form/add-monitor-form", () => ({
   AddSingleMonitorForm: () => <div data-testid="add-monitor-form" />,
@@ -96,5 +104,17 @@ describe("MonitorPage", () => {
     await userEvent.click(servicesTab);
     // AlertsList still rendered after the tab change
     expect(screen.getByTestId("alerts-list")).toBeInTheDocument();
+  });
+
+  it("exports every monitor of the selected tab, not just the visible page", async () => {
+    renderPage();
+    await userEvent.click(screen.getByTestId("export-report-button"));
+    expect(h.exportDialog).toEqual({
+      open: true,
+      scope: { kind: "project", projectKey: "proj-1", monitorSourceType: null, name: "My monitors" },
+    });
+
+    await userEvent.click(screen.getAllByText("Blocks services")[0]);
+    expect(h.exportDialog?.scope).toMatchObject({ monitorSourceType: "2", name: "Blocks services" });
   });
 });

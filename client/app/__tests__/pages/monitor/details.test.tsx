@@ -122,6 +122,15 @@ vi.mock("@/components/module/monitor/modal/monitor-modal", () => ({
     </div>
   ),
 }));
+type ExportScope = { kind: string; monitorId?: string; name: string };
+let lastExportDialog: { open: boolean; scope: ExportScope } | undefined;
+vi.mock("@/components/module/monitor/export/export-report-dialog", () => ({
+  // Covered by its own suite; stubbed here because the real one pulls in the HTTP client.
+  ExportReportDialog: (props: { open: boolean; scope: ExportScope }) => {
+    lastExportDialog = { open: props.open, scope: props.scope };
+    return null;
+  },
+}));
 vi.mock("@/components/module/monitor/form/edit-monitor-form", () => ({
   EditSingleMonitorForm: () => <div data-testid="edit-form" />,
 }));
@@ -201,11 +210,23 @@ describe("MonitorDetailsPage", () => {
     expect(screen.getByText(/Currently down for/)).toBeInTheDocument();
   });
 
+  it("opens the export dialog for this monitor", async () => {
+    renderPage();
+    expect(lastExportDialog?.open).toBe(false);
+    await userEvent.click(screen.getByTestId("export-report-button"));
+    expect(lastExportDialog).toEqual({
+      open: true,
+      scope: { kind: "monitor", monitorId: "m1", name: "API monitor" },
+    });
+  });
+
   it("hides the header actions for a Blocks services monitor (effective source type 2)", () => {
     h.monitor.data.data.effectiveMonitorSourceType = 2;
     renderPage();
     expect(screen.queryByText("Configure")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Actions" })).not.toBeInTheDocument();
+    // Exporting is read-only, so a Blocks-managed monitor still offers it.
+    expect(screen.getByTestId("export-report-button")).toBeInTheDocument();
   });
 
   it("hides the header actions for an Infrastructure monitor (effective source type 0, Rollbar #420/#1945)", () => {
