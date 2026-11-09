@@ -66,13 +66,16 @@ export const resolveReportPeriod = (
 
 /** File-name-safe slug, same rule as the server's. */
 export const slugify = (value: string): string => {
-  const slug = value
-    .trim()
+  // Split and join rather than trimming dashes with anchored regexes like /-+$/, which Sonar flags as
+  // super-linear backtracking (DoS hotspot). Joining with single dashes never leaves leading,
+  // trailing or doubled dashes, so only the cut at 40 characters can leave one at the end.
+  let slug = value
     .toLowerCase()
-    .replaceAll(/[^a-z0-9]+/g, "-")
-    .replaceAll(/(^-+)|(-+$)/g, "")
-    .slice(0, 40)
-    .replaceAll(/-+$/g, "");
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+    .join("-")
+    .slice(0, 40);
+  if (slug.endsWith("-")) slug = slug.slice(0, -1);
   return slug || "monitor";
 };
 

@@ -52,6 +52,11 @@ describe("file naming", () => {
   it("slugifies like the server", () => {
     expect(slugify("  Payments API (prod)! ")).toBe("payments-api-prod");
     expect(slugify("***")).toBe("monitor");
+    expect(slugify("--a  b--")).toBe("a-b");
+    // The 40-character cut lands right after a dash, which must not be left at the end.
+    expect(slugify(`${"a".repeat(39)} b`)).toBe("a".repeat(39));
+    // Long separator runs stay fast (the shape a backtracking regex chokes on).
+    expect(slugify(`a${"-".repeat(50_000)}!`)).toBe("a");
   });
 
   it("builds the download name from scope, local dates and format", () => {
