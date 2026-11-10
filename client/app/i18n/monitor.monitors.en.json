@@ -102,6 +102,7 @@
   "MONITOR_MODAL.CONFIGURE": "Configure",
   "MONITOR_PAGE.ADD_MONITOR": "Add Monitor",
   "MONITOR_PAGE.API_DOCS": "API Docs",
+  "MONITOR_PAGE.DESCRIPTION": "Track uptime, response times, and incidents across your services.",
   "MONITOR_PAGE.TAB_BLOCKS_SERVICES": "Blocks services",
   "MONITOR_PAGE.TAB_MY_MONITORS": "My monitors",
   "MONITOR_PAGE.TITLE": "Monitor",
