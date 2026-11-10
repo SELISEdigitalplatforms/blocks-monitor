@@ -19,7 +19,13 @@ IHostBuilder CreateHostBuilder(string[] args) =>
         .ConfigureAppConfiguration((context, builder) =>
         {
             // ApplicationConfigurations.ConfigureWorkerEnv(builder, args);
-            builder.AddKeyValueConfiguration(secret, "blocks-secret-monitor");
+            builder.AddMongoDbConfiguration(options =>
+            {
+                options.ConnectionString = secret.DatabaseConnectionString;
+                options.DatabaseName = secret.RootDatabaseName;
+                options.CollectionName = "Secrets";
+                options.SecretKey = "blocks-secret-monitor";
+            });
         })
         .ConfigureServices((services) =>
         {
