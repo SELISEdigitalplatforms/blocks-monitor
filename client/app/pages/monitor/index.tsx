@@ -76,8 +76,11 @@ const MonitorPage = () => {
 
   return (
     <main className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-lg font-semibold md:text-2xl">{t("MONITOR_PAGE.TITLE")}</h1>
+      <div className="flex items-center justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-lg font-semibold md:text-2xl">{t("MONITOR_PAGE.TITLE")}</h1>
+          <p className="text-sm text-muted-foreground">{t("MONITOR_PAGE.DESCRIPTION")}</p>
+        </div>
         <a
           href={getRuntimeEnv("BLOCKS_MONITOR_BASE_URL") + "/swagger/index.html"}
           target="_blank"
@@ -90,9 +93,9 @@ const MonitorPage = () => {
         </a>
       </div>
 
-      <div className="flex items-baseline justify-between">
+      <div className="flex items-center justify-between gap-3">
         <Tabs value={queryParams.tab} onValueChange={handleTabChange}>
-          <div className="mb-5 mt-6 flex items-center justify-between rounded text-base">
+          <div className="flex items-center justify-between rounded text-base">
             {/* Mobile Select */}
             <div className="md:hidden">
               <Select value={queryParams.tab} onValueChange={handleTabChange}>
