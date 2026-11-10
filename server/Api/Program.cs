@@ -18,7 +18,7 @@ builder.Configuration.AddMongoDbConfiguration(options =>
  options.ConnectionString = secret.DatabaseConnectionString;
  options.DatabaseName = secret.RootDatabaseName;
  options.CollectionName = "Secrets";
- options.SecretKey = "blocks-secret-release";
+ options.SecretKey = "blocks-secret-monitor";
 });
 
 builder.Configuration.AddMongoDbConfiguration(options =>
