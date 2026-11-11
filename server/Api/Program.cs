@@ -10,6 +10,9 @@ var vaultType = ResolveVaultType();
 var secret = await ApplicationConfigurations.ConfigureLogAndSecretsAsync(serviceName, vaultType);
 var builder = WebApplication.CreateBuilder(args);
 ApplicationConfigurations.ConfigureApiEnv(builder, args);
+
+
+
 builder.Configuration.AddMongoDbConfiguration(options =>
 {
     options.ConnectionString = secret.DatabaseConnectionString;

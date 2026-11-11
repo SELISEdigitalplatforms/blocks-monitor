@@ -9,6 +9,8 @@
   <ItemGroup>
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="MailKit" />
+    <PackageReference Include="ClosedXML" />
+    <PackageReference Include="PdfSharp" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" />
     <PackageReference Include="SeliseBlocks.Genesis.OS" />
     <PackageReference Include="SeliseBlocks.Secrets.OS" />

@@ -18,13 +18,14 @@ import {
 import ResponseTime from "@/components/module/monitor/details/response-time";
 import { EditSingleMonitorForm } from "@/components/module/monitor/form/edit-monitor-form";
 import { MonitorModal } from "@/components/module/monitor/modal/monitor-modal";
+import { ExportReportDialog } from "@/components/module/monitor/export/export-report-dialog";
 import { useGetMonitorById, useGetMonitorDetails, useGetMonitorDownTime } from "@/hooks/use-alerts";
 import { useNow } from "@/hooks/use-now";
 import { IMonitorSummary } from "@/models/alerts.model";
 import { formatUptime, observedWindowMs } from "@/utils/uptime.util";
 import { useScopedPath } from "@seliseblocks/genesis-os/hooks";
 import { useProjectStore } from "@seliseblocks/genesis-os/store";
-import { ArrowLeft, EllipsisVertical, Settings } from "lucide-react";
+import { ArrowLeft, Download, EllipsisVertical, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useT } from "@seliseblocks/genesis-os/i18n";
@@ -242,6 +243,7 @@ const MonitorDetailsPage = () => {
   const projectKey = useProjectStore()?.selectedProject?.tenantId || "";
 
   const [open, setOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [timeRange, setTimeRange] = useState("1h");
 
   const monitorId = id || "";
@@ -303,32 +305,49 @@ const MonitorDetailsPage = () => {
             {monitorData?.data?.name}
           </h1>
         </div>
-        {/* Blocks-managed monitors (Infrastructure, Blocks services) cannot be changed (Rollbar #420/#1945). */}
-        {!isManagedByBlocks(monitorSourceType) && (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="flex-1 sm:flex-none"
-              onClick={() => setOpen((open) => !open)}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              {t("MONITOR_DETAILS_PAGE.CONFIGURE")}
-            </Button>
-            <AlertAction
-              monitorId={monitorId as string}
-              isActive={monitorData?.data?.isActive ?? false}
-              name={monitorData?.data?.name || ""}
-              request={request}
-              projectKey={projectKey}
-              monitorSourceType={monitorSourceType}
-            >
-              <Button variant="outline" size="icon" aria-label={t("common:ACTIONS")}>
-                <EllipsisVertical className="h-4 w-4" />
+        <div className="flex items-center gap-2">
+          {/* Read-only, so offered on Blocks-managed monitors too, which hide Configure below. */}
+          <Button
+            variant="outline"
+            data-testid="export-report-button"
+            aria-label={t("EXPORT_REPORT.BUTTON")}
+            onClick={() => setExportOpen(true)}
+          >
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">{t("EXPORT_REPORT.BUTTON")}</span>
+          </Button>
+          {/* Blocks-managed monitors (Infrastructure, Blocks services) cannot be changed (Rollbar #420/#1945). */}
+          {!isManagedByBlocks(monitorSourceType) && (
+            <>
+              <Button
+                variant="outline"
+                className="flex-1 sm:flex-none"
+                onClick={() => setOpen((open) => !open)}
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                {t("MONITOR_DETAILS_PAGE.CONFIGURE")}
               </Button>
-            </AlertAction>
-          </div>
-        )}
+              <AlertAction
+                monitorId={monitorId as string}
+                isActive={monitorData?.data?.isActive ?? false}
+                name={monitorData?.data?.name || ""}
+                request={request}
+                projectKey={projectKey}
+                monitorSourceType={monitorSourceType}
+              >
+                <Button variant="outline" size="icon" aria-label={t("common:ACTIONS")}>
+                  <EllipsisVertical className="h-4 w-4" />
+                </Button>
+              </AlertAction>
+            </>
+          )}
+        </div>
       </div>
+      <ExportReportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        scope={{ kind: "monitor", monitorId, name: monitorData?.data?.name || monitorId }}
+      />
       <div className="flex flex-col gap-5">
         <MonitorCard
           repoName={monitorData?.data?.repoName}

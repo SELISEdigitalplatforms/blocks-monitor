@@ -3,6 +3,7 @@ using DomainService.AlertRecipients.Models;
 using DomainService.AlertRecipients.Services;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;
+using DomainService.Monitor.Reports;
 using DomainService.Monitor.Services;
 using DomainService.Shared.Models;
 using System.Net;
@@ -186,6 +187,43 @@ namespace Api.Controllers
         {
             var result = await _monitorIncidentService.GetDownTimeLogsByDateRangeAsync(monitorId, startDate, endDate);
             return Ok(result);
+        }
+
+        /// <summary>
+        /// Downloads an uptime/downtime report as PDF or Excel: for one monitor (<c>monitorId</c>) or for every monitor
+        /// of the project in a tab (<c>projectKey</c> + optional <c>monitorSourceType</c>).
+        /// </summary>
+        /// <param name="query">Scope, period (<c>from</c>/<c>to</c>, ISO-8601, at most 366 days), <c>format</c> (pdf|xlsx) and <c>timeZone</c> (IANA).</param>
+        /// <param name="uptimeReportService">Builds the report, resolved per request.</param>
+        /// <param name="cancellationToken">Aborts the export when the caller goes away.</param>
+        /// <returns>The file, 400 with a message for a bad query, or 404 when the monitor is not visible to the caller.</returns>
+        [ProtectedEndPoint("blocks-monitor::monitor::read")]
+        [HttpGet]
+        [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BaseApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(BaseApiResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ExportUptimeReport(
+            [FromQuery] UptimeReportQuery query,
+            [FromServices] IUptimeReportService uptimeReportService,
+            CancellationToken cancellationToken)
+        {
+            var result = await uptimeReportService.ExportAsync(query, cancellationToken);
+            if (result.File is { } file)
+            {
+                // Excel goes out as application/octet-stream on purpose: the Genesis HttpClient the UI uses returns a Blob
+                // only for octet-stream, PDF and images, and would try to parse the real xlsx media type as JSON. The
+                // .xlsx file name in Content-Disposition still tells the browser and OS what it is.
+                var contentType = file.ContentType == UptimeReportService.XlsxContentType ? "application/octet-stream" : file.ContentType;
+                return File(file.Content, contentType, file.FileName);
+            }
+
+            var body = new BaseApiResponse
+            {
+                IsSuccess = false,
+                StatusCode = result.NotFound ? HttpStatusCode.NotFound : HttpStatusCode.BadRequest,
+                Message = result.Error,
+            };
+            return result.NotFound ? NotFound(body) : BadRequest(body);
         }
 
         [ProtectedEndPoint("blocks-monitor::monitor::read")]

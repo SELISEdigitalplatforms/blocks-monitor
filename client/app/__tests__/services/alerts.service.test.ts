@@ -146,6 +146,35 @@ describe("alertsService", () => {
     expect(url).toContain("endDate=e");
   });
 
+  it("exportUptimeReport sends the scope, period, format and time zone", async () => {
+    await alertsService.exportUptimeReport({
+      format: "xlsx",
+      from: "2026-10-01T00:00:00.000Z",
+      to: "2026-11-01T00:00:00.000Z",
+      timeZone: "Asia/Dhaka",
+      projectKey: "p1",
+      monitorSourceType: "2",
+    });
+    const url = get.mock.calls[0][0] as string;
+    expect(url.startsWith("/api/Monitor/ExportUptimeReport?")).toBe(true);
+    const params = new URLSearchParams(url.split("?")[1]);
+    expect(Object.fromEntries(params)).toEqual({
+      format: "xlsx",
+      from: "2026-10-01T00:00:00.000Z",
+      to: "2026-11-01T00:00:00.000Z",
+      timeZone: "Asia/Dhaka",
+      projectKey: "p1",
+      monitorSourceType: "2",
+    });
+  });
+
+  it("exportUptimeReport leaves out an empty source type (the My monitors tab)", async () => {
+    await alertsService.exportUptimeReport({ format: "pdf", from: "a", to: "b", monitorSourceType: null, monitorId: "m1" });
+    const params = new URLSearchParams((get.mock.calls[0][0] as string).split("?")[1]);
+    expect(params.has("monitorSourceType")).toBe(false);
+    expect(params.get("monitorId")).toBe("m1");
+  });
+
   it("saveHealth / updateHealth POST to the health endpoints", async () => {
     await alertsService.saveHealth({ name: "h" } as never);
     expect(post).toHaveBeenCalledWith("/api/Health/SaveHealth", { name: "h" });
