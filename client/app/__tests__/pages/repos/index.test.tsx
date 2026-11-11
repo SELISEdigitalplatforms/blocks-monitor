@@ -46,6 +46,8 @@ describe("ReposPage", () => {
 
   it("shows empty state (C7)", () => {
     renderPage();
+    expect(screen.getByRole("heading", { level: 1, name: "Repos" })).toBeInTheDocument();
+    expect(screen.getByText("View repositories deployed to this project.")).toBeInTheDocument();
     expect(screen.getByTestId("repos-empty")).toHaveTextContent("No repositories deployed yet");
   });
 
