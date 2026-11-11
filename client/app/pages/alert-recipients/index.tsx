@@ -229,7 +229,7 @@ const AlertRecipientsPage = () => {
   };
 
   return (
-    <main className="flex flex-col gap-6">
+    <main className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1.5">
           <h1 className="text-lg font-semibold md:text-2xl">{t("ALERT_RECIPIENTS_PAGE.TITLE")}</h1>
@@ -249,7 +249,7 @@ const AlertRecipientsPage = () => {
       </div>
 
       {/* Always mounted, so screen readers announce the notice when its text appears. */}
-      <output aria-live="polite">
+      <output aria-live="polite" className={notice ? undefined : "sr-only"}>
         {notice && (
           <div className="flex flex-wrap items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 py-2 pl-4 pr-2 text-sm text-foreground">
             <span className="flex-1">{removedNotice(notice.email, notice.removed)}</span>
