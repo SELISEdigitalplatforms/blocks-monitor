@@ -161,10 +161,11 @@ configure_frontend_runtime() {
     case "$ASPNETCORE_URLS" in https://*) scheme="https" ;; esac
     local origin="$scheme://$API_HOST:$API_PORT"
 
-    export FrontendRuntime__BLOCKS_MONITOR_BASE_URL="$origin"
-    export FrontendRuntime__BLOCKS_MONITOR_CALLBACK_URL="$origin/login/callback"
+    # A caller's value wins (e2e/playwright.config.ts passes E2E_BASE_URL this way).
+    export FrontendRuntime__BLOCKS_MONITOR_BASE_URL="${FrontendRuntime__BLOCKS_MONITOR_BASE_URL:-$origin}"
+    export FrontendRuntime__BLOCKS_MONITOR_CALLBACK_URL="${FrontendRuntime__BLOCKS_MONITOR_CALLBACK_URL:-${FrontendRuntime__BLOCKS_MONITOR_BASE_URL%/}/login/callback}"
 
-    echo "Frontend runtime: BLOCKS_MONITOR_BASE_URL = $origin"
+    echo "Frontend runtime: BLOCKS_MONITOR_BASE_URL = $FrontendRuntime__BLOCKS_MONITOR_BASE_URL"
 }
 
 run_backend() {

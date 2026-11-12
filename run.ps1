@@ -176,10 +176,15 @@ function Set-FrontendRuntime {
     $scheme = if ($script:AspNetCoreUrls -like "https://*") { "https" } else { "http" }
     $origin = "${scheme}://${ApiHost}:$ApiPort"
 
-    $env:FrontendRuntime__BLOCKS_MONITOR_BASE_URL = $origin
-    $env:FrontendRuntime__BLOCKS_MONITOR_CALLBACK_URL = "$origin/login/callback"
+    # A caller's value wins (e2e/playwright.config.ts passes E2E_BASE_URL this way).
+    if (-not $env:FrontendRuntime__BLOCKS_MONITOR_BASE_URL) {
+        $env:FrontendRuntime__BLOCKS_MONITOR_BASE_URL = $origin
+    }
+    if (-not $env:FrontendRuntime__BLOCKS_MONITOR_CALLBACK_URL) {
+        $env:FrontendRuntime__BLOCKS_MONITOR_CALLBACK_URL = $env:FrontendRuntime__BLOCKS_MONITOR_BASE_URL.TrimEnd('/') + "/login/callback"
+    }
 
-    Write-Host "Frontend runtime: BLOCKS_MONITOR_BASE_URL = $origin"
+    Write-Host "Frontend runtime: BLOCKS_MONITOR_BASE_URL = $($env:FrontendRuntime__BLOCKS_MONITOR_BASE_URL)"
 }
 
 function Run-Backend {
