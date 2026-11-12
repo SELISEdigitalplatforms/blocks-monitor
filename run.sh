@@ -10,8 +10,11 @@ WORKER_PROJECT="$SCRIPT_DIR/server/Worker/Worker.csproj"
 WWWROOT_DIR="$SCRIPT_DIR/server/Api/wwwroot"
 SOLUTION="$SCRIPT_DIR/server/Blocks.slnx"
 
-API_PORT=5001
+API_PORT="${API_PORT:-5001}"
 FRONTEND_PORT=4001
+# Host the local API is reached by. It resolves to 127.0.0.1 via the hosts file and matches the
+# dev TLS cert, so it is also the origin the served frontend must call.
+API_HOST="dev-monitor.blocksdevelopers.com"
 
 # Ensure SSL vars are explicitly in scope for Vite
 export MONITOR_SSL_CERT="${MONITOR_SSL_CERT:-}"
@@ -149,8 +152,24 @@ configure_backend_tls() {
     fi
 }
 
+# The FrontendRuntime values Program.cs bakes into wwwroot come from the Mongo "Secrets"
+# document, which stores the *deployed* origin (no port). Served locally that sends the OIDC
+# callback to :443. Program.cs reads "FrontendRuntime__<key>" env vars ahead of the Mongo
+# section, so pin the Monitor origin to the port bound here. Call after configure_backend_tls.
+configure_frontend_runtime() {
+    local scheme="http"
+    case "$ASPNETCORE_URLS" in https://*) scheme="https" ;; esac
+    local origin="$scheme://$API_HOST:$API_PORT"
+
+    export FrontendRuntime__BLOCKS_MONITOR_BASE_URL="$origin"
+    export FrontendRuntime__BLOCKS_MONITOR_CALLBACK_URL="$origin/login/callback"
+
+    echo "Frontend runtime: BLOCKS_MONITOR_BASE_URL = $origin"
+}
+
 run_backend() {
     configure_backend_tls
+    configure_frontend_runtime
     echo "Running .NET API on port $API_PORT..."
     # Pass the URL on the command line: it has higher precedence than the
     # launchSettings.json applicationUrl, which would otherwise override

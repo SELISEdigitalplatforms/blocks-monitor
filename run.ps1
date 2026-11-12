@@ -1,7 +1,6 @@
-param(
-    [Parameter(ValueFromRemainingArguments = $true)]
-    [string[]]$CliArgs
-)
+# Plain $args, not a [Parameter()] param block: that makes this an advanced script, and PowerShell's
+# common parameters then swallow the short flags (-w -> -WarningAction/-WarningVariable, -d -> -Debug).
+$CliArgs = @($args)
 
 # ---- Usage ----
 function Show-Usage {
@@ -109,6 +108,9 @@ $Wwwroot = Join-Path $ScriptDir "server/Api/wwwroot"
 $Solution = Join-Path $ScriptDir "server/Blocks.slnx"
 
 $ApiPort = 5001
+# Host the local API is reached by. It resolves to 127.0.0.1 via the hosts file and matches the
+# dev TLS cert, so it is also the origin the served frontend must call.
+$ApiHost = "dev-monitor.blocksdevelopers.com"
 
 # ---- Helpers ----
 
@@ -116,10 +118,11 @@ function Free-Port {
     $connections = netstat -ano | Select-String ":$ApiPort"
     foreach ($line in $connections) {
         $parts = ($line -split "\s+") | Where-Object { $_ }
-        $pid = $parts[-1]
-        if ($pid -match "^\d+$") {
-            Write-Host "Killing PID $pid on port $ApiPort"
-            taskkill /PID $pid /F | Out-Null
+        # Not $pid: that is a read-only automatic variable and assigning to it throws.
+        $procId = $parts[-1]
+        if ($procId -match "^\d+$") {
+            Write-Host "Killing PID $procId on port $ApiPort"
+            taskkill /PID $procId /F | Out-Null
         }
     }
 }
@@ -164,9 +167,25 @@ function Set-BackendTls {
     }
 }
 
+# The FrontendRuntime values Program.cs bakes into wwwroot come from the Mongo "Secrets"
+# document, which stores the *deployed* origin - https://dev-monitor.blocksdevelopers.com, with no
+# port. Served locally that sends the OIDC callback to :443, where nothing listens. Env vars named
+# "FrontendRuntime__<key>" override the Mongo section, so pin the Monitor origin to the port this
+# script binds. Call it after Set-BackendTls: the scheme has to match the one chosen there.
+function Set-FrontendRuntime {
+    $scheme = if ($script:AspNetCoreUrls -like "https://*") { "https" } else { "http" }
+    $origin = "${scheme}://${ApiHost}:$ApiPort"
+
+    $env:FrontendRuntime__BLOCKS_MONITOR_BASE_URL = $origin
+    $env:FrontendRuntime__BLOCKS_MONITOR_CALLBACK_URL = "$origin/login/callback"
+
+    Write-Host "Frontend runtime: BLOCKS_MONITOR_BASE_URL = $origin"
+}
+
 function Run-Backend {
     Set-BackendTls
-    Write-Host "Running .NET API..."
+    Set-FrontendRuntime
+    Write-Host "Running .NET API on $($script:AspNetCoreUrls)..."
     # --urls on the command line outranks launchSettings.json applicationUrl.
     dotnet run --project $ApiProject -- --urls $script:AspNetCoreUrls
 }
@@ -296,6 +315,7 @@ if ($All) {
     # Resolve TLS in this (parent) process: the Kestrel__* env vars it sets are
     # inherited by the child Start-Process; the URL is passed on its command line.
     Set-BackendTls
+    Set-FrontendRuntime
 
     Write-Host "Starting API + Worker..."
 
