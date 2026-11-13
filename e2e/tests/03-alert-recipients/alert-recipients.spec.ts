@@ -240,13 +240,17 @@ test.describe("Alert recipients - page workflow", () => {
         await expect(recipients.emailInput).toHaveAttribute("aria-invalid", "true");
         await expect(recipients.submitButton).toBeDisabled();
 
-        // C2: Selected monitors with nothing ticked.
+        // C2: Selected monitors with nothing ticked. The invalid address from C1 stays as a chip
+        // (the field takes several addresses since 82f91a6), so start from an empty field.
+        await recipients.clearTypedEmails();
         await recipients.emailInput.fill(e2eEmail("none", runId));
         await recipients.chooseSelectedMonitors([]);
         await expect(recipients.submitButton).toHaveText("Add to 0 monitors");
         await expect(recipients.submitButton).toBeDisabled();
 
         // C18: the address already gets alerts (typed with capitals, so it is normalized first).
+        // Only this address is in the field, so the dialog reports it with the single-person message.
+        await recipients.clearTypedEmails();
         await recipients.emailInput.fill(opsEmail.toUpperCase());
         await expect(
           recipients.dialog.getByText(
