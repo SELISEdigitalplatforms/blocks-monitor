@@ -102,29 +102,12 @@ app.Map("/health/databases", branch => branch.Run(async context =>
 }));
 
 // The SPA shell carries the response's style nonce (meta[name=csp-nonce]), so it is rendered
-// rather than sent verbatim. Read after ApplyFrontendRuntimeSettings filled the runtime
-// placeholders.
-var indexHtml = Path.Combine(app.Environment.WebRootPath ?? "", "index.html");
-var indexHtmlTemplate = File.Exists(indexHtml)
-    ? await File.ReadAllTextAsync(indexHtml).ConfigureAwait(false)
-    : null;
-
+// rather than sent verbatim (Api.Middleware.SpaShell). Read after ApplyFrontendRuntimeSettings
+// filled the runtime placeholders.
+var indexHtmlTemplate = await Api.Middleware.SpaShell.ReadTemplateAsync(app.Environment.WebRootPath).ConfigureAwait(false);
 if (indexHtmlTemplate is not null)
 {
-    // "/" and "/index.html" would otherwise be served verbatim by the static file
-    // middleware, with the nonce placeholder still in them.
-    app.Use(async (context, next) =>
-    {
-        var path = context.Request.Path.Value;
-        if ((HttpMethods.IsGet(context.Request.Method) || HttpMethods.IsHead(context.Request.Method))
-            && (path is "/" or "" || string.Equals(path, "/index.html", StringComparison.OrdinalIgnoreCase)))
-        {
-            await WriteSpaShell(context, indexHtmlTemplate).ConfigureAwait(false);
-            return;
-        }
-
-        await next().ConfigureAwait(false);
-    });
+    app.Use((context, next) => Api.Middleware.SpaShell.InvokeAsync(context, next, indexHtmlTemplate));
 }
 
 app.UseDefaultFiles();
@@ -143,27 +126,12 @@ if (app.Environment.IsDevelopment())
 // Fallback to the SPA shell for React routing (non-API, non-file routes).
 if (indexHtmlTemplate is not null)
 {
-    app.MapFallback(context => WriteSpaShell(context, indexHtmlTemplate));
+    app.MapFallback(context => Api.Middleware.SpaShell.WriteAsync(context, indexHtmlTemplate));
 }
 
 ApplicationConfigurations.ConfigureMiddleware(app);
 
 await app.RunAsync();
-
-static async Task WriteSpaShell(HttpContext context, string indexHtmlTemplate)
-{
-    // Same methods the static file fallback answered before; anything else is not a page.
-    if (!HttpMethods.IsGet(context.Request.Method) && !HttpMethods.IsHead(context.Request.Method))
-    {
-        context.Response.StatusCode = StatusCodes.Status404NotFound;
-        return;
-    }
-
-    var nonce = (string)context.Items[Api.Middleware.SecurityHeadersMiddleware.StyleNonceItemKey]!;
-    context.Response.ContentType = "text/html; charset=utf-8";
-    await context.Response.WriteAsync(Api.Security.ContentSecurityPolicy.RenderIndex(indexHtmlTemplate, nonce))
-        .ConfigureAwait(false);
-}
 
 static VaultType ResolveVaultType()
 {

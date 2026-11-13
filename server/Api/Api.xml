@@ -205,6 +205,35 @@
         <member name="M:Api.Middleware.SecurityHeadersMiddleware.#ctor(Microsoft.AspNetCore.Http.RequestDelegate,System.String,Api.Security.StyleNonce)">
             <summary>Creates the middleware with the policy built at startup and the nonce source.</summary>
         </member>
+        <member name="T:Api.Middleware.SpaShell">
+            <summary>
+            Serves the SPA shell (index.html) with the response's CSP style nonce (meta[name=csp-nonce]).
+            The shell is rendered from a template read once at startup instead of being sent verbatim by
+            the static file middleware, so it carries the same nonce as the response's header
+            (<see cref="F:Api.Middleware.SecurityHeadersMiddleware.StyleNonceItemKey"/>).
+            </summary>
+        </member>
+        <member name="M:Api.Middleware.SpaShell.ReadTemplateAsync(System.String)">
+            <summary>
+            The shell template from the web root, or null when there is no built client. Read after
+            the frontend runtime settings were applied to the web root.
+            </summary>
+        </member>
+        <member name="M:Api.Middleware.SpaShell.IsRootRequest(Microsoft.AspNetCore.Http.HttpRequest)">
+            <summary>
+            True for a GET or HEAD of "/" or "/index.html", which the static file middleware would
+            otherwise answer verbatim, with the nonce placeholder still in it.
+            </summary>
+        </member>
+        <member name="M:Api.Middleware.SpaShell.InvokeAsync(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Http.RequestDelegate,System.String)">
+            <summary>Answers root requests with the rendered shell; passes everything else on.</summary>
+        </member>
+        <member name="M:Api.Middleware.SpaShell.WriteAsync(Microsoft.AspNetCore.Http.HttpContext,System.String)">
+            <summary>
+            Writes the shell with the response's style nonce. Only GET and HEAD are pages, as with the
+            static file fallback before; any other method gets 404.
+            </summary>
+        </member>
         <member name="T:Api.Security.ContentSecurityPolicy">
             <summary>
             Builds the SPA's Content-Security-Policy from configuration.
