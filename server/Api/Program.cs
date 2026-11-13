@@ -88,7 +88,8 @@ var app = builder.Build();
 // The CSP origins come from configuration (FrontendRuntime + Csp:Extra*), not from a
 // compiled-in host list -- see Api.Security.ContentSecurityPolicy.
 var contentSecurityPolicy = Api.Security.ContentSecurityPolicy.Build(app.Configuration);
-app.UseMiddleware<Api.Middleware.SecurityHeadersMiddleware>(contentSecurityPolicy);
+app.UseMiddleware<Api.Middleware.SecurityHeadersMiddleware>(
+    contentSecurityPolicy, Api.Security.StyleNonce.CreateWithRandomKey());
 
 // Infrastructure diagnostics expose safe group labels only. Keep them outside Genesis's
 // shared /ping and readiness checks so a dev outage cannot remove a healthy main API.
@@ -99,6 +100,15 @@ app.Map("/health/databases", branch => branch.Run(async context =>
  context.Response.StatusCode = result.IsHealthy ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable;
  await context.Response.WriteAsJsonAsync(result, context.RequestAborted);
 }));
+
+// The SPA shell carries the response's style nonce (meta[name=csp-nonce]), so it is rendered
+// rather than sent verbatim (Api.Middleware.SpaShell). Read after ApplyFrontendRuntimeSettings
+// filled the runtime placeholders.
+var indexHtmlTemplate = await Api.Middleware.SpaShell.ReadTemplateAsync(app.Environment.WebRootPath).ConfigureAwait(false);
+if (indexHtmlTemplate is not null)
+{
+    app.Use((context, next) => Api.Middleware.SpaShell.InvokeAsync(context, next, indexHtmlTemplate));
+}
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
@@ -113,17 +123,10 @@ if (app.Environment.IsDevelopment())
  });
 }
 
-var indexHtml = Path.Combine(app.Environment.WebRootPath ?? "", "index.html");
-if (File.Exists(indexHtml))
+// Fallback to the SPA shell for React routing (non-API, non-file routes).
+if (indexHtmlTemplate is not null)
 {
- app.MapFallbackToFile("/index.html");
- // x-blocks-key cookie
- // check if domain match
- // get google captch key BLOCKS_GOOGLE_SITE_KEY
- // Base Url
- // Construct URL
-
-
+    app.MapFallback(context => Api.Middleware.SpaShell.WriteAsync(context, indexHtmlTemplate));
 }
 
 ApplicationConfigurations.ConfigureMiddleware(app);
