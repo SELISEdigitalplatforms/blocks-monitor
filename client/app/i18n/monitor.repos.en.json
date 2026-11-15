@@ -49,6 +49,7 @@
   "REPOS_PAGE.EMPTY": "No repositories deployed yet",
   "REPOS_PAGE.LOAD_FAILED": "Failed to load repositories.",
   "REPOS_PAGE.SELECT_PROJECT": "Select a project to view repositories.",
+  "REPOS_PAGE.SUBTITLE": "View repositories deployed to this project.",
   "REPOS_PAGE.TITLE": "Repos",
   "REPO_DETAILS_PAGE.AVAILABLE_AFTER_BUILD": "Available after the first build",
   "REPO_DETAILS_PAGE.BACK_TO_REPOS": "Back to Repos",

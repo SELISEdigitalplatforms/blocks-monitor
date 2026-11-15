@@ -156,6 +156,23 @@ export class AlertRecipientsPage {
     await expect(this.dialog.getByRole("heading", { name: "Add recipient" })).toBeVisible();
   }
 
+  /** The Add dialog's email chips (each typed address becomes one when the field loses focus). */
+  get emailChips(): Locator {
+    return this.dialog.getByRole("list", { name: "Emails to add" }).getByRole("listitem");
+  }
+
+  /**
+   * Empties the Add dialog's email field: "Clear all" removes every chip, then the text box is
+   * cleared. Since the field takes several addresses (82f91a6), an earlier check's address stays
+   * as a chip, so each validation check starts from an empty field.
+   */
+  async clearTypedEmails() {
+    const clearAll = this.dialog.getByRole("button", { name: "Clear all", exact: true });
+    if (await clearAll.isVisible()) await clearAll.click();
+    await this.emailInput.fill("");
+    await expect(this.emailChips).toHaveCount(0);
+  }
+
   async openEditDialog(email: string) {
     await this.editButton(email).click();
     await expect(this.dialog.getByRole("heading", { name: "Edit recipient" })).toBeVisible();

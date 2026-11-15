@@ -31,7 +31,10 @@ const ReposPage = () => {
 
   return (
     <main className="space-y-4" data-testid="repos-page">
-      <h1 className="text-lg font-semibold md:text-2xl">{t("REPOS_PAGE.TITLE")}</h1>
+      <div className="flex flex-col gap-1.5">
+        <h1 className="text-lg font-semibold md:text-2xl">{t("REPOS_PAGE.TITLE")}</h1>
+        <p className="text-muted-foreground">{t("REPOS_PAGE.SUBTITLE")}</p>
+      </div>
       {body}
     </main>
   );

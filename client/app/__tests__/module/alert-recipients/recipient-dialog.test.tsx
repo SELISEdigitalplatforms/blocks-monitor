@@ -49,6 +49,15 @@ const renderDialog = (props: Partial<React.ComponentProps<typeof RecipientDialog
 };
 
 const emailInput = () => screen.getByLabelText("Email");
+/** The emails shown as chips, in order. */
+const chips = () => {
+  const list = screen.queryByRole("list", { name: "Emails to add" });
+  return list
+    ? within(list)
+        .getAllByRole("listitem")
+        .map((item) => item.textContent)
+    : [];
+};
 const saveButton = (name: RegExp | string) => screen.getByRole("button", { name });
 const chooseSelected = () =>
   userEvent.click(screen.getByRole("radio", { name: /Selected monitors/ }));
@@ -106,7 +115,7 @@ describe("RecipientDialog — add", () => {
     expect(screen.getByText("Project members:")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "ops@x.com" })).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "nadia@x.com" }));
-    expect(emailInput()).toHaveValue("nadia@x.com");
+    expect(chips()).toEqual(["nadia@x.com"]);
     expect(saveButton("Add to all 3 monitors")).toBeEnabled();
   });
 
@@ -188,7 +197,7 @@ describe("RecipientDialog — add", () => {
       errors: "At most 10 people can get alerts for all monitors.",
     });
     expect(onClose).not.toHaveBeenCalled();
-    expect(emailInput()).toHaveValue("rina@x.com");
+    expect(chips()).toEqual(["rina@x.com"]);
   });
 
   it("shows an error toast when the request throws", async () => {
@@ -198,6 +207,135 @@ describe("RecipientDialog — add", () => {
     await userEvent.click(saveButton("Add to all 3 monitors"));
     expect(h.error).toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("saves several emails one at a time, normalized and without repeats", async () => {
+    const { onClose } = renderDialog();
+    // Enter adds the typed email as a chip; Enter in the empty box then submits.
+    await userEvent.type(emailInput(), "Rina@x.com, sam@x.com;rina@x.com{enter}");
+    expect(chips()).toEqual(["rina@x.com", "sam@x.com"]);
+    expect(h.mutateAsync).not.toHaveBeenCalled();
+    await userEvent.type(emailInput(), "{enter}");
+    expect(h.mutateAsync).toHaveBeenCalledTimes(2);
+    expect(h.mutateAsync).toHaveBeenNthCalledWith(1, {
+      projectKey: "p1",
+      email: "rina@x.com",
+      allMonitors: true,
+      monitorIds: [],
+    });
+    expect(h.mutateAsync).toHaveBeenNthCalledWith(2, {
+      projectKey: "p1",
+      email: "sam@x.com",
+      allMonitors: true,
+      monitorIds: [],
+    });
+    expect(h.success).toHaveBeenCalledWith({ description: "2 recipients added." });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("names the parts of a list that are not valid emails, on blur", async () => {
+    renderDialog();
+    await userEvent.type(emailInput(), "rina@x.com, sam@, bob");
+    expect(screen.queryByText(/Not valid email addresses/)).toBeNull();
+    await userEvent.tab();
+    expect(screen.getByText("Not valid email addresses: sam@, bob.")).toBeInTheDocument();
+    expect(saveButton("Add to all 3 monitors")).toBeDisabled();
+  });
+
+  it("names existing recipients in a list as soon as they are typed", async () => {
+    renderDialog();
+    await userEvent.type(emailInput(), "rina@x.com, OPS@x.com");
+    expect(
+      screen.getByText(
+        "Already get alerts: ops@x.com. Take them out of this list, and use Edit to change their monitors.",
+      ),
+    ).toBeInTheDocument();
+    expect(saveButton("Add to all 3 monitors")).toBeDisabled();
+  });
+
+  it("refuses more emails than a monitor can hold", async () => {
+    renderDialog({ maxEmailsPerMonitor: 2 });
+    expect(
+      screen.getByText(
+        "Press Enter or comma after each email, or paste a list. Up to 2 people at once.",
+      ),
+    ).toBeInTheDocument();
+    await userEvent.type(emailInput(), "a@x.com, b@x.com, c@x.com");
+    expect(screen.getByText("Add at most 2 people at once.")).toBeInTheDocument();
+    expect(saveButton("Add to all 3 monitors")).toBeDisabled();
+  });
+
+  it("keeps only the refused emails in the field and lists why (C17)", async () => {
+    h.mutateAsync
+      .mockResolvedValueOnce({ isSuccess: true, message: "Added to 3 monitors." })
+      .mockResolvedValueOnce({
+        isSuccess: false,
+        message: "At most 10 people can get alerts for all monitors.",
+      });
+    const { onClose } = renderDialog();
+    await userEvent.type(emailInput(), "rina@x.com, sam@x.com");
+    await userEvent.click(saveButton("Add to all 3 monitors"));
+    expect(h.mutateAsync).toHaveBeenCalledTimes(2);
+    expect(h.error).toHaveBeenCalledWith({
+      title: "1 of 2 added. The rest are still in the Email field:",
+      errors: ["sam@x.com: At most 10 people can get alerts for all monitors."],
+    });
+    expect(onClose).not.toHaveBeenCalled();
+    expect(chips()).toEqual(["sam@x.com"]);
+  });
+
+  it("adds a picked suggestion to the typed list and hides it", async () => {
+    renderDialog();
+    await userEvent.type(emailInput(), "rina@x.com");
+    await userEvent.click(screen.getByRole("button", { name: "nadia@x.com" }));
+    expect(chips()).toEqual(["rina@x.com", "nadia@x.com"]);
+    expect(screen.queryByRole("button", { name: "nadia@x.com" })).toBeNull();
+  });
+
+  it("turns typed emails into chips, normalized, and counts them", async () => {
+    renderDialog();
+    await userEvent.type(emailInput(), "Rina@X.com,sam@x.com ");
+    expect(chips()).toEqual(["rina@x.com", "sam@x.com"]);
+    expect(emailInput()).toHaveValue("");
+    expect(screen.getByText("2 of 10")).toBeInTheDocument();
+  });
+
+  it("keeps invalid and existing emails as chips and blocks Save", async () => {
+    renderDialog();
+    await userEvent.type(emailInput(), "bob, ops@x.com,");
+    expect(chips()).toEqual(["bob", "ops@x.com"]);
+    expect(saveButton("Add to all 3 monitors")).toBeDisabled();
+  });
+
+  it("removes a chip with its remove button", async () => {
+    renderDialog();
+    await userEvent.type(emailInput(), "rina@x.com, sam@x.com,");
+    await userEvent.click(screen.getByRole("button", { name: "Remove rina@x.com" }));
+    expect(chips()).toEqual(["sam@x.com"]);
+    expect(emailInput()).toHaveFocus();
+  });
+
+  it("takes the last chip back for editing on Backspace in the empty box", async () => {
+    renderDialog();
+    await userEvent.type(emailInput(), "rina@x.com, sam@x.com,{backspace}");
+    expect(chips()).toEqual(["rina@x.com"]);
+    expect(emailInput()).toHaveValue("sam@x.com");
+  });
+
+  it("splits a pasted list into chips", async () => {
+    renderDialog();
+    await userEvent.click(emailInput());
+    await userEvent.paste("a@x.com; b@x.com\nc@x.com, a@x.com");
+    expect(chips()).toEqual(["a@x.com", "b@x.com", "c@x.com"]);
+    expect(emailInput()).toHaveValue("");
+  });
+
+  it("clears every chip with Clear all", async () => {
+    renderDialog();
+    await userEvent.type(emailInput(), "rina@x.com, sam@x.com,");
+    await userEvent.click(screen.getByRole("button", { name: "Clear all" }));
+    expect(chips()).toEqual([]);
+    expect(screen.queryByRole("button", { name: "Clear all" })).toBeNull();
   });
 
   it("shows a spinner and disables Save while saving", () => {

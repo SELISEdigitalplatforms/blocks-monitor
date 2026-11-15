@@ -47,6 +47,28 @@ public static class ContentSecurityPolicy
         "BLOCKS_OS_BASE_URL",
     ];
 
+    /// <summary>
+    /// Stands in for the style nonce (see <see cref="StyleNonce"/>): in the policy built at
+    /// startup and in the built index.html (meta[name=csp-nonce]). Replaced on every response.
+    /// </summary>
+    public const string StyleNoncePlaceholder = "__CSP_STYLE_NONCE__";
+
+    /// <summary>The policy for one response, with the placeholder swapped for its nonce.</summary>
+    public static string WithStyleNonce(string policy, string nonce)
+    {
+        ArgumentNullException.ThrowIfNull(policy);
+        ArgumentException.ThrowIfNullOrEmpty(nonce);
+        return policy.Replace(StyleNoncePlaceholder, nonce, StringComparison.Ordinal);
+    }
+
+    /// <summary>The SPA shell for one response, carrying the same nonce as its header.</summary>
+    public static string RenderIndex(string indexHtmlTemplate, string nonce)
+    {
+        ArgumentNullException.ThrowIfNull(indexHtmlTemplate);
+        ArgumentException.ThrowIfNullOrEmpty(nonce);
+        return indexHtmlTemplate.Replace(StyleNoncePlaceholder, nonce, StringComparison.Ordinal);
+    }
+
     public static string Build(IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
@@ -77,13 +99,20 @@ public static class ContentSecurityPolicy
             "default-src 'self';",
             "script-src 'self';",
 
-            // Inline styles, both <style> elements and style attributes. genesis-os (login page,
+            // Styles. <style> elements need the style nonce (StyleNonce). genesis-os (login page,
             // logo loader), Radix Select/ScrollArea/Dialog, vaul, input-otp and the chart theme
-            // inject <style> elements at runtime; under style-src 'self' the login page laid out
-            // 2789px tall with the button off-screen. iam and os measured the narrower
-            // style-src-elem option and it does not hold either. script-src stays strict, which
-            // is the directive that matters for injection.
-            "style-src 'self' 'unsafe-inline';",
+            // create them at runtime; /csp-nonce.js stamps the nonce on every <style> made through
+            // document.createElement, and the server writes the same nonce into index.html (see
+            // WithStyleNonce / RenderIndex). Plain style-src 'self' without the nonce laid the login
+            // page out 2789px tall with the button off-screen, which is why 'unsafe-inline' was
+            // there before. Same approach as blocks-iam (66f9b48d), blocks-os#643 and blocks-release
+            // (1ae6edc).
+            //
+            // Style attributes stay allowed through style-src-attr only: components set them,
+            // an attribute cannot carry a nonce, and an attribute cannot load a script.
+            // script-src stays strict, which is the directive that matters for injection.
+            $"style-src 'self' 'nonce-{StyleNoncePlaceholder}';",
+            "style-src-attr 'unsafe-inline';",
 
             $"img-src 'self' data: blob:{Suffix(img)};",
             "font-src 'self' data:;",
