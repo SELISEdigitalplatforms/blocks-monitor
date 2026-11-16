@@ -11,22 +11,14 @@ var secret = await ApplicationConfigurations.ConfigureLogAndSecretsAsync(service
 var builder = WebApplication.CreateBuilder(args);
 ApplicationConfigurations.ConfigureApiEnv(builder, args);
 
-// Report rendering uses release-owned tool URLs. Load release config first as a fallback, then
-// let Monitor's own secret override every key it owns.
-builder.Configuration.AddMongoDbConfiguration(options =>
-{
- options.ConnectionString = secret.DatabaseConnectionString;
- options.DatabaseName = secret.RootDatabaseName;
- options.CollectionName = "Secrets";
- options.SecretKey = "blocks-secret-release";
-});
+
 
 builder.Configuration.AddMongoDbConfiguration(options =>
 {
- options.ConnectionString = secret.DatabaseConnectionString;
- options.DatabaseName = secret.RootDatabaseName;
- options.CollectionName = "Secrets";
- options.SecretKey = "blocks-secret-monitor";
+    options.ConnectionString = secret.DatabaseConnectionString;
+    options.DatabaseName = secret.RootDatabaseName;
+    options.CollectionName = "Secrets";
+    options.SecretKey = "blocks-secret-monitor";
 });
 
 ApplicationConfigurations.ConfigureServices(builder.Services, MonitorConstants.GetApiMessageConfiguration(secret.MessageConnectionString));
@@ -96,7 +88,8 @@ var app = builder.Build();
 // The CSP origins come from configuration (FrontendRuntime + Csp:Extra*), not from a
 // compiled-in host list -- see Api.Security.ContentSecurityPolicy.
 var contentSecurityPolicy = Api.Security.ContentSecurityPolicy.Build(app.Configuration);
-app.UseMiddleware<Api.Middleware.SecurityHeadersMiddleware>(contentSecurityPolicy);
+app.UseMiddleware<Api.Middleware.SecurityHeadersMiddleware>(
+    contentSecurityPolicy, Api.Security.StyleNonce.CreateWithRandomKey());
 
 // Infrastructure diagnostics expose safe group labels only. Keep them outside Genesis's
 // shared /ping and readiness checks so a dev outage cannot remove a healthy main API.
@@ -107,6 +100,15 @@ app.Map("/health/databases", branch => branch.Run(async context =>
  context.Response.StatusCode = result.IsHealthy ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable;
  await context.Response.WriteAsJsonAsync(result, context.RequestAborted);
 }));
+
+// The SPA shell carries the response's style nonce (meta[name=csp-nonce]), so it is rendered
+// rather than sent verbatim (Api.Middleware.SpaShell). Read after ApplyFrontendRuntimeSettings
+// filled the runtime placeholders.
+var indexHtmlTemplate = await Api.Middleware.SpaShell.ReadTemplateAsync(app.Environment.WebRootPath).ConfigureAwait(false);
+if (indexHtmlTemplate is not null)
+{
+    app.Use((context, next) => Api.Middleware.SpaShell.InvokeAsync(context, next, indexHtmlTemplate));
+}
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
@@ -121,17 +123,10 @@ if (app.Environment.IsDevelopment())
  });
 }
 
-var indexHtml = Path.Combine(app.Environment.WebRootPath ?? "", "index.html");
-if (File.Exists(indexHtml))
+// Fallback to the SPA shell for React routing (non-API, non-file routes).
+if (indexHtmlTemplate is not null)
 {
- app.MapFallbackToFile("/index.html");
- // x-blocks-key cookie
- // check if domain match
- // get google captch key BLOCKS_GOOGLE_SITE_KEY
- // Base Url
- // Construct URL
-
-
+    app.MapFallback(context => Api.Middleware.SpaShell.WriteAsync(context, indexHtmlTemplate));
 }
 
 ApplicationConfigurations.ConfigureMiddleware(app);
@@ -188,47 +183,57 @@ static void ApplyFrontendRuntimeSettings(IConfiguration configuration, string we
  // appsettings.{Environment}.json. Standard .NET config layering still applies, so
  // env vars named "FrontendRuntime__BLOCKS_*" override individual keys at deploy time.
  var section = configuration.GetSection("FrontendRuntime");
+
+ // The Mongo "Secrets" configuration source is added after the environment-variable source, so it
+ // wins standard layering and a "FrontendRuntime__BLOCKS_*" env var would otherwise be ignored.
+ // Read the env var first so the per-key override (used by run.ps1 for local dev) actually applies.
+ // Scoped to these tokens on purpose: it must not reshuffle global config precedence.
+ string? Resolve(string key) =>
+  Environment.GetEnvironmentVariable($"FrontendRuntime__{key}") is { Length: > 0 } fromEnv
+   ? fromEnv
+   : section[key];
+
  var replacements = new Dictionary<string, string?>
  {
-  ["__BLOCKS_X_BLOCKS_KEY__"] = section["BLOCKS_X_BLOCKS_KEY"],
-  ["__BLOCKS_GOOGLE_SITE_KEY__"] = section["BLOCKS_GOOGLE_SITE_KEY"],
-  ["__BLOCKS_CONSTRUCT_URL__"] = section["BLOCKS_CONSTRUCT_URL"],
-  ["__BLOCKS_GITHUB_SSO_CLIENT_ID__"] = section["BLOCKS_GITHUB_SSO_CLIENT_ID"],
-  ["__BLOCKS_IAM_BASE_URL__"] = section["BLOCKS_IAM_BASE_URL"],
-  ["__BLOCKS_OIDC_CLIENT_ID__"] = section["BLOCKS_OIDC_CLIENT_ID"],
-  ["__BLOCKS_BASE_DOMAIN__"] = section["BLOCKS_BASE_DOMAIN"],
-  ["__BLOCKS_IAM_CALLBACK_URL__"] = section["BLOCKS_IAM_CALLBACK_URL"],
-  ["__BLOCKS_LOCALIZATION_BASE_URL__"] = section["BLOCKS_LOCALIZATION_BASE_URL"],
-  ["__BLOCKS_LOCALIZATION_CALLBACK_URL__"] = section["BLOCKS_LOCALIZATION_CALLBACK_URL"],
-  ["__BLOCKS_AGENTS_BASE_URL__"] = section["BLOCKS_AGENTS_BASE_URL"],
-  ["__BLOCKS_AGENTS_CALLBACK_URL__"] = section["BLOCKS_AGENTS_CALLBACK_URL"],
-  ["__BLOCKS_DATA_BASE_URL__"] = section["BLOCKS_DATA_BASE_URL"],
-  ["__BLOCKS_DATA_CALLBACK_URL__"] = section["BLOCKS_DATA_CALLBACK_URL"],
-  ["__BLOCKS_OS_BASE_URL__"] = section["BLOCKS_OS_BASE_URL"],
-  ["__BLOCKS_OS_CALLBACK_URL__"] = section["BLOCKS_OS_CALLBACK_URL"],
-  ["__BLOCKS_UTILITIES_BASE_URL__"] = section["BLOCKS_UTILITIES_BASE_URL"],
-  ["__BLOCKS_UTILITIES_CALLBACK_URL__"] = section["BLOCKS_UTILITIES_CALLBACK_URL"],
-  ["__BLOCKS_LOGIC_BASE_URL__"] = section["BLOCKS_LOGIC_BASE_URL"],
-  ["__BLOCKS_LOGIC_CALLBACK_URL__"] = section["BLOCKS_LOGIC_CALLBACK_URL"],
-  ["__BLOCKS_MONITOR_BASE_URL__"] = section["BLOCKS_MONITOR_BASE_URL"],
-  ["__BLOCKS_MONITOR_CALLBACK_URL__"] = section["BLOCKS_MONITOR_CALLBACK_URL"],
-  ["__BLOCKS_RELEASE_BASE_URL__"] = section["BLOCKS_RELEASE_BASE_URL"],
-  ["__BLOCKS_RELEASE_CALLBACK_URL__"] = section["BLOCKS_RELEASE_CALLBACK_URL"],
-  ["__BLOCKS_STUDIO_BASE_URL__"] = section["BLOCKS_STUDIO_BASE_URL"],
-  ["__BLOCKS_STUDIO_CALLBACK_URL__"] = section["BLOCKS_STUDIO_CALLBACK_URL"],
-  ["__BLOCKS_DATA_CLIENT_ID__"] = section["BLOCKS_DATA_CLIENT_ID"],
-  ["__BLOCKS_IAM_CLIENT_ID__"] = section["BLOCKS_IAM_CLIENT_ID"],
-  ["__BLOCKS_LOCALIZATION_CLIENT_ID__"] = section["BLOCKS_LOCALIZATION_CLIENT_ID"],
-  ["__BLOCKS_AGENTS_CLIENT_ID__"] = section["BLOCKS_AGENTS_CLIENT_ID"],
-  ["__BLOCKS_OS_CLIENT_ID__"] = section["BLOCKS_OS_CLIENT_ID"],
-  ["__BLOCKS_UTILITIES_CLIENT_ID__"] = section["BLOCKS_UTILITIES_CLIENT_ID"],
-  ["__BLOCKS_LOGIC_CLIENT_ID__"] = section["BLOCKS_LOGIC_CLIENT_ID"],
-  ["__BLOCKS_RELEASE_CLIENT_ID__"] = section["BLOCKS_RELEASE_CLIENT_ID"],
-  ["__BLOCKS_MONITOR_CLIENT_ID__"] = section["BLOCKS_MONITOR_CLIENT_ID"],
-  ["__BLOCKS_STUDIO_CLIENT_ID__"] = section["BLOCKS_STUDIO_CLIENT_ID"],
-  ["__BLOCKS_ALLOWED_SERVICES__"] = section["BLOCKS_ALLOWED_SERVICES"],
-  ["__BLOCKS_ROLLBAR_CLIENT_TOKEN__"] = section["BLOCKS_ROLLBAR_CLIENT_TOKEN"],
-  ["__BLOCKS_ROLLBAR_ENV__"] = section["BLOCKS_ROLLBAR_ENV"],
+  ["__BLOCKS_X_BLOCKS_KEY__"] = Resolve("BLOCKS_X_BLOCKS_KEY"),
+  ["__BLOCKS_GOOGLE_SITE_KEY__"] = Resolve("BLOCKS_GOOGLE_SITE_KEY"),
+  ["__BLOCKS_CONSTRUCT_URL__"] = Resolve("BLOCKS_CONSTRUCT_URL"),
+  ["__BLOCKS_GITHUB_SSO_CLIENT_ID__"] = Resolve("BLOCKS_GITHUB_SSO_CLIENT_ID"),
+  ["__BLOCKS_IAM_BASE_URL__"] = Resolve("BLOCKS_IAM_BASE_URL"),
+  ["__BLOCKS_OIDC_CLIENT_ID__"] = Resolve("BLOCKS_OIDC_CLIENT_ID"),
+  ["__BLOCKS_BASE_DOMAIN__"] = Resolve("BLOCKS_BASE_DOMAIN"),
+  ["__BLOCKS_IAM_CALLBACK_URL__"] = Resolve("BLOCKS_IAM_CALLBACK_URL"),
+  ["__BLOCKS_LOCALIZATION_BASE_URL__"] = Resolve("BLOCKS_LOCALIZATION_BASE_URL"),
+  ["__BLOCKS_LOCALIZATION_CALLBACK_URL__"] = Resolve("BLOCKS_LOCALIZATION_CALLBACK_URL"),
+  ["__BLOCKS_AGENTS_BASE_URL__"] = Resolve("BLOCKS_AGENTS_BASE_URL"),
+  ["__BLOCKS_AGENTS_CALLBACK_URL__"] = Resolve("BLOCKS_AGENTS_CALLBACK_URL"),
+  ["__BLOCKS_DATA_BASE_URL__"] = Resolve("BLOCKS_DATA_BASE_URL"),
+  ["__BLOCKS_DATA_CALLBACK_URL__"] = Resolve("BLOCKS_DATA_CALLBACK_URL"),
+  ["__BLOCKS_OS_BASE_URL__"] = Resolve("BLOCKS_OS_BASE_URL"),
+  ["__BLOCKS_OS_CALLBACK_URL__"] = Resolve("BLOCKS_OS_CALLBACK_URL"),
+  ["__BLOCKS_UTILITIES_BASE_URL__"] = Resolve("BLOCKS_UTILITIES_BASE_URL"),
+  ["__BLOCKS_UTILITIES_CALLBACK_URL__"] = Resolve("BLOCKS_UTILITIES_CALLBACK_URL"),
+  ["__BLOCKS_LOGIC_BASE_URL__"] = Resolve("BLOCKS_LOGIC_BASE_URL"),
+  ["__BLOCKS_LOGIC_CALLBACK_URL__"] = Resolve("BLOCKS_LOGIC_CALLBACK_URL"),
+  ["__BLOCKS_MONITOR_BASE_URL__"] = Resolve("BLOCKS_MONITOR_BASE_URL"),
+  ["__BLOCKS_MONITOR_CALLBACK_URL__"] = Resolve("BLOCKS_MONITOR_CALLBACK_URL"),
+  ["__BLOCKS_RELEASE_BASE_URL__"] = Resolve("BLOCKS_RELEASE_BASE_URL"),
+  ["__BLOCKS_RELEASE_CALLBACK_URL__"] = Resolve("BLOCKS_RELEASE_CALLBACK_URL"),
+  ["__BLOCKS_STUDIO_BASE_URL__"] = Resolve("BLOCKS_STUDIO_BASE_URL"),
+  ["__BLOCKS_STUDIO_CALLBACK_URL__"] = Resolve("BLOCKS_STUDIO_CALLBACK_URL"),
+  ["__BLOCKS_DATA_CLIENT_ID__"] = Resolve("BLOCKS_DATA_CLIENT_ID"),
+  ["__BLOCKS_IAM_CLIENT_ID__"] = Resolve("BLOCKS_IAM_CLIENT_ID"),
+  ["__BLOCKS_LOCALIZATION_CLIENT_ID__"] = Resolve("BLOCKS_LOCALIZATION_CLIENT_ID"),
+  ["__BLOCKS_AGENTS_CLIENT_ID__"] = Resolve("BLOCKS_AGENTS_CLIENT_ID"),
+  ["__BLOCKS_OS_CLIENT_ID__"] = Resolve("BLOCKS_OS_CLIENT_ID"),
+  ["__BLOCKS_UTILITIES_CLIENT_ID__"] = Resolve("BLOCKS_UTILITIES_CLIENT_ID"),
+  ["__BLOCKS_LOGIC_CLIENT_ID__"] = Resolve("BLOCKS_LOGIC_CLIENT_ID"),
+  ["__BLOCKS_RELEASE_CLIENT_ID__"] = Resolve("BLOCKS_RELEASE_CLIENT_ID"),
+  ["__BLOCKS_MONITOR_CLIENT_ID__"] = Resolve("BLOCKS_MONITOR_CLIENT_ID"),
+  ["__BLOCKS_STUDIO_CLIENT_ID__"] = Resolve("BLOCKS_STUDIO_CLIENT_ID"),
+  ["__BLOCKS_ALLOWED_SERVICES__"] = Resolve("BLOCKS_ALLOWED_SERVICES"),
+  ["__BLOCKS_ROLLBAR_CLIENT_TOKEN__"] = Resolve("BLOCKS_ROLLBAR_CLIENT_TOKEN"),
+  ["__BLOCKS_ROLLBAR_ENV__"] = Resolve("BLOCKS_ROLLBAR_ENV"),
  };
 
 

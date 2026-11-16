@@ -109,6 +109,30 @@ class AlertsService {
     const url = `${ALERT_ENDPOINTS.GET_MONITOR_DOWN_TIME}?monitorId=${encodeURIComponent(payload.monitorId)}&startDate=${payload.startTime}&endDate=${payload.endTime}`;
     return this.httpClient.get<GetMonitorPingLogsResponse>(url);
   }
+  /**
+   * Downloads an uptime report. `monitorId` exports that monitor; otherwise every monitor of `projectKey`
+   * in the `monitorSourceType` tab. Resolves to the file; a 400/404 rejects with the server's message.
+   */
+  async exportUptimeReport(payload: {
+    format: "pdf" | "xlsx";
+    from: string;
+    to: string;
+    timeZone?: string;
+    monitorId?: string;
+    projectKey?: string;
+    monitorSourceType?: string | null;
+  }) {
+    const params = new URLSearchParams({
+      format: payload.format,
+      from: payload.from,
+      to: payload.to,
+    });
+    if (payload.timeZone) params.set("timeZone", payload.timeZone);
+    if (payload.monitorId) params.set("monitorId", payload.monitorId);
+    if (payload.projectKey) params.set("projectKey", payload.projectKey);
+    if (payload.monitorSourceType) params.set("monitorSourceType", payload.monitorSourceType);
+    return this.httpClient.get<Blob>(`${ALERT_ENDPOINTS.EXPORT_UPTIME_REPORT}?${params.toString()}`);
+  }
   async saveHealth(payload: ISaveHealth) {
     const url = ALERT_ENDPOINTS.SAVE_HEALTH;
     return this.httpClient.post<ISaveSingleHealthResponse>(url, payload);

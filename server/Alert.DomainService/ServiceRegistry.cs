@@ -8,6 +8,7 @@ using DomainService.Health.Services;
 using DomainService.Monitor.Models;
 using DomainService.Monitor.MonitorIncidentService;
 using DomainService.Monitor.MonitorSchedulingService;
+using DomainService.Monitor.Reports;
 using DomainService.Monitor.Services;
 using DomainService.Validators;
 using FluentValidation;
@@ -29,6 +30,7 @@ namespace Alert.DomainService
             services.AddSingleton<IMonitorQueueManager, MonitorQueueManager>();
             services.AddSingleton<IMonitorIncidentService, MonitorIncidentService>();
             services.AddSingleton<IMonitorIncidentRepoService, MonitorIncidentRepoService>();
+            services.AddSingleton<IUptimeReportService, UptimeReportService>();
             services.AddSingleton<IHttpHelperServices, HttpHelperServices>();
             services.AddSingleton<NotificationAlertService>();
             services.AddSingleton<AlertRepoService>();

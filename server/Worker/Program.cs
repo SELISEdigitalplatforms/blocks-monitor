@@ -22,9 +22,9 @@ IHostBuilder CreateHostBuilder(string[] args) =>
             builder.AddMongoDbConfiguration(options =>
             {
                 options.ConnectionString = secret.DatabaseConnectionString;
-                options.DatabaseName     = secret.RootDatabaseName;
-                options.CollectionName   = "Secrets";
-                options.SecretKey        = "blocks-secret-monitor";
+                options.DatabaseName = secret.RootDatabaseName;
+                options.CollectionName = "Secrets";
+                options.SecretKey = "blocks-secret-monitor";
             });
         })
         .ConfigureServices((services) =>

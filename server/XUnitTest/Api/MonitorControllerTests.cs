@@ -357,23 +357,20 @@ namespace XUnitTest.Api
         }
 
         [Fact]
-        public void ProgramLoadsReleaseSecretConfigurationBeforeMonitorConfiguration()
+        public void ProgramLoadsOnlyMonitorSecretConfigurationOnce()
         {
-            // Report source URLs already live in blocks-release secrets in deployed environments.
-            // Loading release config first makes those keys a fallback while keeping Monitor's own
-            // secret as the later, higher-priority provider.
+            // The Api reads its configuration from Monitor's own secret only; the blocks-release
+            // secret is no longer layered in as a fallback provider.
             var programPath = LocateProgramCs();
             var program = StripCommentsOnly(File.ReadAllText(programPath));
 
-            var releaseSecretIndex = program.IndexOf("options.SecretKey = \"blocks-secret-release\"",
-                                                     StringComparison.Ordinal);
-            var monitorSecretIndex = program.IndexOf("options.SecretKey = \"blocks-secret-monitor\"",
-                                                     StringComparison.Ordinal);
+            const string monitorSecret = "options.SecretKey = \"blocks-secret-monitor\"";
+            var firstMonitorIndex = program.IndexOf(monitorSecret, StringComparison.Ordinal);
 
-            releaseSecretIndex.Should().BeGreaterThan(-1);
-            monitorSecretIndex.Should().BeGreaterThan(-1);
-            releaseSecretIndex.Should().BeLessThan(monitorSecretIndex,
-                "release config must be the lower-priority fallback provider");
+            firstMonitorIndex.Should().BeGreaterThan(-1);
+            program.IndexOf(monitorSecret, firstMonitorIndex + 1, StringComparison.Ordinal)
+                .Should().Be(-1, "the monitor secret provider must be registered exactly once");
+            program.Should().NotContain("blocks-secret-release");
         }
 
         // ---------------------------------------------------------------------------------

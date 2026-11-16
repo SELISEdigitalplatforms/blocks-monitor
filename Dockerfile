@@ -56,7 +56,10 @@ ENV ASPNETCORE_ENVIRONMENT=Production \
 
 EXPOSE 5000
 
-RUN apk add --no-cache icu-libs wget
+# ttf-liberation: PDFsharp has no built-in fonts, so the uptime report PDF (Monitor/ExportUptimeReport) needs a
+# TrueType face on disk or it throws at the first glyph. tzdata: the report writes dates in the browser's IANA zone;
+# without it every FindSystemTimeZoneById misses on Alpine and the report silently falls back to UTC.
+RUN apk add --no-cache icu-libs wget ttf-liberation tzdata
 
 COPY --from=publish /app/publish .
 RUN chown -R app:app /app

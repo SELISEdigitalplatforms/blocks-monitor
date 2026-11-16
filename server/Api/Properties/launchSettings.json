@@ -11,6 +11,21 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "BLOCKS_VAULT_TYPE": "Azure"
       }
+    },
+    "Api (dev-monitor HTTPS)": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "https://dev-monitor.blocksdevelopers.com:5001",
+      "applicationUrl": "https://0.0.0.0:5001",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "BLOCKS_VAULT_TYPE": "Azure",
+        "Kestrel__Certificates__Default__Path": "%MONITOR_SSL_CERT%",
+        "Kestrel__Certificates__Default__KeyPath": "%MONITOR_SSL_KEY%",
+        "FrontendRuntime__BLOCKS_MONITOR_BASE_URL": "https://dev-monitor.blocksdevelopers.com:5001",
+        "FrontendRuntime__BLOCKS_MONITOR_CALLBACK_URL": "https://dev-monitor.blocksdevelopers.com:5001/login/callback"
+      }
     }
   }
 }
