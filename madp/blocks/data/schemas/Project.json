@@ -1,0 +1,519 @@
+{
+  "schemaName": "Project",
+  "collectionName": "blx_Projects",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "WorkspaceId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the owning Workspace."
+    },
+    {
+      "name": "ReaderIds",
+      "type": "String",
+      "isArray": true,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user ids that may read the row (server-stamped ACL)."
+    },
+    {
+      "name": "CreatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the creating actor, set by the function."
+    },
+    {
+      "name": "UpdatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the last writer, set by the function."
+    },
+    {
+      "name": "Name",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Name of the project."
+    },
+    {
+      "name": "ClientName",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Name of the client company."
+    },
+    {
+      "name": "ClientContact",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": true,
+      "isUniqueData": false,
+      "description": "Contact person at the client."
+    },
+    {
+      "name": "ClientIndustry",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Industry of the client."
+    },
+    {
+      "name": "ClientRegion",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Region of the client."
+    },
+    {
+      "name": "Status",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Lifecycle of the row. One of: active|deleting. Absent counts as active; project.delete sets deleting before the cascade."
+    },
+    {
+      "name": "BusinessHandedOverByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the person who handed Business over, set by the function."
+    },
+    {
+      "name": "Brief",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Short project brief."
+    },
+    {
+      "name": "NameSuggested",
+      "type": "Boolean",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "True when the name was suggested by the factory."
+    },
+    {
+      "name": "Stage",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Journey stage. One of: business|sanitization|requirements|scope|board|build|release|paused|abandoned."
+    },
+    {
+      "name": "ResumeTo",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Stage to resume to after a pause."
+    },
+    {
+      "name": "CurrentScopeVersion",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Number of the current ScopeVersion."
+    },
+    {
+      "name": "AssigneeUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the assigned person."
+    },
+    {
+      "name": "BusinessHandedOverAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Time Business was handed over."
+    },
+    {
+      "name": "SanitizationCompletedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Time Product sanitization was completed."
+    },
+    {
+      "name": "RequirementsConfirmedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Time requirements were confirmed."
+    },
+    {
+      "name": "RequirementsConfirmedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the person who approved the requirements, set by the function."
+    },
+    {
+      "name": "ScopeLockedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Time the scope was locked."
+    },
+    {
+      "name": "RepoProvider",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Git provider of the repository."
+    },
+    {
+      "name": "RepoOwner",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Owner of the repository."
+    },
+    {
+      "name": "RepoName",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Name of the repository."
+    },
+    {
+      "name": "RepoMode",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "How the repository is set up."
+    },
+    {
+      "name": "RepoVisibility",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Visibility of the repository."
+    },
+    {
+      "name": "RepoBranch",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Default branch of the repository."
+    },
+    {
+      "name": "RepoExisting",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Reference to an existing repository."
+    },
+    {
+      "name": "RepoNameEdited",
+      "type": "Boolean",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "True when the repository name was edited by hand."
+    },
+    {
+      "name": "IsExample",
+      "type": "Boolean",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "True for the example project."
+    },
+    {
+      "name": "SeedKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Stable seed key of an example record."
+    },
+    {
+      "name": "Rev",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Revision counter for conflict checks."
+    },
+    {
+      "name": "Goal",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "What the product should achieve, from the guided project start."
+    },
+    {
+      "name": "TargetUsers",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Who the product is for, from the guided project start."
+    },
+    {
+      "name": "AppUrl",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "http(s) address of the running app, from the guided project start."
+    },
+    {
+      "name": "WebsiteUrl",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Optional http(s) address of the client's official website, from the guided project start (at most 500 characters)."
+    },
+    {
+      "name": "LandingPageAddOn",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The Landing page add-on, JSON {choice:none|new|modify, answers, revision, savedAt, savedByUserId}; written by project.addon.landingPage.save."
+    },
+    {
+      "name": "LandingPageSection",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The Goals & requirements section 'Add-on: Landing page', JSON {revision, goals, requirements, generatedAt, confirmedAt, confirmedByUserId}; written by the requirements draft and project.addon.landingPage.confirm."
+    },
+    {
+      "name": "TestEnv",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "JSON string {available: yes|no|unsure, url?, accessHow?}: the test environment, from the guided project start."
+    },
+    {
+      "name": "RunInstructions",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "How to run the product, from the guided project start."
+    },
+    {
+      "name": "BlocksProjectRef",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Product Blocks OS tenant key. Server-owned in automatic Factory provisioning."
+    },
+    {
+      "name": "BlocksStageProjectRef",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Operator-owned actual Blocks stg tenant ID; never inferred from the dev ID."
+    },
+    {
+      "name": "BlocksProductionProjectRef",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Operator-owned actual Blocks prod tenant ID; never inferred from the dev ID."
+    },
+    {
+      "name": "BlocksProjectDomain",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "HTTPS development domain assigned by Blocks OS; server-owned."
+    },
+    {
+      "name": "BlocksProvisioningStatus",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Server-owned provisioning state: pending, creating, ready, needs-reconciliation."
+    },
+    {
+      "name": "BlocksProvisioningName",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Immutable unique OS project name used to reconcile uncertain CLI creation."
+    },
+    {
+      "name": "BlocksProvisioningAt",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO timestamp of provisioning claim or successful attachment; server-owned."
+    },
+    {
+      "name": "BlocksProvisioningError",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Safe operator-facing provisioning failure summary; no raw CLI output or credentials."
+    },
+    {
+      "name": "SetupAnswers",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "JSON object string: the guided project start's answers."
+    },
+    {
+      "name": "SetupStatus",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "State of the guided project start: draft or complete."
+    },
+    {
+      "name": "SetupMustHaves",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "JSON array string [{text, priority: must|should|could}]: what the product must do, from the Project setup windows."
+    },
+    {
+      "name": "SetupWorkflows",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "JSON array string of short \"who does what\" lines, from the Project setup windows."
+    },
+    {
+      "name": "SetupExclusions",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "JSON array string: what the project leaves out, from the Project setup windows."
+    },
+    {
+      "name": "SetupConstraints",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "JSON array string [{kind: deadline|budget|compliance|languages|integrations|other, text}], from the Project setup windows."
+    },
+    {
+      "name": "IntendedChanges",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Existing product: what should change, in the client's words, from the Project setup windows."
+    },
+    {
+      "name": "IntendedChangeTags",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Existing product: JSON array string of the picked kinds of change, from the Project setup windows."
+    },
+    {
+      "name": "ApprovalOwnerUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The workspace member who approves the result (user id), from the Project setup windows."
+    },
+    {
+      "name": "LiveProductJson",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Snapshot of what product.document read from the live product (JSON, src/domain/liveProduct.ts parseLiveProductSnapshot): repositories, environments with branches, addresses and head commits, modules, release history, what was left empty."
+    },
+    {
+      "name": "ChecksPolicy",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "What the engine does by itself when a change's own checks fail after its deploy, JSON {v:1, autoFixRounds: 0..2, autoRevert} (src/domain/changeChecks.ts checksPolicyOf; absent: 2 rounds, then put development back); written by cr.checksPolicy."
+    },
+    {
+      "name": "ParallelStreams",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "How many independent change requests build side by side, JSON {v:1, chosen: 1..5, suggested: 1..5, reason, by, at} (src/domain/parallelStreams.ts parseStreamsChoice; absent: 1, one build at a time); written by cr.parallelStreams."
+    },
+    {
+      "name": "StreamsAdvice",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "What the engine host allows for parallel streams, JSON {v:1, cap: 1..5, why, repos, at} (src/domain/parallelStreams.ts parseStreamsAdvice): its repositories ready for separate working copies and its environment's limits on check runs; written by the engine (change.analyse, change.build)."
+    },
+    {
+      "name": "ContinueIncrements",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Continue with the next increment of a feature when its checks pass on development, JSON {v:1, on, by, at} (src/domain/continueIncrements.ts parseContinueSetting; absent: off, every increment waits for a person); written by cr.continueIncrements."
+    },
+    {
+      "name": "RequestKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Idempotency key <op>:<requestId>[:<n>], set by the server; unique index."
+    }
+  ]
+}

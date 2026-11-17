@@ -1,0 +1,135 @@
+{
+  "schemaName": "CreditEntry",
+  "collectionName": "blx_CreditEntries",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "CreatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the creating actor, set by the function."
+    },
+    {
+      "name": "UpdatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the last writer, set by the function."
+    },
+    {
+      "name": "WorkspaceId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The organization whose credit moves."
+    },
+    {
+      "name": "UserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The person the entry is for (the requester of a job, the redeemer, the asker)."
+    },
+    {
+      "name": "ProjectId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Project of a usage entry."
+    },
+    {
+      "name": "JobId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "EngineJob of a usage entry (one usage entry per job: RequestKey usage:<JobId>)."
+    },
+    {
+      "name": "Kind",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "signup|plan|coupon|purchase|usage|adjustment."
+    },
+    {
+      "name": "AmountUsd",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "USD with two decimals: + grant, - usage."
+    },
+    {
+      "name": "AmountCents",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The same amount in integer cents (what balances are summed from)."
+    },
+    {
+      "name": "Tokens",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Tokens of a usage entry."
+    },
+    {
+      "name": "Note",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Reason or description."
+    },
+    {
+      "name": "At",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO time of the movement."
+    },
+    {
+      "name": "CouponCode",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Coupon.Code of a coupon entry."
+    },
+    {
+      "name": "PlanKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Plan.Key of a plan entry."
+    },
+    {
+      "name": "DetailJson",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Usage detail JSON {tokens:{in,out,cacheRead,cacheWrite,total}, costUsd, models, priceFactor}."
+    },
+    {
+      "name": "RequestKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Idempotency key, set by the server; unique index."
+    }
+  ]
+}

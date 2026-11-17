@@ -1,0 +1,1148 @@
+{
+  "$comment": "Source of blocks/data/rules.json. Edit here, then run node scripts/data-rules.mjs; never edit rules.json by hand.",
+  "version": 1,
+  "roles": {
+    "service": "mf-service",
+    "superAdmin": "mf-super-admin"
+  },
+  "schemas": [
+    {
+      "schemaName": "Account",
+      "scope": "user",
+      "read": [
+        "own:UserId",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "AgentChatMessage",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "AiAccount",
+      "scope": "platform",
+      "read": [
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "ApprovalPolicy",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "ApprovalRequest",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "ApprovalStep",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "AssistantMessage",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Attachment",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "AuditEvent",
+      "scope": "audit",
+      "read": [
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Board",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Challenge",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "ChangeRequest",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "ChangeRequestAttachment",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Clarification",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "EngineHost",
+      "scope": "platform",
+      "read": [
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "EngineHostSample",
+      "scope": "platform",
+      "read": [
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "RequirementExtra",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Decision",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "DesignBrief",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "DesignScreen",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "DocFile",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "DocFolder",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "DocNote",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "EngineJob",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Feature",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "FeedbackComment",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "FeedbackThread",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Invitation",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "ItemVersion",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Membership",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Milestone",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Notification",
+      "scope": "user",
+      "read": [
+        "own:RecipientUserId",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Objective",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Operation",
+      "scope": "service",
+      "read": [
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "PlatformRole",
+      "scope": "platform",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "PlatformRoleAssignment",
+      "scope": "platform",
+      "read": [
+        "acl",
+        "own:UserId",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "PlatformSetting",
+      "scope": "platform",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Preview",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Project",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "ProjectAnswer",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "ProjectAssignment",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Release",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Requirement",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "ScopeVersion",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "SecondOpinion",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Share",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "ShareLink",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Story",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Suggestion",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "SetupSuggestion",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "TechDecision",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Ticket",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "TicketEvent",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "WikiPage",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "WikiPageHistory",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Workspace",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "WorkspaceRole",
+      "scope": "workspace",
+      "read": [
+        "acl",
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Coupon",
+      "scope": "platform",
+      "read": [
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "CreditEntry",
+      "scope": "platform",
+      "read": [
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Plan",
+      "scope": "platform",
+      "read": [
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "PurchaseRequest",
+      "scope": "platform",
+      "read": [
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Subscription",
+      "scope": "platform",
+      "read": [
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "Payment",
+      "scope": "platform",
+      "read": [
+        "super-admin",
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    },
+    {
+      "schemaName": "SignUp",
+      "scope": "platform",
+      "read": [
+        "service"
+      ],
+      "write": [
+        "service"
+      ],
+      "edit": [
+        "service"
+      ],
+      "delete": [
+        "service"
+      ]
+    }
+  ]
+}

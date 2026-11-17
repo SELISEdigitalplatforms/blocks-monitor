@@ -1,0 +1,116 @@
+[
+  {
+    "$key": "step-stage-architect",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "ParentId": "ApprovalPolicy:policy-stage"
+    },
+    "ParentType": "policy",
+    "StepKey": "architect",
+    "StepType": "architect",
+    "Label": "Architect",
+    "Required": true,
+    "$user": {
+      "ApproverUserIds": [
+        "qa-a"
+      ]
+    },
+    "Decision": "",
+    "SortOrder": 1
+  },
+  {
+    "$key": "step-stage-security",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "ParentId": "ApprovalPolicy:policy-stage"
+    },
+    "ParentType": "policy",
+    "StepKey": "security",
+    "StepType": "security",
+    "Label": "Security",
+    "Required": true,
+    "$user": {
+      "ApproverUserIds": [
+        "qa-b"
+      ]
+    },
+    "Decision": "",
+    "SortOrder": 2
+  },
+  {
+    "$key": "step-stage-qa",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "ParentId": "ApprovalPolicy:policy-stage"
+    },
+    "ParentType": "policy",
+    "StepKey": "qa",
+    "StepType": "qa",
+    "Label": "QA tester",
+    "Required": false,
+    "$user": {
+      "ApproverUserIds": [
+        "qa-b"
+      ]
+    },
+    "Decision": "",
+    "SortOrder": 3
+  },
+  {
+    "$key": "step-production-architect",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "ParentId": "ApprovalPolicy:policy-production"
+    },
+    "ParentType": "policy",
+    "StepKey": "architect",
+    "StepType": "architect",
+    "Label": "Architect",
+    "Required": true,
+    "$user": {
+      "ApproverUserIds": [
+        "qa-a"
+      ]
+    },
+    "Decision": "",
+    "SortOrder": 1
+  },
+  {
+    "$key": "step-production-security",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "ParentId": "ApprovalPolicy:policy-production"
+    },
+    "ParentType": "policy",
+    "StepKey": "security",
+    "StepType": "security",
+    "Label": "Security",
+    "Required": true,
+    "$user": {
+      "ApproverUserIds": [
+        "qa-b"
+      ]
+    },
+    "Decision": "",
+    "SortOrder": 2
+  },
+  {
+    "$key": "step-production-qa",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "ParentId": "ApprovalPolicy:policy-production"
+    },
+    "ParentType": "policy",
+    "StepKey": "qa",
+    "StepType": "qa",
+    "Label": "QA tester",
+    "Required": true,
+    "$user": {
+      "ApproverUserIds": [
+        "qa-b"
+      ]
+    },
+    "Decision": "",
+    "SortOrder": 3
+  }
+]

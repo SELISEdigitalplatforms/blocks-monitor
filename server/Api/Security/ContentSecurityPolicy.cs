@@ -69,6 +69,15 @@ public static class ContentSecurityPolicy
         return indexHtmlTemplate.Replace(StyleNoncePlaceholder, nonce, StringComparison.Ordinal);
     }
 
+    /// <summary>MADP is an isolated same-origin document; its runtime charts and dialogs inject styles.</summary>
+    public static string ForMadpFrame(string shellPolicy)
+    {
+        var directives = shellPolicy.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(d => d.StartsWith("style-src ", StringComparison.Ordinal) ? "style-src 'self' 'unsafe-inline'"
+                : d.StartsWith("frame-ancestors ", StringComparison.Ordinal) ? "frame-ancestors 'self'" : d);
+        return string.Join("; ", directives) + "; worker-src 'self' blob:; frame-src 'self' blob:;";
+    }
+
     public static string Build(IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);

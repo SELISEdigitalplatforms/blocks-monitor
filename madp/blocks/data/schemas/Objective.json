@@ -1,0 +1,135 @@
+{
+  "schemaName": "Objective",
+  "collectionName": "blx_Objectives",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "WorkspaceId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the owning Workspace."
+    },
+    {
+      "name": "ReaderIds",
+      "type": "String",
+      "isArray": true,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Server-stamped ACL: IAM user ids that may read the row."
+    },
+    {
+      "name": "CreatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the creating actor, set by the function."
+    },
+    {
+      "name": "UpdatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the last writer."
+    },
+    {
+      "name": "ProjectId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the owning Project."
+    },
+    {
+      "name": "Statement",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The project objective statement."
+    },
+    {
+      "name": "AcceptanceCriteria",
+      "type": "String",
+      "isArray": true,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Acceptance criteria, one statement per entry."
+    },
+    {
+      "name": "HighLevelMd",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "High-level description in Markdown."
+    },
+    {
+      "name": "ArchitectureMd",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Architecture description in Markdown."
+    },
+    {
+      "name": "SpecVersion",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Version of 'Requirements & objective' this row belongs to."
+    },
+    {
+      "name": "Status",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Objective status. One of: draft|confirmed."
+    },
+    {
+      "name": "ConfirmedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the confirmer."
+    },
+    {
+      "name": "ConfirmedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "When the objective was confirmed."
+    },
+    {
+      "name": "Origin",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Empty for the Factory's own records; \"live-product\" when product.document documented the record from the live product's code and documents (src/domain/liveProduct.ts)."
+    },
+    {
+      "name": "RequestKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Idempotency key <op>:<requestId>[:<n>], set by the server; unique index."
+    },
+    {
+      "name": "SeedKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Seed key <workspaceId>:<scenario>:<key> of an example record, stamped by the server; unique index."
+    }
+  ]
+}

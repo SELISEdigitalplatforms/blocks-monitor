@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --port 4001 --host",
     "local": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && npm run build:madp",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
@@ -15,7 +15,9 @@
     "lint": "eslint \"app/**/*.{ts,tsx}\"",
     "lint:fix": "eslint \"app/**/*.{ts,tsx}\" --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "build:madp": "node ../scripts/build-madp.mjs",
+    "predev": "npm run build:madp"
   },
   "lint-staged": {
     "app/**/*.{ts,tsx}": "eslint --max-warnings 0"

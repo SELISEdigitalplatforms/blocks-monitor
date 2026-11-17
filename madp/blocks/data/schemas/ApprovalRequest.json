@@ -1,0 +1,127 @@
+{
+  "schemaName": "ApprovalRequest",
+  "collectionName": "blx_ApprovalRequests",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "WorkspaceId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the owning Workspace."
+    },
+    {
+      "name": "ReaderIds",
+      "type": "String",
+      "isArray": true,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Server-stamped ACL: IAM user ids that may read the row."
+    },
+    {
+      "name": "CreatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the creating actor, set by the function."
+    },
+    {
+      "name": "UpdatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the last writer."
+    },
+    {
+      "name": "ProjectId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the Project this row belongs to."
+    },
+    {
+      "name": "PolicyId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the ApprovalPolicy."
+    },
+    {
+      "name": "Environment",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Guarded environment. One of: stage|production."
+    },
+    {
+      "name": "Version",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Version awaiting approval."
+    },
+    {
+      "name": "Attempt",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Attempt number."
+    },
+    {
+      "name": "ReleaseId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the Release."
+    },
+    {
+      "name": "Status",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Request status. One of: pending|approved|rejected|cancelled."
+    },
+    {
+      "name": "RequestedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the requester."
+    },
+    {
+      "name": "RequestedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "When approval was requested."
+    },
+    {
+      "name": "DecidedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "When the request was decided."
+    },
+    {
+      "name": "RequestKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Idempotency key <op>:<requestId>[:<n>], set by the server; unique index."
+    }
+  ]
+}

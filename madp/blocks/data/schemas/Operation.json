@@ -1,0 +1,103 @@
+{
+  "schemaName": "Operation",
+  "collectionName": "blx_Operations",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "CreatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the creating actor, set by the function."
+    },
+    {
+      "name": "UpdatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the last writer, set by the function."
+    },
+    {
+      "name": "RequestId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Client request id used for idempotency."
+    },
+    {
+      "name": "Op",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Name of the operation."
+    },
+    {
+      "name": "WorkspaceId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the Workspace the operation ran in."
+    },
+    {
+      "name": "ProjectId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the Project the operation touched, if any."
+    },
+    {
+      "name": "ActorUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the acting user."
+    },
+    {
+      "name": "Status",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Operation state. One of: pending|done|failed."
+    },
+    {
+      "name": "ResultJson",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "JSON result stored for replays."
+    },
+    {
+      "name": "ErrorCode",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Error code when the operation failed."
+    },
+    {
+      "name": "Attempt",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Number of attempts so far."
+    },
+    {
+      "name": "RequestKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Idempotency key <op>:<requestId>[:<n>], set by the server; unique index."
+    }
+  ]
+}

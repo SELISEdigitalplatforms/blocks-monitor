@@ -1,0 +1,68 @@
+[
+  {
+    "$key": "note-scratch-pad",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "FolderId": "",
+    "Title": "Scratch pad",
+    "BodyMd": "- Mobile first: most restaurant owners order on their phone, late in the evening\n- Minimum order CHF 150 per delivery\n- ERP import every evening at 18:30\n- First scope to Jonas by end of next week",
+    "SortOrder": 0,
+    "IsScratchPad": true
+  },
+  {
+    "$key": "note-email-thread",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "FolderId": "DocFolder:folder-correspondence"
+    },
+    "Title": "RE: Online ordering for our customers (6 emails, 12-16 Oct)",
+    "BodyMd": "## Email 1 of 6\n\n**From:** Jonas Meier\n**To:** SELISE delivery team\n**Date:** 12 Oct\n**Time:** 16:40\n**Subject:** Online ordering for our customers\n\nHello,\n\nThank you for the good conversation at the Gastro fair. As promised, here is a short summary of where we stand.\n\nAbout 180 business customers order from us: restaurants, hotels, delis and small shops. Today they fill in our Excel order sheet and email it to our order desk, around 350 orders a week.\n\nOur order desk retypes every sheet into our ERP. That is roughly 25 hours a week, and every week a few orders go wrong: wrong quantities, missed items, or sheets that arrive after the cut-off.\n\nWe would like our customers to order online instead. Can you help us with that?\n\nBest regards,  \nJonas Meier  \nHead of Operations, Alpine Fresh AG, Zurich\n\n---\n\n## Email 2 of 6\n\n**From:** SELISE delivery team\n**To:** Jonas Meier\n**Date:** 13 Oct\n**Time:** 09:12\n**Subject:** RE: Online ordering for our customers\n\nHi Jonas,\n\nThank you, that is very clear, and yes: this is exactly the kind of tool we build.\n\nSo we can prepare: what should your customers be able to do online? Do prices differ per customer? And where do the orders need to end up?\n\nKind regards,  \nSELISE delivery team\n\n---\n\n## Email 3 of 6\n\n**From:** Jonas Meier\n**To:** SELISE delivery team\n**Date:** 13 Oct\n**Time:** 14:05\n**Subject:** RE: Online ordering for our customers\n\nHello,\n\nEvery customer has their own price list and only sees the items we deliver to them, about 2,400 articles in total: fruit and vegetables, dairy, meat and dry goods.\n\nThey should put an order together, send it, and repeat a previous order without typing everything again.\n\nThe orders must end up in our ERP. Today we import a CSV file every evening at 18:30.\n\nAnd customers keep calling to ask where their delivery is. If they could see the status themselves, that would save my team a lot of phone time.\n\nJonas\n\n---\n\n## Email 4 of 6\n\n**From:** SELISE delivery team\n**To:** Jonas Meier\n**Date:** 14 Oct\n**Time:** 10:30\n**Subject:** RE: Online ordering for our customers\n\nHi Jonas,\n\nGreat, thank you. Could you send me your current order form and two examples of the Excel sheet? It would also help to know your timeline and the budget you have in mind.\n\nShall we have a short call on Friday afternoon?\n\nSELISE delivery team\n\n---\n\n## Email 5 of 6\n\n**From:** Jonas Meier\n**To:** SELISE delivery team\n**Date:** 15 Oct\n**Time:** 08:47\n**Subject:** RE: Online ordering for our customers\n\nHello,\n\nAttached are our order form and two screenshots of the Excel sheet our customers use.\n\nOn timing: we would like to go live before the Christmas season. Our peak starts mid-November.\n\nFriday at 15:00 works. I will bring Petra Huber, who leads our order desk.\n\nJonas\n\n**Attachments:** Alpine Fresh order form.pdf, Excel order sheet 1.png, Excel order sheet 2.png\n\n---\n\n## Email 6 of 6\n\n**From:** Jonas Meier\n**To:** SELISE delivery team\n**Date:** 16 Oct\n**Time:** 11:20\n**Subject:** RE: Online ordering for our customers\n\nHello,\n\nOne more thing before our call: most restaurant owners order on their phone, late in the evening after service. It has to work well on a phone.\n\nSee you at 15:00.  \nJonas",
+    "SortOrder": 1,
+    "IsScratchPad": false
+  },
+  {
+    "$key": "note-call-16-oct",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "FolderId": "DocFolder:folder-meetings"
+    },
+    "Title": "Call notes 16 Oct",
+    "BodyMd": "Call with Alpine Fresh · 16 Oct · 15:00–15:40  \nJonas Meier (Head of Operations), Petra Huber (order desk lead), me\n\n- Most customers order almost the same every week. \"Repeat last order\" is the number one wish.\n- Order desk = 4 people. They must be able to change an order before 18:00, e.g. when an item is out of stock.\n- Delivery days by route, as on the order form (most customers get 2–3 deliveries a week).\n- Customers want to see when the truck has left and when the order was delivered.\n- Confirmation email after every order, to the customer and the order desk.\n- Budget: around CHF 20'000 for the first version, confirmed by their CFO.\n- Payment, Jonas: \"All our customers are on a monthly invoice, and that stays.\"\n- Sign-in: not clear yet if one login per customer or per person (chef, owner).\n- Delivery time windows: some hotels want a slot before 7:00, for breakfast.\n- Next: first scope to Jonas by end of next week.",
+    "SortOrder": 1,
+    "IsScratchPad": false
+  },
+  {
+    "$key": "note-whiteboard-flow",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "FolderId": "DocFolder:folder-meetings"
+    },
+    "Title": "Whiteboard order flow (call 16 Oct)",
+    "BodyMd": "1. Customer logs in\n2. Picks items or repeats the last order\n3. Sends the order before 18:00\n4. Confirmation e-mail\n5. Order desk checks\n6. Customer sees status: received → picked → on the way → delivered\n\nNotes on the board:\n\n- Mobile!!\n- Min. order CHF 150\n- Export to ERP 18:30",
+    "SortOrder": 2,
+    "IsScratchPad": false
+  },
+  {
+    "$key": "note-order-form",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "FolderId": "DocFolder:folder-customer-documents"
+    },
+    "Title": "Alpine Fresh order form and ordering rules",
+    "BodyMd": "## Order form\n\nAlpine Fresh AG · Fresh food wholesale · Zurich  \nCustomer number · Customer name · Delivery address  \nDelivery day · Ordered by · Phone  \nArt. no. · Article · Unit · Quantity · Comment  \nPlease email the completed form to the order desk.\n\n## Ordering rules\n\n- Order cut-off: 18:00. Orders received after 18:00 are delivered on the next possible delivery day.\n- Delivery days per route: Zurich City Mon, Wed, Fri · Winterthur Tue, Thu.\n- Minimum order value: CHF 150.00 per delivery. Below that, a delivery fee of CHF 25.00 applies.\n- Changes to a sent order are possible until 18:00 by phone to the order desk.\n- Prices according to your personal price list, excluding VAT.\n- Fresh goods can only be returned on the day of delivery.",
+    "SortOrder": 1,
+    "IsScratchPad": false
+  },
+  {
+    "$key": "note-order-sheets",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "FolderId": "DocFolder:folder-customer-documents"
+    },
+    "Title": "Excel order sheets: Restaurant Lindenhof and Hotel Seeblick",
+    "BodyMd": "**Order week 42 · Restaurant Lindenhof · Customer 10482**\n\n| Art. no. | Article | Unit | Qty | Price CHF | Delivery |\n| --- | --- | --- | --- | --- | --- |\n| 10021 | Cherry tomatoes | kg | 6 | 8.40 | Tue · Winterthur |\n| 10057 | Iceberg lettuce | piece | 24 | 1.35 | Tue · Winterthur |\n| 20114 | Whole milk 1 l | piece | 40 | 1.45 | Tue · Winterthur |\n| 20230 | Butter 1 kg | piece | 6 | 11.90 | Tue · Winterthur |\n| 30412 | Beef entrecôte | kg | 8 | 54.00 | Tue · Winterthur |\n| 40008 | Arborio rice 5 kg | piece | 2 | 17.50 | Tue · Winterthur |\n\nHandwritten note: Same as last week, plus 2 kg tomatoes.\n\n---\n\n**Order 14 Oct · Hotel Seeblick · Customer 10917**\n\n| Art. no. | Article | Unit | Qty | Price CHF | Delivery |\n| --- | --- | --- | --- | --- | --- |\n| 10021 | Cherry tomatoes | kg | 10 | 8.20 | Wed · Zurich City |\n| 10102 | Fresh herbs mix | box | 4 | 6.90 | Wed · Zurich City |\n| 20114 | Whole milk 1 l | piece | 120 | 1.40 | Wed · Zurich City |\n| 20871 | Greek yoghurt 1 kg | piece | 18 | 5.60 | Wed · Zurich City |\n| 50033 | Croissants, frozen (60) | box | 3 | 39.00 | Wed · Zurich City |\n\nHandwritten note: Delivery before 7:00 please (breakfast).",
+    "SortOrder": 2,
+    "IsScratchPad": false
+  }
+]

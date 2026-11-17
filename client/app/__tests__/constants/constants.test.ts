@@ -18,7 +18,7 @@ import {
 } from "@/constants/endpoint.constant";
 import { tStatic } from "@seliseblocks/genesis-os/i18n";
 import { getNavigationMenus } from "@/constants/navigation-menus.constant";
-import { Mail } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { MONITOR_TABS, parseAsMonitorTabKey } from "@/constants/monitor.constant";
 
 describe("alert.constant", () => {
@@ -81,28 +81,26 @@ describe("navigation constants", () => {
   const navigationMenus = getNavigationMenus((key) => tStatic("monitor.shared", key));
 
   it("provides navigation menu entries", () => {
-    const menu = navigationMenus.find((m) => m.id === "monitor");
-    expect(menu?.path).toBe("/app/monitor");
+    const menu = navigationMenus.find((m) => m.id === "madp");
+    expect(menu?.path).toBe("/app/madp");
     expect(navigationMenus.some((m) => m.type === "separator")).toBe(true);
   });
 
-  it("orders the menu Monitor, Alert recipients, Repos (#256 H1)", () => {
+  it("opens MADP and keeps Blocks project and repository navigation", () => {
     const ids = navigationMenus.filter((m) => m.type === "menu").map((m) => m.id);
-    const monitorIdx = ids.indexOf("monitor");
-    expect(ids.slice(monitorIdx, monitorIdx + 3)).toEqual(["monitor", "alert-recipients", "repos"]);
+    expect(ids).toEqual(["madp", "blocks-overview", "repos", "environments"]);
     const repos = navigationMenus.find((m) => m.id === "repos");
-    expect(repos?.path).toBe("/app/repos");
+    expect(repos?.path).toBe("/app/repositories");
     expect(repos?.name).toBe("Repos");
   });
 
-  it("adds an Alert recipients item with the mail icon (#256 H1)", () => {
-    const item = navigationMenus.find((m) => m.id === "alert-recipients");
+  it("labels the MADP workspace", () => {
+    const item = navigationMenus.find((m) => m.id === "madp");
     expect(item).toMatchObject({
       type: "menu",
-      name: "Alert recipients",
-      // Same path style as /app/monitor: the shell scopes it to /app/{projectId}/alert-recipients.
-      path: "/app/alert-recipients",
-      icon: Mail,
+      name: "MADP",
+      path: "/app/madp",
+      icon: Sparkles,
     });
   });
 });

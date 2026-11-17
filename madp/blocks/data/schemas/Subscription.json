@@ -1,0 +1,151 @@
+{
+  "schemaName": "Subscription",
+  "collectionName": "blx_Subscriptions",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "CreatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the creating actor, set by the function."
+    },
+    {
+      "name": "UpdatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the last writer, set by the function."
+    },
+    {
+      "name": "WorkspaceId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The organization (workspace) the subscription belongs to; unique."
+    },
+    {
+      "name": "PlanKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Plan.Key of the plan."
+    },
+    {
+      "name": "Status",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "active|pending|cancelled."
+    },
+    {
+      "name": "StartedAt",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO time the plan started."
+    },
+    {
+      "name": "RenewsAt",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO time of the next renewal (empty for Free)."
+    },
+    {
+      "name": "CurrentPeriodStart",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO start of the current paid period."
+    },
+    {
+      "name": "PaidThroughAt",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO instant a code pays the plan through (renewals before it are paid by the code)."
+    },
+    {
+      "name": "CancelAtPeriodEnd",
+      "type": "Boolean",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "True: the plan ends on RenewsAt and the organization moves to Free."
+    },
+    {
+      "name": "NextPlanKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "A downgrade taking effect on RenewsAt (empty: none)."
+    },
+    {
+      "name": "Provider",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Payment provider of the plan: coupon|blocks (empty: none)."
+    },
+    {
+      "name": "ProviderRef",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The provider's subscription reference; never a secret."
+    },
+    {
+      "name": "CouponCode",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The code that pays or discounts the plan (empty: none)."
+    },
+    {
+      "name": "DiscountUntil",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO instant a partial discount applies to renewals through (card payments)."
+    },
+    {
+      "name": "StatusNote",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Plain notice shown with the status (e.g. why it is past due)."
+    },
+    {
+      "name": "PastDueSince",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO instant the plan became past due (empty otherwise)."
+    },
+    {
+      "name": "RequestKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Idempotency key, set by the server; unique index."
+    }
+  ]
+}

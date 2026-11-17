@@ -237,3 +237,9 @@ deploy.log
 
 # --- local architecture notes (never commit) ---
 doc/
+
+# Internal MADP runtime output and private engine state.
+/madp/dist-server/
+/madp/data/
+/madp/.vite-cache/
+/madp/functions/.dist/

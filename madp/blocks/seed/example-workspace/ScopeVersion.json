@@ -1,0 +1,13 @@
+[
+  {
+    "$key": "scope-v1",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "Number": 1,
+    "Title": "First draft",
+    "Summary": "The first scope covers the customer catalogue with own prices, building and repeating orders before the 18:00 cut-off, confirmation emails, order desk changes, the nightly ERP export and delivery status. Delivery time windows are kept for later.",
+    "Status": "draft",
+    "PlanHours": 13
+  }
+]

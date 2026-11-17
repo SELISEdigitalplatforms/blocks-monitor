@@ -1,0 +1,6 @@
+{
+  "name": "mf-verify-email",
+  "language": "en-US",
+  "subject": "Confirm your email for MADP Factory",
+  "bodyFile": "mf-verify-email.en-US.html"
+}

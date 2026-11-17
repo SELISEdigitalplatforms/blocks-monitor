@@ -1,0 +1,103 @@
+{
+  "schemaName": "AiAccount",
+  "collectionName": "blx_AiAccounts",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "Label",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The account's name on the engine host (its folder under MF_AI_ACCOUNTS_DIR, or api-key). Never a credential, an e-mail address or a path."
+    },
+    {
+      "name": "Provider",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "claude-subscription | anthropic-api."
+    },
+    {
+      "name": "Status",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "active (in rotation) | standby (only when no active account can) | cooling (the engine rests it until ResetsAt) | disabled (never used). People set active, standby or disabled; the engine sets cooling."
+    },
+    {
+      "name": "Usage5hPercent",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Share of the 5-hour window used, 0..100, as the engine last measured it; -1 = not measured yet."
+    },
+    {
+      "name": "Usage7dPercent",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Share of the 7-day window used, 0..100; -1 = not measured yet."
+    },
+    {
+      "name": "ResetsAt",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO time the binding window resets (or the rest ends); empty when unknown."
+    },
+    {
+      "name": "LastUsedAt",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO time a lane last started or ended on the account."
+    },
+    {
+      "name": "Priority",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Order among accounts with equal headroom: lower first (default 100)."
+    },
+    {
+      "name": "Note",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "People's note (plain text, no credentials)."
+    },
+    {
+      "name": "HostId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The engine host the account lives on (EngineHost.HostId)."
+    },
+    {
+      "name": "OnHost",
+      "type": "Boolean",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "False when the account's folder is no longer on the host (the row is kept)."
+    },
+    {
+      "name": "RequestKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Idempotency key, set by the engine worker (engine-host:<HostId>, engine-sample:<HostId>:<minute>, ai-account:<HostId>:<Label>); unique index."
+    }
+  ]
+}

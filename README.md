@@ -1,4 +1,63 @@
-# Blocks Monitor
+# Blocks MADP shell
+
+Selecting a project in the Blocks console opens its MADP workflow inside the existing Blocks sidebar and header. Blocks owns sign-in, project selection, environments, and repository connections. The retained .NET backend supplies runtime configuration, validates the Blocks session, and forwards authenticated requests to the internal MADP workflow service.
+
+MADP is built separately in `madp/` to preserve React 18 / Tailwind 3 alongside the shell's React 19 / Tailwind 4. Both frontends are served from the shell's origin. The internal Node service does not provide another login and does not start an engine worker.
+
+## Local startup
+
+Follow the existing Windows environment guide in `doc/BLOCKS_OS_APP_SETUP.md`: the `blocks-server` VPN profile, Azure development vault access, trusted local HTTPS certificate, and hosts entry must already be available. Use Node 24 and .NET 10.
+
+```powershell
+npm.cmd --prefix client install
+npm.cmd --prefix madp ci
+# Use the existing private factory environment, or configure madp/.env.local from madp/.env.example.
+node scripts/run-madp-shell.mjs --factory-env '<existing MADP frontend>/.env.local' --check
+node scripts/run-madp-shell.mjs --factory-env '<existing MADP frontend>/.env.local'
+```
+
+The launcher checks ports 4001, 5001, and 5311, builds MADP, and starts Vite, the development .NET API, and the internal Node service. It shares configured server keys or generates temporary keys in process memory. It does not copy private credentials into this repository or start another owner engine. Stop it with Ctrl+C. Existing processes on those ports must be identified before restarting them.
+
+Open **https://dev-monitor.blocksdevelopers.com:4001**. Sign in through Blocks and select a project. MADP uses that verified identity and selected tenant; there is no additional workspace login or browser-local project association picker. The first visit creates workflow metadata idempotently, or resolves an existing `Project.BlocksProjectRef` association, without provisioning a new Blocks tenant.
+
+The project repository window retains MADP's new-product/existing-product choice before analysis begins. The server requires edit permission and rejects changes after handover or while project jobs are active. Expired API sessions refresh through the parent Blocks SDK and retry once with the original request body; no bearer tokens cross the iframe boundary.
+
+## Service configuration
+
+| Component | Setting | Purpose |
+| --- | --- | --- |
+| Vite | `BLOCKS_MADP_GATEWAY_URL` | .NET gateway, normally `http://localhost:5001`; never the Node origin |
+| .NET | `Madp__ApiBaseUrl` | Internal Node origin, normally `http://127.0.0.1:5311`; remote targets require HTTPS |
+| .NET | `Madp__PublicOrigin` | Exact browser origin, including the local port |
+| .NET / Node | `Madp__BridgeKey` / `MF_BLOCKS_SHELL_KEY` | Same server-only random key of at least 32 bytes |
+| Node | `MF_BLOCKS_SHELL_ENABLED=1` | Require the authenticated Blocks bridge |
+| Node | `MF_APP_ORIGIN`, `MF_INTERNAL_HOST` | Internal expected origin and optional private ingress Host |
+| Node | `MF_BLOCKS_TENANT`, `MF_SVC_CLIENT_ID`, `MF_SVC_CLIENT_SECRET`, `VITE_BLOCKS_API_URL` | Existing factory Data Gateway and service identity |
+| Node | `MF_BLOCKS_SHELL_WRITE_PERMISSIONS` | Comma-separated exact verified Blocks grants mapped to workflow write access |
+
+An authenticated project context grants project view access. Write access requires explicit MADP grants or a deployment-configured exact permission mapping. The local template maps `blocks-monitor::monitor::write` to workflow write access; generic admin/owner role names and impersonation do not grant MADP administrator rights. Blocks remains responsible for tenancy, people, roles, and project deletion.
+
+The factory tenant must already contain MADP's schemas, policies, validations, and unique RequestKey indexes in `madp/blocks/data/`. The application does not push schema changes or grant cloud permissions on startup. Conflicting preexisting project mappings are rejected rather than silently reassigned.
+
+Every internal request binds the authenticated caller, tenant, HTTP method, path/query, and body hash in a short-lived signed assertion. Node rejects forged, expired, replayed, or cross-project requests. Browser cookies and tokens never reach the Node service. Project-scoped data reads and workflow mutations remain confined to the selected project.
+
+## Repository and engine integration
+
+The internal broker at `/internal/madp/repositories` uses Blocks' registered repository services. It checks that the repository is connected and active, that the requesting user is still in the project, and that the selected branch exists. It resolves the connection owner from Blocks, then uses the supported `GetPushCredential` operation. Browser requests, unsigned calls, expired requests, and reused nonces are rejected.
+
+Set .NET `Madp__RepositoryKey` and Node/worker `MF_BLOCKS_REPOSITORY_KEY` to the same **separate** server-only key of at least 32 bytes. Set `MF_BLOCKS_REPOSITORY_URL` to the full broker URL, for example `https://<blocks-shell>/internal/madp/repositories`. HTTP is allowed only for loopback development calls. The launcher configures a local callback automatically.
+
+The MADP API uses the broker to verify repository selections. The updated worker obtains credentials at execution time for clone/push/CLI operations and passes them in child-process environment variables, never command arguments, repository URLs, project records, or browser responses. Output is redacted before it is logged. The persisted project association contains the Blocks tenant reference, not a credential.
+
+The existing shared engine must receive the updated adapter code and matching persistent broker configuration before it can execute these jobs. A temporary launcher key is suitable for local service checks; use deployment-managed keys when connecting the shared engine. This repository does not automatically replace or restart that engine, provision GitHub access, or launch a competing worker.
+
+## Builds and deployment
+
+`npm.cmd --prefix client run build` builds and packages both frontends into `server/Api/wwwroot`. After editing MADP alone, run `npm.cmd --prefix client run build:madp` and reload its view. `npm.cmd --prefix madp run build:server` checks and bundles the internal workflow API.
+
+The existing `Dockerfile` builds the public .NET shell; `Dockerfile.madp` builds the internal Node service. Supply service credentials and bridge keys through deployment secrets. Keep the Node listener private, use HTTPS between hosts, and configure its expected internal Host. Deploy updated worker adapters to the existing approved engine host; do not run a competing worker against the same job queue.
+
+## Retained Monitor services
 
 Blocks Monitor is a monorepo with an ASP.NET Core API, a background Worker, and a React + Vite SPA. In production, the API serves the built SPA from wwwroot and provides the HTTP endpoints; in development, the SPA runs on the Vite dev server and proxies to the API.
 

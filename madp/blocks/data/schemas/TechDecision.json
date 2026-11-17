@@ -1,0 +1,167 @@
+{
+  "schemaName": "TechDecision",
+  "collectionName": "blx_TechDecisions",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "WorkspaceId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the owning Workspace."
+    },
+    {
+      "name": "ReaderIds",
+      "type": "String",
+      "isArray": true,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Server-stamped ACL: IAM user ids that may read the row."
+    },
+    {
+      "name": "CreatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the creating actor, set by the function."
+    },
+    {
+      "name": "UpdatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the last writer."
+    },
+    {
+      "name": "ProjectId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the owning Project."
+    },
+    {
+      "name": "Number",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Sequence number within the project."
+    },
+    {
+      "name": "Area",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Technical area. One of: stack|architecture|integration|nfr|security|data|hosting|other."
+    },
+    {
+      "name": "Title",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Short decision title."
+    },
+    {
+      "name": "Choice",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The chosen option."
+    },
+    {
+      "name": "Rationale",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Why the option was chosen."
+    },
+    {
+      "name": "Alternatives",
+      "type": "String",
+      "isArray": true,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Options that were considered."
+    },
+    {
+      "name": "NfrCategory",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Non-functional requirement category (area nfr), or empty."
+    },
+    {
+      "name": "NfrTarget",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Non-functional requirement target (area nfr), or empty."
+    },
+    {
+      "name": "IntegrationSystem",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "External system name (area integration), or empty."
+    },
+    {
+      "name": "ExpertUserIds",
+      "type": "String",
+      "isArray": true,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user ids of the experts consulted."
+    },
+    {
+      "name": "Status",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Decision status. One of: proposed|accepted|rejected|superseded."
+    },
+    {
+      "name": "DecidedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the decider."
+    },
+    {
+      "name": "DecidedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "When the decision was made."
+    },
+    {
+      "name": "RequestKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Idempotency key <op>:<requestId>[:<n>], set by the server; unique index."
+    },
+    {
+      "name": "SeedKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Seed key <workspaceId>:<scenario>:<key> of an example record, stamped by the server; unique index."
+    }
+  ]
+}

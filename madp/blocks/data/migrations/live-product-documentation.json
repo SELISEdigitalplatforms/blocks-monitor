@@ -1,0 +1,13 @@
+{
+  "$comment": "Additive fields for product.document (a live product documented from its code and documents, src/domain/liveProduct.ts). Apply expand-first on every tenant before the engine runs the job: the engine writes Origin on these schemas and LiveProductJson on Project. Validations: validations.json (Origin enum \"\" | \"live-product\", LiveProductJson maxLength 50000). RequirementExtra.Origin exists already; its value \"live-product\" is new.",
+  "schemas": [
+    { "schemaName": "Objective", "fields": [{ "name": "Origin", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Empty for the Factory's own records; \"live-product\" when product.document documented the record." }] },
+    { "schemaName": "Requirement", "fields": [{ "name": "Origin", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Empty for the Factory's own records; \"live-product\" when product.document documented the record." }] },
+    { "schemaName": "Feature", "fields": [{ "name": "Origin", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Empty for the Factory's own records; \"live-product\" when product.document documented the record." }] },
+    { "schemaName": "Milestone", "fields": [{ "name": "Origin", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Empty for the Factory's own records; \"live-product\" when product.document documented the record." }] },
+    { "schemaName": "ScopeVersion", "fields": [{ "name": "Origin", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Empty for the Factory's own records; \"live-product\" when product.document documented the record." }] },
+    { "schemaName": "DesignBrief", "fields": [{ "name": "Origin", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Empty for the Factory's own records; \"live-product\" when product.document documented the record." }] },
+    { "schemaName": "Release", "fields": [{ "name": "Origin", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Empty for the Factory's own records; \"live-product\" when product.document documented the record." }] },
+    { "schemaName": "Project", "fields": [{ "name": "LiveProductJson", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Snapshot of what product.document read from the live product (JSON, parseLiveProductSnapshot)." }] }
+  ]
+}

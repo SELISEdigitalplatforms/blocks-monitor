@@ -1,0 +1,151 @@
+{
+  "schemaName": "SetupSuggestion",
+  "collectionName": "blx_SetupSuggestions",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "WorkspaceId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the owning Workspace."
+    },
+    {
+      "name": "ReaderIds",
+      "type": "String",
+      "isArray": true,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Server-stamped ACL: IAM user ids that may read the row."
+    },
+    {
+      "name": "CreatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the creating actor, set by the function."
+    },
+    {
+      "name": "UpdatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the last writer."
+    },
+    {
+      "name": "ProjectId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the owning Project."
+    },
+    {
+      "name": "Kind",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "What the business agent found. One of: mustHave|workflow|exclusion|constraint|goal|users."
+    },
+    {
+      "name": "Text",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The finding in plain words (as the setup would store it)."
+    },
+    {
+      "name": "Priority",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "A must-have's priority. One of: must|should|could."
+    },
+    {
+      "name": "ConstraintKind",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "A constraint's kind. One of: deadline|budget|compliance|languages|integrations|other."
+    },
+    {
+      "name": "SourceName",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Name of the document or note it was found in."
+    },
+    {
+      "name": "SourceRef",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Where it was found: DocFile:<ItemId> or DocNote:<ItemId>."
+    },
+    {
+      "name": "Status",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Review status. One of: open|added|ignored."
+    },
+    {
+      "name": "Key",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Kind and a hash of the folded text; one row per finding and project."
+    },
+    {
+      "name": "SortOrder",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Order of the findings in the review."
+    },
+    {
+      "name": "EngineJobId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the setup.assist EngineJob that found it."
+    },
+    {
+      "name": "DecidedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the decider."
+    },
+    {
+      "name": "DecidedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "When the suggestion was decided."
+    },
+    {
+      "name": "RequestKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Idempotency key <op>:<requestId>[:<n>], set by the server; unique index."
+    }
+  ]
+}

@@ -9,13 +9,19 @@ ARG DOTNET_PUBLISH_PLATFORM=linux/amd64
 # -----------------------------------------------------------------------------
 # Stage: frontend — Vite build → server/Api/wwwroot (see client/vite.config.ts)
 # -----------------------------------------------------------------------------
-FROM node:22-alpine AS client
+FROM node:24-alpine AS client
+WORKDIR /src/madp
+COPY madp/package.json madp/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY madp ./
+
 WORKDIR /src/client
 
 COPY client/package.json client/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
 COPY client ./
+COPY scripts/build-madp.mjs /src/scripts/build-madp.mjs
 # Vite outDir writes to ../server/Api/wwwroot relative to client/
 RUN mkdir -p /src/server/Api/wwwroot \
     && npm run build

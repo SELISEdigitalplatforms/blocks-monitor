@@ -1,0 +1,259 @@
+[
+  {
+    "$key": "req-customer-price-lists",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRefs": [
+        "DocNote:note-email-thread"
+      ]
+    },
+    "Number": 1,
+    "Key": "customer-price-lists",
+    "Title": "Each customer sees only their articles at their own prices",
+    "Text": "Every business customer signs in and sees only the articles agreed for them, at the prices on their own price list. Prices are shown excluding VAT.",
+    "Category": "functional",
+    "Priority": "must",
+    "Status": "confirmed",
+    "AcceptanceCriteria": [
+      "A customer sees only articles on their own price list",
+      "Prices shown are the customer's own prices, excluding VAT",
+      "A customer never sees another customer's articles or prices"
+    ],
+    "SpecVersion": 1,
+    "SortOrder": 1
+  },
+  {
+    "$key": "req-order-builder",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRefs": [
+        "DocNote:note-email-thread",
+        "DocNote:note-whiteboard-flow"
+      ]
+    },
+    "Number": 2,
+    "Key": "order-builder",
+    "Title": "Customers build an order from their catalogue",
+    "Text": "A customer picks articles and quantities from their catalogue, sees the order total as they go and submits the order for a delivery day.",
+    "Category": "functional",
+    "Priority": "must",
+    "Status": "confirmed",
+    "AcceptanceCriteria": [
+      "Articles can be added, changed and removed with quantities",
+      "The order total updates as lines change",
+      "The order is submitted for a chosen delivery day"
+    ],
+    "SpecVersion": 1,
+    "SortOrder": 2
+  },
+  {
+    "$key": "req-repeat-order",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRefs": [
+        "DocNote:note-call-16-oct"
+      ]
+    },
+    "Number": 3,
+    "Key": "repeat-order",
+    "Title": "Customers repeat a previous order in one tap",
+    "Text": "The customer's last orders are listed and any of them can be copied into a new order, which can still be edited before submitting.",
+    "Category": "functional",
+    "Priority": "must",
+    "Status": "confirmed",
+    "AcceptanceCriteria": [
+      "The last order is reachable in one tap from the start screen",
+      "A copied order keeps articles and quantities that are still available",
+      "Articles no longer available are flagged before submitting"
+    ],
+    "SpecVersion": 1,
+    "SortOrder": 3
+  },
+  {
+    "$key": "req-order-cutoff",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRefs": [
+        "DocNote:note-order-form"
+      ]
+    },
+    "Number": 4,
+    "Key": "order-cutoff",
+    "Title": "Orders close at 18:00 for the next delivery day",
+    "Text": "Orders placed until 18:00 are delivered on the next delivery day of the customer's route. Orders placed later go to the following delivery day of the route.",
+    "Category": "functional",
+    "Priority": "must",
+    "Status": "confirmed",
+    "AcceptanceCriteria": [
+      "Orders placed before 18:00 get the next delivery day of the route",
+      "Orders placed after 18:00 get the following delivery day of the route",
+      "The cut-off time is visible on the order screens"
+    ],
+    "SpecVersion": 1,
+    "SortOrder": 4
+  },
+  {
+    "$key": "req-order-desk-changes",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRefs": [
+        "DocNote:note-call-16-oct",
+        "Clarification:clar-order-changes"
+      ]
+    },
+    "Number": 5,
+    "Key": "order-desk-changes",
+    "Title": "The order desk can change orders before the cut-off",
+    "Text": "Order desk staff can open a customer order, change lines or quantities and cancel it until the 18:00 cut-off, with the change recorded.",
+    "Category": "functional",
+    "Priority": "must",
+    "Status": "confirmed",
+    "AcceptanceCriteria": [
+      "Order desk staff can edit or cancel an order until 18:00",
+      "Changes after the cut-off are refused with a clear message",
+      "Each change records who made it and when"
+    ],
+    "SpecVersion": 1,
+    "SortOrder": 5
+  },
+  {
+    "$key": "req-delivery-status",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRefs": [
+        "DocNote:note-whiteboard-flow",
+        "DocNote:note-email-thread"
+      ]
+    },
+    "Number": 6,
+    "Key": "delivery-status",
+    "Title": "Customers follow the delivery status of an order",
+    "Text": "Each order shows its status as one of received, picked, on the way or delivered, so customers no longer phone the order desk.",
+    "Category": "functional",
+    "Priority": "must",
+    "Status": "confirmed",
+    "AcceptanceCriteria": [
+      "Order status is one of received, picked, on the way, delivered",
+      "The customer sees the current status on the order",
+      "Status changes show the time they happened"
+    ],
+    "SpecVersion": 1,
+    "SortOrder": 6
+  },
+  {
+    "$key": "req-order-confirmation-email",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRefs": [
+        "DocNote:note-call-16-oct"
+      ]
+    },
+    "Number": 7,
+    "Key": "order-confirmation-email",
+    "Title": "A confirmation email goes out for every order",
+    "Text": "When an order is submitted, a confirmation email is sent to the customer and to the order desk.",
+    "Category": "functional",
+    "Priority": "must",
+    "Status": "confirmed",
+    "AcceptanceCriteria": [
+      "The customer receives a confirmation email after submitting",
+      "The order desk receives the same confirmation",
+      "The email lists articles, quantities and the delivery day"
+    ],
+    "SpecVersion": 1,
+    "SortOrder": 7
+  },
+  {
+    "$key": "req-erp-csv-export",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRefs": [
+        "DocNote:note-email-thread",
+        "Clarification:clar-erp-export"
+      ]
+    },
+    "Number": 8,
+    "Key": "erp-csv-export",
+    "Title": "Orders reach the ERP as a CSV export",
+    "Text": "A CSV file with all confirmed orders is exported every evening for the 18:30 ERP import, so nothing is retyped.",
+    "Category": "integration",
+    "Priority": "must",
+    "Status": "confirmed",
+    "AcceptanceCriteria": [
+      "A CSV file is produced for the 18:30 import",
+      "Every confirmed order of the day appears exactly once",
+      "Changed or cancelled orders are reflected in the file"
+    ],
+    "SpecVersion": 1,
+    "SortOrder": 8
+  },
+  {
+    "$key": "req-mobile-first",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRefs": [
+        "DocNote:note-email-thread"
+      ]
+    },
+    "Number": 9,
+    "Key": "mobile-first",
+    "Title": "The portal works first on a phone",
+    "Text": "Customers order on their phones, so every customer screen is designed for a small touch screen first.",
+    "Category": "ux",
+    "Priority": "must",
+    "Status": "confirmed",
+    "AcceptanceCriteria": [
+      "All customer screens are usable at 390 px width",
+      "Touch targets are large enough for one-handed use",
+      "No horizontal scrolling on customer screens"
+    ],
+    "SpecVersion": 1,
+    "SortOrder": 9
+  },
+  {
+    "$key": "req-minimum-order-value",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRefs": [
+        "DocNote:note-order-form"
+      ]
+    },
+    "Number": 10,
+    "Key": "minimum-order-value",
+    "Title": "Minimum order value of CHF 150",
+    "Text": "Orders below CHF 150 are accepted with a CHF 25 delivery fee, which is shown before the customer submits.",
+    "Category": "functional",
+    "Priority": "nice",
+    "Status": "confirmed",
+    "AcceptanceCriteria": [
+      "Orders of CHF 150 or more carry no delivery fee",
+      "Orders below CHF 150 add a CHF 25 delivery fee",
+      "The fee is visible before submitting"
+    ],
+    "SpecVersion": 1,
+    "SortOrder": 10
+  },
+  {
+    "$key": "req-delivery-time-windows",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRefs": [
+        "DocNote:note-order-sheets",
+        "Clarification:clar-delivery-windows"
+      ]
+    },
+    "Number": 11,
+    "Key": "delivery-time-windows",
+    "Title": "Customers pick a delivery time window",
+    "Text": "Customers may choose a delivery time window within the delivery day. This is assumed and still to be confirmed with Alpine Fresh.",
+    "Category": "functional",
+    "Priority": "later",
+    "Status": "assumed",
+    "AcceptanceCriteria": [
+      "A customer can choose one window per order",
+      "Windows follow the route's available slots"
+    ],
+    "SpecVersion": 1,
+    "SortOrder": 11
+  }
+]

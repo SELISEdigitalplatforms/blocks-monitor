@@ -1,0 +1,4 @@
+{
+  "$comment": "Billing on Blocks Utilities (src/domain/utilitiesBilling.ts, functions/billing/ops/utilitiesCatalogue.ts + utilitiesCheckout.ts). Additive: no schema or field. One PlatformSetting key (validations.json Key enum): billing.source (\"factory\" | \"blocks-utilities\", default \"factory\" when absent): where plans, plan and discount codes, subscriptions, checkout, invoices and bought credit live. Payment.Provider (validations.json enum) gains \"blocks-utilities\"; Subscription.Provider (free text) takes the same value. Apply the validation expand-first BEFORE deploying the functions or the web app; switch the source only after scripts/blocks-utilities-sync.mjs --apply has put the plans and codes into Utilities.",
+  "schemas": []
+}

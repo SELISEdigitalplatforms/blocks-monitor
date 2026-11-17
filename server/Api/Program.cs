@@ -31,6 +31,11 @@ builder.Services.Configure<FormOptions>(options =>
 var services = builder.Services;
 
 services.AddHealthChecks();
+services.AddHttpClient(Api.Middleware.MadpApiProxy.ClientName, client => client.Timeout = Timeout.InfiniteTimeSpan)
+    .ConfigurePrimaryHttpMessageHandler(Api.Middleware.MadpApiProxy.CreateHandler);
+services.AddSingleton<Api.Madp.IMadpCallerAccessor, Api.Madp.GenesisMadpCallerAccessor>();
+services.AddSingleton<Api.Madp.MadpBridgeSigner>();
+services.AddMemoryCache();
 
 // A system schema's validation rules refusing a save outside the services' own handling: 400 with the failed properties.
 services.Configure<Microsoft.AspNetCore.Mvc.MvcOptions>(options => options.Filters.Add<Api.Middleware.DataValidationExceptionFilter>());
@@ -90,6 +95,7 @@ var app = builder.Build();
 var contentSecurityPolicy = Api.Security.ContentSecurityPolicy.Build(app.Configuration);
 app.UseMiddleware<Api.Middleware.SecurityHeadersMiddleware>(
     contentSecurityPolicy, Api.Security.StyleNonce.CreateWithRandomKey());
+app.UseMiddleware<Api.Madp.Repositories.MadpRepositoryBroker>();
 
 // Infrastructure diagnostics expose safe group labels only. Keep them outside Genesis's
 // shared /ping and readiness checks so a dev outage cannot remove a healthy main API.
@@ -129,7 +135,14 @@ if (indexHtmlTemplate is not null)
     app.MapFallback(context => Api.Middleware.SpaShell.WriteAsync(context, indexHtmlTemplate));
 }
 
-ApplicationConfigurations.ConfigureMiddleware(app);
+ApplicationConfigurations.ConfigureMicroserviceMiddleware(app,
+    beforeAuthentication: null,
+    afterAuthorization: branch => branch.UseMiddleware<Api.Middleware.MadpApiProxy>(),
+    // Genesis validates bearer/cookie identity only for routed endpoints with authorization
+    // metadata. The proxy handles this request after authorization, before this fallback runs.
+    beforeControllerMapping: endpoints => endpoints.Map("/madp-api/{**path}", (HttpContext _) => Results.NotFound()).RequireAuthorization(),
+    afterControllerMapping: null,
+    tenantValidationPrefixes: ["/api", "/madp-api"]);
 
 await app.RunAsync();
 
@@ -159,6 +172,7 @@ static bool IsLocalDevHost(string host)
 
 static void NormalizeLocalDevTenantValidationHeaders(HttpRequest request)
 {
+ Api.Middleware.MadpApiProxy.CaptureBrowserOrigin(request.HttpContext);
  NormalizeHeaderUrl(request.Headers, "Origin");
  NormalizeHeaderUrl(request.Headers, "Referer");
 

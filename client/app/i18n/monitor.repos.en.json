@@ -1,4 +1,11 @@
 {
+  "MADP_HOST.SELECT_PROJECT": "Select a Blocks project to open MADP.",
+  "MADP_HOST.FRAME_TITLE": "MADP — {{name}}",
+  "MADP_HOST.SELECT_PROJECT_REPOSITORIES": "Select a Blocks project to view repositories.",
+  "MADP_HOST.REPOSITORIES": "Repositories",
+  "MADP_HOST.REPOSITORIES_DESCRIPTION": "MADP uses the repositories connected to this Blocks project.",
+  "MADP_HOST.RETURN": "Return to MADP",
+  "MADP_HOST.MANAGE_CONNECTION": "Manage connection in Blocks Release",
   "DEPLOYMENT_LOGS_TAB.COPY_VALUE": "Copy value",
   "DEPLOYMENT_LOGS_TAB.CUSTOM_DEPLOYMENT_URL": "Custom Deployment URL",
   "DEPLOYMENT_LOGS_TAB.DEFAULT_EVENT": "Deploy",

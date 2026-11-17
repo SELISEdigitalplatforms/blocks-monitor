@@ -1,0 +1,7 @@
+{
+  "$comment": "Additive fields for 'Fix what the checks found' (src/domain/changeChecks.ts): a change whose own checks fail after its deploy is shown as not usable, gets fix rounds and, when they do not help, development is put back to the last build whose checks passed. Apply expand-first on every tenant BEFORE deploying the web app, the functions or the engine: the web reads ChangeRequest.Checks with every change request (a tenant without it refuses the read), the engine writes it after every checked deploy, and cr.checksPolicy writes Project.ChecksPolicy. Validations: validations.json (Checks maxLength 20000, ChecksPolicy maxLength 200).",
+  "schemas": [
+    { "schemaName": "ChangeRequest", "fields": [{ "name": "Checks", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "The change's own checks after each of its deploys, its fix rounds and a revert (JSON version 1, src/domain/changeChecks.ts parseChangeChecks), written by the engine (change.build)." }] },
+    { "schemaName": "Project", "fields": [{ "name": "ChecksPolicy", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "What the engine does by itself when a change's own checks fail after its deploy, JSON {v:1, autoFixRounds: 0..2, autoRevert} (checksPolicyOf); written by cr.checksPolicy." }] }
+  ]
+}

@@ -1,0 +1,19 @@
+# Internal workflow service. The public frontend and authentication stay in the Blocks gateway.
+FROM node:24-alpine AS build
+WORKDIR /app
+COPY madp/package.json madp/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY madp ./
+RUN npm run build:server
+
+FROM node:24-alpine AS runtime
+WORKDIR /app
+COPY madp/package.json madp/package-lock.json ./
+RUN npm ci --omit=dev --no-audit --no-fund
+COPY --from=build /app/dist-server ./dist-server
+COPY --from=build /app/blocks/data ./blocks/data
+RUN mkdir -p data && chown -R node:node /app
+ENV NODE_ENV=production PORT=5311 MF_LISTEN_HOST=0.0.0.0 MF_BLOCKS_SHELL_ENABLED=1 FACTORY_PLATFORM=blocks VITE_BLOCKS_AUTH_MODE=embedded
+USER node
+EXPOSE 5311
+CMD ["node", "--experimental-sqlite", "dist-server/production.mjs"]

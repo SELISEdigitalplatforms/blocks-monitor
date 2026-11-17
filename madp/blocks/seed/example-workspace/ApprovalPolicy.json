@@ -1,0 +1,22 @@
+[
+  {
+    "$key": "policy-stage",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "Environment": "stage",
+    "Status": "active",
+    "AllApproversRequired": false,
+    "Note": "Architect and security approve every promotion to stage; QA approval is optional."
+  },
+  {
+    "$key": "policy-production",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "Environment": "production",
+    "Status": "active",
+    "AllApproversRequired": true,
+    "Note": "Every configured approver approves a promotion to production."
+  }
+]

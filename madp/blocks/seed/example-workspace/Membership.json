@@ -1,0 +1,31 @@
+[
+  {
+    "$key": "member-qa-a",
+    "$user": {
+      "UserId": "qa-a",
+      "Email": "qa-a#email",
+      "DisplayName": "qa-a#name"
+    },
+    "RoleKey": "owner",
+    "Status": "active",
+    "InvitedByUserId": "",
+    "$at": {
+      "JoinedAt": "-10d"
+    }
+  },
+  {
+    "$key": "member-qa-b",
+    "$user": {
+      "UserId": "qa-b",
+      "Email": "qa-b#email",
+      "DisplayName": "qa-b#name",
+      "InvitedByUserId": "qa-a"
+    },
+    "RoleKey": "member",
+    "Status": "active",
+    "$at": {
+      "InvitedAt": "-9d",
+      "JoinedAt": "-9d"
+    }
+  }
+]

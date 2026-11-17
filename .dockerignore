@@ -11,6 +11,11 @@
 
 client/node_modules
 client/dist
+madp/node_modules
+madp/dist
+madp/dist-server
+madp/data
+madp/.vite-cache
 
 **/.DS_Store
 **/*.log

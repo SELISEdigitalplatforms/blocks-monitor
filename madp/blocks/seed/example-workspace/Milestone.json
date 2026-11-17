@@ -1,0 +1,54 @@
+[
+  {
+    "$key": "milestone-1",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "Number": 1,
+    "Name": "Customers order online",
+    "Goal": "A customer can sign in, build or repeat an order and get a confirmation.",
+    "FeatureRefs": [
+      "feature:catalogue-and-prices",
+      "feature:order-builder",
+      "feature:repeat-order",
+      "feature:order-confirmation"
+    ],
+    "SortOrder": 1,
+    "PreviewPoint": "A customer signs in on a phone, repeats last week's order and receives the confirmation email.",
+    "Status": "planned"
+  },
+  {
+    "$key": "milestone-2",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "Number": 2,
+    "Name": "Order desk and ERP",
+    "Goal": "The order desk handles changes and every order reaches the ERP.",
+    "FeatureRefs": [
+      "feature:order-desk",
+      "feature:erp-export"
+    ],
+    "SortOrder": 2,
+    "PreviewPoint": "The order desk changes an order before 18:00 and the 18:30 CSV export contains it.",
+    "Status": "planned"
+  },
+  {
+    "$key": "milestone-3",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "Number": 3,
+    "Name": "Delivery status",
+    "Goal": "Customers follow their orders until delivery.",
+    "FeatureRefs": [
+      "feature:delivery-status"
+    ],
+    "SortOrder": 3,
+    "PreviewPoint": "A customer follows an order from received to delivered.",
+    "Status": "planned"
+  }
+]

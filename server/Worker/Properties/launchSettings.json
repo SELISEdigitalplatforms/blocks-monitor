@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
     "Worker": {
@@ -6,6 +6,7 @@
       "dotnetRunMessages": true,
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "Development",
+        "KeyVault__KeyVaultUrl": "https://blocks-keyvault-dev.vault.azure.net/",
         "BLOCKS_VAULT_TYPE": "Azure"
       }
     }

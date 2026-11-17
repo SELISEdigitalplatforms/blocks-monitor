@@ -1,0 +1,350 @@
+{
+  "$comment": "Checkout and subscriptions (src/domain/payments.ts, functions/billing/ops/checkout.ts + subscriptions.ts). Additive: the new schema Payment, new fields on Subscription and Coupon, the Subscription status past_due and three PlatformSetting keys (billing.provider default \"coupon\", billing.enforce default false, billing.internalWorkspaceIds default []) read with these defaults when absent. Apply expand-first on every tenant BEFORE deploying the web app, the functions or the engine worker. Validations: validations.json; indexes: indexes.json; policies: policies.json + rules.json (service writes only, super-admin reads, like the other billing schemas). Payment provider secrets live only on the function host / Blocks secrets, never in these schemas.",
+  "schemas": [
+    {
+      "schemaName": "Payment",
+      "collectionName": "blx_Payments",
+      "new": true,
+      "fields": [
+        {
+          "name": "CreatedByUserId",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "IAM user id of the creating actor, set by the function."
+        },
+        {
+          "name": "UpdatedByUserId",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "IAM user id of the last writer, set by the function."
+        },
+        {
+          "name": "WorkspaceId",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "The organization (Workspace.ItemId) the payment is for."
+        },
+        {
+          "name": "UserId",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "IAM user id of the person who started the checkout (system for renewals)."
+        },
+        {
+          "name": "UserEmail",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "E-mail of that person, for the receipt."
+        },
+        {
+          "name": "Kind",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "new|upgrade|renewal."
+        },
+        {
+          "name": "PlanKey",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Plan.Key paid for."
+        },
+        {
+          "name": "FromPlanKey",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Plan.Key before an upgrade (empty otherwise)."
+        },
+        {
+          "name": "Provider",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Payment provider: coupon|blocks."
+        },
+        {
+          "name": "ProviderRef",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "The provider's reference (checkout/session/invoice id); never a secret."
+        },
+        {
+          "name": "AmountUsd",
+          "type": "Float",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Due before codes, USD (monthly price, or the prorated difference of an upgrade)."
+        },
+        {
+          "name": "DiscountUsd",
+          "type": "Float",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Taken off by the code, USD."
+        },
+        {
+          "name": "PaidUsd",
+          "type": "Float",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Collected by the provider, USD (0 when a code paid it all)."
+        },
+        {
+          "name": "CreditUsd",
+          "type": "Float",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Credit granted with this payment, USD."
+        },
+        {
+          "name": "CouponCode",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "The code applied (empty: none)."
+        },
+        {
+          "name": "Status",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "open|paid|failed|expired|cancelled|refunded."
+        },
+        {
+          "name": "ReceiptNo",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Receipt number of a paid payment (MF-YYYYMMDD-XXXXXX)."
+        },
+        {
+          "name": "PeriodStart",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO start of the period paid."
+        },
+        {
+          "name": "PeriodEnd",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO end of the period paid (the renewal day)."
+        },
+        {
+          "name": "PaidThroughAt",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO instant the code pays the plan through (empty: not paid ahead by a code)."
+        },
+        {
+          "name": "PaidAt",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO time the payment was settled."
+        },
+        {
+          "name": "ExpiresAt",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO time an open checkout stops being answered again."
+        },
+        {
+          "name": "Note",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Plain note (e.g. why a payment failed)."
+        },
+        {
+          "name": "DetailJson",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Server-written details (the code's terms, proration)."
+        },
+        {
+          "name": "RequestKey",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Idempotency key, set by the server; unique index."
+        }
+      ]
+    },
+    {
+      "schemaName": "Subscription",
+      "fields": [
+        {
+          "name": "CurrentPeriodStart",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO start of the current paid period."
+        },
+        {
+          "name": "PaidThroughAt",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO instant a code pays the plan through (renewals before it are paid by the code)."
+        },
+        {
+          "name": "CancelAtPeriodEnd",
+          "type": "Boolean",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "True: the plan ends on RenewsAt and the organization moves to Free."
+        },
+        {
+          "name": "NextPlanKey",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "A downgrade taking effect on RenewsAt (empty: none)."
+        },
+        {
+          "name": "Provider",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Payment provider of the plan: coupon|blocks (empty: none)."
+        },
+        {
+          "name": "ProviderRef",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "The provider's subscription reference; never a secret."
+        },
+        {
+          "name": "CouponCode",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "The code that pays or discounts the plan (empty: none)."
+        },
+        {
+          "name": "DiscountUntil",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO instant a partial discount applies to renewals through (card payments)."
+        },
+        {
+          "name": "StatusNote",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Plain notice shown with the status (e.g. why it is past due)."
+        },
+        {
+          "name": "PastDueSince",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO instant the plan became past due (empty otherwise)."
+        }
+      ]
+    },
+    {
+      "schemaName": "Coupon",
+      "fields": [
+        {
+          "name": "Kind",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "credit|plan|discount (empty on coupons saved before kinds: credit plus the optional PlanKey)."
+        },
+        {
+          "name": "PlanKeys",
+          "type": "String",
+          "isArray": true,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Plans a plan or discount code may be used for (empty: every paid plan)."
+        },
+        {
+          "name": "DurationMonths",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "plan: months the code pays; discount: months the discount applies."
+        },
+        {
+          "name": "PercentOff",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "discount: whole percent off (0: none)."
+        },
+        {
+          "name": "AmountOffUsd",
+          "type": "Float",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "discount: fixed USD off (0: none)."
+        },
+        {
+          "name": "PerPersonLimit",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "How many times one person may use the code; 0 = no limit."
+        }
+      ]
+    }
+  ]
+}

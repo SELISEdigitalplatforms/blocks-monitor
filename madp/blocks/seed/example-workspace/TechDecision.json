@@ -1,0 +1,118 @@
+[
+  {
+    "$key": "tech-platform",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "$user": {
+      "DecidedByUserId": "qa-a",
+      "ExpertUserIds": [
+        "qa-b"
+      ]
+    },
+    "$at": {
+      "DecidedAt": "-4d"
+    },
+    "Number": 1,
+    "Area": "stack",
+    "Title": "Build on SELISE Blocks",
+    "Choice": "SELISE Blocks (IAM, Data Gateway, Storage, Mail) with a React web app",
+    "Rationale": "Sign-in, data, files and email come ready on the platform, so the team builds only the ordering features.",
+    "Alternatives": [
+      "Own backend",
+      "Web shop plugin"
+    ],
+    "Status": "accepted"
+  },
+  {
+    "$key": "tech-erp-export",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "$user": {
+      "DecidedByUserId": "qa-a",
+      "ExpertUserIds": [
+        "qa-b"
+      ]
+    },
+    "$at": {
+      "DecidedAt": "-4d"
+    },
+    "Number": 2,
+    "Area": "integration",
+    "Title": "ERP export",
+    "Choice": "A CSV export every evening at 18:30 into the existing ERP import",
+    "Rationale": "It matches today's import and needs no change in the ERP.",
+    "Alternatives": [
+      "Direct ERP API",
+      "Manual download by the order desk"
+    ],
+    "Status": "accepted"
+  },
+  {
+    "$key": "tech-mobile-performance",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "$user": {
+      "DecidedByUserId": "qa-a",
+      "ExpertUserIds": [
+        "qa-b"
+      ]
+    },
+    "$at": {
+      "DecidedAt": "-4d"
+    },
+    "Number": 3,
+    "Area": "nfr",
+    "Title": "Fast on a phone",
+    "Choice": "Usable within 2 seconds on a 4G phone and from 360 px wide",
+    "Rationale": "Most orders are placed on a phone in the evening, so speed on mobile decides adoption.",
+    "Alternatives": [],
+    "Status": "proposed"
+  },
+  {
+    "$key": "tech-price-isolation",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "$user": {
+      "DecidedByUserId": "qa-a",
+      "ExpertUserIds": [
+        "qa-b"
+      ]
+    },
+    "$at": {
+      "DecidedAt": "-4d"
+    },
+    "Number": 4,
+    "Area": "security",
+    "Title": "Customer price lists stay private",
+    "Choice": "Each customer account sees only its own articles and prices (row-level access)",
+    "Rationale": "Every customer has a personal price list and only sees the items delivered to them.",
+    "Alternatives": [],
+    "Status": "accepted"
+  },
+  {
+    "$key": "tech-data-volume",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "$user": {
+      "DecidedByUserId": "qa-a",
+      "ExpertUserIds": [
+        "qa-b"
+      ]
+    },
+    "$at": {
+      "DecidedAt": "-4d"
+    },
+    "Number": 5,
+    "Area": "data",
+    "Title": "Data volume",
+    "Choice": "About 180 customers, 2,400 articles and 350 orders a week",
+    "Rationale": "These are the figures Alpine Fresh gave in the email thread; the data model is sized for them.",
+    "Alternatives": [],
+    "Status": "accepted"
+  }
+]

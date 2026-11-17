@@ -1,0 +1,26 @@
+[
+  {
+    "$key": "objective-main",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "Statement": "Alpine Fresh's about 180 business customers order online instead of emailing Excel sheets: they build or repeat an order on their phone before the 18:00 cut-off, see the delivery status themselves, and every order reaches the ERP in the 18:30 import without retyping.",
+    "AcceptanceCriteria": [
+      "A customer builds or repeats an order on a phone before 18:00",
+      "Customers see only their own articles and prices",
+      "Customers follow the delivery status without calling the order desk",
+      "Every confirmed order is in the 18:30 ERP import without retyping",
+      "The order desk can change an order until the cut-off"
+    ],
+    "HighLevelMd": "## Users\n- About 180 business customers (restaurants and hotels) ordering on their phones\n- The order desk, who handle changes and questions\n\n## Main flows\n- Sign in, build an order from the own catalogue and submit it\n- Repeat a previous order in one tap\n- Order desk changes an order before 18:00\n- Customer follows the status from received to delivered\n\n## Volumes\n- About 180 customers, ordering mostly on weekdays before the 18:00 cut-off",
+    "ArchitectureMd": "React web app on SELISE Blocks: IAM sign-in, Data Gateway with row-level access to price lists and orders, Storage, Mail for confirmations, and a nightly CSV export to the ERP.",
+    "SpecVersion": 1,
+    "Status": "confirmed",
+    "$user": {
+      "ConfirmedByUserId": "qa-a"
+    },
+    "$at": {
+      "ConfirmedAt": "-2d"
+    }
+  }
+]

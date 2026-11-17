@@ -1,0 +1,19 @@
+[
+  {
+    "$key": "design-brief-main",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "Mode": "describe",
+    "Instructions": "Mobile-first ordering portal for restaurant and hotel buyers: large touch targets, the last order one tap away, the cut-off time always visible, prices excluding VAT, clear order-status steps, and desk screens for the order desk.",
+    "References": [],
+    "SampleFileIds": [],
+    "Status": "confirmed",
+    "$user": {
+      "ConfirmedByUserId": "qa-a"
+    },
+    "$at": {
+      "ConfirmedAt": "-2d"
+    }
+  }
+]

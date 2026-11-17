@@ -1,0 +1,133 @@
+[
+  {
+    "$key": "feat-catalogue-and-prices",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "Key": "catalogue-and-prices",
+    "Title": "Catalogue and prices",
+    "Description": "Customers browse only their own articles at their own prices.",
+    "Priority": "must",
+    "Status": "planned",
+    "RequirementRefs": [
+      "requirement:customer-price-lists"
+    ],
+    "SortOrder": 1
+  },
+  {
+    "$key": "feat-order-builder",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "Key": "order-builder",
+    "Title": "Order builder",
+    "Description": "Build an order, respect the cut-off and the minimum order value, on a phone.",
+    "Priority": "must",
+    "Status": "planned",
+    "RequirementRefs": [
+      "requirement:order-builder",
+      "requirement:order-cutoff",
+      "requirement:minimum-order-value",
+      "requirement:mobile-first"
+    ],
+    "SortOrder": 2
+  },
+  {
+    "$key": "feat-repeat-order",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "Key": "repeat-order",
+    "Title": "Repeat order",
+    "Description": "Copy a previous order into a new one in one tap.",
+    "Priority": "must",
+    "Status": "planned",
+    "RequirementRefs": [
+      "requirement:repeat-order"
+    ],
+    "SortOrder": 3
+  },
+  {
+    "$key": "feat-order-confirmation",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "Key": "order-confirmation",
+    "Title": "Order confirmation",
+    "Description": "Confirmation email to the customer and the order desk.",
+    "Priority": "must",
+    "Status": "planned",
+    "RequirementRefs": [
+      "requirement:order-confirmation-email"
+    ],
+    "SortOrder": 4
+  },
+  {
+    "$key": "feat-order-desk",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "Key": "order-desk",
+    "Title": "Order desk",
+    "Description": "Order desk staff change or cancel orders until the cut-off.",
+    "Priority": "must",
+    "Status": "planned",
+    "RequirementRefs": [
+      "requirement:order-desk-changes"
+    ],
+    "SortOrder": 5
+  },
+  {
+    "$key": "feat-erp-export",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "Key": "erp-export",
+    "Title": "ERP export",
+    "Description": "Nightly CSV export for the 18:30 ERP import.",
+    "Priority": "must",
+    "Status": "planned",
+    "RequirementRefs": [
+      "requirement:erp-csv-export"
+    ],
+    "SortOrder": 6
+  },
+  {
+    "$key": "feat-delivery-status",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "Key": "delivery-status",
+    "Title": "Delivery status",
+    "Description": "Customers follow an order from received to delivered.",
+    "Priority": "must",
+    "Status": "planned",
+    "RequirementRefs": [
+      "requirement:delivery-status"
+    ],
+    "SortOrder": 7
+  },
+  {
+    "$key": "feat-delivery-windows",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "Key": "delivery-windows",
+    "Title": "Delivery windows",
+    "Description": "Customers choose a delivery time window.",
+    "Priority": "later",
+    "Status": "planned",
+    "RequirementRefs": [
+      "requirement:delivery-time-windows"
+    ],
+    "SortOrder": 8
+  }
+]

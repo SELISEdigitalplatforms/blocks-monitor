@@ -1,0 +1,7 @@
+{
+  "fields": [
+    { "name": "BlocksProjectId", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Actual Blocks OS tenant ID used for this deployment, not the Factory Project ItemId." },
+    { "name": "BlocksBuildId", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Confirmed Blocks Release build ID." },
+    { "name": "SourceCommit", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Accepted source commit pushed for the cloud deployment." }
+  ]
+}

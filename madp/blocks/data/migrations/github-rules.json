@@ -1,0 +1,14 @@
+{
+  "security": [
+    { "schemaName": "GithubConnection", "operation": 0, "policyType": 0, "accessLevel": 3, "fieldNames": [] },
+    { "schemaName": "GithubConnection", "operation": 1, "policyType": 0, "accessLevel": 3, "fieldNames": [] },
+    { "schemaName": "GithubConnection", "operation": 2, "policyType": 0, "accessLevel": 3, "fieldNames": [] },
+    { "schemaName": "GithubConnection", "operation": 3, "policyType": 0, "accessLevel": 3, "fieldNames": [] }
+  ],
+  "policies": [
+    { "schemaName": "GithubConnection", "policyName": "ServiceRead", "policyType": 0, "operation": 0, "fieldNames": [], "priority": 0, "isAllowPolicy": true, "ruleGroup": { "logicalOperator": 0, "nestedGroups": [], "rules": [{ "leftSource": 0, "leftOperand": "Roles", "operator": 6, "rightSource": 2, "rightOperand": "", "rightOperands": [], "staticValue": "mf-service" }] } },
+    { "schemaName": "GithubConnection", "policyName": "ServiceWrite", "policyType": 0, "operation": 1, "fieldNames": [], "priority": 0, "isAllowPolicy": true, "ruleGroup": { "logicalOperator": 0, "nestedGroups": [], "rules": [{ "leftSource": 0, "leftOperand": "Roles", "operator": 6, "rightSource": 2, "rightOperand": "", "rightOperands": [], "staticValue": "mf-service" }] } },
+    { "schemaName": "GithubConnection", "policyName": "ServiceEdit", "policyType": 0, "operation": 2, "fieldNames": [], "priority": 0, "isAllowPolicy": true, "ruleGroup": { "logicalOperator": 0, "nestedGroups": [], "rules": [{ "leftSource": 0, "leftOperand": "Roles", "operator": 6, "rightSource": 2, "rightOperand": "", "rightOperands": [], "staticValue": "mf-service" }] } },
+    { "schemaName": "GithubConnection", "policyName": "ServiceDelete", "policyType": 0, "operation": 3, "fieldNames": [], "priority": 0, "isAllowPolicy": true, "ruleGroup": { "logicalOperator": 0, "nestedGroups": [], "rules": [{ "leftSource": 0, "leftOperand": "Roles", "operator": 6, "rightSource": 2, "rightOperand": "", "rightOperands": [], "staticValue": "mf-service" }] } }
+  ]
+}

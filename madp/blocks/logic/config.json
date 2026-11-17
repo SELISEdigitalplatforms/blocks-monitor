@@ -1,0 +1,6 @@
+{
+  "appBaseUrl": "http://localhost:5300",
+  "workflowName": "mf-doorbell",
+  "notificationConfiguration": "notification/mf-doorbell.json",
+  "workflow": "workflows/mf-doorbell.json"
+}

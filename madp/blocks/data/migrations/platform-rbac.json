@@ -1,0 +1,8 @@
+{
+  "$comment": "Additive field for the platform roles screens (src/domain/permissions.ts, functions/admin/ops/platformRole/*): PlatformRole.Scope marks a row as a platform role (absent or \"platform\", today's rows) or an organization role template (\"organization\"), which the super admin defines once and copies into any organization as a WorkspaceRole (workspaceRole.applyTemplate). Validations (validations.json): Scope enum platform|organization; the Permissions enum now also lists the new platform keys (platform.people.manage, platform.orgs.manage, platform.engine.view, platform.ai.manage, platform.billing.manage, platform.usage.view) and the organization keys a template may hold. Apply expand-first on every tenant BEFORE deploying the functions or the web app; until then every reader treats a row without Scope as a platform role (today's behaviour), and platformRole.save refuses to write a template only where the tenant rejects the field.",
+  "schemas": [
+    { "schemaName": "PlatformRole", "fields": [
+      { "name": "Scope", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Where the role applies. One of: platform|organization. Absent means platform; organization rows are role templates copied into organizations (WorkspaceRole) and are never assigned as platform roles." }
+    ] }
+  ]
+}

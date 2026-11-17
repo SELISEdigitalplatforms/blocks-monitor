@@ -1,0 +1,6 @@
+html, body, #root { min-height: 100%; }
+html { --topbar-h: 0px; }
+body { margin: 0; }
+.madp-embedded { min-height: 100vh; }
+.madp-embedded-content { padding: 20px 24px 112px; }
+@media (max-width: 639px) { .madp-embedded-content { padding: 16px 16px 112px; } }

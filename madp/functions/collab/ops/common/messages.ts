@@ -1,0 +1,32 @@
+// Message keys this function answers with. The web maps them to plain sentences (src/blocks/collab/messages.ts).
+export const MSG = {
+  feedbackClosed: "feedback.closed",
+  attachmentNotReady: "feedback.attachmentNotReady",
+  typeNotAllowed: "feedback.typeNotAllowed",
+  tooLarge: "feedback.tooLarge",
+  tooManyFiles: "feedback.tooManyFiles",
+  tooManyComments: "feedback.tooManyComments",
+  notUploader: "feedback.notUploader",
+  attachmentInUse: "feedback.attachmentInUse",
+  fileMissing: "feedback.fileMissing",
+  fileSize: "feedback.fileSize",
+  fileType: "feedback.fileType",
+  wikiStale: "wiki.stale",
+  wikiFactoryTitle: "wiki.factoryTitle",
+  wikiFactoryPage: "wiki.factoryPage",
+  wikiTooManyPages: "wiki.tooManyPages",
+  wikiSlugTaken: "wiki.slugTaken",
+  chatTooManyOpen: "chat.tooManyOpen",
+  chatTaskMismatch: "chat.taskMismatch",
+  chatOfferGone: "chat.offerGone",
+  chatOfferNotYet: "chat.offerNotYet",
+  assistantEmpty: "assistant.empty",
+  assistantAttachmentsTooLarge: "assistant.attachmentsTooLarge",
+  assistantNotBugReport: "assistant.notBugReport",
+  assistantNotAnalysis: "assistant.notAnalysis",
+  assistantFixStarted: "assistant.fixStarted",
+  assistantFixStarting: "assistant.fixStarting",
+  assistantWrongChange: "assistant.wrongChange",
+} as const;
+
+export const COLLAB_MESSAGE_KEYS: readonly string[] = Object.values(MSG);

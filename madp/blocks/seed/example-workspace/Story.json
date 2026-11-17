@@ -1,0 +1,331 @@
+[
+  {
+    "$key": "story-catalogue-and-prices-1",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:catalogue-and-prices",
+    "Key": "catalogue-and-prices-1",
+    "Title": "See only my articles",
+    "Text": "As a customer, I want to see only my articles, so that I do not scroll through items I cannot order.",
+    "ActorRole": "customer",
+    "AcceptanceCriteria": [
+      "Only articles on my price list are shown"
+    ],
+    "Priority": "must",
+    "EstimateHours": 1,
+    "SortOrder": 1
+  },
+  {
+    "$key": "story-catalogue-and-prices-2",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:catalogue-and-prices",
+    "Key": "catalogue-and-prices-2",
+    "Title": "See my own prices excluding VAT",
+    "Text": "As a customer, I want to see my own prices excluding VAT, so that I can calculate my order.",
+    "ActorRole": "customer",
+    "AcceptanceCriteria": [
+      "Prices come from my price list",
+      "Prices are shown excluding VAT"
+    ],
+    "Priority": "must",
+    "EstimateHours": 1,
+    "SortOrder": 2
+  },
+  {
+    "$key": "story-catalogue-and-prices-3",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:catalogue-and-prices",
+    "Key": "catalogue-and-prices-3",
+    "Title": "Search and filter the catalogue",
+    "Text": "As a customer, I want to search and filter the catalogue, so that I find an article quickly on my phone.",
+    "ActorRole": "customer",
+    "AcceptanceCriteria": [
+      "Search finds articles by name and number"
+    ],
+    "Priority": "must",
+    "EstimateHours": 0.5,
+    "SortOrder": 3
+  },
+  {
+    "$key": "story-order-builder-1",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:order-builder",
+    "Key": "order-builder-1",
+    "Title": "Add articles with quantities to an order",
+    "Text": "As a customer, I want to add articles with quantities to an order, so that I can order what I need.",
+    "ActorRole": "customer",
+    "AcceptanceCriteria": [
+      "Lines can be added, changed and removed"
+    ],
+    "Priority": "must",
+    "EstimateHours": 1.5,
+    "SortOrder": 4
+  },
+  {
+    "$key": "story-order-builder-2",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:order-builder",
+    "Key": "order-builder-2",
+    "Title": "See the cut-off time and my delivery day",
+    "Text": "As a customer, I want to see the cut-off time and my delivery day, so that I know when my order arrives.",
+    "ActorRole": "customer",
+    "AcceptanceCriteria": [
+      "The 18:00 cut-off is visible",
+      "Orders after 18:00 move to the next delivery day of the route"
+    ],
+    "Priority": "must",
+    "EstimateHours": 1,
+    "SortOrder": 5
+  },
+  {
+    "$key": "story-order-builder-3",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:order-builder",
+    "Key": "order-builder-3",
+    "Title": "See the delivery fee for a small order",
+    "Text": "As a customer, I want to see the delivery fee for a small order, so that I am not surprised at checkout.",
+    "ActorRole": "customer",
+    "AcceptanceCriteria": [
+      "Below CHF 150 a CHF 25 fee is shown before submitting"
+    ],
+    "Priority": "must",
+    "EstimateHours": 0.5,
+    "SortOrder": 6
+  },
+  {
+    "$key": "story-repeat-order-1",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:repeat-order",
+    "Key": "repeat-order-1",
+    "Title": "Repeat my last order in one tap",
+    "Text": "As a customer, I want to repeat my last order in one tap, so that I do not rebuild the same order every week.",
+    "ActorRole": "customer",
+    "AcceptanceCriteria": [
+      "The last order is one tap from the start screen",
+      "The copy can be edited before submitting"
+    ],
+    "Priority": "must",
+    "EstimateHours": 1,
+    "SortOrder": 7
+  },
+  {
+    "$key": "story-repeat-order-2",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:repeat-order",
+    "Key": "repeat-order-2",
+    "Title": "Be told which articles are no longer available",
+    "Text": "As a customer, I want to be told which articles are no longer available, so that I can replace them before I submit.",
+    "ActorRole": "customer",
+    "AcceptanceCriteria": [
+      "Unavailable articles are flagged"
+    ],
+    "Priority": "must",
+    "EstimateHours": 0.5,
+    "SortOrder": 8
+  },
+  {
+    "$key": "story-order-confirmation-1",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:order-confirmation",
+    "Key": "order-confirmation-1",
+    "Title": "Receive a confirmation email",
+    "Text": "As a customer, I want to receive a confirmation email, so that I know the order went through.",
+    "ActorRole": "customer",
+    "AcceptanceCriteria": [
+      "The email lists articles, quantities and delivery day"
+    ],
+    "Priority": "must",
+    "EstimateHours": 0.5,
+    "SortOrder": 9
+  },
+  {
+    "$key": "story-order-confirmation-2",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:order-confirmation",
+    "Key": "order-confirmation-2",
+    "Title": "Receive the same confirmation",
+    "Text": "As a member of the order desk, I want to receive the same confirmation, so that I can follow every incoming order.",
+    "ActorRole": "order-desk",
+    "AcceptanceCriteria": [
+      "The order desk address receives each confirmation"
+    ],
+    "Priority": "must",
+    "EstimateHours": 0.5,
+    "SortOrder": 10
+  },
+  {
+    "$key": "story-order-desk-1",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:order-desk",
+    "Key": "order-desk-1",
+    "Title": "Change a customer order before 18:00",
+    "Text": "As a member of the order desk, I want to change a customer order before 18:00, so that I can fix mistakes without a new order.",
+    "ActorRole": "order-desk",
+    "AcceptanceCriteria": [
+      "Lines and quantities can be edited until 18:00",
+      "Changes after 18:00 are refused"
+    ],
+    "Priority": "must",
+    "EstimateHours": 1,
+    "SortOrder": 11
+  },
+  {
+    "$key": "story-order-desk-2",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:order-desk",
+    "Key": "order-desk-2",
+    "Title": "See who changed an order and when",
+    "Text": "As a member of the order desk, I want to see who changed an order and when, so that I can answer customer questions.",
+    "ActorRole": "order-desk",
+    "AcceptanceCriteria": [
+      "Each change shows the person and the time"
+    ],
+    "Priority": "must",
+    "EstimateHours": 1,
+    "SortOrder": 12
+  },
+  {
+    "$key": "story-erp-export-1",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:erp-export",
+    "Key": "erp-export-1",
+    "Title": "Get a CSV file of all confirmed orders each evening",
+    "Text": "As a member of the order desk, I want to get a CSV file of all confirmed orders each evening, so that the ERP imports them without retyping.",
+    "ActorRole": "order-desk",
+    "AcceptanceCriteria": [
+      "The file is ready for the 18:30 import",
+      "Each order appears exactly once"
+    ],
+    "Priority": "must",
+    "EstimateHours": 1,
+    "SortOrder": 13
+  },
+  {
+    "$key": "story-erp-export-2",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:erp-export",
+    "Key": "erp-export-2",
+    "Title": "See changed orders in the export",
+    "Text": "As a member of the order desk, I want to see changed orders in the export, so that the ERP matches what the customer gets.",
+    "ActorRole": "order-desk",
+    "AcceptanceCriteria": [
+      "Changed and cancelled orders are reflected"
+    ],
+    "Priority": "must",
+    "EstimateHours": 0.5,
+    "SortOrder": 14
+  },
+  {
+    "$key": "story-delivery-status-1",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:delivery-status",
+    "Key": "delivery-status-1",
+    "Title": "See the status of my order",
+    "Text": "As a customer, I want to see the status of my order, so that I do not have to phone the order desk.",
+    "ActorRole": "customer",
+    "AcceptanceCriteria": [
+      "Status is received, picked, on the way or delivered"
+    ],
+    "Priority": "must",
+    "EstimateHours": 1,
+    "SortOrder": 15
+  },
+  {
+    "$key": "story-delivery-status-2",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:delivery-status",
+    "Key": "delivery-status-2",
+    "Title": "Update the status of an order",
+    "Text": "As a member of the order desk, I want to update the status of an order, so that customers see where their order is.",
+    "ActorRole": "order-desk",
+    "AcceptanceCriteria": [
+      "A status change shows the time it happened"
+    ],
+    "Priority": "must",
+    "EstimateHours": 0.5,
+    "SortOrder": 16
+  },
+  {
+    "$key": "story-delivery-windows-1",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:delivery-windows",
+    "Key": "delivery-windows-1",
+    "Title": "Choose a delivery time window",
+    "Text": "As a customer, I want to choose a delivery time window, so that the delivery fits my kitchen.",
+    "ActorRole": "customer",
+    "AcceptanceCriteria": [
+      "One window can be chosen per order"
+    ],
+    "Priority": "later",
+    "EstimateHours": 0.5,
+    "SortOrder": 17
+  },
+  {
+    "$key": "story-delivery-windows-2",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ScopeVersion": 1,
+    "FeatureRef": "feature:delivery-windows",
+    "Key": "delivery-windows-2",
+    "Title": "See the chosen window on the order",
+    "Text": "As a member of the order desk, I want to see the chosen window on the order, so that I can plan the routes.",
+    "ActorRole": "order-desk",
+    "AcceptanceCriteria": [
+      "The window is shown on the order"
+    ],
+    "Priority": "later",
+    "EstimateHours": 0.5,
+    "SortOrder": 18
+  }
+]

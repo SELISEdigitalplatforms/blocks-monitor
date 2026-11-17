@@ -34,6 +34,8 @@ public sealed class SecurityHeadersMiddleware
         var styleNonce = _styleNonces.ForRequest(context);
         context.Items[StyleNonceItemKey] = styleNonce;
         var policy = ContentSecurityPolicy.WithStyleNonce(_contentSecurityPolicy, styleNonce);
+        if (IsMadpPath(context.Request.Path))
+            policy = ContentSecurityPolicy.ForMadpFrame(policy);
 
         Apply(context, policy);
         context.Response.OnStarting(() =>
@@ -51,7 +53,7 @@ public sealed class SecurityHeadersMiddleware
         var path = context.Request.Path.Value ?? string.Empty;
 
         headers["X-Content-Type-Options"] = "nosniff";
-        headers["X-Frame-Options"] = "DENY";
+        headers["X-Frame-Options"] = IsMadpPath(context.Request.Path) ? "SAMEORIGIN" : "DENY";
         headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
         headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
         headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
@@ -66,6 +68,9 @@ public sealed class SecurityHeadersMiddleware
             ApplyCacheControl(headers, path);
         }
     }
+
+    private static bool IsMadpPath(PathString path) =>
+        path.StartsWithSegments("/madp") || path.StartsWithSegments(MadpApiProxy.Prefix);
 
     private static void ApplyCacheControl(IHeaderDictionary headers, string path)
     {

@@ -1,0 +1,150 @@
+/* The 3D office's own tokens and helpers, ported from MADP Studio (web/src/styles/tokens.css + index.css).
+ * Everything is scoped under .factory-office, so the Factory's design tokens (--c-*) stay untouched.
+ * Values are "R G B" triplets, used as rgb(var(--name) / alpha). Light and dark follow <html data-theme>.
+ * secops and docs are the Factory's two extra roles (teal and gold, clear of the other role hues). */
+
+.factory-office {
+  --surface: 255 255 255;
+  --surface-2: 248 248 252;
+  --surface-3: 238 238 245;
+  --line: 226 226 236;
+  --line-strong: 208 208 222;
+  --ink: 18 18 28;
+  --ink-2: 70 70 92;
+  --ink-3: 98 98 122;
+
+  --brand-300: 184 168 255;
+  --brand-400: 140 112 255;
+  --brand-500: 112 82 255;
+  --brand-600: 97 64 245;
+  --on-brand: 255 255 255;
+
+  --coral: 214 69 93;
+  --success: 30 160 100;
+  --warning: 214 150 20;
+  --warning-soft: 253 244 220;
+  --warning-ink: 128 82 0;
+  --danger: 214 56 72;
+
+  --role-planner: 112 82 255;
+  --role-dev: 59 112 230;
+  --role-fixup: 222 128 44;
+  --role-reviewer: 150 90 220;
+  --role-qa: 30 160 100;
+  --role-secops: 13 148 160;
+  --role-docs: 176 138 28;
+  --role-integrator: 214 69 93;
+  --role-shipper: 200 48 160;
+  --role-autopilot: 110 116 140;
+
+  --floor: 236 236 244;
+  --floor-grid: 224 224 236;
+
+  /* the surroundings' haze and ground behind the canvas (the 3D stage sets the exact ones from surroundingsPalette.ts;
+     these are their closest tokens, for the moment before it runs) */
+  --env-horizon: var(--surface-2);
+  --env-ground: var(--line-strong);
+
+  --shadow-card: 0 14px 40px -26px rgb(60 40 160 / 0.28);
+  --shadow-pop: 0 0 0 1px rgb(var(--line)), 0 24px 60px -16px rgb(40 24 120 / 0.28);
+}
+
+[data-theme="dark"] .factory-office {
+  --surface: 26 26 33;
+  --surface-2: 31 31 39;
+  --surface-3: 38 38 47;
+  --line: 40 40 50;
+  --line-strong: 56 56 70;
+  --ink: 245 245 250;
+  --ink-2: 174 174 190;
+  --ink-3: 150 150 172;
+
+  --brand-300: 84 60 190;
+  --brand-400: 139 110 255;
+  --brand-500: 112 82 255;
+  --brand-600: 97 64 245;
+
+  --coral: 232 86 110;
+  --success: 64 192 120;
+  --warning: 250 176 5;
+  --warning-soft: 56 40 6;
+  --warning-ink: 255 214 120;
+  --danger: 250 82 82;
+
+  --role-planner: 150 120 255;
+  --role-dev: 90 150 255;
+  --role-fixup: 255 156 60;
+  --role-reviewer: 190 120 255;
+  --role-qa: 64 200 130;
+  --role-secops: 46 196 210;
+  --role-docs: 226 186 72;
+  --role-integrator: 240 100 120;
+  --role-shipper: 236 80 190;
+  --role-autopilot: 140 146 170;
+
+  --floor: 22 22 30;
+  --floor-grid: 34 34 46;
+
+  --env-horizon: var(--surface-3);
+  --env-ground: var(--floor);
+
+  --shadow-card: none;
+  --shadow-pop: 0 0 0 1px rgb(255 255 255 / 0.08), 0 30px 70px -18px rgb(0 0 0 / 0.9);
+}
+
+/* translucent glass over the stage (controls, inspector, caption). The Studio's glass is white 9% over its
+   colour gradient; over the Factory's dark stage that reads the same as this dark tint, which also keeps
+   white text legible where a panel overlaps the light-theme floor. */
+.factory-office .glass-card {
+  background: rgb(34 36 44 / 0.72);
+  backdrop-filter: saturate(180%) blur(30px);
+  -webkit-backdrop-filter: saturate(180%) blur(30px);
+  color: #fff;
+}
+
+/* the 2D floor plan (fallback when WebGL is unavailable) */
+.factory-office .fo-floor-grid {
+  background-color: rgb(var(--floor));
+  background-image:
+    linear-gradient(rgb(var(--floor-grid)) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--floor-grid)) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.factory-office .fo-label {
+  font-family: "JetBrains Mono Variable", ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgb(var(--ink-3));
+}
+
+/* an agent's head label opens its chat; it takes the pointer only while the label layout shows it (labels.ts) */
+.factory-office [data-pick][data-shown] { pointer-events: auto; cursor: pointer; }
+
+.factory-office .fo-shadow-pop { box-shadow: var(--shadow-pop); }
+.factory-office .fo-shadow-card { box-shadow: var(--shadow-card); }
+
+@keyframes fo-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes fo-type { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.55); } }
+@keyframes fo-ping2 { 0% { transform: scale(1); opacity: 0.55; } 100% { transform: scale(2.1); opacity: 0; } }
+
+.factory-office .fo-animate-bob { animation: fo-bob 1.6s ease-in-out infinite; }
+.factory-office .fo-animate-type { animation: fo-type 0.5s ease-in-out infinite; }
+.factory-office .fo-animate-ping2 { animation: fo-ping2 1.6s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+/* the stage behind the canvas: the surroundings' haze at the top over their ground (Surroundings.tsx draws the same in
+   3D), so the stage never shows a black void: not while the 3D loads, nor before its first frame, nor behind the floor
+   plan that stands in for a lost WebGL context */
+.factory-office.fo-stage-env,
+.factory-office .fo-env-bg {
+  background-color: rgb(var(--env-ground));
+  background-image: linear-gradient(180deg, rgb(var(--env-horizon)) 0%, rgb(var(--env-ground)) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .factory-office .fo-animate-bob,
+  .factory-office .fo-animate-type,
+  .factory-office .fo-animate-ping2 { animation: none; }
+}

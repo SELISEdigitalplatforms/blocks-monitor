@@ -1,0 +1,74 @@
+[
+  {
+    "$key": "dec-mobile-first",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRef": "DocNote:note-email-thread"
+    },
+    "$user": {
+      "DecidedByUserId": "qa-a"
+    },
+    "$at": {
+      "DecidedAt": "-4d"
+    },
+    "Number": 1,
+    "Title": "Mobile first",
+    "Statement": "The portal is designed for the phone first and works on larger screens too.",
+    "Rationale": "Most restaurant owners order on their phone, late in the evening after service.",
+    "Status": "accepted"
+  },
+  {
+    "$key": "dec-monthly-invoice",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRef": "DocNote:note-call-16-oct"
+    },
+    "$user": {
+      "DecidedByUserId": "qa-a"
+    },
+    "$at": {
+      "DecidedAt": "-4d"
+    },
+    "Number": 2,
+    "Title": "No online payment in the first version",
+    "Statement": "Customers do not pay online; the monthly invoice stays as it is today.",
+    "Rationale": "All Alpine Fresh customers are on a monthly invoice, and that stays (Jonas Meier, call 16 Oct).",
+    "Status": "accepted"
+  },
+  {
+    "$key": "dec-erp-csv",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRef": "DocNote:note-email-thread"
+    },
+    "$user": {
+      "DecidedByUserId": "qa-a"
+    },
+    "$at": {
+      "DecidedAt": "-4d"
+    },
+    "Number": 3,
+    "Title": "Orders reach the ERP through the 18:30 CSV import",
+    "Statement": "The portal produces a CSV file of the day's orders for the existing ERP import every evening at 18:30.",
+    "Rationale": "Alpine Fresh already imports a CSV file at 18:30, so the ERP needs no change.",
+    "Status": "accepted"
+  },
+  {
+    "$key": "dec-cutoff",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRef": "DocNote:note-order-form"
+    },
+    "$user": {
+      "DecidedByUserId": "qa-a"
+    },
+    "$at": {
+      "DecidedAt": "-4d"
+    },
+    "Number": 4,
+    "Title": "The portal enforces the 18:00 order cut-off",
+    "Statement": "Orders sent after 18:00 go to the next delivery day of the customer's route.",
+    "Rationale": "The order form sets the cut-off at 18:00 and delivers later orders on the next possible delivery day.",
+    "Status": "accepted"
+  }
+]

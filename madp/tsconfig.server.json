@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["server", "functions", "src/domain", "vite.server.config.ts"],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "functions/_lib/testing", "functions/.dist"]
+}

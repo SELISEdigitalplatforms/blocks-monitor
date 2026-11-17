@@ -1,0 +1,90 @@
+{
+  "name": "sync-skills-daily",
+  "settings": {},
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "Daily Sync Schedule",
+      "category": "trigger",
+      "type": "schedule",
+      "version": "v1",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "parameters": {
+        "triggerInterval": "custom",
+        "cronExpression": "0 3 * * *"
+      },
+      "settings": {},
+      "pinData": null
+    },
+    {
+      "id": "n2",
+      "name": "Daily Job Key",
+      "category": "transform",
+      "type": "code",
+      "version": "v1",
+      "position": {
+        "x": 260,
+        "y": 0
+      },
+      "parameters": {
+        "mode": "each",
+        "language": "js",
+        "script": "// one RequestKey per day: the Data Gateway needs a request key on every insert, and the same key\n// within a day is idempotent (a re-run answers the existing row instead of queueing twice)\nvar day = new Date().toISOString().slice(0, 10);\nreturn {\n  Day: day,\n  RequestKey: \"sync-skills-daily:\" + day\n};"
+      },
+      "settings": {},
+      "pinData": null
+    },
+    {
+      "id": "n3",
+      "name": "Queue Skills Sync",
+      "category": "action",
+      "type": "dataAction",
+      "version": "v1",
+      "position": {
+        "x": 520,
+        "y": 0
+      },
+      "parameters": {
+        "actionType": "insertData",
+        "collectionName": "blx_EngineJobs",
+        "collectionName_composite": "blx_EngineJobs:::EngineJob:::",
+        "schemaName": "EngineJob",
+        "authenticationType": "blocksAuthentication",
+        "fieldMapping": {
+          "WorkspaceId": "system",
+          "ProjectId": "system",
+          "Kind": "engine.skills-sync",
+          "Status": "queued",
+          "ActiveKey": "engine.skills-sync:global",
+          "InputJson": "{\"force\": true}",
+          "Message": "Scheduled daily Blocks skills sync.",
+          "RequestKey": "{{$node[\"Daily Job Key\"].json.output.RequestKey}}"
+        },
+        "rawQueryMode": false,
+        "filter": {},
+        "getFields": []
+      },
+      "settings": {},
+      "pinData": null
+    }
+  ],
+  "edges": [
+    {
+      "id": "xy-edge__n1-n2",
+      "source": "n1",
+      "target": "n2",
+      "sourceHandle": "source",
+      "targetHandle": "target"
+    },
+    {
+      "id": "xy-edge__n2-n3",
+      "source": "n2",
+      "target": "n3",
+      "sourceHandle": "source",
+      "targetHandle": "target"
+    }
+  ]
+}

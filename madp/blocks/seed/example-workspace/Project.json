@@ -1,0 +1,28 @@
+[
+  {
+    "$key": "b2b-order-portal",
+    "Name": "B2B Order Portal",
+    "ClientName": "Alpine Fresh AG",
+    "ClientContact": "Jonas Meier",
+    "ClientIndustry": "Food wholesale",
+    "ClientRegion": "Zurich, Switzerland",
+    "Brief": "Alpine Fresh wants their customers to stop emailing Excel orders. They need a simple portal to order, repeat orders and see delivery status.",
+    "NameSuggested": false,
+    "Stage": "scope",
+    "ResumeTo": "",
+    "CurrentScopeVersion": 1,
+    "$user": {
+      "AssigneeUserId": "qa-a"
+    },
+    "$at": {
+      "BusinessHandedOverAt": "-6d",
+      "SanitizationCompletedAt": "-4d",
+      "RequirementsConfirmedAt": "-2d"
+    },
+    "RepoProvider": "",
+    "RepoMode": "",
+    "RepoVisibility": "",
+    "RepoNameEdited": false,
+    "Rev": 1
+  }
+]

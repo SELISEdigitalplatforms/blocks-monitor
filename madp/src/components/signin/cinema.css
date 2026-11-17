@@ -1,0 +1,114 @@
+/* Sign-in cinematic pane: CSS and SVG only, tokens only, transform and opacity only. */
+.si-cinema { --px: 0; --py: 0; --si-cell: 48px; }
+
+.si-c-layer { position: absolute; pointer-events: none; }
+
+.si-c-gradient {
+  inset: -24px;
+  background:
+    radial-gradient(70% 60% at 85% 95%, rgb(var(--c-accent) / .35), transparent 70%),
+    linear-gradient(160deg, rgb(var(--c-stage)) 30%, rgb(var(--c-stage)) 60%, rgb(var(--c-accent) / .08) 100%);
+  transform: translate3d(calc(var(--px, 0) * 4px), calc(var(--py, 0) * 4px), 0);
+}
+
+.si-c-floor {
+  left: -40%; right: -40%; bottom: -4%; height: 62%;
+  transform: translate3d(calc(var(--px, 0) * 10px), calc(var(--py, 0) * 6px), 0);
+  perspective: 700px;
+  perspective-origin: 50% 0;
+  -webkit-mask-image: linear-gradient(to top, #000 15%, transparent 95%);
+  mask-image: linear-gradient(to top, #000 15%, transparent 95%);
+  overflow: hidden;
+}
+.si-c-plane {
+  position: absolute; inset: 0;
+  transform: perspective(700px) rotateX(64deg);
+  transform-origin: bottom;
+  overflow: hidden;
+}
+.si-c-grid {
+  position: absolute; left: 0; right: 0; top: calc(var(--si-cell) * -1); bottom: 0;
+  background-image:
+    linear-gradient(to right, rgb(var(--c-accent) / .22) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--c-accent) / .22) 1px, transparent 1px);
+  background-size: var(--si-cell) var(--si-cell);
+  animation: si-c-drift 3.2s linear infinite;
+}
+@keyframes si-c-drift { from { transform: translateY(0); } to { transform: translateY(var(--si-cell)); } }
+
+.si-c-sweep {
+  inset: -10% 0;
+  left: -40%; width: 40%;
+  background: linear-gradient(100deg, transparent 0%, rgb(var(--c-ink) / .08) 50%, transparent 100%);
+  transform: translate3d(0, 0, 0) skewX(-18deg);
+  opacity: 0;
+  animation: si-c-sweep 8s ease-in-out infinite;
+}
+@keyframes si-c-sweep {
+  0% { transform: translate3d(0, 0, 0) skewX(-18deg); opacity: 0; }
+  2% { opacity: 1; }
+  16% { opacity: 1; }
+  17.5%, 100% { transform: translate3d(350%, 0, 0) skewX(-18deg); opacity: 0; }
+}
+
+.si-c-grain {
+  inset: 0;
+  background-repeat: repeat;
+  opacity: .5;
+  transform: translate3d(calc(var(--px, 0) * 2px), calc(var(--py, 0) * 2px), 0);
+}
+
+/* entrance */
+.si-cinema[data-in] .si-c-in { animation: si-c-rise 480ms cubic-bezier(.2, .7, .2, 1) both; animation-delay: var(--si-d, 0ms); }
+@keyframes si-c-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* lifecycle line */
+.si-lc-trail { animation: si-lc-trail var(--si-lc-dur, 6s) linear infinite; }
+.si-lc-pulse { animation: si-lc-pulse var(--si-lc-dur, 6s) linear infinite; }
+.si-lc-live-halo { animation: si-lc-halo var(--si-lc-dur, 6s) linear infinite; }
+.si-lc-still .si-lc-trail, .si-lc-still .si-lc-pulse, .si-lc-still .si-lc-live-halo { animation: none; }
+
+@keyframes si-lc-trail {
+  0% { stroke-dashoffset: 100; opacity: 1; }
+  77% { stroke-dashoffset: 0; opacity: 1; }
+  92% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes si-lc-pulse {
+  0% { stroke-dashoffset: 6; opacity: 1; }
+  77% { stroke-dashoffset: -100; opacity: 1; }
+  78%, 100% { stroke-dashoffset: -100; opacity: 0; }
+}
+@keyframes si-lc-halo {
+  0%, 76% { opacity: 0; }
+  82% { opacity: 1; }
+  90%, 100% { opacity: 0; }
+}
+
+/* one pair per Lifecycle station (8 stages + Live), each lights as the pulse passes it; test/csp-inline-styles.test.ts keeps them in step with STAGES */
+@keyframes si-lc-0 { 0% { opacity: .55; } 2.50%, 92% { opacity: 1; } 100% { opacity: .55; } }
+@keyframes si-lc-s-0 { 0% { transform: scale(0); } 2.50%, 92% { transform: scale(1); } 100% { transform: scale(0); } }
+@keyframes si-lc-1 { 0%, 9.63% { opacity: .55; } 12.13%, 92% { opacity: 1; } 100% { opacity: .55; } }
+@keyframes si-lc-s-1 { 0%, 9.63% { transform: scale(0); } 12.13%, 92% { transform: scale(1); } 100% { transform: scale(0); } }
+@keyframes si-lc-2 { 0%, 19.25% { opacity: .55; } 21.75%, 92% { opacity: 1; } 100% { opacity: .55; } }
+@keyframes si-lc-s-2 { 0%, 19.25% { transform: scale(0); } 21.75%, 92% { transform: scale(1); } 100% { transform: scale(0); } }
+@keyframes si-lc-3 { 0%, 28.88% { opacity: .55; } 31.38%, 92% { opacity: 1; } 100% { opacity: .55; } }
+@keyframes si-lc-s-3 { 0%, 28.88% { transform: scale(0); } 31.38%, 92% { transform: scale(1); } 100% { transform: scale(0); } }
+@keyframes si-lc-4 { 0%, 38.50% { opacity: .55; } 41.00%, 92% { opacity: 1; } 100% { opacity: .55; } }
+@keyframes si-lc-s-4 { 0%, 38.50% { transform: scale(0); } 41.00%, 92% { transform: scale(1); } 100% { transform: scale(0); } }
+@keyframes si-lc-5 { 0%, 48.13% { opacity: .55; } 50.63%, 92% { opacity: 1; } 100% { opacity: .55; } }
+@keyframes si-lc-s-5 { 0%, 48.13% { transform: scale(0); } 50.63%, 92% { transform: scale(1); } 100% { transform: scale(0); } }
+@keyframes si-lc-6 { 0%, 57.75% { opacity: .55; } 60.25%, 92% { opacity: 1; } 100% { opacity: .55; } }
+@keyframes si-lc-s-6 { 0%, 57.75% { transform: scale(0); } 60.25%, 92% { transform: scale(1); } 100% { transform: scale(0); } }
+@keyframes si-lc-7 { 0%, 67.38% { opacity: .55; } 69.88%, 92% { opacity: 1; } 100% { opacity: .55; } }
+@keyframes si-lc-s-7 { 0%, 67.38% { transform: scale(0); } 69.88%, 92% { transform: scale(1); } 100% { transform: scale(0); } }
+@keyframes si-lc-8 { 0%, 77.00% { opacity: .55; } 79.50%, 92% { opacity: 1; } 100% { opacity: .55; } }
+@keyframes si-lc-s-8 { 0%, 77.00% { transform: scale(0); } 79.50%, 92% { transform: scale(1); } 100% { transform: scale(0); } }
+
+.si-cinema[data-paused] * { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .si-cinema *, .si-cinema *::before, .si-cinema *::after { animation: none !important; }
+  .si-cinema .si-c-in { opacity: 1; transform: none; }
+  .si-c-sweep { display: none; }
+}

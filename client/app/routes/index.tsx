@@ -1,9 +1,7 @@
 import { getNavigationMenus } from "@/constants/navigation-menus.constant";
 import { MonitorLayout } from "@/layouts/monitor-layout/monitor-layout";
-import AlertRecipientsPage from "@/pages/alert-recipients";
-import MonitorPage from "@/pages/monitor";
-import IncidentPage from "@/pages/incidents";
-import MonitorDetailsPage from "@/pages/monitor/details";
+import MadpPage from "@/pages/madp";
+import ProjectRepositoriesPage from "@/pages/madp/repositories";
 import ReposPage from "@/pages/repos";
 import RepoDetailsPage from "@/pages/repos/details";
 import { AuthResolver, ProtectedGuard, PublicGuard } from "@seliseblocks/genesis-os/guards";
@@ -20,13 +18,10 @@ import { useT } from "@seliseblocks/genesis-os/i18n";
 import { useMemo } from "react";
 import { Navigate, Outlet, type RouteObject } from "react-router";
 
-const redirectPaths: Record<string, string> = {
-  "/app/monitor/monitor/*": "/app/monitor",
-  "/app/monitor/monitor/incidents/*": "/app/monitor",
-};
+const redirectPaths: Record<string, string> = {};
 
 // Rebuilds the menu labels when the language changes.
-function MonitorDashboardRoute() {
+function MadpDashboardRoute() {
   // `t` changes with the language and when its text arrives, so the labels are rebuilt then.
   const { t } = useT("monitor.shared");
   const navigationMenus = useMemo(() => getNavigationMenus(t), [t]);
@@ -85,30 +80,21 @@ export const routes = [
               {
                 // impersonate
                 path: ":itemId",
-                element: <MonitorDashboardRoute />,
+                element: <MadpDashboardRoute />,
                 children: [
                   {
                     index: true,
-                    element: <Navigate to="dashboard" replace />,
+                    element: <Navigate to="madp" replace />,
                   },
-                  { path: "dashboard", element: <DashboardOverview /> },
+                  { path: "dashboard", element: <Navigate to="../madp" replace /> },
+                  { path: "madp/*", element: <MadpPage /> },
+                  { path: "overview", element: <DashboardOverview /> },
+                  { path: "monitor/*", element: <Navigate to="../madp" replace /> },
+                  { path: "alert-recipients", element: <Navigate to="../madp" replace /> },
                   {
                     element: <MonitorLayout />,
                     children: [
-                      {
-                        index: true,
-                        element: <Navigate to="monitor" replace />,
-                      },
-                      { path: "monitor", element: <MonitorPage /> },
-                      {
-                        path: "monitor/:id",
-                        element: <MonitorDetailsPage />,
-                      },
-                      {
-                        path: "monitor/incidents/:id",
-                        element: <IncidentPage />,
-                      },
-                      { path: "alert-recipients", element: <AlertRecipientsPage /> },
+                      { path: "repositories", element: <ProjectRepositoriesPage /> },
                       { path: "repos", element: <ReposPage /> },
                       { path: "repo/:repoId", element: <RepoDetailsPage /> },
                       { path: "repos/:repoId", element: <RepoDetailsPage /> },

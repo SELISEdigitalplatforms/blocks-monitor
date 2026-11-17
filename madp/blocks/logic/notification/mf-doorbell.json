@@ -1,0 +1,7 @@
+{
+  "name": "mf-doorbell",
+  "channelToNotify": 0,
+  "notificationType": 2,
+  "enablePersistence": false,
+  "notifyMethod": "mf.doorbell"
+}

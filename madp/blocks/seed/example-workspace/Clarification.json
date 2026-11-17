@@ -1,0 +1,109 @@
+[
+  {
+    "$key": "clar-sign-in",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRef": "DocNote:note-call-16-oct"
+    },
+    "$user": {
+      "OwnerUserId": "qa-a"
+    },
+    "Number": 1,
+    "Question": "One login per customer, or one per person (chef, owner)?",
+    "Answer": "",
+    "Status": "open",
+    "SourceType": "doc-note",
+    "SortOrder": 1
+  },
+  {
+    "$key": "clar-delivery-windows",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRef": "DocNote:note-order-sheets"
+    },
+    "$user": {
+      "OwnerUserId": "qa-a"
+    },
+    "Number": 2,
+    "Question": "Do hotels pick a delivery slot before 7:00 per order, or is it a fixed customer setting?",
+    "Answer": "",
+    "Status": "deferred",
+    "SourceType": "doc-note",
+    "SortOrder": 2
+  },
+  {
+    "$key": "clar-payment",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRef": "DocNote:note-call-16-oct"
+    },
+    "$user": {
+      "OwnerUserId": "qa-a",
+      "AnsweredByUserId": "qa-a"
+    },
+    "$at": {
+      "AnsweredAt": "-5d"
+    },
+    "Number": 3,
+    "Question": "Do customers need to pay online?",
+    "Answer": "No. All customers stay on the monthly invoice (Jonas Meier, call 16 Oct).",
+    "Status": "answered",
+    "SourceType": "doc-note",
+    "SortOrder": 3
+  },
+  {
+    "$key": "clar-erp-export",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRef": "DocNote:note-email-thread"
+    },
+    "$user": {
+      "OwnerUserId": "qa-a",
+      "AnsweredByUserId": "qa-a"
+    },
+    "$at": {
+      "AnsweredAt": "-5d"
+    },
+    "Number": 4,
+    "Question": "In which format and when must orders reach the ERP?",
+    "Answer": "As a CSV file for the import every evening at 18:30, as today.",
+    "Status": "answered",
+    "SourceType": "doc-note",
+    "SortOrder": 4
+  },
+  {
+    "$key": "clar-order-changes",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal",
+      "SourceRef": "DocNote:note-call-16-oct"
+    },
+    "$user": {
+      "OwnerUserId": "qa-a",
+      "AnsweredByUserId": "qa-a"
+    },
+    "$at": {
+      "AnsweredAt": "-5d"
+    },
+    "Number": 5,
+    "Question": "Who may change a sent order, and until when?",
+    "Answer": "The order desk (4 people) until 18:00, for example when an item is out of stock.",
+    "Status": "answered",
+    "SourceType": "doc-note",
+    "SortOrder": 5
+  },
+  {
+    "$key": "clar-languages",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "$user": {
+      "OwnerUserId": "qa-a"
+    },
+    "Number": 6,
+    "Question": "Which languages do the customers need at launch?",
+    "Answer": "",
+    "Status": "open",
+    "SourceType": "",
+    "SortOrder": 6
+  }
+]

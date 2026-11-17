@@ -1,0 +1,6 @@
+{
+  "fields": [
+    { "name": "BlocksStageProjectRef", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Operator-owned actual Blocks stg tenant ID; never inferred from the dev ID." },
+    { "name": "BlocksProductionProjectRef", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Operator-owned actual Blocks prod tenant ID; never inferred from the dev ID." }
+  ]
+}

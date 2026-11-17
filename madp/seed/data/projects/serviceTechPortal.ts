@@ -1,0 +1,543 @@
+// Talwerk Fluidsysteme GmbH · Service Technician Portal, at Release. Brownfield: the existing service portal
+// (talwerk-fluid/service-portal, branch develop) gets mobile service reports. All three milestones are built and live:
+// 1.0.0 went to stage and, after a rejected first request, to production; after go-live CR-001 (photos in the report)
+// reached production, FX-2 (from the assistant's bug analysis) is on stage with its production approval pending,
+// CR-003 (offline mode) is building now and CR-004 was saved from the planner chat as a draft.
+import type { BugAnalysis } from "../../../src/domain/assistant";
+import type { ProjectPlan } from "../../model";
+
+const MARTINA: [string, string] = ["Martina Lang", "martina.lang@talwerk-fluid.de"];
+const AYLIN: [string, string] = ["Aylin Demir", "aylin.demir@talwerk-fluid.de"];
+const STEFAN: [string, string] = ["Stefan Brandt", "stefan.brandt@talwerk-fluid.de"];
+
+const SHARED_VISIT_BUG: BugAnalysis = {
+  title: "Service report names the wrong technician on shared visits",
+  summary: "When two technicians work on one visit, the PDF service report always names the first technician planned for the visit, not the one who completed and signed the report.",
+  severity: "medium",
+  severityReason: "Wrong name on reports sent to customers and on the invoice basis; no data is lost. About 8% of visits have two technicians.",
+  rootCause: {
+    text: "The PDF template reads the technician from the visit's first assignee. The technician who completed the report is stored on the report but never passed to the template.",
+    refs: [
+      { path: "web/src/reports/serviceReportPdf.ts", line: 88, why: "Uses visit.assignees[0] as the technician" },
+      { path: "web/src/visits/visitReport.ts", line: 142, why: "Stores completedBy but does not hand it to the PDF" },
+    ],
+  },
+  evidence: {
+    steps: ["Plan visit V-24-1182 with Tomasz Nowak and Ralf Weiss", "Ralf Weiss completes the report and the customer signs", "Open the PDF service report"],
+    failing: "The PDF shows Tomasz Nowak as the technician.",
+    stories: ["Customer signs the report on the phone", "Send the PDF report to the customer"],
+    tests: ["serviceReportPdf.test.ts covers visits with one technician only"],
+  },
+  plan: {
+    steps: ["Pass the completing technician to the PDF template", "List every technician of the visit, the completing one first", "Add a test for visits with two technicians"],
+    files: ["web/src/reports/serviceReportPdf.ts", "web/src/visits/visitReport.ts"],
+    tests: ["serviceReportPdf.test.ts"],
+  },
+  impact: { features: ["Customer sign-off and PDF report"], screens: ["Visit report"], environments: ["production", "stage"] },
+  estimate: { hours: 2, agentRoles: ["dev", "qa"] },
+  featureRef: "feature:customer-signature",
+};
+
+const decide = (by: string, at: string, type: "architect" | "security" | "qa", decision: "approved" | "rejected" = "approved", comment?: string) => ({ type, by, at, decision, ...(comment ? { comment } : {}) });
+
+export const SERVICE_PORTAL: ProjectPlan = {
+  key: "service-portal",
+  workspace: "talwerk",
+  name: "Service Technician Portal",
+  client: { name: "Talwerk Fluidsysteme GmbH", contact: "Martina Lang", industry: "Industrial pumps and fluid systems", region: "Mannheim, Germany" },
+  brief: "Field service technicians plan visits in the existing service portal but still write paper service reports, which are scanned and typed in for invoicing. The portal should let technicians report on the phone at the customer's site, with parts used and the customer's signature, and produce the PDF service report.",
+  stage: "release",
+  repo: { mode: "existing", owner: "talwerk-fluid", name: "service-portal", branch: "develop" },
+  creator: "katrin",
+  assignee: "aylin",
+  assignedBy: "katrin",
+  lead: "stefan",
+  handedOverBy: "aylin",
+  days: { created: "-48d@09:00", handedOver: "-42d@10:30", sanitized: "-38d@16:00", confirmed: "-33d@14:00", locked: "-30d@10:00", updated: "-1d@16:12" },
+  docs: {
+    folders: [
+      { key: "workshops", name: "Workshops", kind: "meeting", at: "-48d@09:05", by: "aylin" },
+      { key: "existing", name: "Existing service portal", kind: "other", at: "-48d@09:06", by: "aylin" },
+      { key: "process", name: "Service process", kind: "other", at: "-47d@08:30", by: "aylin" },
+    ],
+    scratch: {
+      body: "- 64 field technicians in DE and AT, about 1'900 visits a month\n- Paper report scanned in the evening, typed in by the service desk the next day\n- Invoices go out 9 working days after the visit on average\n- Existing portal: visit planning only (Angular front end, Java back end, built in-house 2021)\n- Martina: 'If the report is done at the customer, we can invoice the same week.'",
+      at: "-48d@10:00",
+      by: "aylin",
+    },
+    notes: [
+      {
+        key: "kickoff",
+        folder: "workshops",
+        title: "Kick-off with service operations",
+        body: "Workshop · Martina Lang (Service operations), Aylin Demir, Stefan Brandt, Katrin Vogel\n\n- Technicians see their visits in the service portal on a laptop in the van, but report on paper.\n- The paper report has: work done, hours, parts used, measurements, customer signature.\n- The service desk (5 people) types every report into the ERP for invoicing; mistakes in parts used are common.\n- Customers want the report right away by e-mail.\n- Two technicians on one visit happen often for large pumps.\n- Must keep working with the existing portal: planning stays where it is.\n- Phones: every technician has a company smartphone; some vans have shared tablets.",
+        at: "-46d@14:00",
+        by: "aylin",
+      },
+      {
+        key: "existing-portal",
+        folder: "existing",
+        title: "The existing service portal today",
+        body: "Stefan's notes from the code and architecture review:\n\n- Angular 12 front end, Java (Spring) back end, PostgreSQL; built in-house in 2021\n- Visits are created from ERP service orders every 30 minutes\n- No mobile layout; the visit page is a wide table\n- REST API exists for the planning board, not documented\n- Sign-in through the company directory; technicians already have accounts\n\nConclusion: keep the back end and planning, add a mobile reporting front end and the missing API endpoints.",
+        at: "-45d@11:20",
+        by: "stefan",
+      },
+      {
+        key: "report-today",
+        folder: "process",
+        title: "How a service report is handled today",
+        body: "1. Technician fills in the paper report at the customer, customer signs\n2. Report travels in the van, scanned in the branch office in the evening\n3. Service desk types work, hours and parts into the ERP service order\n4. Invoice is created when the order is complete - on average 9 working days after the visit\n\nTypical errors: wrong part numbers, hours missing, unreadable signatures.",
+        at: "-44d@09:40",
+        by: "aylin",
+      },
+    ],
+    files: [
+      {
+        key: "report-form",
+        folder: "process",
+        at: "-44d@09:35",
+        by: "aylin",
+        file: {
+          type: "pdf",
+          name: "Service report form.pdf",
+          issued: "-400d",
+          issuer: "Talwerk Fluidsysteme GmbH · Field Service",
+          color: "0f4c81",
+          title: "Service report",
+          subtitle: "Please fill in completely and have the customer sign",
+          meta: [["Service order", ""], ["Customer", ""], ["Pump / serial no.", ""], ["Technician(s)", ""], ["Date", ""]],
+          sections: [
+            { heading: "Work done", paragraphs: ["________________________________________________________________"] },
+            { heading: "Hours", table: { head: ["Technician", "From", "To", "Travel"], widths: [0.4, 0.2, 0.2, 0.2], rows: [["", "", "", ""], ["", "", "", ""]] } },
+            { heading: "Parts used", table: { head: ["Part no.", "Description", "Qty"], widths: [0.25, 0.6, 0.15], rows: Array.from({ length: 6 }, () => ["", "", ""]) } },
+            { heading: "Customer sign-off", paragraphs: ["Work completed as described. Name and signature of the customer: ____________________"] },
+          ],
+        },
+      },
+      {
+        key: "martina-email",
+        folder: "workshops",
+        at: "-45d@08:20",
+        by: "aylin",
+        file: {
+          type: "eml",
+          name: "Service reports - what matters most.eml",
+          from: MARTINA,
+          to: [AYLIN],
+          cc: [STEFAN],
+          at: "-45d@07:45",
+          subject: "Service reports - what matters most",
+          body: "Hi Aylin\n\nafter yesterday's workshop I asked three team leads what matters most:\n\n1. Parts used must be picked from the van stock, not typed.\n2. The customer gets the PDF report by e-mail before the technician leaves.\n3. It has to work in plant rooms - signal is often bad there.\n\nThe third one is probably not for the first version, but please keep it in mind.\n\nMartina",
+        },
+      },
+      {
+        key: "portal-screenshot",
+        folder: "existing",
+        at: "-45d@11:25",
+        by: "stefan",
+        file: {
+          type: "png",
+          name: "Existing portal visit planning.png",
+          image: {
+            type: "screen",
+            device: "desktop",
+            brand: "34495e",
+            app: "SERVICE PORTAL",
+            title: "Visit planning - week 34",
+            nav: ["Planning", "Visits", "Technicians", "Reports"],
+            activeNav: 0,
+            blocks: [
+              { k: "table", head: ["Visit", "Customer", "Pump", "Technician", "Date"], rows: [["V-24-1150", "Waterworks Wels", "TWK-C 50", "R. Weiss", "19.08."], ["V-24-1151", "Chemiepark Nord", "TWK-M 80", "T. Nowak", "19.08."], ["V-24-1152", "Brauerei Lindner", "TWK-C 65", "R. Weiss", "20.08."], ["V-24-1153", "Klinikum Ost", "TWK-H 40", "S. Ritter", "20.08."]] },
+              { k: "note", text: "Reports: printed form, scanned by the branch office." },
+            ],
+          },
+        },
+      },
+    ],
+  },
+  sanitization: {
+    clarifications: [
+      { key: "planning-stays", q: "Does visit planning stay in the existing portal, or does it move too?", a: "Planning stays where it is; only reporting moves to the phone.", status: "answered", owner: "stefan", answeredBy: "martina", answeredAt: "-41d@09:30", at: "-42d@11:00", source: "note:kickoff" },
+      { key: "van-stock", q: "Is the stock of each van known in the ERP, so technicians can pick parts used from it?", a: "Yes, every van is a storage location in the ERP; stock is updated every night.", status: "answered", owner: "stefan", answeredBy: "stefan", answeredAt: "-41d@14:00", at: "-42d@11:05", source: "file:martina-email" },
+      { key: "shared-visits", q: "How is a visit with two technicians reported: one report or one per technician?", a: "One report per visit, completed by one technician; both technicians' hours are on it.", status: "answered", owner: "aylin", answeredBy: "martina", answeredAt: "-40d@10:15", at: "-42d@11:10", source: "note:kickoff" },
+      { key: "report-email", q: "Who receives the PDF service report by e-mail?", a: "The customer contact of the service order, with the service desk in copy.", status: "answered", owner: "aylin", answeredBy: "aylin", answeredAt: "-40d@11:00", at: "-42d@11:15", source: "file:martina-email" },
+      { key: "offline", q: "Must reporting work without signal in plant rooms?", status: "deferred", deferReason: "Not in the first version (Martina Lang's e-mail); planned as a change after go-live.", owner: "stefan", at: "-42d@11:20", source: "file:martina-email" },
+    ],
+    decisions: [
+      { key: "keep-backend", title: "Keep the existing back end and planning", statement: "The Java back end and the planning board stay; the portal gets a mobile reporting front end and new API endpoints.", rationale: "Planning works well and is integrated with the ERP; only reporting is the problem.", by: "stefan", at: "-39d@10:00", clar: "planning-stays" },
+      { key: "one-report", title: "One report per visit", statement: "A visit has one service report, completed by one of its technicians, with the hours of all technicians.", rationale: "Matches how the service desk invoices today.", by: "aylin", at: "-39d@10:10", clar: "shared-visits" },
+      { key: "van-parts", title: "Parts used come from the van stock", statement: "Technicians pick parts used from their van's stock list; free text only for parts not in the van.", rationale: "Removes the most common error in today's reports.", by: "aylin", at: "-39d@10:20", clar: "van-stock" },
+    ],
+    tech: [
+      { key: "front-end", area: "stack", title: "Mobile reporting front end", choice: "New mobile web front end in the existing repository, served by the existing back end", rationale: "Technicians use company phones; no app store roll-out needed.", alternatives: ["Native app", "Responsive rework of the Angular pages"], experts: ["luca"], status: "accepted", by: "stefan", at: "-39d@14:00" },
+      { key: "erp-orders", area: "integration", title: "Reports to the ERP service order", choice: "Completed reports update the ERP service order (hours, parts) through the existing integration", rationale: "The service desk no longer types reports in.", alternatives: ["Export file for the service desk"], experts: ["luca"], status: "accepted", by: "stefan", at: "-39d@14:10", system: "Talwerk ERP service orders" },
+      { key: "pdf", area: "architecture", title: "PDF service report", choice: "PDF generated on the server from the completed report and e-mailed to the customer contact", rationale: "Same layout for every report; the customer gets it before the technician leaves.", alternatives: ["Print from the phone"], experts: ["luca"], status: "accepted", by: "stefan", at: "-39d@14:20" },
+      { key: "session", area: "security", title: "Sessions on shared devices", choice: "Sign-in through the company directory; sessions on shared van tablets end after 12 hours", rationale: "Shared tablets must not keep a technician signed in for days.", alternatives: [], experts: ["florian"], status: "accepted", by: "stefan", at: "-39d@14:30" },
+    ],
+  },
+  requirements: [
+    { key: "my-visits", title: "Technicians see their visits of the day", text: "A technician sees today's visits with customer, address, pump and the service order on the phone.", category: "functional", priority: "must", criteria: ["Today's visits are listed in planned order", "Each visit shows customer, address, pump and service order"], sources: ["note:kickoff", "dec:keep-backend"] },
+    { key: "report-on-site", title: "Service reports are written on the phone", text: "The technician records work done, hours of every technician and measurements at the customer's site.", category: "functional", priority: "must", criteria: ["Work done, hours and measurements can be entered", "Hours of all technicians of the visit are recorded"], sources: ["note:report-today", "dec:one-report"] },
+    { key: "parts-used", title: "Parts used come from the van stock", text: "Parts used are picked from the van's stock list; parts not in the van can be added as free text.", category: "functional", priority: "must", criteria: ["The van's stock list is available on the phone", "Free text is possible for other parts"], sources: ["dec:van-parts", "clar:van-stock"] },
+    { key: "customer-signature", title: "The customer signs on the phone", text: "The customer signs the completed report on the phone.", category: "functional", priority: "must", criteria: ["The signature is stored with the report", "A signed report cannot be changed"], sources: ["note:report-today"] },
+    { key: "pdf-report", title: "The customer receives the PDF report", text: "After signing, the PDF service report is e-mailed to the customer contact with the service desk in copy.", category: "integration", priority: "must", criteria: ["The PDF is sent within a minute of signing", "The service desk is in copy"], sources: ["clar:report-email"] },
+    { key: "erp-update", title: "Reports update the ERP service order", text: "Hours and parts of a signed report are written to the ERP service order, ready for invoicing.", category: "integration", priority: "must", criteria: ["Hours and parts appear on the service order", "No report needs to be typed in"], sources: ["note:report-today"] },
+    { key: "service-desk", title: "The service desk sees open and signed reports", text: "The service desk sees which visits still lack a report and which reports are signed.", category: "functional", priority: "nice", criteria: ["Visits without a report are listed per day", "Signed reports link to their PDF"], sources: ["note:kickoff"] },
+    { key: "shared-tablets", title: "Shared tablets end sessions after 12 hours", text: "On shared van tablets a technician's session ends after 12 hours.", category: "security", priority: "must", criteria: ["Sessions on shared devices end after 12 hours"], sources: ["manual:florian"] },
+  ],
+  objective: {
+    statement: "Talwerk's 64 field technicians complete the service report on the phone at the customer's site, with parts from the van stock and the customer's signature; the customer receives the PDF immediately and the ERP service order is ready for invoicing the same day.",
+    criteria: ["Every visit ends with a signed report on the phone", "Customers receive the PDF report before the technician leaves", "Service orders are complete without typing"],
+    highLevelMd: "## Users\n- 64 field technicians in Germany and Austria\n- Service desk (5 people)\n- Customers, who receive the PDF report\n\n## Main flows\n- See today's visits\n- Write the report, pick parts used, get the signature\n- PDF to the customer, hours and parts to the ERP",
+    architectureMd: "Existing service portal (Java back end, PostgreSQL) extended with reporting API endpoints; new mobile web front end in the same repository; PDF generation on the server; ERP service orders through the existing integration.",
+  },
+  design: {
+    mode: "describe",
+    instructions: "For technicians at a pump in a plant room: one hand free, large touch targets, Talwerk blue, the visit's pump and serial number always on top. The service desk view is a dense desktop table.",
+    brand: "0f4c81",
+    app: "TALWERK SERVICE",
+    confirmedBy: "aylin",
+    screens: [
+      { key: "visits", name: "My visits today", status: "accepted", image: { device: "mobile", title: "Today - 3 visits", nav: ["Visits", "Report", "Parts"], activeNav: 0, blocks: [{ k: "card", title: "08:00 Waterworks Wels", lines: ["TWK-C 50 - 50-14-08812", "Seal replacement"], badge: "NEXT", tone: "info" }, { k: "card", title: "11:30 Brauerei Lindner", lines: ["TWK-C 65 - 65-17-01230", "Yearly service"] }, { k: "card", title: "15:00 Klinikum Ost", lines: ["TWK-H 40 - 40-19-00417", "Noise check"] }] } },
+      { key: "report", name: "Visit report", status: "accepted", image: { device: "mobile", title: "Report V-24-1182", nav: ["Visits", "Report", "Parts"], activeNav: 1, blocks: [{ k: "field", label: "Work done", value: "Seal kit replaced, test run 30 min" }, { k: "stats", items: [["R. Weiss", "3.5 h"], ["T. Nowak", "3.5 h"]] }, { k: "field", label: "Pressure after repair", value: "6.2 bar" }, { k: "button", text: "Continue to sign-off" }] } },
+      { key: "parts", name: "Parts used", image: { device: "mobile", title: "Parts used", nav: ["Visits", "Report", "Parts"], activeNav: 2, blocks: [{ k: "field", label: "Search van stock", value: "seal" }, { k: "list", items: [["C-50-118 Seal kit 50 mm", "1"], ["C-65-040 Gasket set", "2"]] }, { k: "button", text: "Add part not in van", secondary: true }] } },
+      { key: "service-desk", name: "Service desk overview", image: { device: "desktop", title: "Reports - today", nav: ["Reports", "Visits", "Technicians"], activeNav: 0, blocks: [{ k: "stats", items: [["Visits", "94"], ["Signed", "71"], ["Open", "23"]] }, { k: "table", head: ["Visit", "Customer", "Technician", "Status"], rows: [["V-24-1182", "Waterworks Wels", "R. Weiss", "Signed"], ["V-24-1183", "Brauerei Lindner", "R. Weiss", "In progress"], ["V-24-1184", "Klinikum Ost", "S. Ritter", "Open"]] }] } },
+    ],
+  },
+  scope: {
+    title: "Mobile service reports",
+    summary: "Technicians see their visits, write the service report with parts from the van stock, get the customer's signature and send the PDF; the ERP service order is updated and the service desk sees open reports. Offline reporting follows after go-live.",
+    features: [
+      {
+        key: "visit-list",
+        title: "My visits",
+        description: "Today's visits of a technician from the existing planning.",
+        priority: "must",
+        reqs: ["my-visits"],
+        stories: [
+          { key: "visits-today", title: "See my visits of today", actor: "technician", text: "As a technician I see today's visits in planned order so that I know where to go next.", criteria: ["Visits come from the existing planning", "Each visit shows customer, pump and service order"], hours: 5 },
+          { key: "visit-details", title: "Open a visit's details", actor: "technician", text: "As a technician I open a visit to see the pump's history and the task.", criteria: ["Details show the last three visits of the pump"], hours: 4 },
+        ],
+      },
+      {
+        key: "visit-report",
+        title: "Digital service report",
+        description: "Work done, hours of every technician and measurements.",
+        priority: "must",
+        reqs: ["report-on-site"],
+        stories: [
+          { key: "work-done", title: "Record the work done", actor: "technician", text: "As a technician I record the work done and measurements on the phone.", criteria: ["Work done and measurements are saved with the visit"], hours: 5 },
+          { key: "hours", title: "Record hours of every technician", actor: "technician", text: "As a technician I record the hours of everyone on the visit.", criteria: ["Hours of all technicians of the visit are listed"], hours: 3 },
+          { key: "save-draft", title: "Continue a report later", actor: "technician", text: "As a technician I can leave a report and continue it later the same day.", criteria: ["Unfinished reports are kept as drafts"], hours: 2 },
+        ],
+      },
+      {
+        key: "parts-used",
+        title: "Parts used",
+        description: "Pick parts used from the van's stock.",
+        priority: "must",
+        reqs: ["parts-used"],
+        stories: [
+          { key: "pick-parts", title: "Pick parts from my van", actor: "technician", text: "As a technician I pick the parts I used from my van's stock list.", criteria: ["The van stock is searchable", "Quantities are recorded"], hours: 5 },
+          { key: "other-parts", title: "Add a part not in the van", actor: "technician", text: "As a technician I add a part that was not in my van as free text.", criteria: ["Free-text parts are marked for the service desk"], hours: 2 },
+        ],
+      },
+      {
+        key: "customer-signature",
+        title: "Customer sign-off and PDF report",
+        description: "The customer signs; the PDF goes out and the ERP order is updated.",
+        priority: "must",
+        reqs: ["customer-signature", "pdf-report", "erp-update"],
+        stories: [
+          { key: "sign-off", title: "Customer signs the report on the phone", actor: "customer", text: "As a customer I sign the completed report on the technician's phone.", criteria: ["The signature is stored", "Signed reports are locked"], hours: 4 },
+          { key: "send-pdf", title: "Send the PDF report to the customer", actor: "technician", text: "As a technician I see the PDF report sent to the customer before I leave.", criteria: ["The PDF arrives within a minute", "The service desk is in copy", "Hours and parts reach the ERP order"], hours: 6 },
+        ],
+      },
+      {
+        key: "service-desk",
+        title: "Service desk overview",
+        description: "Open and signed reports for the service desk.",
+        priority: "nice",
+        reqs: ["service-desk", "shared-tablets"],
+        stories: [
+          { key: "open-reports", title: "See visits without a report", actor: "service desk", text: "As the service desk I see the visits of a day that still lack a report.", criteria: ["Visits without a report are listed per day"], hours: 3 },
+          { key: "signed-reports", title: "Open signed reports", actor: "service desk", text: "As the service desk I open signed reports and their PDF.", criteria: ["Signed reports link to their PDF"], hours: 2 },
+        ],
+      },
+    ],
+    milestones: [
+      { name: "Visits on the phone", goal: "Technicians see their visits of the day on the phone.", features: ["visit-list"], preview: "Ralf Weiss opens tomorrow's three visits on his phone." },
+      { name: "Report on site", goal: "Technicians write the report with hours and parts from the van.", features: ["visit-report", "parts-used"], preview: "A seal replacement is reported with two technicians' hours and the seal kit from the van." },
+      { name: "Sign-off and PDF", goal: "The customer signs, receives the PDF and the ERP order is updated.", features: ["customer-signature", "service-desk"], preview: "The waterworks signs on the phone and receives the PDF; the service desk sees the report signed." },
+    ],
+    challenges: [
+      { severity: "high", question: "What happens to a signed report when the ERP update fails?", why: "The customer has the PDF, but the service order would stay incomplete without anyone noticing.", fix: "Retry the ERP update and list failed updates on the service desk overview.", target: { type: "feature", key: "customer-signature" }, status: "accepted", by: "stefan", at: "-31d@10:00" },
+      { severity: "medium", question: "Can a technician correct a signed report?", why: "Mistakes are found after the customer signed; the scope locks signed reports.", fix: "Corrections go through the service desk as a note on the report.", target: { type: "story", key: "sign-off" }, status: "answered", answer: "Signed reports stay locked; the service desk adds corrections as notes, as on paper today.", by: "aylin", at: "-31d@10:20" },
+    ],
+  },
+  delivery: {
+    builds: ["-28d@09:30", "-24d@09:30", "-20d@09:30"],
+    builtMilestones: 3,
+    tasks: [
+      { tag: "api", title: "Reporting API on the existing back end", milestone: 1, hours: 6, description: "New endpoints on the existing Java back end for visits of the day, reports and parts.", acceptance: ["Endpoints are documented", "The planning board keeps working unchanged"] },
+      { tag: "sec", title: "Security review: customer data on phones and shared tablets", milestone: 3, hours: 3, description: "Check sessions, local data and PDF access on phones and shared tablets.", acceptance: ["Sessions on shared tablets end after 12 hours", "PDFs are only reachable by signed-in staff and the customer's e-mail"], feature: "customer-signature" },
+    ],
+    ticketComments: [
+      { ticket: "r3.1", by: "martina", text: "Tested with the Wels waterworks contact: the PDF arrived before Ralf had packed his tools. Great.", after: 9 },
+      { ticket: "x.sec", by: "florian", text: "Session handling on the shared tablets reviewed, 12 hours confirmed.", after: 6 },
+    ],
+    policies: [
+      { env: "stage", note: "Architect and IT security approve every promotion to stage; QA is optional.", allRequired: false, by: "jan", at: "-29d@11:00", steps: [{ type: "architect", required: true, approvers: ["stefan"] }, { type: "security", required: true, approvers: ["florian"] }, { type: "qa", required: false, approvers: ["jan"] }] },
+      { env: "production", note: "Every approver signs off before a version goes live for the field service.", allRequired: true, by: "jan", at: "-29d@11:05", steps: [{ type: "architect", required: true, approvers: ["stefan"] }, { type: "security", required: true, approvers: ["florian"] }, { type: "qa", required: true, approvers: ["jan"] }] },
+    ],
+    promoter: "jan",
+    promotions: [
+      {
+        env: "stage",
+        version: "1.0.0",
+        requestedBy: "aylin",
+        attempts: [{ at: "-19d@09:30", status: "approved", decisions: [decide("stefan", "-19d@11:00", "architect"), decide("florian", "-19d@13:30", "security"), decide("jan", "-19d@14:00", "qa")] }],
+        promotedAt: "-18d@08:30",
+      },
+      {
+        env: "production",
+        version: "1.0.0",
+        requestedBy: "aylin",
+        attempts: [
+          {
+            at: "-17d@09:00",
+            status: "rejected",
+            decisions: [
+              decide("stefan", "-17d@10:30", "architect"),
+              decide("jan", "-17d@11:00", "qa"),
+              decide("florian", "-17d@14:20", "security", "rejected", "Shared van tablets keep the session for 30 days. Please set the 12-hour session on shared devices before go-live."),
+            ],
+          },
+          {
+            at: "-16d@09:00",
+            status: "approved",
+            decisions: [
+              decide("stefan", "-16d@10:00", "architect"),
+              decide("florian", "-16d@11:15", "security", "approved", "12-hour sessions on shared devices confirmed on stage."),
+              decide("jan", "-16d@11:40", "qa"),
+            ],
+          },
+        ],
+        promotedAt: "-15d@07:30",
+      },
+      {
+        env: "stage",
+        version: "1.1.0",
+        requestedBy: "aylin",
+        attempts: [{ at: "-11d@09:30", status: "approved", decisions: [decide("stefan", "-11d@10:30", "architect"), decide("florian", "-11d@11:00", "security"), decide("jan", "-11d@11:20", "qa")] }],
+        promotedAt: "-11d@14:00",
+      },
+      {
+        env: "production",
+        version: "1.1.0",
+        requestedBy: "aylin",
+        attempts: [{ at: "-10d@09:00", status: "approved", decisions: [decide("stefan", "-10d@10:00", "architect"), decide("florian", "-10d@10:30", "security"), decide("jan", "-10d@11:00", "qa")] }],
+        promotedAt: "-9d@07:30",
+      },
+      {
+        env: "stage",
+        version: "1.1.1",
+        requestedBy: "aylin",
+        attempts: [{ at: "-5d@09:00", status: "approved", decisions: [decide("stefan", "-5d@10:00", "architect"), decide("florian", "-5d@10:30", "security"), decide("jan", "-5d@11:00", "qa")] }],
+        promotedAt: "-5d@13:00",
+      },
+      {
+        env: "production",
+        version: "1.1.1",
+        requestedBy: "aylin",
+        attempts: [{ at: "-1d@09:00", status: "pending", decisions: [decide("stefan", "-1d@10:15", "architect")] }],
+      },
+    ],
+    changes: [
+      {
+        lane: "enhance",
+        feature: "visit-report",
+        title: "Photos in the service report",
+        description: "Technicians add up to five photos of the repaired part to the report; the photos appear in the PDF.",
+        status: "promoted-production",
+        by: "jan",
+        at: "-13d@10:00",
+        built: "-12d@09:00",
+        tickets: [
+          { title: "Take and attach photos to the report", hours: 3, acceptance: ["Up to five photos per report", "Photos are resized on the phone"] },
+          { title: "Show photos in the PDF report", hours: 2, acceptance: ["Photos appear on a second page of the PDF"] },
+        ],
+      },
+      {
+        lane: "fix",
+        feature: "customer-signature",
+        title: "Service report names the wrong technician on shared visits",
+        description: "The PDF report names the completing technician first and lists every technician of the visit.",
+        status: "promoted-stage",
+        by: "jan",
+        at: "-6d@10:30",
+        built: "-6d@11:00",
+        tickets: [{ title: "Name the completing technician on the PDF report", hours: 2, acceptance: ["The completing technician is named first", "Every technician of the visit is listed", "A test covers visits with two technicians"] }],
+      },
+      {
+        lane: "add",
+        title: "Offline reporting in plant rooms",
+        description: "Technicians write and sign reports without signal; the report and the PDF are sent when the phone is back online.",
+        status: "building",
+        by: "jan",
+        at: "-2d@14:00",
+        built: "-50m",
+        progress: 0.4,
+        tickets: [
+          { title: "Keep reports and signatures on the phone without signal", hours: 4, acceptance: ["A report can be completed and signed offline", "Nothing is lost when the app is closed"] },
+          { title: "Send queued reports when back online", hours: 3, acceptance: ["Queued reports are sent once, in order", "The technician sees what is still waiting"] },
+        ],
+      },
+      {
+        lane: "change",
+        feature: "visit-list",
+        title: "Filter the visit list by region",
+        description: "Regional managers filter the visit list by region (North, South, Austria) to see only their technicians' visits.",
+        status: "draft",
+        by: "katrin",
+        at: "-1d@16:11",
+        tickets: [],
+      },
+    ],
+    urls: { dev: "https://service.dev.talwerk-fluid.de", stage: "https://service-stage.talwerk-fluid.de", production: "https://service.talwerk-fluid.de" },
+  },
+  assistant: [
+    {
+      env: "production",
+      messages: [
+        {
+          from: "martina",
+          at: "-6d@08:40",
+          text: "The PDF report of visit V-24-1182 shows Tomasz Nowak as the technician, but Ralf Weiss did the repair and completed the report. Both were on the visit. The customer asked why the wrong person is named.",
+          attachments: [{ name: "V-24-1182 service report.pdf", mime: "application/pdf", size: 84213, excerpt: "Service report V-24-1182 · Waterworks Wels · Technician: Tomasz Nowak · Work done: seal kit replaced, test run 30 min" }],
+        },
+        {
+          from: "assistant",
+          at: "-6d@09:05",
+          requestedBy: "jan",
+          text: "I found the cause: the PDF names the first technician planned for the visit instead of the one who completed the report. A fix takes about 2 hours.",
+          points: ["Affects visits with two technicians (about 8% of visits)", "No data is lost: the completing technician is stored on the report", "Fix: name the completing technician first and list everyone on the visit"],
+          refs: [{ path: "web/src/reports/serviceReportPdf.ts", line: 88, why: "Uses the first assignee as the technician" }],
+          analysis: SHARED_VISIT_BUG,
+          fix: { state: "started", change: 2 },
+        },
+      ],
+    },
+    {
+      env: "stage",
+      messages: [
+        { from: "aylin", at: "-3d@10:00", text: "What is on stage now that is not in production yet?" },
+        {
+          from: "assistant",
+          at: "-3d@10:01",
+          text: "Stage runs 1.1.1 and production runs 1.1.0. Stage is ahead by one fix:",
+          points: ["FX-2 · Service report names the wrong technician on shared visits (1.1.1)", "The production approval for 1.1.1 is still open"],
+        },
+      ],
+    },
+  ],
+  chat: [
+    {
+      role: "planner",
+      messages: [
+        { from: "aylin", at: "-2d@15:00", text: "How long will the offline reporting take once it starts?" },
+        { from: "agent", at: "-2d@15:01", text: "CR-003 has two tickets of about 7 hours in total. The build starts when Jan starts it; with the usual review and test it is on dev the same day." },
+        { from: "katrin", at: "-1d@16:10", text: "Can you add a filter by region to the visit list? Our regional managers only want to see their area." },
+        { from: "agent", at: "-1d@16:11", text: "I saved it as a change request for the visit list. Review the description and start the build when it fits.", task: { target: "change-request", ref: "cr:4" } },
+      ],
+    },
+    {
+      role: "dev",
+      messages: [
+        { from: "stefan", at: "-1d@11:00", text: "Which endpoints of the existing back end does the offline reporting touch?" },
+        { from: "agent", at: "-1d@11:01", text: "Only the report endpoints: saving a report and signing it now accept a client-side id, so a report sent twice after an offline stretch is stored once. The planning endpoints are not changed." },
+      ],
+    },
+  ],
+  wiki: [
+    {
+      slug: "service-technician-portal",
+      group: "overview",
+      title: "Service Technician Portal",
+      origin: "factory",
+      order: 1,
+      at: "-8d@09:00",
+      sources: [{ label: "Service reports on the phone", ref: "req:report-on-site" }, { label: "Keep the existing back end", ref: "dec:keep-backend" }],
+      body: "# Service Technician Portal\n\nTalwerk's field technicians complete service reports on their phones at the customer's site. The customer signs on the phone and receives the PDF report immediately; hours and parts go to the ERP service order, ready for invoicing.\n\n## Who uses it\n\n- **Technicians** (64, Germany and Austria): visits of the day, reports, parts, sign-off\n- **Service desk**: open and signed reports\n- **Customers**: receive the PDF report by e-mail\n\n## In production\n\nVersion 1.1.0, with photos in the service report.",
+    },
+    {
+      slug: "writing-a-service-report",
+      group: "guide",
+      title: "Writing a service report on site",
+      origin: "factory",
+      order: 1,
+      at: "-8d@09:00",
+      sources: [{ label: "Digital service report", ref: "feature:visit-report" }, { label: "Parts used", ref: "feature:parts-used" }],
+      body: "# Writing a service report on site\n\n1. Open the visit from **Today**.\n2. Record the work done and the measurements.\n3. Check the hours of every technician on the visit.\n4. Pick the parts you used from your van's stock; add other parts as free text.\n5. Add up to five photos of the repaired part.\n6. Hand the phone to the customer to sign. The PDF is sent right away.\n\nA signed report is locked. Corrections go to the service desk.",
+    },
+    {
+      slug: "customer-sign-off",
+      group: "features",
+      title: "Customer sign-off and PDF report",
+      origin: "factory",
+      order: 3,
+      at: "-8d@09:00",
+      sources: [{ label: "Customer sign-off and PDF report", ref: "feature:customer-signature" }, { label: "PDF report requirement", ref: "req:pdf-report" }],
+      body: "# Customer sign-off and PDF report\n\nThe customer signs the completed report on the technician's phone. The server creates the PDF and e-mails it to the customer contact of the service order, with the service desk in copy. Hours and parts are written to the ERP service order.\n\nIf the ERP update fails, it is retried and the report appears on the service desk overview.",
+    },
+    {
+      slug: "report-status-rules",
+      group: "logic",
+      title: "Report status rules",
+      origin: "factory",
+      at: "-8d@09:00",
+      sources: [{ label: "One report per visit", ref: "dec:one-report" }],
+      body: "# Report status rules\n\n| Status | When |\n| --- | --- |\n| Open | The visit has no report yet |\n| Draft | The technician started the report |\n| Signed | The customer signed; the report is locked |\n| Sent | The PDF went out and the ERP order is updated |\n\nA visit has exactly one report, completed by one of its technicians.",
+    },
+    {
+      slug: "architecture",
+      group: "technical",
+      title: "Architecture",
+      origin: "factory",
+      at: "-8d@09:00",
+      sources: [{ label: "Keep the existing back end", ref: "dec:keep-backend" }, { label: "Release 1.0.0", ref: "release:production:1.0.0" }],
+      body: "# Architecture\n\n- **Existing service portal**: Java back end, PostgreSQL, planning board (unchanged)\n- **Reporting API**: new endpoints for visits of the day, reports, parts and sign-off\n- **Mobile front end**: web app in the same repository (branch develop)\n- **PDF service**: renders the signed report and sends it by e-mail\n- **ERP**: hours and parts to the service order through the existing integration\n\nSessions come from the company directory; on shared tablets they end after 12 hours.",
+    },
+    {
+      slug: "decision-log",
+      group: "decisions",
+      title: "Decision log",
+      origin: "factory",
+      at: "-8d@09:00",
+      sources: [{ label: "Keep the existing back end", ref: "dec:keep-backend" }, { label: "One report per visit", ref: "dec:one-report" }, { label: "Parts from the van stock", ref: "dec:van-parts" }],
+      body: "# Decision log\n\n1. **Keep the existing back end and planning** - planning works and is integrated with the ERP.\n2. **One report per visit** - matches how the service desk invoices.\n3. **Parts used come from the van stock** - removes the most common reporting error.",
+    },
+    {
+      slug: "release-notes",
+      group: "releases",
+      title: "Release notes",
+      origin: "factory",
+      at: "-8d@09:00",
+      sources: [{ label: "1.0.0 in production", ref: "release:production:1.0.0" }, { label: "CR-001 Photos in the service report", ref: "cr:1" }, { label: "1.1.0 in production", ref: "release:production:1.1.0" }],
+      body: "# Release notes\n\n## 1.1.0\n\n- Photos in the service report (CR-001): up to five photos per report, shown in the PDF.\n\n## 1.0.0\n\n- Visits of the day on the phone\n- Service report with hours of every technician and parts from the van stock\n- Customer sign-off with the PDF report by e-mail\n- Service desk overview of open and signed reports",
+    },
+    {
+      slug: "field-team-onboarding",
+      group: "guide",
+      title: "Field team onboarding checklist",
+      origin: "person",
+      by: "aylin",
+      at: "-3d@15:20",
+      body: "# Field team onboarding checklist\n\n- [ ] Company phone with the service app installed (home screen icon)\n- [ ] Signed in once in the office with the company account\n- [ ] Van stock list checked with the depot\n- [ ] One report written with a team lead on a real visit\n- [ ] Shared tablet: sign out at the end of the shift\n\nQuestions: service desk, extension 4410.",
+      history: [
+        { by: "aylin", at: "-14d@10:00", body: "# Field team onboarding checklist\n\n- [ ] Company phone with the service app\n- [ ] One report written with a team lead" },
+        { by: "jan", at: "-9d@14:30", body: "# Field team onboarding checklist\n\n- [ ] Company phone with the service app installed\n- [ ] Signed in once in the office\n- [ ] One report written with a team lead on a real visit\n- [ ] Shared tablet: sign out at the end of the shift" },
+      ],
+    },
+  ],
+};
