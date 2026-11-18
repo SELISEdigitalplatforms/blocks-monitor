@@ -1,11 +1,5 @@
 import { getNavigationMenus } from "@/constants/navigation-menus.constant";
-import { MonitorLayout } from "@/layouts/monitor-layout/monitor-layout";
-import AlertRecipientsPage from "@/pages/alert-recipients";
-import MonitorPage from "@/pages/monitor";
-import IncidentPage from "@/pages/incidents";
-import MonitorDetailsPage from "@/pages/monitor/details";
-import ReposPage from "@/pages/repos";
-import RepoDetailsPage from "@/pages/repos/details";
+import { MadpBridgeProvider } from "@/madp/MadpBridgeProvider";
 import { AuthResolver, ProtectedGuard, PublicGuard } from "@seliseblocks/genesis-os/guards";
 import { ConsoleLayout, DashboardRoute } from "@seliseblocks/genesis-os/layouts";
 import {
@@ -17,33 +11,77 @@ import {
 } from "@seliseblocks/genesis-os/pages";
 
 import { useT } from "@seliseblocks/genesis-os/i18n";
-import { useMemo } from "react";
-import { Navigate, Outlet, type RouteObject } from "react-router";
+import { lazy, Suspense, useMemo } from "react";
+import { Navigate, Outlet, useLocation, useParams, type RouteObject } from "react-router";
+import { useProjectStore } from "@seliseblocks/genesis-os/store";
 
-const redirectPaths: Record<string, string> = {
-  "/app/monitor/monitor/*": "/app/monitor",
-  "/app/monitor/monitor/incidents/*": "/app/monitor",
-};
+/**
+ * Redirects MADP-style absolute paths (/p/:id/..., /projects, /dashboard, etc.)
+ * to the Blocks shell path (/app/:itemId/p/:id/...).
+ * MADP pages use absolute paths but the Blocks shell nests everything under /app/:itemId/.
+ */
+function MadpPathRedirect() {
+  const location = useLocation();
+  const project = useProjectStore.getState().selectedProject;
+  const itemId = project?.ItemId ?? (project as Record<string, unknown> | null)?.itemId as string ?? "";
 
-// Rebuilds the menu labels when the language changes.
-function MonitorDashboardRoute() {
-  // `t` changes with the language and when its text arrives, so the labels are rebuilt then.
-  const { t } = useT("monitor.shared");
+  if (!itemId) return <Navigate to="/app/console" replace />;
+
+  // Rewrite the MADP path under the Blocks shell
+  const newPath = `/app/${itemId}${location.pathname}${location.search}${location.hash}`;
+  return <Navigate to={newPath} replace />;
+}
+
+// Lazy-load MADP pages
+const MadpDashboard = lazy(() => import("@/madp/pages/Dashboard"));
+const MadpProjects = lazy(() => import("@/madp/pages/Projects"));
+const MadpNewProject = lazy(() => import("@/madp/pages/NewProject"));
+const MadpProjectStep = lazy(() => import("@/madp/pages/ProjectStep"));
+const MadpAnalysis = lazy(() => import("@/madp/pages/Analysis"));
+const BlocksAnalysis = lazy(() => import("@/madp/pages/BlocksAnalysis"));
+const BlocksBuild = lazy(() => import("@/madp/pages/BlocksBuild"));
+const BlocksRelease = lazy(() => import("@/madp/pages/BlocksRelease"));
+const MadpBoard = lazy(() => import("@/madp/pages/Board"));
+const MadpBuild = lazy(() => import("@/madp/pages/Build"));
+const MadpDelivered = lazy(() => import("@/madp/pages/Delivered"));
+const MadpWiki = lazy(() => import("@/madp/pages/Wiki"));
+const MadpWikiIndex = lazy(() => import("@/madp/pages/WikiIndex"));
+const MadpProduced = lazy(() => import("@/madp/pages/Produced"));
+const MadpSettings = lazy(() => import("@/madp/pages/Settings"));
+const MadpAdmin = lazy(() => import("@/madp/pages/Admin"));
+
+function MadpPage({ children }: { children: React.ReactNode }) {
+  return (
+    <MadpBridgeProvider>
+      <Suspense
+        fallback={
+          <div className="flex flex-col gap-6 p-6">
+            <div className="h-9 w-72 rounded-full bg-muted/40" />
+            <div className="h-64 rounded-xl bg-muted/20" />
+          </div>
+        }
+      >
+        {children}
+      </Suspense>
+    </MadpBridgeProvider>
+  );
+}
+
+function MadpDashboardRoute() {
+  const { t } = useT("madp.shared");
   const navigationMenus = useMemo(() => getNavigationMenus(t), [t]);
-  return <DashboardRoute redirectPaths={redirectPaths} navigationMenus={navigationMenus} />;
+  return <DashboardRoute redirectPaths={{}} navigationMenus={navigationMenus} />;
 }
 
 export const routes = [
   {
     element: <Outlet />,
     children: [
-      // All Redirect Url Handle here
       {
         path: "/login/callback",
         element: <CallbackPage defaultRedirectUrl="/app/console" />,
       },
       {
-        // Set User Auth Information and resolve authentication state before rendering any route
         element: (
           <AuthResolver>
             <Outlet />
@@ -83,35 +121,97 @@ export const routes = [
               },
 
               {
-                // impersonate
                 path: ":itemId",
-                element: <MonitorDashboardRoute />,
+                element: <MadpDashboardRoute />,
                 children: [
                   {
                     index: true,
                     element: <Navigate to="dashboard" replace />,
                   },
                   { path: "dashboard", element: <DashboardOverview /> },
+
+                  // MADP feature routes
                   {
-                    element: <MonitorLayout />,
+                    element: (
+                      <main className="p-6">
+                        <Outlet />
+                      </main>
+                    ),
                     children: [
                       {
-                        index: true,
-                        element: <Navigate to="monitor" replace />,
-                      },
-                      { path: "monitor", element: <MonitorPage /> },
-                      {
-                        path: "monitor/:id",
-                        element: <MonitorDetailsPage />,
+                        path: "home",
+                        element: <MadpPage><MadpDashboard /></MadpPage>,
                       },
                       {
-                        path: "monitor/incidents/:id",
-                        element: <IncidentPage />,
+                        path: "analysis",
+                        element: <MadpPage><BlocksAnalysis /></MadpPage>,
                       },
-                      { path: "alert-recipients", element: <AlertRecipientsPage /> },
-                      { path: "repos", element: <ReposPage /> },
-                      { path: "repo/:repoId", element: <RepoDetailsPage /> },
-                      { path: "repos/:repoId", element: <RepoDetailsPage /> },
+                      {
+                        path: "new",
+                        element: <MadpPage><MadpNewProject /></MadpPage>,
+                      },
+                      {
+                        path: "build",
+                        element: <MadpPage><BlocksBuild /></MadpPage>,
+                      },
+                      {
+                        path: "release",
+                        element: <MadpPage><BlocksRelease /></MadpPage>,
+                      },
+                      {
+                        path: "wiki",
+                        element: <MadpPage><MadpWikiIndex /></MadpPage>,
+                      },
+                      {
+                        path: "settings",
+                        element: <MadpPage><MadpSettings /></MadpPage>,
+                      },
+                      {
+                        path: "admin",
+                        element: <MadpPage><MadpAdmin /></MadpPage>,
+                      },
+                      {
+                        path: "admin/:section",
+                        element: <MadpPage><MadpAdmin /></MadpPage>,
+                      },
+                      // Project-specific routes (MADP pages use useParams().id)
+                      {
+                        path: "p/:id",
+                        children: [
+                          {
+                            index: true,
+                            element: <MadpPage><MadpProjectStep /></MadpPage>,
+                          },
+                          {
+                            path: "business",
+                            element: <MadpPage><MadpProjectStep /></MadpPage>,
+                          },
+                          {
+                            path: "analysis",
+                            element: <MadpPage><MadpAnalysis /></MadpPage>,
+                          },
+                          {
+                            path: "board",
+                            element: <MadpPage><MadpBoard /></MadpPage>,
+                          },
+                          {
+                            path: "build",
+                            element: <MadpPage><MadpBuild /></MadpPage>,
+                          },
+                          {
+                            path: "delivered",
+                            element: <MadpPage><MadpDelivered /></MadpPage>,
+                          },
+                          {
+                            path: "wiki",
+                            element: <MadpPage><MadpWiki /></MadpPage>,
+                          },
+                          {
+                            path: "produced",
+                            element: <MadpPage><MadpProduced /></MadpPage>,
+                          },
+                        ],
+                      },
                     ],
                   },
                 ],
@@ -119,6 +219,22 @@ export const routes = [
             ],
           },
           { path: "/", element: <Navigate to="/app/console" replace /> },
+
+          // MADP path redirects: catch absolute MADP paths and redirect to /app/:itemId/...
+          { path: "/p/:id/*", element: <MadpPathRedirect /> },
+          { path: "/p/:id", element: <MadpPathRedirect /> },
+          { path: "/projects", element: <MadpPathRedirect /> },
+          { path: "/dashboard", element: <MadpPathRedirect /> },
+          { path: "/home", element: <MadpPathRedirect /> },
+          { path: "/new", element: <MadpPathRedirect /> },
+          { path: "/new/*", element: <MadpPathRedirect /> },
+          { path: "/wiki", element: <MadpPathRedirect /> },
+          { path: "/settings", element: <MadpPathRedirect /> },
+          { path: "/admin", element: <MadpPathRedirect /> },
+          { path: "/admin/*", element: <MadpPathRedirect /> },
+          { path: "/billing", element: <MadpPathRedirect /> },
+          { path: "/billing/*", element: <MadpPathRedirect /> },
+
           { path: "*", element: <Navigate to="/login" replace /> },
         ],
       },

@@ -1,0 +1,15 @@
+/* FlowMap (FlowMap.tsx): the running dot's halo (Studio's ping2) and the legend's moving line (React Flow's animated
+   edge). The global reduced-motion rule in styles/index.css stops both. */
+@keyframes flow-ping {
+  0% { transform: scale(1); opacity: 0.55; }
+  100% { transform: scale(2.1); opacity: 0; }
+}
+.flow-ping { animation: flow-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+@keyframes flow-dash { from { stroke-dashoffset: 10; } }
+.flow-moving { stroke-dasharray: 5; animation: flow-dash 0.5s linear infinite; }
+
+/* edge labels (architecture maps): the Factory's surface and ink */
+.flow-map .react-flow__edge-text { fill: rgb(var(--c-ink2)); font-size: 11px; font-weight: 500; }
+.flow-map .react-flow__edge-textbg { fill: rgb(var(--c-surface)); }
+.flow-map .react-flow__controls-button:focus-visible { outline: 2px solid rgb(var(--c-accent)); outline-offset: -2px; border-radius: 4px; }

@@ -36,11 +36,16 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, "BLOCKS_");
   const proxyTarget = env.BLOCKS_MONITOR_BASE_URL;
   const iamProxyTarget = env.BLOCKS_IAM_BASE_URL;
+  const madpBffTarget = env.BLOCKS_MADP_BFF_URL || "https://dev-monitor.blocksdevelopers.com:5310";
   const devHost = env.BLOCKS_DEV_HOST || true;
   const httpsConfig = resolveDevHttps();
 
   return {
     envPrefix: ["BLOCKS_"],
+    define: {
+      // Force MADP function calls to use /api/fn/* (local BFF) instead of direct Blocks API
+      __MF_FN_HOST__: JSON.stringify("local"),
+    },
     plugins: [react(), tailwindcss(), svgr({ svgrOptions: { svgo: true, titleProp: true } })],
 
     resolve: {
@@ -58,6 +63,8 @@ export default defineConfig(({ mode }) => {
         "@/services": path.resolve(__dirname, "./app/services"),
         "@/styles": path.resolve(__dirname, "./app/styles"),
         "@/utils": path.resolve(__dirname, "./app/utils"),
+        "@/madp": path.resolve(__dirname, "./app/madp"),
+        "react-router-dom": path.resolve(__dirname, "./node_modules/react-router"),
         "@": path.resolve(__dirname, "./app"),
       },
     },
@@ -92,13 +99,30 @@ export default defineConfig(({ mode }) => {
               },
             }
           : {}),
+        // Blocks Monitor API routes → .NET backend (must be before the MADP catch-all)
         ...(proxyTarget
           ? {
-              "/api": {
-                target: proxyTarget,
-                changeOrigin: true,
-                secure: false,
-              },
+              "/api/Monitor": { target: proxyTarget, changeOrigin: true, secure: false },
+              "/api/Health": { target: proxyTarget, changeOrigin: true, secure: false },
+              "/ping": { target: proxyTarget, changeOrigin: true, secure: false },
+              "/health": { target: proxyTarget, changeOrigin: true, secure: false },
+            }
+          : {}),
+        // ALL remaining /api/* goes to MADP BFF.
+        // Handles /api/data, /api/fn/*, /api/files/*, /api/github/*,
+        // /api/blocks/*, /api/public/*, /api/brief/*, /api/engine/*, etc.
+        "/api": {
+          target: madpBffTarget,
+          changeOrigin: false,
+          secure: false,
+          headers: {
+            host: "dev-monitor.blocksdevelopers.com:4001",
+            origin: "https://dev-monitor.blocksdevelopers.com:4001",
+            "sec-fetch-site": "same-origin",
+          },
+        },
+        ...(proxyTarget
+          ? {
               "/cloudbuild": {
                 target: proxyTarget,
                 changeOrigin: true,

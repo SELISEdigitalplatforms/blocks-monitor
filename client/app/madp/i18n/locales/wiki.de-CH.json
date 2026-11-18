@@ -1,0 +1,142 @@
+{
+  "common": {
+    "addPage": "Seite hinzufügen",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "saving": "Wird gespeichert…",
+    "starting": "Wird gestartet…",
+    "tryAgain": "Erneut versuchen"
+  },
+  "groups": {
+    "overview": "Überblick",
+    "guide": "Anleitung",
+    "features": "Funktionen",
+    "logic": "Logik",
+    "technical": "Technik",
+    "decisions": "Entscheide",
+    "releases": "Releases"
+  },
+  "answer": {
+    "title": "Antwort aus dem Wiki",
+    "close": "Antwort schliessen",
+    "question": "Frage: {question}",
+    "sourceAria": "Quelle {n}: {name}",
+    "sources": "Quellen",
+    "none": "Das Wiki hat darauf noch keine Antwort. Versuchen Sie es mit anderen Worten oder öffnen Sie eine Seite aus der Liste."
+  },
+  "markdown": {
+    "note": "Hinweis: ",
+    "warning": "Warnung: "
+  },
+  "article": {
+    "updatedWith": "Aktualisiert mit {version}",
+    "byTeamShort": "von Ihrem Team verfasst",
+    "byPersonShort": "von einer Person verfasst",
+    "byTeam": "Von Ihrem Team aus den Unterlagen des Projekts verfasst.",
+    "byPerson": "Von einer Person in diesem Projekt verfasst.",
+    "copyLink": "Link zur Seite kopieren",
+    "downloadPdf": "Seite als PDF herunterladen",
+    "history": "Verlauf",
+    "edit": "Seite bearbeiten",
+    "rename": "Umbenennen",
+    "delete": "Seite löschen",
+    "linkCopied": "Link kopiert",
+    "linkCopyFailed": "Der Link konnte nicht kopiert werden",
+    "sources": "Quellen",
+    "printEyebrow": "{project} · Wiki"
+  },
+  "editor": {
+    "staleTitle": "Jemand anderes hat diese Seite geändert.",
+    "loadTheirs": "Deren Version laden",
+    "keepMine": "Meine behalten",
+    "discardTitle": "Ihre Änderungen an dieser Seite verwerfen?",
+    "keepEditing": "Weiter bearbeiten",
+    "discard": "Änderungen verwerfen",
+    "loadTheirsFailed": "Die andere Version konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
+    "title": "Bearbeiten · {title}",
+    "tabsLabel": "Editor",
+    "write": "Schreiben",
+    "preview": "Vorschau",
+    "contentAria": "Seiteninhalt in Markdown",
+    "syntaxHint": "## Überschrift · - Liste · | Tabelle | · ``` Code · > Note:",
+    "tooLong": "Die Seite ist länger als {max} Zeichen."
+  },
+  "empty": {
+    "title": "Noch keine Seiten",
+    "text": "Ihr Team schreibt das Wiki aus dem, was in diesem Projekt bisher vereinbart wurde. Sie können auch selbst eine Seite hinzufügen.",
+    "write": "Wiki schreiben"
+  },
+  "history": {
+    "factoryEditor": "Ihr Team",
+    "restored": "Die frühere Version ist wiederhergestellt.",
+    "title": "Verlauf · {title}",
+    "loadFailed": "Die früheren Versionen konnten nicht geladen werden. Schliessen Sie dieses Fenster und versuchen Sie es erneut.",
+    "none": "Noch keine früheren Versionen.",
+    "current": "Aktuell",
+    "restore": "Wiederherstellen",
+    "restoring": "Wird wiederhergestellt…"
+  },
+  "dialogs": {
+    "add": "Seite hinzufügen",
+    "adding": "Wird hinzugefügt…",
+    "title": "Titel",
+    "titleAria": "Seitentitel",
+    "group": "Gruppe",
+    "renameTitle": "Umbenennen · {title}",
+    "rename": "Umbenennen",
+    "deleteTitle": "Diese Seite löschen?",
+    "keepPage": "Seite behalten",
+    "delete": "Seite löschen",
+    "deleting": "Wird gelöscht…",
+    "deleteText": "«{title}» und ihre früheren Versionen werden für alle entfernt. Dies kann nicht rückgängig gemacht werden.",
+    "deleteProgress": "Noch {count} frühere Versionen zu entfernen…"
+  },
+  "picker": {
+    "title": "Wiki",
+    "subtitle": "Das Handbuch jedes Projekts: was es tut, wie es funktioniert und was sich geändert hat. Wählen Sie ein Projekt, um es zu öffnen.",
+    "loadFailed": "Ihre Projekte konnten nicht geladen werden.",
+    "emptyTitle": "Noch keine Wikis",
+    "emptyText": "Jedes Projekt erhält ein Wiki, das im Laufe der Arbeit entsteht. Starten Sie ein Projekt, und sein Wiki erscheint hier.",
+    "newProject": "Neues Projekt",
+    "searchAria": "Projekte durchsuchen",
+    "searchPlaceholder": "Projekte durchsuchen…",
+    "capped": "Angezeigt werden die {limit} zuletzt aktualisierten von {total} Projekten.",
+    "countFailed": "Die Seiten können gerade nicht gezählt werden. Jedes Wiki lässt sich trotzdem öffnen.",
+    "noMatchTitle": "Kein Projekt passt zu «{query}»",
+    "noMatchText": "Versuchen Sie ein anderes Wort oder leeren Sie die Suche.",
+    "pageCount": "{count} Seiten",
+    "pageCountOne": "1 Seite",
+    "pageCountUnknown": "– Seiten",
+    "openAria": "Wiki von {name} öffnen",
+    "open": "Wiki öffnen"
+  },
+  "search": {
+    "label": "{project} durchsuchen oder Fragen dazu stellen",
+    "placeholder": "{project} durchsuchen oder Fragen dazu stellen…",
+    "clear": "Suche leeren",
+    "enterKey": "Enter",
+    "enterHint": "liefert eine Antwort aus dem Wiki",
+    "reading": "Seiten werden gelesen…",
+    "matchOne": "1 Seite passt",
+    "matchMany": "{count} Seiten passen",
+    "try": "Versuchen Sie"
+  },
+  "tree": {
+    "label": "Wiki-Seiten",
+    "noMatchTitle": "Keine Seite passt",
+    "noMatchText": "Versuchen Sie ein anderes Wort."
+  },
+  "view": {
+    "eyebrowFallback": "Projekt",
+    "localTitle": "Dieses Wiki öffnet sich für Projekte, die in Ihrem Workspace gespeichert sind.",
+    "localText": "Öffnen Sie das Projekt aus Ihrer Projektliste.",
+    "goToProjects": "Zu den Projekten",
+    "notFoundTitle": "Dieses Projekt wurde nicht gefunden",
+    "notFoundText": "Es wurde möglicherweise gelöscht, oder Sie haben keinen Zugriff. Wählen Sie ein Projekt auf der Wiki-Seite.",
+    "update": "Wiki aktualisieren",
+    "title": "Wiki",
+    "subtitle": "Das Handbuch für {project}: was es tut, wie es funktioniert und was sich geändert hat.",
+    "loadFailed": "Das Wiki konnte nicht geladen werden.",
+    "pagesToggle": "Seiten"
+  }
+}

@@ -1,3 +1,6 @@
+# Local HTTPS certs
+.certs/
+
 # Logs
 /logs
 *.log

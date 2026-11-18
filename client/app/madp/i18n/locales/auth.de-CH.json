@@ -1,0 +1,181 @@
+{
+  "activate": {
+    "alreadyActive": "Ihr Konto ist bereits aktiv.",
+    "checking": "Ihr Aktivierungslink wird geprüft …",
+    "done": "Ihr Konto ist aktiv. Melden Sie sich mit Ihrem neuen Passwort an.",
+    "expired": "Dieser Aktivierungslink ist abgelaufen.",
+    "formLabel": "Passwort festlegen",
+    "intro": "Legen Sie ein Passwort fest, um die Aktivierung Ihres MADP Factory-Kontos abzuschliessen.",
+    "linkInvalid": "Dieser Aktivierungslink ist ungültig. Verwenden Sie die neueste Einladungs-E-Mail.",
+    "resend": "Neuen Aktivierungslink senden",
+    "submit": "Konto aktivieren",
+    "submitting": "Wird aktiviert …",
+    "title": "Konto aktivieren"
+  },
+  "callback": {
+    "errorText": "Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuchen Sie es noch einmal.",
+    "errorTitle": "Versuchen wir es noch einmal",
+    "text": "Sie werden sicher mit Ihrem Workspace verbunden.",
+    "title": "Sie werden angemeldet …"
+  },
+  "checkEmail": {
+    "alreadyConfirmed": "Bereits bestätigt?",
+    "mailUnavailable": "Die E-Mail konnte gerade nicht gesendet werden. Bitte versuchen Sie es in ein paar Minuten noch einmal.",
+    "notReceived": "Nichts erhalten? Prüfen Sie Ihren Spam-Ordner oder senden Sie einen neuen Link.",
+    "saved": "Ihre Angaben sind gespeichert. Senden Sie den Link in ein paar Minuten erneut.",
+    "sent": "Wir haben einen Link an {email} gesendet, um Ihre Adresse zu bestätigen. Öffnen Sie ihn innerhalb von 24 Stunden, um die Erstellung Ihres Kontos abzuschliessen.",
+    "title": "Prüfen Sie Ihre E-Mails",
+    "waitingTitle": "Ihr Konto wartet auf Sie"
+  },
+  "cinema": {
+    "chipBlocks": "Läuft auf SELISE Blocks",
+    "chipInvite": "Zugang nur auf Einladung",
+    "chipVerified": "In jeder Phase geprüft",
+    "eyebrow": "Autonome Software-Fabrik",
+    "headline1": "Von der Idee bis zur Produktion.",
+    "headline2": "Jede Phase geprüft.",
+    "lineSignIn": "Beschreiben Sie, was Sie brauchen. MADP-Agenten bringen es vom Briefing bis zum geprüften Release auf SELISE Blocks.",
+    "lineSignUp": "MADP Factory ist nur auf Einladung zugänglich. Öffnen Sie Ihre Einladungs-E-Mail, um Ihr Passwort festzulegen."
+  },
+  "common": {
+    "backToSignIn": "Zurück zur Anmeldung",
+    "createAnAccount": "Konto erstellen",
+    "emailPlaceholder": "name@firma.ch",
+    "password": "Passwort",
+    "sending": "Wird gesendet …",
+    "sendNewLink": "Neuen Link senden",
+    "unavailable": "MADP Factory ist gerade nicht erreichbar. Prüfen Sie Ihre Verbindung und versuchen Sie es noch einmal.",
+    "workEmail": "Geschäftliche E-Mail-Adresse"
+  },
+  "email": {
+    "invalid": "Geben Sie eine gültige geschäftliche E-Mail-Adresse ein."
+  },
+  "forgot": {
+    "intro": "Geben Sie Ihre geschäftliche E-Mail-Adresse ein. Wir senden Ihnen einen Link, mit dem Sie ein neues Passwort festlegen. Der Link funktioniert einmal und eine Stunde lang.",
+    "title": "Passwort zurücksetzen"
+  },
+  "lifecycle": {
+    "live": "Live"
+  },
+  "login": {
+    "credentials": "E-Mail-Adresse und Passwort passen nicht zusammen. Prüfen Sie Ihre Angaben und versuchen Sie es noch einmal.",
+    "deactivated": "Dieses Konto wurde deaktiviert. Bitten Sie eine Plattform-Administration, es wieder zu aktivieren.",
+    "extraStep": "Dieses Konto verlangt einen zusätzlichen Anmeldeschritt, den diese App noch nicht unterstützt.",
+    "locked": "Zu viele falsche Versuche. Ihr Konto ist für 5 Minuten gesperrt. Versuchen Sie es danach noch einmal.",
+    "notActivated": "Bestätigen Sie zuerst Ihre E-Mail-Adresse: Öffnen Sie den Link in der neuesten E-Mail von MADP Factory (Registrierung oder Einladung).",
+    "unavailable": "Die Anmeldung ist gerade nicht verfügbar. Prüfen Sie Ihre Verbindung und versuchen Sie es noch einmal."
+  },
+  "mustChange": {
+    "confirmLabel": "Neues Passwort bestätigen",
+    "enterTemporary": "Geben Sie Ihr temporäres Passwort ein.",
+    "intro": "Sie haben sich mit einem temporären Passwort angemeldet. Wählen Sie Ihr eigenes Passwort, um fortzufahren.",
+    "sameAsTemporary": "Wählen Sie ein anderes Passwort als das temporäre.",
+    "submit": "Passwort festlegen",
+    "temporaryLabel": "Temporäres Passwort",
+    "title": "Eigenes Passwort festlegen"
+  },
+  "newPassword": {
+    "confirmLabel": "Passwort bestätigen",
+    "done": "Passwort geändert. Melden Sie sich mit Ihrem neuen Passwort an.",
+    "firstName": "Vorname",
+    "intro": "Wählen Sie ein neues Passwort für Ihr Konto. Auf Ihren anderen Geräten werden Sie abgemeldet.",
+    "lastName": "Nachname",
+    "linkInvalid": "Dieser Link zum Zurücksetzen ist abgelaufen oder wurde bereits verwendet. Fordern Sie einen neuen an.",
+    "nameRequired": "Geben Sie Ihren Vor- und Nachnamen ein.",
+    "newLabel": "Neues Passwort",
+    "requestNew": "Neuen Link anfordern",
+    "submit": "Neues Passwort festlegen",
+    "title": "Neues Passwort festlegen"
+  },
+  "passwordField": {
+    "hide": "Passwort ausblenden",
+    "show": "Passwort anzeigen"
+  },
+  "passwordStrength": {
+    "met": "erfüllt",
+    "notMet": "nicht erfüllt"
+  },
+  "pasteLink": {
+    "inputLabel": "Link aus Ihrer E-Mail",
+    "intro": "Kopieren Sie den ganzen Link aus der E-Mail, die MADP Factory Ihnen gesendet hat (Rechtsklick darauf, dann «Link kopieren»), und fügen Sie ihn hier ein.",
+    "title": "Link aus Ihrer E-Mail einfügen"
+  },
+  "reset": {
+    "emailLabel": "E-Mail-Adresse für den Link",
+    "pasteTitle": "Link zum Zurücksetzen aus Ihrer E-Mail einfügen",
+    "sent": "Falls für diese E-Mail-Adresse ein Konto besteht, ist ein Link zum Zurücksetzen unterwegs.",
+    "submit": "Link zum Zurücksetzen senden"
+  },
+  "screen": {
+    "backToSite": "Zurück zur Website",
+    "logoLabel": "MADP Factory, zurück zur Startseite",
+    "signInTab": "Anmelden",
+    "signUpTab": "Konto erstellen",
+    "tabsLabel": "Anmelden oder Konto erstellen"
+  },
+  "signIn": {
+    "capsLock": "Die Feststelltaste ist aktiviert.",
+    "failedSummary": "Anmeldung fehlgeschlagen. {details}",
+    "forgot": "Passwort vergessen?",
+    "hostedFailed": "Die sichere Anmeldung konnte nicht geöffnet werden. Bitte versuchen Sie es noch einmal.",
+    "hostedIntro": "Fahren Sie mit der sicheren Anmeldung fort, um Ihre E-Mail-Adresse und Ihr Passwort einzugeben. Ihr Zugang zum Workspace bleibt unverändert.",
+    "intro": "Melden Sie sich bei Ihrem Workspace an.",
+    "newHere": "Neu bei MADP Factory?",
+    "passwordRequired": "Geben Sie Ihr Passwort ein.",
+    "passwordTooLong": "Passwörter haben höchstens {max} Zeichen.",
+    "pasteLink": "Haben Sie einen Link aus einer E-Mail? Hier einfügen",
+    "resetIntro": "Geben Sie Ihre geschäftliche E-Mail-Adresse ein. Wir senden Ihnen einen Link, mit dem Sie ein neues Passwort festlegen.",
+    "sessionUnreachable": "Der Server war nicht erreichbar, deshalb konnte Ihre Sitzung nicht fortgesetzt werden. Laden Sie die Seite in einem Moment neu oder melden Sie sich erneut an.",
+    "submit": "Anmelden",
+    "submitting": "Anmeldung läuft …",
+    "title": "Willkommen zurück",
+    "verifyTitle": "E-Mail-Adresse bestätigen"
+  },
+  "signUp": {
+    "acceptTerms": "Ich akzeptiere die {terms} und die {privacy}.",
+    "alreadyInvited": "Bereits eingeladen? Öffnen Sie den Aktivierungslink in Ihrer Einladungs-E-Mail, um Ihr Passwort festzulegen.",
+    "formExpired": "Dieses Formular war lange geöffnet. Bitte senden Sie es noch einmal.",
+    "freePlan": "Starten Sie mit dem Plan Free und Startguthaben. Keine Kreditkarte nötig.",
+    "haveAccount": "Haben Sie bereits ein Konto?",
+    "inviteOnlyText": "Bitten Sie Ihre Administration um eine Einladung.",
+    "inviteOnlyTitle": "MADP Factory ist nur auf Einladung zugänglich.",
+    "loading": "Einen Moment …",
+    "nameLabel": "Ihr Name",
+    "nameRequired": "Geben Sie Ihren Namen ein.",
+    "organizationLabel": "Name der Organisation",
+    "passwordRejected": "Wählen Sie ein anderes Passwort.",
+    "planPicked": "Sie haben den Plan {plan} gewählt. Sie können ihn später ändern.",
+    "privacyLink": "Datenschutzerklärung",
+    "rateLimited": "Zu viele Versuche. Bitte warten Sie ein paar Minuten und versuchen Sie es dann noch einmal.",
+    "submit": "Konto erstellen",
+    "submitting": "Ihr Konto wird erstellt …",
+    "termsLink": "Nutzungsbedingungen",
+    "termsRequired": "Akzeptieren Sie die Nutzungsbedingungen und die Datenschutzerklärung, um fortzufahren.",
+    "title": "Konto erstellen",
+    "websiteLabel": "Website"
+  },
+  "verifyEmail": {
+    "checking": "Ihr Link wird geprüft …",
+    "confirmedText": "Ihre E-Mail-Adresse ist bestätigt. Melden Sie sich mit dem gewählten Passwort an, um Ihren Workspace zu öffnen.",
+    "confirmedTitle": "Ihre E-Mail-Adresse ist bestätigt",
+    "confirmingTitle": "E-Mail-Adresse wird bestätigt",
+    "expiredText": "Dieser Link ist abgelaufen. Senden Sie sich einen neuen.",
+    "expiredTitle": "Dieser Link ist abgelaufen",
+    "forgot": "Passwort vergessen?",
+    "invalidText": "Dieser Link ist ungültig. Verwenden Sie die neueste E-Mail von MADP Factory oder fordern Sie einen neuen Link an.",
+    "invalidTitle": "Dieser Link ist ungültig",
+    "signInContinue": "Anmelden und fortfahren",
+    "usedText": "Ihre E-Mail-Adresse ist bereits bestätigt. Melden Sie sich an, um fortzufahren.",
+    "usedTitle": "Ihre E-Mail-Adresse ist bereits bestätigt",
+    "welcomeNamed": "Willkommen, {name}"
+  },
+  "welcome": {
+    "close": "Begrüssung schliessen",
+    "title": "Willkommen bei MADP Factory.",
+    "titleNamed": "Willkommen bei MADP Factory, {name}.",
+    "planCredit": "Ihre Organisation ist mit dem {plan} bereit, mit {amount} Guthaben zum Start.",
+    "planNoCredit": "Ihre Organisation hat den {plan}, aber noch kein Guthaben.",
+    "credit": "Ihre Organisation hat {amount} Guthaben zum Start.",
+    "start": "Beschreiben Sie, was Sie bauen möchten – das Team übernimmt von dort."
+  }
+}

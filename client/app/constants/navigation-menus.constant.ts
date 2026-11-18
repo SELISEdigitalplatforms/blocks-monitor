@@ -1,44 +1,79 @@
 import type { Menu } from "@seliseblocks/genesis-os/types";
-import { Activity, FolderGit2, Home, Mail, Package } from "lucide-react";
+import {
+  Home,
+  LayoutDashboard,
+  FileText,
+  Hammer,
+  Rocket,
+  BookOpen,
+  Settings,
+  Package,
+} from "lucide-react";
 
-// Built per call so the labels follow the chosen language.
-export const getNavigationMenus = (t: (key: string) => string): Menu[] => [
+// User is already inside a Blocks project. MADP menus start from the workflow steps,
+// not project creation (Blocks handles project/environment management).
+export const getNavigationMenus = (_t: (key: string) => string): Menu[] => [
   {
     id: "overview-project",
     type: "menu",
-    name: t("NAVIGATION_MENUS.OVERVIEW"),
+    name: "Overview",
     path: "/app/dashboard",
     icon: Home,
   },
   {
     type: "separator",
-    id: "separator-identity",
+    id: "separator-madp",
   },
   {
-    id: "monitor",
+    id: "madp-home",
     type: "menu",
-    name: t("NAVIGATION_MENUS.MONITOR"),
-    path: "/app/monitor",
-    icon: Activity,
+    name: "Home",
+    path: "/app/home",
+    icon: LayoutDashboard,
   },
   {
-    id: "alert-recipients",
+    id: "madp-analysis",
     type: "menu",
-    name: t("NAVIGATION_MENUS.ALERT_RECIPIENTS"),
-    path: "/app/alert-recipients",
-    icon: Mail,
+    name: "Analysis",
+    path: "/app/analysis",
+    icon: FileText,
   },
   {
-    id: "repos",
+    id: "madp-build",
     type: "menu",
-    name: t("NAVIGATION_MENUS.REPOS"),
-    path: "/app/repos",
-    icon: FolderGit2,
+    name: "Build",
+    path: "/app/build",
+    icon: Hammer,
+  },
+  {
+    id: "madp-release",
+    type: "menu",
+    name: "Release",
+    path: "/app/release",
+    icon: Rocket,
+  },
+  {
+    id: "madp-wiki",
+    type: "menu",
+    name: "Wiki",
+    path: "/app/wiki",
+    icon: BookOpen,
+  },
+  {
+    type: "separator",
+    id: "separator-settings",
+  },
+  {
+    id: "madp-settings",
+    type: "menu",
+    name: "Settings",
+    path: "/app/settings",
+    icon: Settings,
   },
   {
     id: "environments",
     type: "menu",
-    name: t("NAVIGATION_MENUS.ENVIRONMENTS"),
+    name: "Environments",
     path: "/app/project/environments",
     icon: Package,
   },

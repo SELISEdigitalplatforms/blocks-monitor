@@ -1,0 +1,97 @@
+{
+  "time": {
+    "justNowCap": "Gerade eben",
+    "minutesAgo": "vor {n} Min.",
+    "todayAt": "Heute, {time}"
+  },
+  "roles": {
+    "theDesigner": "Die Designerin oder der Designer",
+    "theBusinessAnalyst": "Die Business-Analystin oder der Business-Analyst"
+  },
+  "errors": {
+    "forbidden": "Sie haben keinen Zugriff.",
+    "notMember": "Sie sind kein Mitglied dieses Workspace.",
+    "accountInactive": "Ihr Konto ist nicht aktiv. Wenden Sie sich an eine Plattform-Administration.",
+    "notFound": "Dieses Element existiert nicht mehr.",
+    "conflict": "Jemand anderes hat dies geändert. Laden Sie neu und versuchen Sie es erneut.",
+    "invalidInput": "Einige Angaben sind ungültig. Prüfen Sie sie und versuchen Sie es erneut.",
+    "limitReached": "Sie haben das Limit dafür erreicht.",
+    "approvalRequired": "Diese Promotion braucht noch ihre Freigaben.",
+    "rateLimited": "Gerade zu viele Anfragen. Bitte versuchen Sie es gleich noch einmal.",
+    "tooLarge": "Das ist zu gross, um es in einem Schritt zu speichern.",
+    "timeout": "MADP Factory braucht länger als üblich. Ihre Änderung wird möglicherweise trotzdem gespeichert; prüfen Sie es gleich noch einmal.",
+    "notSupported": "Diese Aktion ist auf diesem Server nicht verfügbar.",
+    "sanitization": {
+      "assistBusy": "MADP-Agenten arbeiten noch an einer anderen Anfrage. Versuchen Sie es erneut, wenn diese abgeschlossen ist."
+    },
+    "billing": {
+      "paywall": "Ihre Organisation hat kein Guthaben mehr. Wählen Sie einen Plan oder lösen Sie einen Code ein, dann startet neue Arbeit wieder.",
+      "checkout": {
+        "paymentRequired": "Kartenzahlungen werden gerade angebunden. Bis dahin bezahlen Sie einen Plan mit einem Code."
+      },
+      "provider": {
+        "unavailable": "Der Zahlungsdienst hat nicht geantwortet. Es hat sich nichts geändert; versuchen Sie es gleich noch einmal."
+      },
+      "utilities": {
+        "archived": "Dies wurde in Blocks Utilities stillgelegt und kann nicht wieder eingeschaltet werden. Legen Sie einen neuen Eintrag mit einem anderen Schlüssel oder Code an.",
+        "changed": "Blocks Utilities hat diese Änderung abgelehnt. Laden Sie die Liste neu und versuchen Sie es noch einmal."
+      }
+    },
+    "iam": {
+      "unavailable": "Blocks OS IAM ist gerade nicht erreichbar. Bitte versuchen Sie es gleich noch einmal.",
+      "forbidden": "Blocks OS IAM hat diese Änderung für das Dienstkonto der Plattform abgelehnt. Bitten Sie die Super-Administration, dessen Zugriff zu prüfen.",
+      "notFound": "Blocks OS IAM führt diese Rolle oder Person nicht mehr. Führen Sie im IAM-Abgleich «Prüfen» aus, um zu sehen, was nicht übereinstimmt."
+    },
+    "generic": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+    "storageUnavailable": "Die Dateiablage ist noch nicht verfügbar. Die Plattforminhaberin oder der Plattforminhaber muss sie aktivieren.",
+    "stepNotAvailable": "Dieser Schritt ist noch nicht verfügbar."
+  },
+  "collab": {
+    "feedback": {
+      "closed": "Die Anforderungen sind bestätigt, daher bleibt dieses Element, wie es ist.",
+      "attachmentNotReady": "Eine Datei ist noch nicht bereit. Warten Sie, bis «Fertig» angezeigt wird, oder entfernen Sie sie.",
+      "typeNotAllowed": "Dieser Dateityp wird nicht akzeptiert. Verwenden Sie einen der folgenden: {accepted}.",
+      "tooLarge": "Diese Datei ist grösser als 10 MB.",
+      "tooManyFiles": "Hängen Sie höchstens {max} Dateien an einen Kommentar an.",
+      "tooManyComments": "Dieser Thread ist voll ({max} Kommentare).",
+      "notUploader": "Nur die Person, die diese Datei hochgeladen hat, kann sie ändern.",
+      "attachmentInUse": "Diese Datei ist bereits Teil eines gesendeten Kommentars.",
+      "fileMissing": "Die Datei ist nicht vollständig angekommen. Bitte versuchen Sie es erneut.",
+      "fileSize": "Die Dateigrösse stimmt nicht mit dem Gesendeten überein. Bitte versuchen Sie es erneut.",
+      "fileType": "Der Inhalt der Datei passt nicht zu ihrem Typ."
+    },
+    "wiki": {
+      "stale": "Jemand anderes hat diese Seite geändert.",
+      "factoryTitle": "Von MADP geschriebene Seiten behalten ihren Titel.",
+      "factoryPage": "Von MADP geschriebene Seiten können nicht gelöscht werden. Aktualisieren Sie das Wiki stattdessen mit MADP.",
+      "tooManyPages": "Dieses Wiki hat bereits {max} Seiten.",
+      "slugTaken": "Eine Seite mit diesem Titel existiert bereits. Wählen Sie einen anderen Titel."
+    },
+    "chat": {
+      "tooManyOpen": "MADP beantwortet hier noch {max} Ihrer Fragen. Warten Sie auf eine Antwort und fragen Sie dann erneut.",
+      "taskMismatch": "Dieser Änderungsantrag passt nicht zur Nachricht.",
+      "offerGone": "Dies wurde bereits erledigt oder wird nicht mehr angeboten. Fragen Sie den Agenten erneut.",
+      "offerNotYet": "Änderungsanträge sind nach dem ersten Release in die Entwicklung möglich."
+    },
+    "assistant": {
+      "empty": "Schreiben Sie eine Nachricht oder hängen Sie eine Datei an.",
+      "attachmentsTooLarge": "Die angehängten Dateien sind zu gross, um sie aufzubewahren. Hängen Sie weniger oder kleinere Dateien an.",
+      "notBugReport": "Diese Nachricht kann nicht analysiert werden.",
+      "notAnalysis": "Diese Nachricht hat keine Analyse, auf die reagiert werden kann.",
+      "fixStarted": "Diese Korrektur hat bereits begonnen.",
+      "fixStarting": "Jemand anderes startet gerade diese Korrektur.",
+      "wrongChange": "Dieser Änderungsantrag gehört nicht zu dieser Korrektur."
+    },
+    "closed": {
+      "requirementsConfirmed": "Die Anforderungen sind bestätigt, daher bleibt dieses Element, wie es ist.",
+      "notYet": "Feedback ist möglich, sobald das Projekt den Schritt «Anforderungen» erreicht."
+    },
+    "notConfigured": "Dies ist noch nicht verfügbar.",
+    "generic": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+  },
+  "jobs": {
+    "aiFailed": "Die KI hat keine brauchbare Antwort geliefert, deshalb wurde nichts geschrieben. Starten Sie es in einem Moment erneut.",
+    "aiCapacity": "Die Kapazität der Engine ist im Moment aufgebraucht, deshalb wurde die Arbeit angehalten. Nichts ging verloren; starten Sie sie erneut, sobald die Kapazität wieder da ist.",
+    "aiCapacityUntil": "Die Kapazität der Engine ist bis {when} aufgebraucht, deshalb wurde die Arbeit angehalten. Nichts ging verloren; starten Sie sie dann erneut."
+  }
+}

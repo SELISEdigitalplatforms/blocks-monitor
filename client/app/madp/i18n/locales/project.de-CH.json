@@ -1,0 +1,294 @@
+{
+  "chip": {
+    "add": "hinzufügen",
+    "checklist": "Checkliste",
+    "done": "erledigt",
+    "needsYou": "braucht Sie",
+    "todo": "offen"
+  },
+  "flow": {
+    "edge": {
+      "active": "Bewegte Linie: wird gerade bearbeitet",
+      "done": "Durchgezogene Linie: erledigt",
+      "pending": "Gestrichelte Linie: noch nicht erledigt"
+    },
+    "empty": "Noch nichts anzuzeigen.",
+    "legendColours": "Was die Farben bedeuten",
+    "legendLines": "Was die Linien bedeuten",
+    "open": "Öffnen",
+    "status": {
+      "active": "In Arbeit",
+      "done": "Erledigt",
+      "fixing": "Wird korrigiert",
+      "ready": "Bereit",
+      "stopped": "Gestoppt",
+      "waiting": "Wartet"
+    }
+  },
+  "guide": {
+    "brownfield": {
+      "build": "Die Änderung wird Meilenstein für Meilenstein im Code des Produkts umgesetzt; jede Aufgabe lässt sich auf dem Board verfolgen.",
+      "business": "Beschreiben Sie den Kunden, sein Produkt und die gewünschte Änderung, nennen Sie das Code-Repository und starten Sie dann die Projektanalyse.",
+      "release": "Das geänderte Produkt wird geprüft, freigegeben und dem Kunden übergeben.",
+      "requirements": "Die Änderung wird als klare Anforderungen festgehalten, jede bis zu ihrer Quelle nachvollziehbar, mit einem klaren Ziel.",
+      "sanitization": "Das bestehende Produkt wird gelesen und so beschrieben, wie es heute ist, und die gewünschte Änderung des Kunden wird geklärt.",
+      "scope": "Was sich ändert, der Plan und die Schätzung werden vereinbart, dazu wie Erfolg gemessen wird, und dann festgeschrieben.",
+      "understanding": "Prüfen Sie, was aus Ihrer Projekteinrichtung, Ihren Dateien und dem bestehenden Produkt gelesen wurde, und bestätigen Sie es."
+    },
+    "greenfield": {
+      "build": "Das Produkt wird Meilenstein für Meilenstein gebaut; jede Aufgabe lässt sich auf dem Board verfolgen.",
+      "business": "Beschreiben Sie den Kunden, sein Geschäft und seinen Bedarf und starten Sie dann die Projektanalyse.",
+      "release": "Das fertige Produkt wird geprüft, freigegeben und dem Kunden übergeben.",
+      "requirements": "Jede Anforderung wird festgehalten, bis zu ihrer Quelle nachvollzogen und geprüft, mit einem klaren Ziel.",
+      "sanitization": "Offene Fragen werden beantwortet und wichtige Entscheidungen getroffen, damit alle das Produkt gleich verstehen.",
+      "scope": "Funktionen, Screens, Plan und Schätzung werden vereinbart, dazu wie Erfolg gemessen wird, und dann festgeschrieben.",
+      "understanding": "Prüfen Sie, was aus Ihrer Projekteinrichtung und Ihren Dateien gelesen wurde, bestätigen Sie, was Sie brauchen, und schliessen Sie ab."
+    },
+    "greyfield": {
+      "build": "Das Produkt wird Meilenstein für Meilenstein neu gebaut; jede Aufgabe lässt sich auf dem Board verfolgen.",
+      "business": "Beschreiben Sie den Kunden, sein Produkt und warum es neu gebaut wird.",
+      "release": "Das neu gebaute Produkt wird geprüft, freigegeben und dem Kunden übergeben.",
+      "requirements": "Jede Anforderung an das neu gebaute Produkt wird festgehalten und geprüft, mit einem klaren Ziel.",
+      "sanitization": "Das bestehende Produkt wird gelesen und beschrieben, mit den Geschäftsregeln und Daten, die bleiben sollen.",
+      "scope": "Funktionen, Screens, Plan und Schätzung werden vereinbart, dazu wie Erfolg gemessen wird, und dann festgeschrieben.",
+      "understanding": "Prüfen Sie, was aus den Dokumenten des bestehenden Produkts gelesen wurde, und bestätigen Sie es."
+    },
+    "who": {
+      "buildTeam": "Entwicklungsteam",
+      "businessAnalyst": "Business Analyst"
+    }
+  },
+  "leave": {
+    "analysis": {
+      "check": "Ihr Business Analyst braucht Sie, um zu prüfen, was verstanden wurde",
+      "continue": "Ihr Business Analyst wartet darauf, dass Sie mit den Anforderungen weitermachen",
+      "requirements": "Ihr Business Analyst braucht Ihre Freigabe der Anforderungen",
+      "scope": "Ihr Business Analyst braucht Sie, um den Umfang festzuschreiben",
+      "start": "Ihr Business Analyst wartet auf Ihr Go, um zu lesen, was Sie geteilt haben"
+    },
+    "answersMany": "Ihr Business Analyst wartet auf {count} Antworten",
+    "answersOne": "Ihr Business Analyst wartet auf {count} Antwort",
+    "buildsCount": "{count} Umsetzungen",
+    "changeRequestsCount": "{count} Änderungsanträge",
+    "checking": "Wird geprüft, was hier noch offen ist …",
+    "decisions": "Ihr Business Analyst braucht Ihre Freigabe für {what}",
+    "goAheads": "Ihr Tech Lead wartet auf Ihr Go für {what}",
+    "ifYouPause": "Wenn Sie die gestartete Arbeit pausieren",
+    "intro": "Sie können jetzt wechseln und später zurückkommen. Hier ist noch offen:",
+    "pauseAndSwitch": "Arbeit pausieren und wechseln",
+    "pauseFailed": "Die Arbeit konnte nicht pausiert werden: {error}",
+    "pausing": "Wird pausiert …",
+    "releaseMany": "Ihr Tech Lead braucht Ihre Freigabe für {count} Releases",
+    "releaseOne": "Ihr Tech Lead braucht Ihre Freigabe für ein Release",
+    "restartAnalyst": "Ihr Business Analyst kann {what} erneut starten, sobald Sie es sagen",
+    "restartLead": "Ihr Tech Lead kann {what} erneut starten, sobald Sie es sagen",
+    "stay": "Hier bleiben",
+    "switchLater": "Wechseln – ich komme später zurück",
+    "switchNow": "Jetzt wechseln",
+    "title": "Dieses Projekt vorerst verlassen?",
+    "titleNamed": "{name} vorerst verlassen?",
+    "twoCodes": "{a} und {b}",
+    "unsentLost": "Nicht gesendeter Text geht beim Wechseln verloren.",
+    "unsentMany": "Sie haben {count} nicht gesendete Nachrichten",
+    "unsentOne": "Noch nicht gesendet: {what}",
+    "workPause": "{what} wird angehalten; Sie können sie später fortsetzen.",
+    "workQueued": "{what} wartet auf den Start",
+    "workRunning": "{what} läuft"
+  },
+  "lock": {
+    "confirmRequirements": "Bestätigen Sie zuerst die Anforderungen",
+    "finishBuild": "Schliessen Sie zuerst die Umsetzung ab",
+    "finishUnderstandingProduct": "Schliessen Sie zuerst das Verständnis Ihres Produkts ab",
+    "finishUnderstandingProject": "Schliessen Sie zuerst das Verständnis Ihres Projekts ab",
+    "lockScope": "Schreiben Sie zuerst den Umfang fest",
+    "notOpenYet": "Noch nicht offen",
+    "startAnalysis": "Starten Sie zuerst die Projektanalyse"
+  },
+  "nav": {
+    "allSteps": "Alle Schritte",
+    "done": "erledigt",
+    "goTo": "Zu {step}",
+    "journeyAria": "Projektverlauf",
+    "journeyHeading": "Der Weg Ihres Projekts",
+    "needsYouMany": "{count} brauchen Sie",
+    "needsYouOne": "{count} braucht Sie",
+    "notAvailableYet": "Noch nicht verfügbar",
+    "percentDone": "{pct}% erledigt",
+    "produced": "Was MADP erstellt hat",
+    "producedHint": "jede Datei, die die Agenten gespeichert haben, zum Öffnen oder Herunterladen",
+    "producedShort": "Ergebnisse",
+    "progressLabel": "Projektfortschritt",
+    "ready": "Bereit",
+    "readyToLock": "Bereit zum Festschreiben",
+    "stepInProgress": "{step} läuft",
+    "stepN": "Schritt {n}:",
+    "stepOf": "Schritt {at} von {total}",
+    "stepOfNamed": "Schritt {at} von {total}: {step}",
+    "stepOfNow": "Schritt {at} von {total} · {step}",
+    "stepProgress": "Fortschritt: {step}",
+    "stepsAria": "Projektschritte",
+    "stepsFromSetup": "{total} Schritte, von der Einrichtung bis zum Release",
+    "toLock": "zum Festschreiben",
+    "whereNowAria": "{step}, hier steht das Projekt jetzt",
+    "wiki": "Wiki",
+    "wikiHint": "alles über das Projekt, in jedem Schritt offen",
+    "youreHere": "Sie sind hier"
+  },
+  "overview": {
+    "devRuns": "Auf Dev läuft {version}. Bringen Sie sie auf Stage, sobald ihre Freigaben vollständig sind; das Deployment wartet auf die MADP Engine.",
+    "envLive": "{env} ist live; die Factory hat dort noch keine Version freigegeben",
+    "envNothing": "{env}: noch nichts freigegeben",
+    "envRuns": "Auf {env} läuft v{version}",
+    "environment": "Umgebung",
+    "live": "live",
+    "notReleased": "nicht freigegeben",
+    "promote": "Auf Stage bringen",
+    "stageNotReleased": "Stage ist noch nicht freigegeben"
+  },
+  "pending": {
+    "moreItems": "{count} weitere Einträge",
+    "oneMore": "1 weiterer Eintrag",
+    "waitingTitle": "Aktualisierungen warten auf Sie",
+    "workingTitle": "An einigen Kommentaren wird noch gearbeitet"
+  },
+  "phaseGuide": {
+    "brownfield": {
+      "analysis": "Das bestehende Produkt wird gelesen, die Änderung geklärt und als Anforderungen festgehalten, und ihr Umfang wird vereinbart und festgeschrieben."
+    },
+    "greenfield": {
+      "analysis": "Das Projekt wird verstanden, offene Fragen werden beantwortet, die Anforderungen festgehalten und der Umfang vereinbart und festgeschrieben."
+    },
+    "greyfield": {
+      "analysis": "Das bestehende Produkt wird gelesen und beschrieben, die Anforderungen werden festgehalten und der Umfang vereinbart und festgeschrieben."
+    },
+    "live": {
+      "analysis": "Was das Live-Produkt heute tut, festgehalten aus seinem Code und seinen Dokumenten.",
+      "engineering": "Jeder genehmigte Änderungsantrag wird im Code des Produkts umgesetzt und in die Entwicklungsumgebung gebracht; jede Aufgabe lässt sich auf dem Board verfolgen.",
+      "release": "Jede Änderung geht von der Entwicklung über Staging in die Produktion, mit Release Notes.",
+      "setup": "Das Profil des Produkts, sein Code und das Material, das Sie teilen, für alle, die daran arbeiten."
+    }
+  },
+  "phases": {
+    "label": {
+      "analysis": "Business-Analyse",
+      "engineering": "Software-Entwicklung",
+      "release": "Release",
+      "setup": "Projekteinrichtung"
+    },
+    "short": {
+      "analysis": "Analyse",
+      "engineering": "Entwicklung",
+      "release": "Release",
+      "setup": "Einrichtung"
+    }
+  },
+  "route": {
+    "couldntLoad": "Nicht geladen",
+    "loadFailed": "Dieses Projekt konnte nicht geladen werden.",
+    "loading": "Wird geladen …",
+    "loadingAria": "Wird geladen",
+    "missing": "Dieser Eintrag existiert nicht mehr.",
+    "retry": "Erneut versuchen"
+  },
+  "status": {
+    "done": "Erledigt",
+    "locked": "Gesperrt",
+    "next": "Als Nächstes",
+    "now": "Jetzt"
+  },
+  "step": {
+    "details": "Details",
+    "ready": "Bereit",
+    "signOffAt": "{verb} am {at}",
+    "signOffBy": "{verb} von {by}",
+    "signOffByAt": "{verb} von {by} am {at}",
+    "signedOff": "Abgenommen",
+    "thingLeft": "{count} Punkt offen",
+    "thingsLeft": "{count} Punkte offen",
+    "you": "Sie:"
+  },
+  "steps": {
+    "brownfield": {
+      "requirements": "Ziele der Änderung",
+      "sanitization": "Ihr Produkt verstehen"
+    },
+    "label": {
+      "board": "Umsetzung",
+      "build": "Umsetzung",
+      "business": "Projekteinrichtung",
+      "release": "Release",
+      "requirements": "Ziele & Anforderungen",
+      "sanitization": "Ihr Projekt verstehen",
+      "scope": "Umfang & Erfolg",
+      "understanding": "Projektverständnis",
+      "wiki": "Wiki"
+    },
+    "short": {
+      "board": "Umsetzung",
+      "build": "Umsetzung",
+      "business": "Einrichtung",
+      "release": "Release",
+      "requirements": "Ziele",
+      "sanitization": "Verständnis",
+      "scope": "Umfang",
+      "understanding": "Prüfung",
+      "wiki": "Wiki"
+    }
+  },
+  "switcher": {
+    "allProjects": "Alle Projekte",
+    "findAria": "Projekt suchen",
+    "findPlaceholder": "Projekt suchen …",
+    "loadFailed": "Die Projekte konnten gerade nicht geladen werden. Versuchen Sie es gleich nochmals.",
+    "loading": "Projekte werden geladen …",
+    "loadingAria": "Projekt: wird geladen. Projekt wechseln",
+    "noMatch": "Kein Projekt passt zu «{query}»",
+    "none": "Noch keine Projekte",
+    "project": "Projekt",
+    "projects": "Projekte",
+    "projectsIn": "Projekte in {workspace}",
+    "showingOf": "{shown} von {all} angezeigt. Tippen Sie, um die Liste einzugrenzen.",
+    "switchProject": "Projekt wechseln",
+    "triggerAria": "Projekt: {name}. Projekt wechseln",
+    "triggerAriaIn": "Projekt: {name}, in {workspace}. Projekt wechseln",
+    "untitled": "Projekt ohne Namen",
+    "waitingForYou": "wartet auf Sie"
+  },
+  "type": {
+    "brownfield": "Bestehendes Produkt",
+    "brownfieldHint": "Bestehendes Produkt: MADP ändert es in seinem eigenen Repository",
+    "greenfield": "Neues Produkt",
+    "greenfieldHint": "Neues Produkt: MADP baut es von Grund auf",
+    "greyfield": "Neu gebautes Produkt"
+  },
+  "work": {
+    "boardPlan": "die Arbeitsplanung",
+    "build": "die Umsetzung",
+    "buildMilestone": "die Umsetzung von Meilenstein {n}",
+    "changeAnalyse": "die Analyse eines Änderungsantrags",
+    "changeAnalyseOf": "die Analyse von {code}",
+    "changeBuild": "die Umsetzung eines Änderungsantrags",
+    "changeBuildOf": "die Umsetzung von {code}",
+    "chatReply": "die Antwort auf Ihre Frage",
+    "designGenerate": "die Gestaltung der Screens",
+    "docsGenerate": "die Projektdokumentation",
+    "feedbackApply": "die Bearbeitung Ihres Feedbacks",
+    "fileExtract": "die Auswertung Ihrer Datei",
+    "fixAnalyse": "die Fehleranalyse",
+    "milestonesSuggest": "die Meilensteinplanung",
+    "other": "die Arbeit",
+    "preview": "die Vorschau",
+    "previewMilestone": "die Vorschau von Meilenstein {n}",
+    "productDocument": "die Dokumentation des Live-Produkts",
+    "releaseDev": "die Freigabe in die Entwicklungsumgebung",
+    "releaseProduction": "die Freigabe in die Produktion",
+    "releaseStage": "die Freigabe ins Staging",
+    "requirementsDraft": "die Ausarbeitung der Anforderungen",
+    "sanitizationAssist": "die Auswertung für die Klärungsfragen",
+    "scopeDraft": "die Ausarbeitung des Umfangs",
+    "scopeGrill": "die Zweitmeinung zum Umfang",
+    "scopeSuccess": "die Ausarbeitung von Erfolg & Performance",
+    "setupAssist": "die Auswertung dessen, was Sie geteilt haben",
+    "wikiGenerate": "die Wiki-Aktualisierung"
+  }
+}

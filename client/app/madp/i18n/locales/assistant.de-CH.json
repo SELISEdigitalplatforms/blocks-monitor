@@ -1,0 +1,107 @@
+{
+  "codeRef": {
+    "copied": "Kopiert"
+  },
+  "fix": {
+    "fixing": "{code} wird behoben"
+  },
+  "launcher": {
+    "ask": "MADP-Assistent fragen",
+    "askUnread": "MADP-Assistent fragen, neue Nachricht"
+  },
+  "prompts": {
+    "report": "Problem melden",
+    "reportText": "Ein Kunde meldet: ",
+    "changes": "Was hat sich im neuesten Release geändert?",
+    "stage": "Ist Staging auf dem Stand von Test?"
+  },
+  "env": {
+    "dev": "Entwicklung",
+    "stage": "Staging",
+    "production": "Produktion"
+  },
+  "composer": {
+    "tooLong": "Die Nachricht darf höchstens {max} Zeichen lang sein.",
+    "sendFailed": "Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+    "suggestedPrompts": "Vorgeschlagene Fragen",
+    "removeFile": "{name} entfernen",
+    "messageLabel": "Nachricht an den MADP-Assistenten",
+    "placeholder": "Fragen Sie zu diesem Projekt oder beschreiben Sie ein von Kunden gemeldetes Problem …",
+    "keyHint": "Enter sendet. Umschalt+Enter fügt eine neue Zeile ein.",
+    "attachFiles": "Dateien anhängen",
+    "sending": "Wird gesendet …",
+    "send": "Senden"
+  },
+  "window": {
+    "localProject": "Der Assistent beantwortet Fragen zu Projekten, die in Ihrem Workspace gespeichert sind. Öffnen Sie eines aus Ihrer Projektliste.",
+    "untitledProject": "Unbenanntes Projekt",
+    "title": "MADP-Assistent",
+    "subtitle": "Ihr Projektmanager",
+    "shrink": "Assistent verkleinern",
+    "expand": "Assistent vergrössern",
+    "minimise": "Assistent minimieren",
+    "close": "Assistent schliessen",
+    "project": "Projekt",
+    "environment": "Umgebung",
+    "emptyTitle": "Noch keine Projekte",
+    "emptyText": "Starten Sie ein Projekt. Der Assistent beantwortet dann Fragen dazu und geht jedem Problem nach, das eine Kundin oder ein Kunde meldet.",
+    "startProject": "Projekt starten"
+  },
+  "chat": {
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "you": "Sie:",
+    "starting": "Wird gestartet …",
+    "lookIntoProblem": "Problem untersuchen",
+    "assistantSaid": "MADP-Assistent:",
+    "welcome": "Hallo! Fragen Sie mich alles zu diesem Projekt: was geplant ist, was gerade entwickelt wird und was veröffentlicht ist. Meldet eine Kundin oder ein Kunde ein Problem, beschreiben Sie es, und ich gehe ihm nach.",
+    "notSent": "Nicht gesendet. {reason}",
+    "sending": "Wird gesendet …",
+    "logLabel": "Unterhaltung mit dem MADP-Assistenten",
+    "newMessages": "Neue Nachrichten"
+  },
+  "analysis": {
+    "severityCritical": "Kritisch",
+    "severityHigh": "Hoch",
+    "severityMedium": "Mittel",
+    "severityLow": "Niedrig",
+    "rolePlanner": "Business Analyst",
+    "roleDev": "Tech Lead",
+    "roleReviewer": "Reviewer",
+    "roleQa": "Tester",
+    "roleSecops": "Sicherheit",
+    "roleDocs": "Dokumentation",
+    "roleShipper": "Release-Manager",
+    "fixQuestion": "Soll Ihr Entwicklungsteam das beheben?",
+    "starting": "Wird gestartet …",
+    "tryAgain": "Erneut versuchen",
+    "startFix": "Behebung starten",
+    "notStarted": "Noch nicht gestartet.",
+    "notNow": "Nicht jetzt",
+    "buildNotStarted": "Die Behebung ist als Entwurf gespeichert, aber ihr Build wurde nicht gestartet. Versuchen Sie es erneut oder starten Sie ihn auf der Release-Seite.",
+    "startingFix": "Behebung wird gestartet …",
+    "draftSavedCode": "{code} ist gespeichert. Senden Sie die Behebung auf der Release-Seite zur Analyse; sobald Sie sie freigeben, setzt das Entwicklungsteam sie um.",
+    "draftSaved": "Die Behebung ist gespeichert. Senden Sie sie auf der Release-Seite zur Analyse; sobald Sie sie freigeben, setzt das Entwicklungsteam sie um.",
+    "inVersion": "{code} ist in v{version} enthalten.",
+    "openRelease": "Release-Seite öffnen",
+    "unreadable": "Diese Analyse kann nicht angezeigt werden.",
+    "cardLabel": "Fehleranalyse: {title}",
+    "heading": "Fehleranalyse",
+    "summary": "Zusammenfassung",
+    "severity": "Schweregrad",
+    "rootCause": "Was schiefgelaufen ist",
+    "impact": "Was betroffen ist",
+    "estimate": "Schätzung",
+    "effort": "Etwa {hours} Aufwand",
+    "whoWorks": "Wer daran arbeitet",
+    "technical": "Technische Details",
+    "whereInCode": "Stelle im Code",
+    "sourceRefs": "Quellcode-Verweise",
+    "evidence": "Belege",
+    "stories": "Betroffene User Stories",
+    "tests": "Tests",
+    "plan": "So wird es behoben",
+    "filesToChange": "Zu ändernde Dateien",
+    "testsToAdd": "Hinzuzufügende Tests"
+  }
+}

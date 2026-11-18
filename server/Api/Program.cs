@@ -13,13 +13,21 @@ ApplicationConfigurations.ConfigureApiEnv(builder, args);
 
 // Report rendering uses release-owned tool URLs. Load release config first as a fallback, then
 // let Monitor's own secret override every key it owns.
-builder.Configuration.AddMongoDbConfiguration(options =>
+// The release secret is optional — the document may not exist in every environment.
+try
 {
- options.ConnectionString = secret.DatabaseConnectionString;
- options.DatabaseName = secret.RootDatabaseName;
- options.CollectionName = "Secrets";
- options.SecretKey = "blocks-secret-release";
-});
+ builder.Configuration.AddMongoDbConfiguration(options =>
+ {
+  options.ConnectionString = secret.DatabaseConnectionString;
+  options.DatabaseName = secret.RootDatabaseName;
+  options.CollectionName = "Secrets";
+  options.SecretKey = "blocks-secret-release";
+ });
+}
+catch (InvalidOperationException)
+{
+ // blocks-secret-release not found — continue without it.
+}
 
 builder.Configuration.AddMongoDbConfiguration(options =>
 {
