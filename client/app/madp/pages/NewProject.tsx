@@ -120,7 +120,7 @@ export default function NewProject() {
     const args = { ...(trimmed ? { name: trimmed } : {}), projectType: type, ...(brief.trim() ? { scratchMd: brief.trim() } : {}),
       ...(ref?.ok ? { repo: `${ref.value.owner}/${ref.value.name}`, repoBranch: ref.value.branch } : {}) };
     create(args, requestId.current).then(
-      (r) => { requestId.current = null; navigate(`p/${r.project.id}/business`, { replace: true }); },
+      (r) => { requestId.current = null; navigate(`/p/${r.project.id}/business`, { replace: true }); },
       (e: unknown) => { setFailure(isNotConfigured(e) ? NOT_CONFIGURED_MESSAGE : messageFor(e)); },
     );
   };
@@ -179,7 +179,14 @@ export default function NewProject() {
             <p className="mt-1.5 text-[13px] text-ink3">{t("shell.newProject.briefNote", "Saved as the project's first note in Project setup.")}</p>
           </div>
         )}
-        <p className="max-w-xl text-[13px] text-ink3">{t("shell.newProject.blocksNote", "Repository and environment configuration is managed through Blocks.")}</p>
+        {type === "greenfield" && (
+          <p className="max-w-xl text-[13px] text-ink3">{t("shell.newProject.greenfieldNote", "MADP Factory keeps the code for you. Connecting GitHub is optional; you can do it any time in Project setup.")}</p>
+        )}
+        {type === "brownfield" && (
+          <BrownfieldRepoField value={pick} skipped={skipped} disabled={isPending} error={repoError}
+            onSkip={(v) => { setSkipped(v); setRepoError(null); requestId.current = null; }}
+            onChange={(v) => { setPick(v); setSkipped(false); setRepoError(null); requestId.current = null; }} />
+        )}
         <div className="flex items-center gap-3">
           <Button type="submit" variant="primary" disabled={isPending} aria-busy={isPending}>{isPending ? t("shell.newProject.creating", "Creating…") : t("shell.newProject.create", "Create project")}</Button>
           <Button type="button" variant="ghost" onClick={() => navigate("/projects")}>{t("common.actions.cancel", "Cancel")}</Button>

@@ -111,7 +111,12 @@ export function DashboardView() {
     <PageHeader title={greeting(first)}
       subtitle={workspace ? t("shell.dashboard.subtitleWorkspace", "Everything in {workspace} at a glance · {date}", { workspace: workspace.name, date }) : t("shell.dashboard.subtitle", "Everything at a glance · {date}", { date })}
       actions={!ready ? <span aria-hidden className="inline-block h-10 w-36 animate-pulse rounded-full bg-surface2" />
-        : undefined} />
+        : canCreate ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="secondary" icon={<DoorOpen size={16} strokeWidth={1.75} />} onClick={() => navigate("/new/cinematic")}>{t("shell.dashboard.startInOffice", "Start in the office")}</Button>
+            <Button variant="primary" icon={<Plus size={16} strokeWidth={1.75} />} onClick={() => openGuidedStart()}>{t("shell.dashboard.newProject", "New project")}</Button>
+          </div>
+        ) : undefined} />
   );
 
   const stats = useMemo(() => kpis(records), [records]);
@@ -170,7 +175,8 @@ export function DashboardView() {
         <p className="flex items-start gap-2 text-[13px] text-ink3"><Info size={14} strokeWidth={1.75} className="mt-0.5 shrink-0" aria-hidden />{DASHBOARD_CAPPED_TEXT}</p>
       )}
 
-      <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Stat icon={<FolderKanban size={18} strokeWidth={1.75} />} label={t("shell.dashboard.statProjects", "Projects")} value={stats.projects} />
         <Stat icon={<Hammer size={18} strokeWidth={1.75} />} label={t("shell.dashboard.statInBuild", "In build")} value={stats.inBuild} />
         <Stat icon={<Rocket size={18} strokeWidth={1.75} />} label={t("shell.dashboard.statReleased", "Released")} value={stats.released} />
         <Stat icon={<Inbox size={18} strokeWidth={1.75} />} label={t("shell.dashboard.statWaiting", "Waiting for you")} value={waitingCount(todo)} />
@@ -192,7 +198,9 @@ export function DashboardView() {
                 <div>
                   <Clapperboard size={28} strokeWidth={1.75} className="mx-auto text-white/70" />
                   <h2 className="mt-3 text-[17px] font-medium">{t("shell.dashboard.liveNow", "Live now")}</h2>
-                  <p className="mt-1 text-[14px] text-white/70">{t("shell.dashboard.liveEmpty", "Start the analysis to watch your team work on it here.")}</p>
+                  <p className="mt-1 text-[14px] text-white/70">{canCreate ? t("shell.dashboard.liveEmptyCreate", "Start a project and watch your team work on it here.") : t("shell.dashboard.workspaceProjectsAppear", "The projects of this workspace appear here.")}</p>
+                  {!ready ? <span aria-hidden className="mx-auto mt-4 block h-10 w-36 animate-pulse rounded-full bg-surface2" />
+                    : canCreate && <Button variant="primary" className="mt-4" onClick={() => openGuidedStart()}>{t("shell.dashboard.startProject", "Start a project")}</Button>}
                 </div>
               </div>
             )}
@@ -217,7 +225,51 @@ export function DashboardView() {
           )}
         </section>
 
-        {/* Your projects card removed — user is already inside a Blocks project */}
+        <Card title={t("shell.dashboard.yourProjects", "Your projects")} icon={<FolderKanban size={18} strokeWidth={1.75} />} className={cn(SCROLL_CARD, "max-lg:max-h-[460px] lg:col-span-4")}
+          bodyClassName={cn(SCROLL_BODY, "flex flex-col gap-2.5")}>
+          {list.length === 0 ? (
+            <EmptyState title={t("shell.dashboard.noProjects", "No projects yet")} text={canCreate ? t("shell.dashboard.firstProjectAppears", "Your first project appears here once you start it.") : t("shell.dashboard.workspaceProjectsAppear", "The projects of this workspace appear here.")} />
+          ) : (
+            <>
+              {list.slice(0, MAX_LISTED).map((it) => {
+                const on = shown?.id === it.id;
+                const row = rows.find((x) => x.projectId === it.id);
+                const env = row?.production ? "production" : row?.stage ? "stage" : row?.dev ? "dev" : null;
+                const version = env && row ? row[env]!.version : "";
+                const state = now.get(it.id);
+                const next = state?.waiting[0];
+                return (
+                  <div key={it.id} className="relative">
+                    <button type="button" aria-pressed={on} onClick={() => setFocusId(it.id)}
+                      className={cn("block w-full min-w-0 rounded-block bg-surface2 p-3.5 pr-14 text-left transition hover:bg-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                        on && "ring-2 ring-accent")}>
+                      <span className="block truncate text-[14px] font-medium">{it.name}</span>
+                      {it.clientName && <span className="block truncate text-[12px] text-ink3">{it.clientName}</span>}
+                      <span className="mt-1.5 block truncate text-[12px] font-medium text-ink">
+                        {phaseNameOf(state?.step ?? it.step)}<span className="num font-normal text-ink3"> · {t("shell.dashboard.stepOf", "Step {step} of {total}", { step: phaseNumber(it.step), total: PHASE_COUNT })}</span>
+                      </span>
+                      {state && <WorkingLine now={state} className="mt-0.5 flex" />}
+                      {/* one of the four steps: the bar fills a quarter per step */}
+                      <Bar value={phaseNumber(it.step) / PHASE_COUNT * 100} hatchRest={false} className="mt-2 h-1" />
+                      {next && (
+                        <span className="mt-2 flex min-w-0 items-center gap-1.5 text-[12px] text-ink">
+                          <AlertCircle size={14} aria-hidden className="shrink-0 text-[rgb(var(--c-warning-text))]" />
+                          <span className="min-w-0 truncate">{next.text}{state && state.waiting.length > 1 ? ` (+${state.waiting.length - 1})` : ""}</span>
+                        </span>
+                      )}
+                      {env && <span className="mt-2 block"><Chip tone="success">{t("shell.dashboard.onEnv", "On {env} {version}", { env: ENV_LABEL[env], version: versionText(version) })}</Chip></span>}
+                    </button>
+                    <Link to={it.to} aria-label={t("shell.dashboard.openNamed", "Open {name}", { name: it.name })} title={t("shell.dashboard.openNamed", "Open {name}", { name: it.name })}
+                      className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-surface text-ink2 transition hover:bg-accent hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+                      <ArrowUpRight size={16} strokeWidth={1.75} />
+                    </Link>
+                  </div>
+                );
+              })}
+              {list.length > MAX_LISTED && <Link to="/projects" className="mt-1 text-[13px] font-medium text-accent hover:underline">{t("shell.dashboard.allProjects", "All projects")}</Link>}
+            </>
+          )}
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
