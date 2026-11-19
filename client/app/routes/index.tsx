@@ -32,6 +32,11 @@ function MadpPathRedirect() {
   return <Navigate to={newPath} replace />;
 }
 
+// MADP ProjectRoute layout (stepper nav)
+const MadpProjectRoute = lazy(() =>
+  import("@/madp/components/project/ProjectRoute").then((m) => ({ default: m.ProjectRoute }))
+);
+
 // Lazy-load MADP pages
 const MadpDashboard = lazy(() => import("@/madp/pages/Dashboard"));
 const MadpProjects = lazy(() => import("@/madp/pages/Projects"));
@@ -174,41 +179,48 @@ export const routes = [
                         path: "admin/:section",
                         element: <MadpPage><MadpAdmin /></MadpPage>,
                       },
-                      // Project-specific routes (MADP pages use useParams().id)
+                      // Project-specific routes with MADP stepper nav
                       {
                         path: "p/:id",
+                        element: (
+                          <MadpPage>
+                            <Suspense fallback={<div className="h-12 bg-muted/20 animate-pulse rounded" />}>
+                              <MadpProjectRoute />
+                            </Suspense>
+                          </MadpPage>
+                        ),
                         children: [
                           {
                             index: true,
-                            element: <MadpPage><MadpProjectStep /></MadpPage>,
+                            element: <Suspense fallback={null}><MadpProjectStep /></Suspense>,
                           },
                           {
                             path: "business",
-                            element: <MadpPage><MadpProjectStep /></MadpPage>,
+                            element: <Suspense fallback={null}><MadpProjectStep /></Suspense>,
                           },
                           {
                             path: "analysis",
-                            element: <MadpPage><MadpAnalysis /></MadpPage>,
+                            element: <Suspense fallback={null}><MadpAnalysis /></Suspense>,
                           },
                           {
                             path: "board",
-                            element: <MadpPage><MadpBoard /></MadpPage>,
+                            element: <Suspense fallback={null}><MadpBoard /></Suspense>,
                           },
                           {
                             path: "build",
-                            element: <MadpPage><MadpBuild /></MadpPage>,
+                            element: <Suspense fallback={null}><MadpBuild /></Suspense>,
                           },
                           {
                             path: "delivered",
-                            element: <MadpPage><MadpDelivered /></MadpPage>,
+                            element: <Suspense fallback={null}><MadpDelivered /></Suspense>,
                           },
                           {
                             path: "wiki",
-                            element: <MadpPage><MadpWiki /></MadpPage>,
+                            element: <Suspense fallback={null}><MadpWiki /></Suspense>,
                           },
                           {
                             path: "produced",
-                            element: <MadpPage><MadpProduced /></MadpPage>,
+                            element: <Suspense fallback={null}><MadpProduced /></Suspense>,
                           },
                         ],
                       },
