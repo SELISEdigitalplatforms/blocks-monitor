@@ -3,6 +3,7 @@ import { Toaster, TooltipProvider } from "@/components/core";
 import { SERVICE_NAME } from "@/constants/service.constant";
 import QueryProvider, { getQueryClient } from "@/providers/query-provider";
 import "@/styles/globals.css";
+import "@/madp/styles/madp-scoped.css";
 import "@seliseblocks/genesis-os/lib";
 import {
   RollbarProvider,

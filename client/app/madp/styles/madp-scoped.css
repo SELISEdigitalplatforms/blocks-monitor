@@ -1,0 +1,108 @@
+/* MADP design tokens and utilities, scoped to .madp-scope to avoid conflicts with Blocks shell's Tailwind v4. */
+@import "@fontsource-variable/outfit";
+@import "@fontsource-variable/jetbrains-mono";
+
+/* Design tokens — applied within .madp-scope */
+.madp-scope {
+  --c-canvas: 241 242 244;
+  --c-surface: 255 255 255;
+  --c-surface2: 247 248 250;
+  --c-line: 230 232 236;
+  --c-ink: 11 11 15;
+  --c-ink2: 72 76 88;
+  --c-ink3: 104 109 122;
+  --c-accent: 31 91 255;
+  --c-accent-hover: 26 79 224;
+  --c-accent-soft: 232 238 255;
+  --c-accent-ink: 255 255 255;
+  --c-ai: 112 80 245;
+  --c-ai-soft: 240 236 255;
+  --c-ai-ink: 255 255 255;
+  --c-success: 4 135 95;
+  --c-success-soft: 209 250 229;
+  --c-warning: 217 119 6;
+  --c-warning-soft: 254 243 199;
+  --c-danger: 220 50 55;
+  --c-danger-soft: 254 226 226;
+  --c-accent-text: 31 91 255;
+  --c-ai-text: 98 62 232;
+  --c-success-text: 4 120 87;
+  --c-warning-text: 161 72 8;
+  --c-danger-text: 192 38 45;
+  --c-bar: 11 11 15;
+  --c-stage: 14 15 19;
+  --c-scrim: 10 12 20;
+  --c-landing-dim: 126 131 145;
+  --c-landing-cool: 244 247 255;
+  --c-landing-pass: 21 128 61;
+  --hatch: rgb(11 11 15 / 0.14);
+
+  font-family: "Outfit Variable", "Outfit", ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: rgb(var(--c-ink));
+}
+
+/* Dark theme tokens within .madp-scope */
+[data-theme="dark"] .madp-scope,
+.dark .madp-scope {
+  --c-canvas: 14 15 19;
+  --c-surface: 23 24 29;
+  --c-surface2: 30 32 39;
+  --c-line: 38 40 47;
+  --c-ink: 245 246 248;
+  --c-ink2: 176 180 190;
+  --c-ink3: 138 143 156;
+  --c-accent: 31 91 255;
+  --c-accent-hover: 26 79 224;
+  --c-accent-soft: 31 41 71;
+  --c-ai: 112 80 245;
+  --c-ai-soft: 40 34 70;
+  --c-success: 52 211 153;
+  --c-success-soft: 16 52 42;
+  --c-warning: 245 158 11;
+  --c-warning-soft: 56 40 12;
+  --c-danger: 220 50 55;
+  --c-danger-soft: 60 24 27;
+  --c-accent-text: 125 160 255;
+  --c-ai-text: 165 145 255;
+  --c-success-text: 52 211 153;
+  --c-warning-text: 245 158 11;
+  --c-danger-text: 248 113 113;
+  --c-bar: 232 233 236;
+  --c-stage: 10 11 14;
+  --c-scrim: 0 0 0;
+  --c-landing-dim: 107 111 123;
+  --c-landing-cool: 244 247 255;
+  --c-landing-pass: 52 211 153;
+  --hatch: rgb(232 233 236 / 0.16);
+}
+
+/* MADP utility classes */
+.madp-scope .text-accent { color: rgb(var(--c-accent-text)); }
+.madp-scope .text-ai { color: rgb(var(--c-ai-text)); }
+.madp-scope .text-success { color: rgb(var(--c-success-text)); }
+.madp-scope .text-warning { color: rgb(var(--c-warning-text)); }
+.madp-scope .text-danger { color: rgb(var(--c-danger-text)); }
+.madp-scope .num { font-variant-numeric: tabular-nums; }
+.madp-scope .hatched {
+  background-image: repeating-linear-gradient(135deg, var(--hatch) 0 2px, transparent 2px 7px);
+}
+.madp-scope .scroll-thin { scrollbar-width: thin; scrollbar-color: rgb(var(--c-ink3) / 0.4) transparent; }
+.madp-scope .scroll-quiet { scrollbar-gutter: stable; }
+.madp-scope .card-hover { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.madp-scope .card-hover:hover { transform: translateY(-1px); box-shadow: 0 8px 24px -16px rgb(10 12 20 / 0.35); }
+
+/* Keyframes */
+@keyframes madp-confetti {
+  0%   { transform: translate3d(0,0,0) rotate(0deg); opacity: 0; }
+  5%   { opacity: 1; }
+  42%  { transform: translate3d(calc(var(--dx) * .72), var(--up), 0) rotate(calc(var(--rot) * .45)); }
+  78%  { opacity: 1; }
+  100% { transform: translate3d(var(--dx), var(--fall), 0) rotate(var(--rot)); opacity: 0; }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes pulseDot { 0%, 80%, 100% { opacity: 0; transform: scale(.8); } 40% { opacity: 1; transform: scale(1); } }
+
+.madp-scope .animate-rise { animation: rise 0.35s ease-out both; }

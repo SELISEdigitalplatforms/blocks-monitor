@@ -4,6 +4,7 @@
 
 @source "../../index.html";
 @source "../../node_modules/@seliseblocks/genesis-os/dist/**/*.{js,jsx,ts,tsx}";
+@source "../madp/**/*.{ts,tsx}";
 /* Carried over from the v3 blocklist: never emit this arbitrary-property candidate. */
 @source not inline("[-:=]");
 
@@ -356,6 +357,32 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+  /* MADP design system colors — uses rgb(r g b) channel format from --c-* tokens.
+     These make bg-canvas, text-ink, border-line, bg-surface, etc. work in Tailwind v4. */
+  --color-canvas: rgb(var(--c-canvas));
+  --color-surface: rgb(var(--c-surface));
+  --color-surface2: rgb(var(--c-surface2));
+  --color-line: rgb(var(--c-line));
+  --color-ink: rgb(var(--c-ink));
+  --color-ink2: rgb(var(--c-ink2));
+  --color-ink3: rgb(var(--c-ink3));
+  --color-accent-hover: rgb(var(--c-accent-hover));
+  --color-accent-soft: rgb(var(--c-accent-soft));
+  --color-accent-ink: rgb(var(--c-accent-ink));
+  --color-ai: rgb(var(--c-ai));
+  --color-ai-soft: rgb(var(--c-ai-soft));
+  --color-ai-ink: rgb(var(--c-ai-ink));
+  --color-success-soft: rgb(var(--c-success-soft));
+  --color-warning-soft: rgb(var(--c-warning-soft));
+  --color-danger: rgb(var(--c-danger));
+  --color-danger-soft: rgb(var(--c-danger-soft));
+  --color-stage: rgb(var(--c-stage));
+  --color-scrim: rgb(var(--c-scrim));
+  --radius-card: 24px;
+  --radius-block: 16px;
+  --font-sans: "Outfit Variable", "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
