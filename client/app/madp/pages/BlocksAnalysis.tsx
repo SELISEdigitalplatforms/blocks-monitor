@@ -30,17 +30,19 @@ export default function BlocksAnalysis() {
 
   const projects = list.data ?? [];
 
-  // Find the MADP project that belongs to THIS Blocks project (by BlocksProjectRef)
+  // Find the MADP project that belongs to THIS Blocks project
+  // 1. Exact match by BlocksProjectRef (new projects)
+  // 2. Fallback: most recent active project (backward compat with pre-link projects)
   const linkedProject = projects.find(
-    (p) => p.status === "active" && (p as Record<string, unknown>).blocksProjectRef === blocksProjectId
+    (p) => p.status === "active" && p.blocksProjectRef === blocksProjectId
   );
 
-  // Fallback: if no linked project, check if there's one with matching name
-  const matchByName = !linkedProject
-    ? projects.find((p) => p.status === "active" && p.name === blocksName)
+  // Fallback for existing projects created before the BlocksProjectRef link was added
+  const fallback = !linkedProject
+    ? projects.find((p) => p.status === "active")
     : null;
 
-  const madpProject = linkedProject || matchByName;
+  const madpProject = linkedProject || fallback;
 
   // Redirect when project exists or just created
   useEffect(() => {
