@@ -31,12 +31,18 @@ export default function BlocksAnalysis() {
   const itemIdMatch = currentPath.match(/\/app\/([^/]+)\//);
   const itemId = itemIdMatch?.[1] ?? "";
 
-  // Redirect when project exists or just created
+  // Redirect when project exists or just created — use the project's current step
   useEffect(() => {
     if (created && itemId) {
       navigate(`/app/${itemId}/p/${created}/business`, { replace: true });
     } else if (latest && itemId) {
-      navigate(`/app/${itemId}/p/${latest.id}/business`, { replace: true });
+      // Map MADP stage to the correct page
+      const step = latest.step ?? "business";
+      const page = step === "build" || step === "release" ? step
+        : step === "scope" || step === "requirements" || step === "sanitization" || step === "understanding"
+          ? "analysis"
+          : "business";
+      navigate(`/app/${itemId}/p/${latest.id}/${page}`, { replace: true });
     }
   }, [created, latest, navigate, itemId]);
 
