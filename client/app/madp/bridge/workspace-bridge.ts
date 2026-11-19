@@ -1,14 +1,17 @@
 /**
  * Workspace bridge: maps genesis-os project/impersonation context into MADP's useWorkspaces store.
  * Resolves the MADP workspace ID from the Blocks project, since they're different systems.
+ * Clears MADP data cache when the Blocks project changes.
  */
 import { useProjectStore, useAuthStore } from "@seliseblocks/genesis-os/store";
 import { useWorkspaces } from "../blocks/workspaces/store";
 import { getOrCreateWorkspace } from "./provision";
+import { queryClient } from "../blocks/queryClient";
 
 let unsubProject: (() => void) | null = null;
 let unsubAuth: (() => void) | null = null;
 let resolving = false;
+let lastBlocksProjectId: string | null = null;
 
 export function startWorkspaceBridge() {
   if (unsubProject) return;
@@ -32,32 +35,29 @@ function syncWorkspaceState() {
   const email = (user as Record<string, unknown>).email as string ?? "";
   const name = (user as Record<string, unknown>).name as string ?? email;
 
-  // Set initial state with ready=true so pages can render
-  // The workspaceId will be resolved async from the MADP Data Gateway
-  const currentWsId = useWorkspaces.getState().workspaceId;
-
-  // If we already have a resolved workspace ID, keep it
-  if (currentWsId && currentWsId !== blocksProjectId) {
-    updateStoreWithWorkspaceId(currentWsId, userId, email, name, blocksProjectId);
-    return;
+  // Detect Blocks project change — clear MADP cache so stale data doesn't show
+  if (lastBlocksProjectId && lastBlocksProjectId !== blocksProjectId) {
+    queryClient.clear();
+    resolving = false;
   }
+  lastBlocksProjectId = blocksProjectId;
 
   // Set temporary state so pages don't block
-  updateStoreWithWorkspaceId(blocksProjectId, userId, email, name, blocksProjectId);
+  updateStoreWithWorkspaceId(blocksProjectId, userId, email, name);
 
   // Resolve the actual MADP workspace ID asynchronously
-  if (!resolving) {
+  if (!resolving && blocksProjectId) {
     resolving = true;
     getOrCreateWorkspace(blocksProjectId, blocksProjectName).then((madpWsId) => {
       resolving = false;
-      if (madpWsId && madpWsId !== blocksProjectId) {
-        updateStoreWithWorkspaceId(madpWsId, userId, email, name, blocksProjectId);
+      if (madpWsId) {
+        updateStoreWithWorkspaceId(madpWsId, userId, email, name);
       }
     }).catch(() => { resolving = false; });
   }
 }
 
-function updateStoreWithWorkspaceId(workspaceId: string, userId: string, email: string, name: string, _blocksProjectId: string) {
+function updateStoreWithWorkspaceId(workspaceId: string, userId: string, email: string, name: string) {
   useWorkspaces.setState({
     ready: true,
     workspaceId,
