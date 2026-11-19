@@ -19,6 +19,7 @@ import { phaseName } from "@/madp/components/project/stepNames";
 import { analysisParts, phaseGuide, STATUS_TEXT, type AnalysisPart } from "@/madp/components/project/projectSteps";
 import { missingNotice } from "@/madp/components/project/ProjectRoute";
 import { cn } from "@/madp/lib/cn";
+import { prefixPath, rewritePath } from "@/madp/lib/pathPrefix";
 import { BusinessAnalysis, LiveSectionsAnalysis } from "@/madp/pages/AnalysisNext";
 import { attachedLive } from "@/madp/components/analysis-next/model";
 import { livePastAnalysis } from "@/madp/components/analysis/pm/pmModel";
@@ -46,7 +47,7 @@ const CHIP: Record<AnalysisPart["status"], string> = {
 export default function Analysis() {
   const { id = "" } = useParams();
   const { search } = useLocation();
-  if (!isBlocksProjectId(id)) return <Navigate to="/projects" replace state={{ notice: missingNotice() }} />;
+  if (!isBlocksProjectId(id)) return <Navigate to={rewritePath("/projects")} replace state={{ notice: missingNotice() }} />;
   // the approved page; the former four pages one under the other stay reachable as a fallback (?view=sections)
   return new URLSearchParams(search).get("view") === "sections" ? <SectionsAnalysis id={id} /> : <BusinessAnalysis id={id} />;
 }
@@ -119,7 +120,7 @@ function SectionsAnalysis({ id }: { id: string }) {
       ))}
 
       <p className="px-1 text-[13px] text-ink3">
-        {movesOn[0]}<Link to={`/p/${id}/build`} className="font-medium text-ink2 underline-offset-4 hover:underline">{phaseName("engineering")}</Link>{movesOn[1]}
+        {movesOn[0]}<Link to={prefixPath(`/p/${id}/build`)} className="font-medium text-ink2 underline-offset-4 hover:underline">{phaseName("engineering")}</Link>{movesOn[1]}
       </p>
     </div>
   );

@@ -6,6 +6,7 @@ import type { ProjectRow } from "@/madp/blocks/sanitization/types";
 import { useState, type ReactNode } from "react";
 import { FileText } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { prefixPath, rewritePath } from "@/madp/lib/pathPrefix";
 import { useQuery } from "@tanstack/react-query";
 import {
   clarificationsOptions, latestAssistJob, useBusinessRefs, useDecisions, useRequirementsV1, useSanitizationDiscussion, useSanitizationProject,
@@ -120,7 +121,7 @@ export function SanitizationStep({ projectId, workspaceId, title }: { projectId:
     return (
       <StepFrame title={title(null)}>
         <EmptyState icon={<FileText size={20} strokeWidth={1.75} />} title={t("settings.sanitization.step.noRecord", "This project's record isn't available.")}
-          action={<Link to="/projects" className="font-medium text-accent hover:underline">{t("settings.sanitization.step.backToProjects", "Back to projects")}</Link>} />
+          action={<Link to={rewritePath("/projects")} className="font-medium text-accent hover:underline">{t("settings.sanitization.step.backToProjects", "Back to projects")}</Link>} />
       </StepFrame>
     );
   }
@@ -135,7 +136,7 @@ export function SanitizationStep({ projectId, workspaceId, title }: { projectId:
   if (phase === "notOpen") {
     return (
       <StepFrame title={title(project)} subject={project.Name} status={t("settings.sanitization.step.notStarted", "Not started yet")} statusTone="waiting"
-        primary={{ label: t("settings.sanitization.step.openSetup", "Open Project setup"), href: `/p/${projectId}/business` }}>
+        primary={{ label: t("settings.sanitization.step.openSetup", "Open Project setup"), href: prefixPath(`/p/${projectId}/business`) }}>
         <Card title={t("settings.sanitization.step.notStartedTitle", "The project analysis hasn't started yet")} icon={<FileText size={18} strokeWidth={1.75} />}>
           <p className="text-[14px] text-ink2">{t("settings.sanitization.step.notStartedText", "This step opens once the project analysis is started in Project setup.")}</p>
         </Card>
@@ -164,7 +165,7 @@ export function SanitizationStep({ projectId, workspaceId, title }: { projectId:
     draftJob: jobView(draftJob),
   });
 
-  const goalsHref = `/p/${projectId}/requirements`;
+  const goalsHref = prefixPath(`/p/${projectId}/requirements`);
   const focusAnswer = () => {
     const el = document.querySelector<HTMLElement>("[data-open-answer]");
     el?.scrollIntoView({ behavior: "smooth", block: "center" });

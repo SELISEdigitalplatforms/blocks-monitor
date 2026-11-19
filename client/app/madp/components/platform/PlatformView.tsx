@@ -12,6 +12,7 @@ import { Button, EmptyState } from "@/madp/ui/kit";
 import { useT } from "@/madp/i18n";
 import { PlatformSectionNav, PlatformSectionPicker } from "./PlatformNav";
 import { platformSectionLabel, platformSectionSummary } from "./sectionText";
+import { rewritePath } from "@/madp/lib/pathPrefix";
 
 type Section = LazyExoticComponent<ComponentType>;
 
@@ -47,7 +48,7 @@ function Closed({ title, text }: { title: string; text: string }) {
   const navigate = useNavigate();
   return (
     <EmptyState icon={<ShieldOff size={28} strokeWidth={1.75} />} title={title} text={text}
-      action={<Button variant="primary" onClick={() => navigate("/dashboard")}>{t("platform.view.goToDashboard", "Go to the Dashboard")}</Button>} />
+      action={<Button variant="primary" onClick={() => navigate(rewritePath("/dashboard"))}>{t("platform.view.goToDashboard", "Go to the Dashboard")}</Button>} />
   );
 }
 

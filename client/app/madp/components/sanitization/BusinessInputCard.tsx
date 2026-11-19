@@ -1,6 +1,7 @@
 /** The project's Business notes and files, beside the step; items created after the hand-over are marked. */
 import { FileText, Folder } from "lucide-react";
 import { Link } from "react-router-dom";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { isNewSinceHandOver, useBusinessRefs } from "@/madp/blocks/sanitization/hooks";
 import { Card, Chip } from "@/madp/ui/kit";
 import { LoadError } from "./shared";
@@ -20,7 +21,7 @@ export function BusinessInputCard({ workspaceId, projectId, handedOverAt }: { wo
           <ul className="flex min-w-0 flex-col gap-3">
             {refs.map((r) => (
               <li key={r.id} className="min-w-0">
-                <Link to={`/p/${projectId}/business?item=${r.id}`}
+                <Link to={prefixPath(`/p/${projectId}/business?item=${r.id}`)}
                   className="break-words rounded-md text-[14px] font-medium text-ink outline-none hover:underline focus-visible:ring-2 focus-visible:ring-accent/50">
                   {r.title}
                 </Link>

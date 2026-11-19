@@ -17,6 +17,7 @@ import {
   ASSISTANT_COMPOSER_ID, ASSISTANT_LAUNCHER_ID, ASSISTANT_WINDOW_ID,
   defaultAssistantTarget, envLabel, escapeClosesWindow, overviewEnvOf, routeProjectId, useAssistantWindow,
 } from "./assistantWindowState";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 export const localProjectText = (): string =>
   t("assistant.window.localProject", "The assistant answers about projects saved in your workspace. Open one from your projects list.");
@@ -110,7 +111,7 @@ export function AssistantWindow() {
 
   const choose = (id: string) => {
     if (id === activeId) return;
-    if (onProjectPage) { navigate(`/p/${id}`); return; }
+    if (onProjectPage) { navigate(prefixPath(`/p/${id}`)); return; }
     useAssistantWindow.getState().chooseProject(id);
   };
 

@@ -15,6 +15,7 @@ import { ProjectActionsMenu, type ProjectActions } from "./ProjectActionsMenu";
 import { QuickActions } from "./QuickActions";
 import { useT } from "@/madp/i18n";
 import { phaseNameOf } from "@/madp/components/project/stepNames";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 /** 1 column on a phone, 2 on a tablet, 3 on a desktop, 4 on a very wide screen. */
 const GRID = "grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4";
@@ -53,7 +54,7 @@ export function ProjectCard({ project, ...act }: ProjectActions & { project: Pro
 
       <h3 className="mt-3 break-words text-[17px] font-medium leading-snug tracking-tight">
         {isDeleting ? project.name : (
-          <Link to={`/p/${project.id}`}
+          <Link to={prefixPath(`/p/${project.id}`)}
             className="rounded-md outline-none transition-colors after:absolute after:inset-0 after:rounded-card group-hover:text-[rgb(var(--c-accent-text))] focus-visible:after:ring-2 focus-visible:after:ring-accent/50">
             {project.name}
           </Link>

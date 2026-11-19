@@ -6,7 +6,7 @@
  */
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useProjectList } from "@/madp/blocks/projects";
+import { useProjectListAll } from "@/madp/blocks/projects/reads";
 import { useCreateProjectOnce } from "@/madp/blocks/projects/mutations";
 import { useProjectStore } from "@seliseblocks/genesis-os/store";
 import { newRequestId } from "@/madp/blocks/fn";
@@ -14,7 +14,7 @@ import { Banner, Button, Card, EmptyState } from "@/madp/ui/kit";
 import { FileText, Loader2, Plus } from "lucide-react";
 
 export default function BlocksAnalysis() {
-  const list = useProjectList();
+  const list = useProjectListAll();
   const { create, isPending } = useCreateProjectOnce();
   const [failure, setFailure] = useState<string | null>(null);
   const [created, setCreated] = useState<string | null>(null);
@@ -30,19 +30,10 @@ export default function BlocksAnalysis() {
 
   const projects = list.data ?? [];
 
-  // Find the MADP project that belongs to THIS Blocks project
-  // 1. Exact match by BlocksProjectRef (new projects)
-  // 2. Fallback: most recent active project (backward compat with pre-link projects)
-  const linkedProject = projects.find(
+  // Find the MADP project that belongs to THIS Blocks project (exact match only)
+  const madpProject = projects.find(
     (p) => p.status === "active" && p.blocksProjectRef === blocksProjectId
   );
-
-  // Fallback for existing projects created before the BlocksProjectRef link was added
-  const fallback = !linkedProject
-    ? projects.find((p) => p.status === "active")
-    : null;
-
-  const madpProject = linkedProject || fallback;
 
   // Redirect when project exists or just created
   useEffect(() => {

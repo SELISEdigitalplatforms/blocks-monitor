@@ -8,9 +8,9 @@ import {
   clarificationsOptions, projectOptions, membersOptions,
 } from "@/madp/blocks/sanitization/hooks";
 
-/** The segment after /p/:id/, e.g. "business"; null when the path is not a project step. */
+/** The segment after /p/:id/, e.g. "business"; null when the path is not a project step. Matches both /p/:id/:slug and /app/:itemId/p/:id/:slug. */
 export function stepSlugOf(pathname: string): string | null {
-  const m = /^\/p\/[^/]+\/([^/?#]+)/.exec(pathname);
+  const m = /\/p\/[^/]+\/([^/?#]+)/.exec(pathname);
   return m ? m[1] : null;
 }
 

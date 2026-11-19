@@ -9,6 +9,7 @@
  * No React, DOM or store imports.
  */
 import { JOURNEY_SLUG, STEP_LABEL, type JourneyPage, type JourneyStep } from "./journey";
+import { prefixPath } from "../lib/pathPrefix";
 
 export const PHASES = ["setup", "analysis", "engineering", "release"] as const;
 export type Phase = (typeof PHASES)[number];
@@ -85,11 +86,11 @@ export function phaseLabelOf(step: JourneyStep): string {
 
 /** The page of a stored step: the Business Analysis steps open their section of /p/:id/analysis. */
 export function stepPath(projectId: string, step: JourneyStep | JourneyPage): string {
-  if (isAnalysisStep(step)) return `/p/${projectId}/analysis#${step}`;
-  return `/p/${projectId}/${JOURNEY_SLUG[step]}`;
+  if (isAnalysisStep(step)) return prefixPath(`/p/${projectId}/analysis#${step}`);
+  return prefixPath(`/p/${projectId}/${JOURNEY_SLUG[step]}`);
 }
 
 /** The page where a project stands now (its phase page; an analysis step opens its section). */
 export function phasePath(projectId: string, phase: Phase): string {
-  return `/p/${projectId}/${PHASE_SLUG[phase]}`;
+  return prefixPath(`/p/${projectId}/${PHASE_SLUG[phase]}`);
 }

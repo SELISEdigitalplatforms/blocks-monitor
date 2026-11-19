@@ -4,6 +4,7 @@
  *  release by the Factory (an existing product's, documented from the live product) says so instead of "Not released".
  *  Everything comes from the project's release and change request rows. Follows the theme. */
 import { Link } from "react-router-dom";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { ArrowUpRight, History } from "lucide-react";
 import type { DeliveryChangeRequest, DeliveryRelease } from "@/madp/blocks/delivery/types";
 import { changeCode, type EnvironmentState } from "@/madp/domain/delivery";
@@ -124,7 +125,7 @@ export function EnvironmentsCard({ projectId, env, state, where, changes, stoppe
         ) : null}
         {building && (
           <p className="text-[13px] text-ink2">
-            {stopped?.(building) ? t("build.release.history.buildStopped", "Build stopped:") : t("build.release.history.building", "Building:")}{" "}<Link to={`/p/${projectId}/build?cr=${building.number}`} className="font-medium text-accent hover:underline">
+            {stopped?.(building) ? t("build.release.history.buildStopped", "Build stopped:") : t("build.release.history.building", "Building:")}{" "}<Link to={prefixPath(`/p/${projectId}/build?cr=${building.number}`)} className="font-medium text-accent hover:underline">
               <span className="num font-mono">{changeCode(building)}</span> · {building.title}</Link>
           </p>
         )}

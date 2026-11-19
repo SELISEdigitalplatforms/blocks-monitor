@@ -3,7 +3,7 @@ import { reducedMotion } from "@/madp/components/intake/IntakeShared";
 
 /** FLIP for the ticket cards: when a ticket's stored column changed since the last read, glide it from its old
  *  place to the new one and flash an accent ring. Filter changes (the visible set changes) are not animated. */
-export function useFlip(container: RefObject<HTMLElement>, columns: Record<string, string>, filterKey: string) {
+export function useFlip(container: RefObject<HTMLElement | null>, columns: Record<string, string>, filterKey: string) {
   const rects = useRef(new Map<string, DOMRect>());
   const prevCols = useRef<Record<string, string>>({});
   const prevFilter = useRef(filterKey);

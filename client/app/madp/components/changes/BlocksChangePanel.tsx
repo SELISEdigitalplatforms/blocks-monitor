@@ -16,6 +16,7 @@ import {
 } from "./blocksChanges";
 import { dismissChangeRequest, parseChangeParam, useChangeUi } from "./changeUiState";
 import { crStatusLabel } from "@/madp/components/delivery/releaseUi";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 const TITLE_MAX = 120;
 const DESCRIPTION_MAX = 10_000;
@@ -111,7 +112,7 @@ export function BlocksChangePanel({ projectId }: { projectId: string }) {
       if (kind === "save") { setSaved(t("changes.panel.savedAs", "Saved as {code} (draft).", { code: crCodeOf(draft.number) })); return; }
       await submitApi.submit(draft.changeRequestId);
       dismissChangeRequest(parseChangeParam(params.get("change")));
-      navigate(`/p/${projectId}/build?cr=${draft.number}`);
+      navigate(prefixPath(`/p/${projectId}/build?cr=${draft.number}`));
     } catch (e) {
       setError(blocksChangeMessage(e));
     } finally { setBusy(false); }

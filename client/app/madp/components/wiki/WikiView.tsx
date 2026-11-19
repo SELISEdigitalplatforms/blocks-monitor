@@ -21,6 +21,7 @@ import { isBlocksProjectId } from "@/madp/domain/projects";
 import { cn } from "@/madp/lib/cn";
 import { Banner, Button, Card, EmptyState, PageHeader } from "@/madp/ui/kit";
 import { useT } from "@/madp/i18n";
+import { rewritePath } from "@/madp/lib/pathPrefix";
 
 /** The wiki of a project that is only stored in this browser. */
 export function LocalWikiNote() {
@@ -29,7 +30,7 @@ export function LocalWikiNote() {
     <div className="flex w-full min-w-0 flex-col">
       <Card>
         <EmptyState icon={<BookOpen size={28} />} title={t("wiki.view.localTitle", "This wiki opens for projects saved in your workspace.")} text={t("wiki.view.localText", "Open the project from your projects list.")}
-          action={<Link to="/projects" className="inline-flex h-10 items-center rounded-full bg-surface2 px-5 text-[14px] font-medium text-ink outline-none hover:bg-line focus-visible:ring-2 focus-visible:ring-accent/50">{t("wiki.view.goToProjects", "Go to projects")}</Link>} />
+          action={<Link to={rewritePath("/projects")} className="inline-flex h-10 items-center rounded-full bg-surface2 px-5 text-[14px] font-medium text-ink outline-none hover:bg-line focus-visible:ring-2 focus-visible:ring-accent/50">{t("wiki.view.goToProjects", "Go to projects")}</Link>} />
       </Card>
     </div>
   );

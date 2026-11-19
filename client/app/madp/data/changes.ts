@@ -2,6 +2,7 @@
  *  validation, history). No React, DOM, store or db here, and no clock: callers pass the time. */
 import type { Role, StageId } from "./types";
 import { STAGES } from "./pipeline";
+import { prefixPath } from "../lib/pathPrefix";
 
 export type Lane = "change" | "enhance" | "add" | "fix";
 export type ChangeStatus = "draft" | "building" | "released-dev" | "promoted-stage";
@@ -56,7 +57,7 @@ export const crCode = (n: number): string => `CR-${String(n).padStart(3, "0")}`;
 /** The Release page parameter that opens a change request draft. */
 export const CHANGE_PARAM = "change";
 /** The Release page URL that opens the draft with this number, from any page. */
-export const changeRequestUrl = (projectId: string, number: number): string => `/p/${projectId}/delivered?${CHANGE_PARAM}=${number}`;
+export const changeRequestUrl = (projectId: string, number: number): string => prefixPath(`/p/${projectId}/delivered?${CHANGE_PARAM}=${number}`);
 export const fixCode =(n: number): string => `FX-${n}`;
 type NumberedRequest = { id: string; number: number; lane: Lane };
 /** A fix is numbered among the fixes only: 1 + the other fixes with a smaller number. */

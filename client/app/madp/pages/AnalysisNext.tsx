@@ -4,6 +4,7 @@
  *  as parts that start collapsed to one line and open in place, a readiness bar on top and the one next action in a
  *  sticky bar. An anchor opens its part: a part id (#objective) or a former step's (#understanding, #sanitization,
  *  #requirements, #scope: where /p/:id/<step> lands). Front end only (src/components/analysis-next). */
+import type React from "react";
 import { useT } from "@/madp/i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -31,12 +32,13 @@ import { phaseName } from "@/madp/components/project/stepNames";
 import { useLiveDoc, type LiveDoc } from "@/madp/components/analysis-next/live/useLiveDoc";
 import { Button } from "@/madp/ui/kit";
 import { cn } from "@/madp/lib/cn";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 const VIEWS = { ...BRIEF_PART_VIEWS, ...SCOPE_PART_VIEWS } as unknown as Record<DocPart, { useSummary: (ctx: AnalysisCtx) => PartSummary; Detail: React.ComponentType<AnalysisCtx> }>;
 const CARD = "rounded-card bg-surface shadow-[0_6px_20px_-10px_rgb(10_12_20/0.16)] dark:ring-1 dark:ring-line";
 const FOCUS = "outline-none focus-visible:ring-2 focus-visible:ring-accent/50";
 
-const STATUS_STYLE: Record<PartStatus, { chip: string; icon: JSX.Element }> = {
+const STATUS_STYLE: Record<PartStatus, { chip: string; icon: React.JSX.Element }> = {
   "needs-you": { chip: "bg-warning-soft text-warning", icon: <Hand aria-hidden size={14} strokeWidth={2} className="text-warning" /> },
   draft: { chip: "bg-accent-soft text-accent", icon: <CircleDot aria-hidden size={14} strokeWidth={2} className="text-accent" /> },
   confirmed: { chip: "bg-success-soft text-success", icon: <Check aria-hidden size={14} strokeWidth={2.5} className="text-success" /> },
@@ -204,7 +206,7 @@ function Workspace(ctx: AnalysisCtx) {
             );
           })}
           <p className="px-1 pt-2 text-[13px] text-ink3">
-            {t("analysis.page.formerPages", "Need the former detailed pages?")} <Link to={`/p/${ctx.projectId}/analysis?view=sections`} className="font-medium text-ink2 underline-offset-4 hover:underline">{t("analysis.page.showThem", "Show them")}</Link>.
+            {t("analysis.page.formerPages", "Need the former detailed pages?")} <Link to={prefixPath(`/p/${ctx.projectId}/analysis?view=sections`)} className="font-medium text-ink2 underline-offset-4 hover:underline">{t("analysis.page.showThem", "Show them")}</Link>.
           </p>
         </section>
       </div>
@@ -405,7 +407,7 @@ function LiveSections(ctx: AnalysisCtx) {
       ))}
 
       <p className="px-1 text-[13px] text-ink3">
-        {changeIn[0]}<Link to={`/p/${ctx.projectId}/build`} className="font-medium text-ink2 underline-offset-4 hover:underline">{phaseName("engineering")}</Link>{changeIn[1]}
+        {changeIn[0]}<Link to={prefixPath(`/p/${ctx.projectId}/build`)} className="font-medium text-ink2 underline-offset-4 hover:underline">{phaseName("engineering")}</Link>{changeIn[1]}
       </p>
     </div>
   );

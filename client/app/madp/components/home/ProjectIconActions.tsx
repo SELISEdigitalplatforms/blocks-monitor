@@ -5,6 +5,7 @@ import { BookOpen, ExternalLink } from "lucide-react";
 import { isLive, type MyProject } from "./parts";
 import { IconButton } from "@/madp/ui/kit";
 import { useT } from "@/madp/i18n";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 type Props = { project: Pick<MyProject, "status"> & { id: string; name: string; next: { to: string } }; className?: string };
 
@@ -13,7 +14,7 @@ export function WikiIconButton({ project, className = "h-8 w-8" }: Props) {
   const navigate = useNavigate();
   return (
     <IconButton label={t("shell.home.openWikiOf", "Open the wiki of {name}", { name: project.name })} icon={<BookOpen size={16} />} className={className}
-      onClick={(e) => { e.stopPropagation(); navigate(`/p/${project.id}/wiki`); }} />
+      onClick={(e) => { e.stopPropagation(); navigate(prefixPath(`/p/${project.id}/wiki`)); }} />
   );
 }
 

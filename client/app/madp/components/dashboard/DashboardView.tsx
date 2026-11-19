@@ -27,6 +27,7 @@ import { dockReserve } from "@/madp/components/office/dock";
 import { useOfficeStage } from "@/madp/components/office/officeStore";
 import { officeView } from "./officeStages";
 import { getCulture, t, useT } from "@/madp/i18n";
+import { rewritePath } from "@/madp/lib/pathPrefix";
 
 
 /** The office never draws above this pixel ratio here. */
@@ -112,10 +113,7 @@ export function DashboardView() {
       subtitle={workspace ? t("shell.dashboard.subtitleWorkspace", "Everything in {workspace} at a glance · {date}", { workspace: workspace.name, date }) : t("shell.dashboard.subtitle", "Everything at a glance · {date}", { date })}
       actions={!ready ? <span aria-hidden className="inline-block h-10 w-36 animate-pulse rounded-full bg-surface2" />
         : canCreate ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="secondary" icon={<DoorOpen size={16} strokeWidth={1.75} />} onClick={() => navigate("/new/cinematic")}>{t("shell.dashboard.startInOffice", "Start in the office")}</Button>
-            <Button variant="primary" icon={<Plus size={16} strokeWidth={1.75} />} onClick={() => openGuidedStart()}>{t("shell.dashboard.newProject", "New project")}</Button>
-          </div>
+          <Button variant="secondary" icon={<DoorOpen size={16} strokeWidth={1.75} />} onClick={() => openGuidedStart()}>{t("shell.dashboard.startInOffice", "Start in the office")}</Button>
         ) : undefined} />
   );
 
@@ -199,8 +197,7 @@ export function DashboardView() {
                   <Clapperboard size={28} strokeWidth={1.75} className="mx-auto text-white/70" />
                   <h2 className="mt-3 text-[17px] font-medium">{t("shell.dashboard.liveNow", "Live now")}</h2>
                   <p className="mt-1 text-[14px] text-white/70">{canCreate ? t("shell.dashboard.liveEmptyCreate", "Start a project and watch your team work on it here.") : t("shell.dashboard.workspaceProjectsAppear", "The projects of this workspace appear here.")}</p>
-                  {!ready ? <span aria-hidden className="mx-auto mt-4 block h-10 w-36 animate-pulse rounded-full bg-surface2" />
-                    : canCreate && <Button variant="primary" className="mt-4" onClick={() => openGuidedStart()}>{t("shell.dashboard.startProject", "Start a project")}</Button>}
+                  {!ready && <span aria-hidden className="mx-auto mt-4 block h-10 w-36 animate-pulse rounded-full bg-surface2" />}
                 </div>
               </div>
             )}
@@ -266,7 +263,7 @@ export function DashboardView() {
                   </div>
                 );
               })}
-              {list.length > MAX_LISTED && <Link to="/projects" className="mt-1 text-[13px] font-medium text-accent hover:underline">{t("shell.dashboard.allProjects", "All projects")}</Link>}
+              {list.length > MAX_LISTED && <Link to={rewritePath("/projects")} className="mt-1 text-[13px] font-medium text-accent hover:underline">{t("shell.dashboard.allProjects", "All projects")}</Link>}
             </>
           )}
         </Card>

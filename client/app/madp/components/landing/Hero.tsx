@@ -16,7 +16,7 @@ import { scrollToId, useInView, usePageVisible, useReducedMotion } from "./motio
 import { rich } from "./parts";
 import { FlatLine, SceneBoundary, grain, useCanvasTheme, webglAvailable } from "./stage";
 
-function Legend({ listRef, fillRef }: { listRef: RefObject<HTMLOListElement>; fillRef: RefObject<HTMLSpanElement> }) {
+function Legend({ listRef, fillRef }: { listRef: RefObject<HTMLOListElement | null>; fillRef: RefObject<HTMLSpanElement | null> }) {
   useT();
   return (
     <div className="relative w-full max-w-[860px]">

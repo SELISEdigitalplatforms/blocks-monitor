@@ -10,6 +10,7 @@ import { rebootstrap, switchWorkspace as syncSwitchWorkspace } from "@/madp/bloc
 import { useWorkspaces } from "@/madp/blocks/workspaces/store";
 import type { Member, MemberNotification, MyWorkspace, ShareItemType, Workspace } from "@/madp/blocks/workspaces/store";
 import { getCulture } from "@/madp/i18n";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 export { useWorkspaces };
 export type {
@@ -45,7 +46,7 @@ export function nameFromEmail(email: string): string {
   return words.join(" ") || email.trim();
 }
 
-export const projectLink = (id: string) => `/p/${encodeURIComponent(id)}`;
+export const projectLink = (id: string) => prefixPath(`/p/${encodeURIComponent(id)}`);
 
 export function shareLink(s: { projectId: string; itemType: ShareItemType; itemRef: string }): string {
   const base = projectLink(s.projectId);

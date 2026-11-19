@@ -9,6 +9,7 @@ import { useT } from "@/madp/i18n";
 import { effectiveStep, isBlocksProjectId } from "@/madp/domain/projects";
 import { Banner, Button } from "@/madp/ui/kit";
 import { StepFrame } from "@/madp/components/step/StepFrame";
+import { prefixPath, rewritePath } from "@/madp/lib/pathPrefix";
 
 const PAGE_OF_STEP: Record<1 | 2, JourneyPage> = { 1: "business", 2: "requirements" };
 
@@ -16,14 +17,14 @@ const PAGE_OF_STEP: Record<1 | 2, JourneyPage> = { 1: "business", 2: "requiremen
 export function blocksStepRedirect(project: { Stage: string; ResumeTo?: string }, step: 1 | 2, id: string): string | null {
   const current = effectiveStep(project.Stage, project.ResumeTo);
   if (isStepReachable({ step: current, scopeLocked: false }, PAGE_OF_STEP[step])) return null;
-  return `/p/${id}/${JOURNEY_SLUG[current]}`;
+  return prefixPath(`/p/${id}/${JOURNEY_SLUG[current]}`);
 }
 
 /** The front of a project: 1 Business, 2 Product sanitization (its own page), 3 Requirements & objective (tabs), then the scope on /p/:id/scope.
  *  A step opened before its time sends the user to the step the project is at. */
 export default function ProjectStep({ step }: { step: 1 | 2 }) {
   const { id = "" } = useParams();
-  return isBlocksProjectId(id) ? <BlocksProjectStep id={id} step={step} /> : <Navigate to="/projects" replace state={{ notice: missingNotice() }} />;
+  return isBlocksProjectId(id) ? <BlocksProjectStep id={id} step={step} /> : <Navigate to={rewritePath("/projects")} replace state={{ notice: missingNotice() }} />;
 }
 
 /** A Blocks project is gated by its Project record (Stage, ResumeTo). */
@@ -40,7 +41,7 @@ function BlocksProjectStep({ id, step }: { id: string; step: 1 | 2 }) {
     );
   }
   if (query.data === undefined) return <StepFrame title={title} status={t("project.route.loading", "Loading…")} statusTone="progress"><Skeleton /></StepFrame>;
-  if (query.data === null || query.data.status === "deleting") return <Navigate to="/projects" replace state={{ notice: missingNotice() }} />;
+  if (query.data === null || query.data.status === "deleting") return <Navigate to={rewritePath("/projects")} replace state={{ notice: missingNotice() }} />;
   // the record already resolves a paused project to its ResumeTo step (effectiveStep)
   const to = blocksStepRedirect({ Stage: query.data.step, ResumeTo: undefined }, step, id);
   if (to) return <Navigate to={to} replace />;

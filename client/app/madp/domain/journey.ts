@@ -6,6 +6,7 @@
  * No React, DOM or store imports, so the server functions can bundle this file.
  */
 import type { WorkspacePermission } from "./rbac";
+import { prefixPath } from "../lib/pathPrefix";
 
 /** The journey steps, in order. */
 export const JOURNEY_STEPS = [
@@ -258,5 +259,5 @@ export function isTimelineStage(v: unknown): v is TimelineStage {
 /** A link to a tab of the Build step, optionally with a Board ticket highlighted or a Timeline stage in focus:
  *  buildTabPath(id, "timeline", null, "test") is /p/:id/build?tab=timeline&stage=test. */
 export function buildTabPath(projectId: string, tab: BuildTab, ticketId?: string | null, stage?: TimelineStage | null): string {
-  return `/p/${projectId}/build?tab=${tab}` + (ticketId ? `&ticket=${encodeURIComponent(ticketId)}` : "") + (stage ? `&stage=${stage}` : "");
+  return prefixPath(`/p/${projectId}/build?tab=${tab}` + (ticketId ? `&ticket=${encodeURIComponent(ticketId)}` : "") + (stage ? `&stage=${stage}` : ""));
 }

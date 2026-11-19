@@ -6,6 +6,7 @@
  *  "Add a question of your own". Stays editable after completion. */
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, CircleHelp, Clock3, Factory, HelpCircle, MessageCircleQuestion, MoreHorizontal, PencilLine, Plus, Send } from "lucide-react";
 import { Button, Card, Label, Modal, Select, Textarea, type SelectOption } from "@/madp/ui/kit";
@@ -191,7 +192,7 @@ function AskedBubble({ row, props, refs, fromMadp, muted, children }: {
           })()}
           {row.SourceRef && (
             <span className="min-w-0">{t("settings.sanitization.questions.about", "· about")}{" "}
-              <Link to={`/p/${props.projectId}/business?item=${row.SourceRef}`} title={row.SourceRef}
+              <Link to={prefixPath(`/p/${props.projectId}/business?item=${row.SourceRef}`)} title={row.SourceRef}
                 className="break-words font-medium text-[rgb(var(--c-accent-text))] underline-offset-2 hover:underline">{source?.title ?? noSource()}</Link>
             </span>
           )}

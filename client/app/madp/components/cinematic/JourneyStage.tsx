@@ -37,6 +37,7 @@ import { queryClient } from "@/madp/blocks/queryClient";
 import { preloadStepChunk, prefetchProjectStep } from "@/madp/components/project/stepPrefetch";
 import { prefetchGuides } from "./visit/cast";
 import "./cinematic.css";
+import { prefixPath, rewritePath } from "@/madp/lib/pathPrefix";
 
 const World = lazy(() => import("./world/World"));
 
@@ -163,7 +164,7 @@ function useHandOff() {
       Promise.all([useJourney.getState().settled(), flight]).then(
         ([id]) => {
           if (ctx.workspaceId) prefetchProjectStep(queryClient, ctx.workspaceId, id, "business");
-          navigate(`/p/${id}/business`, { replace: true });
+          navigate(prefixPath(`/p/${id}/business`), { replace: true });
         },
         (e: unknown) => { setError(messageFor(e)); started.current = false; },
       );
@@ -185,7 +186,7 @@ function useHandOff() {
       setError(t("studio.cinematic.journey.storyNoProject", "A recorded story never creates a project. Create a project named {name} first to end the take there.", { name: a.name.trim() }));
       return;
     }
-    Promise.all([Promise.resolve(`/p/${existing.id}/sanitization`), flight]).then(
+    Promise.all([Promise.resolve(prefixPath(`/p/${existing.id}/sanitization`)), flight]).then(
       ([url]) => navigate(url, { replace: true }),
       (e: unknown) => { setError(messageFor(e)); started.current = false; },
     );
@@ -268,7 +269,7 @@ export function JourneyStage() {
         <Transcript />
         {mode === "real" && <ProjectProblem />}
         {watchId && <AgentWatch projectId={watchId} />}
-        {!recording && <CloseButton onClose={() => navigate("/dashboard")} />}
+        {!recording && <CloseButton onClose={() => navigate(rewritePath("/dashboard"))} />}
         {error && (
           <div role="alert" className="cine-card pointer-events-auto absolute bottom-28 left-1/2 w-[440px] -translate-x-1/2 p-4 text-[14px] text-ink">
             <div className="font-medium text-danger">{t("studio.cinematic.journey.openFailed", "The project could not be opened.")}</div>

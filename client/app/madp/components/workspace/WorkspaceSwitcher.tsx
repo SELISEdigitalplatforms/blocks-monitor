@@ -18,6 +18,7 @@ import { showToast } from "@/madp/ui/Toast";
 import { confirmLeave } from "@/madp/components/project/leaveGuardStore";
 import { useT } from "@/madp/i18n";
 import { workspaceRoleLabel } from "@/madp/components/roles/permissionText";
+import { rewritePath } from "@/madp/lib/pathPrefix";
 
 const PANEL = `${MENU_PANEL} sm:w-72`;
 const ITEM = `${MENU_ITEM} items-center`;
@@ -42,13 +43,13 @@ export function useOpenWorkspace(close: (refocus: boolean) => void) {
     const go = await confirmLeave(() => { asked = true; close(true); });
     if (!go) { switching.current = false; return; }
     const r = await switchWorkspace(id).finally(() => { switching.current = false; });
-    if (r.ok) { close(false); navigate("/dashboard"); } else if (asked) showToast(r.error); else setError(r.error);
+    if (r.ok) { close(false); navigate(rewritePath("/dashboard")); } else if (asked) showToast(r.error); else setError(r.error);
   };
   return { choose, error, setError };
 }
 
 /** "Create workspace": a name, then the new workspace opens on its dashboard. Cancel puts focus back on `returnFocus`. */
-export function CreateWorkspaceDialog({ open, onClose, returnFocus }: { open: boolean; onClose: () => void; returnFocus: RefObject<HTMLElement> }) {
+export function CreateWorkspaceDialog({ open, onClose, returnFocus }: { open: boolean; onClose: () => void; returnFocus: RefObject<HTMLElement | null> }) {
   const t = useT();
   const navigate = useNavigate();
   const [name, setName] = useState("");

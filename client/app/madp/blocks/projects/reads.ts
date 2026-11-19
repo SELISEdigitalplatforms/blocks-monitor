@@ -1,4 +1,5 @@
 // Project reads: browser → Data Gateway through the src/blocks/data options only (the workspace clause is always AND-ed).
+import { useMemo } from "react";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { LIST_STALE_MS, blocksAllOptions, blocksItemOptions, useBlocksCount } from "../data/hooks";
@@ -72,8 +73,22 @@ export function projectItemOptions(workspaceId: string | null | undefined, id: s
   };
 }
 
-/** Every Project of the workspace that is not being deleted (a pending local delete stays visible as "deleting"), the most recently updated first. */
+/** Every Project of the workspace that is not being deleted (a pending local delete stays visible as "deleting"), the most recently updated first.
+ *  In the Blocks shell, automatically filters to only show projects belonging to the current Blocks project (by BlocksProjectRef). */
 export function useProjectList(): UseQueryResult<ProjectRecord[], BlocksDataError> {
+  const { workspaceId } = useProjectsContext();
+  const { itemId } = useParams<{ itemId?: string }>();
+  const blocksProjectId = itemId ?? "";
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const select = useMemo(() => (rows: RawRow[]) => {
+    const all = mapProjects(rows);
+    return blocksProjectId ? all.filter((p) => p.blocksProjectRef === blocksProjectId) : all;
+  }, [blocksProjectId]);
+  return useQuery({ ...projectListOptions(workspaceId), select });
+}
+
+/** Unfiltered project list — all projects in the workspace regardless of Blocks project. Used by bridge pages (BlocksAnalysis, BlocksBuild, BlocksRelease) that need to find/create project links. */
+export function useProjectListAll(): UseQueryResult<ProjectRecord[], BlocksDataError> {
   const { workspaceId } = useProjectsContext();
   return useQuery({ ...projectListOptions(workspaceId), select: mapProjects });
 }

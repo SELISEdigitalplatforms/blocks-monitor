@@ -23,6 +23,7 @@ import { AccountWorkspacesFold, CreateWorkspaceDialog, WorkspaceSwitcher } from 
 import { TypeChip } from "./TypeChip";
 import { LeaveGuardHost } from "./LeaveGuardHost";
 import { confirmLeave, useLeaveGuardWarm } from "./leaveGuardStore";
+import { prefixPath, rewritePath } from "@/madp/lib/pathPrefix";
 
 const ITEM = `${MENU_ITEM} items-center`;
 /** Rows drawn at most; a longer list is narrowed with the search field. */
@@ -79,7 +80,7 @@ function ProjectSwitcher({ projectId, name }: { projectId: string; name: string 
   const choose = async (id: string) => {
     if (id === projectId) { close(true); return; }
     const go = await confirmLeave(() => close(true));
-    if (go) navigate(`/p/${id}`);
+    if (go) navigate(prefixPath(`/p/${id}`));
   };
 
   const loading = name === null;
@@ -116,7 +117,7 @@ function ProjectSwitcher({ projectId, name }: { projectId: string; name: string 
  *  "waiting for you" dots the Dashboard's). Keys: Up / Down move through the search field and the rows, Home / End
  *  jump (outside the field), Enter in the field opens the first match, Escape first empties the field, Tab leaves. */
 function SwitcherMenu({ currentId, workspaceName, menu, onChoose, close, onCreate }: {
-  currentId: string; workspaceName: string; menu: RefObject<HTMLDivElement>;
+  currentId: string; workspaceName: string; menu: RefObject<HTMLDivElement | null>;
   onChoose: (id: string) => void; close: (refocus: boolean) => void; onCreate: () => void;
 }) {
   const t = useT();
@@ -211,7 +212,7 @@ function SwitcherMenu({ currentId, workspaceName, menu, onChoose, close, onCreat
         {all.length > shown.length && <p className="px-3 py-2 text-[12px] text-ink3">{t("project.switcher.showingOf", "Showing {shown} of {all}. Type to narrow the list.", { shown: shown.length, all: all.length })}</p>}
       </div>
       <div className="mt-1 border-t border-line pt-1">
-        <Link to="/projects" role="menuitem" className={ITEM} onClick={() => close(false)}><LayoutGrid size={16} aria-hidden="true" /> {t("project.switcher.allProjects", "All projects")}</Link>
+        <Link to={rewritePath("/projects")} role="menuitem" className={ITEM} onClick={() => close(false)}><LayoutGrid size={16} aria-hidden="true" /> {t("project.switcher.allProjects", "All projects")}</Link>
         <AccountWorkspacesFold close={close} onCreate={onCreate} />
       </div>
     </div>

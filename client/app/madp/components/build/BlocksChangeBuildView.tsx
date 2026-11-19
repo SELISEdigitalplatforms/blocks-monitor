@@ -43,6 +43,7 @@ import { checksSettled, fileVerdicts } from "@/madp/domain/changeChecks";
 import { changeChecksState, failingWords } from "./changeChecksUi";
 import { ChangeChecksCard } from "./ChangeChecksCard";
 import { useChecksPolicyValue } from "./checksPolicy";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { t, useT } from "@/madp/i18n";
 
 export const FIX_LABEL = "Fix what the checks found";
@@ -91,7 +92,7 @@ export function BlocksChangeBuildView({ ctx, number }: { ctx: DeliveryContext; n
   const { jobs } = useDeliveryJobs(ctx);
   const waitingForJob = requests.data.some((r) => r.number === number && r.status === "building");
   const clock = useBuildClock(waitingForJob);
-  const releasePath = `/p/${ctx.projectId}/delivered`;
+  const releasePath = prefixPath(`/p/${ctx.projectId}/delivered`);
   const project = ctx.project;
 
   if (requests.isLoading) return <p role="status" className="text-[14px] text-ink3">{t("changes.page.loading", "Loading the change request…")}</p>;
@@ -153,9 +154,9 @@ function ChangeFlowView({ ctx, cr, analysis, decision, stage }: {
   const crFiles = useTalkAttachments(ctx.projectId, "change-request", [cr.id]).data?.get(cr.id) ?? NO_FILES;
 
   const code = changeCode(cr);
-  const releasePath = `/p/${ctx.projectId}/delivered`;
-  const scopePath = `/p/${ctx.projectId}/scope`;
-  const boardPath = `/p/${ctx.projectId}/build?tab=board`;
+  const releasePath = prefixPath(`/p/${ctx.projectId}/delivered`);
+  const scopePath = prefixPath(`/p/${ctx.projectId}/scope`);
+  const boardPath = prefixPath(`/p/${ctx.projectId}/build?tab=board`);
   const project = ctx.project;
   const hasDev = releases.data.some((r) => r.environment === "dev");
   const firstNumber = milestones.data.length ? Math.min(...milestones.data.map((m) => m.number)) : null;
@@ -525,7 +526,7 @@ function LegacyChangeBuildView({ ctx, cr }: { ctx: DeliveryContext; cr: Delivery
   const start = useCrStartBuild(ctx);
   const [error, setError] = useState<string | null>(null);
   const [cancelled, setCancelled] = useState(false);
-  const releasePath = `/p/${ctx.projectId}/delivered`;
+  const releasePath = prefixPath(`/p/${ctx.projectId}/delivered`);
   const project = ctx.project;
 
   const code = changeCode(cr);

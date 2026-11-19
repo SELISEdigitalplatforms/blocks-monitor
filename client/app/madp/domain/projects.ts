@@ -4,6 +4,7 @@
  * Time is always passed in by the caller.
  */
 import { JOURNEY_STEPS, type JourneyStep } from "./journey";
+import { prefixPath } from "../lib/pathPrefix";
 
 export const PROJECT_NAME_MAX = 80;
 export const CLIENT_FIELD_MAX = 120;
@@ -67,7 +68,7 @@ export function isBlocksProjectId(id: unknown): id is string {
 
 /** The page a share opens (the same targets as shareLink in src/state/workspaces.ts). */
 export function shareLink(s: { projectId: string; itemType: ShareItemType; itemRef: string }): string {
-  const base = `/p/${encodeURIComponent(s.projectId)}`;
+  const base = prefixPath(`/p/${encodeURIComponent(s.projectId)}`);
   if (s.itemType === "scope") return `${base}/scope`;
   if (s.itemType === "screens") return `${base}/scope#screens`;
   return `${base}/scope?screen=${encodeURIComponent(s.itemRef)}`;

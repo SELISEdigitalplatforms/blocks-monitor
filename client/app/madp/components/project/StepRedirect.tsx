@@ -1,10 +1,11 @@
 import { Navigate, useLocation, useParams } from "react-router-dom";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 /** An older project link lands on the step that replaced it. */
 export function StepRedirect({ to }: { to: string }) {
   const { id = "" } = useParams();
   const { search, hash } = useLocation();
-  return <Navigate to={`/p/${id}/${to}${search}${hash}`} replace />;
+  return <Navigate to={prefixPath(`/p/${id}/${to}${search}${hash}`)} replace />;
 }
 
 /** A former Business Analysis step (understanding, sanitization, requirements, scope) opens its section of the one
@@ -12,5 +13,5 @@ export function StepRedirect({ to }: { to: string }) {
 export function AnalysisRedirect({ section }: { section: string }) {
   const { id = "" } = useParams();
   const { search } = useLocation();
-  return <Navigate to={`/p/${id}/analysis${search}#${section}`} replace />;
+  return <Navigate to={prefixPath(`/p/${id}/analysis${search}#${section}`)} replace />;
 }

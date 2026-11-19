@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import "@/madp/components/landing/landing.css";
+import "@/components/landing/landing.css";
 import { ClosingFooter } from "@/madp/components/landing/Closing";
 import { Nav } from "@/madp/components/landing/Nav";
 import { PricingSection } from "@/madp/components/pricing/PricingSection";

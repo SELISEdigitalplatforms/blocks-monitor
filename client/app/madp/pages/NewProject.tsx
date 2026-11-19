@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from "react";
-import { Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { isNotConfigured, messageFor, NOT_CONFIGURED_MESSAGE, useProjectList, useProjectsContext } from "@/madp/blocks/projects";
 import { useCreateProjectOnce } from "@/madp/blocks/projects/mutations";
 import { useWorkspaces } from "@/madp/blocks/workspaces/store";
@@ -13,6 +13,7 @@ import { BrownfieldRepoField } from "@/madp/components/github/BrownfieldRepoFiel
 import { TYPE_ICON } from "@/madp/components/project/TypeChip";
 import { cn } from "@/madp/lib/cn";
 import { t, useT } from "@/madp/i18n";
+import { prefixPath, rewritePath } from "@/madp/lib/pathPrefix";
 
 function Skeleton() {
   return (
@@ -80,6 +81,7 @@ export default function NewProject() {
   useT();
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const { itemId: blocksItemId } = useParams<{ itemId?: string }>();
   const { create, isPending } = useCreateProjectOnce();
   const ctx = useProjectsContext();
   const list = useProjectList();
@@ -118,9 +120,10 @@ export default function NewProject() {
     setFailure(null);
     if (!requestId.current) requestId.current = newRequestId();
     const args = { ...(trimmed ? { name: trimmed } : {}), projectType: type, ...(brief.trim() ? { scratchMd: brief.trim() } : {}),
-      ...(ref?.ok ? { repo: `${ref.value.owner}/${ref.value.name}`, repoBranch: ref.value.branch } : {}) };
+      ...(ref?.ok ? { repo: `${ref.value.owner}/${ref.value.name}`, repoBranch: ref.value.branch } : {}),
+      ...(blocksItemId ? { blocksProjectRef: blocksItemId } : {}) };
     create(args, requestId.current).then(
-      (r) => { requestId.current = null; navigate(`/p/${r.project.id}/business`, { replace: true }); },
+      (r) => { requestId.current = null; navigate(prefixPath(`/p/${r.project.id}/business`), { replace: true }); },
       (e: unknown) => { setFailure(isNotConfigured(e) ? NOT_CONFIGURED_MESSAGE : messageFor(e)); },
     );
   };
@@ -128,8 +131,8 @@ export default function NewProject() {
   if (legacy) {
     if (list.isPending) return <Skeleton />;
     const latest = (list.data ?? []).find((p) => p.status === "active");
-    if (!latest) return <Navigate to="/projects" replace />;
-    return <Navigate to={`/p/${latest.id}/requirements${step === "3" ? "?tab=objective" : ""}`} replace />;
+    if (!latest) return <Navigate to={rewritePath("/projects")} replace />;
+    return <Navigate to={prefixPath(`/p/${latest.id}/requirements${step === "3" ? "?tab=objective" : ""}`)} replace />;
   }
   if (!ready) return <Skeleton />;
   if (!canCreate) {
@@ -138,7 +141,7 @@ export default function NewProject() {
         <EmptyState
           title={viewerTip()}
           text={t("shell.newProject.askForMember", "Ask a Workspace admin for the Member role to start projects.")}
-          action={<Button variant="primary" onClick={() => navigate("/dashboard")}>{t("shell.newProject.goToDashboard", "Go to the Dashboard")}</Button>}
+          action={<Button variant="primary" onClick={() => navigate(rewritePath("/dashboard"))}>{t("shell.newProject.goToDashboard", "Go to the Dashboard")}</Button>}
         />
       </Card>
     );
@@ -189,7 +192,7 @@ export default function NewProject() {
         )}
         <div className="flex items-center gap-3">
           <Button type="submit" variant="primary" disabled={isPending} aria-busy={isPending}>{isPending ? t("shell.newProject.creating", "Creating…") : t("shell.newProject.create", "Create project")}</Button>
-          <Button type="button" variant="ghost" onClick={() => navigate("/projects")}>{t("common.actions.cancel", "Cancel")}</Button>
+          <Button type="button" variant="ghost" onClick={() => navigate(rewritePath("/projects"))}>{t("common.actions.cancel", "Cancel")}</Button>
         </div>
       </form>
     </Card>

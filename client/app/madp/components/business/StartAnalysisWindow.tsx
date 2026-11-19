@@ -17,6 +17,7 @@ import { Illustration, SetupWindow } from "@/madp/components/setup/SetupWindow";
 import { handOverState } from "./businessUi";
 import { useSetupChecklist } from "./SetupChecklistCard";
 import { useT } from "@/madp/i18n";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 /** The reading moment stays on screen at least this long, so the hand-over reads as a step and not as a flash. */
 const MIN_READING_MS = 1800;
@@ -38,7 +39,7 @@ export function StartAnalysisWindow({ project, data, canEdit, onClose }: {
   const form = useRef<HTMLFormElement>(null);
   const busy = useRef(false);
   const existing = project.type === "brownfield";
-  const nextPage = `/p/${project.id}/understanding`;
+  const nextPage = prefixPath(`/p/${project.id}/understanding`);
 
   const state = handOverState({
     project,

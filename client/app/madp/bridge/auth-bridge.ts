@@ -27,7 +27,7 @@ export function startAuthBridge() {
   if (unsubAuth) return;
 
   // Expose the genesis-os auth store on window so MADP's client.ts can read the token
-  (window as Record<string, unknown>).__GENESIS_AUTH_STORE__ = useAuthStore;
+  (window as unknown as Record<string, unknown>).__GENESIS_AUTH_STORE__ = useAuthStore;
 
   // Sync immediately with current state
   syncAuthState();
@@ -40,7 +40,7 @@ function syncAuthState() {
   const { isAuthenticated, user, accessToken } = useAuthStore.getState();
 
   if (isAuthenticated && user && accessToken) {
-    const profile = mapProfile(user as Record<string, unknown>);
+    const profile = mapProfile(user as unknown as Record<string, unknown>);
     useSession.setState({ status: "signed-in", profile, notice: null });
   } else {
     const current = useSession.getState();

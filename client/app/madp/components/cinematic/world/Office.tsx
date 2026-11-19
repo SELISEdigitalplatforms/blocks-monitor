@@ -2,6 +2,7 @@
  *  materials, canvas-drawn screens. Reception (wood-slat logo wall, desk) → glass Meeting room → open Engineering floor
  *  → Build floor behind glass doors. Places mount lazily (the current one and the next), the doors slide open when the
  *  visitor comes near. */
+import type React from "react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { RoundedBox } from "@react-three/drei";
@@ -505,7 +506,7 @@ function BuildFloor() {
 
 /* ── the floor, mounted place by place ─────────────────────────────────── */
 
-const PLACES: Record<StageId, () => JSX.Element> = { reception: Reception, meeting: Meeting, engineering: Engineering, buildfloor: BuildFloor };
+const PLACES: Record<StageId, () => React.JSX.Element> = { reception: Reception, meeting: Meeting, engineering: Engineering, buildfloor: BuildFloor };
 
 export function Office() {
   const stage = useJourney((s) => s.stage);

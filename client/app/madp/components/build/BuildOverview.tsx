@@ -36,7 +36,7 @@ export function PreviewButtons({ url, label, primary, onOpen }: { url: string; l
         {state === "copied" ? t("build.overview.copied", "Copied") : t("build.overview.copyLink", "Copy link")}
       </Button>
       {state === "manual" && (
-        <div className="w-full min-w-0" ref={target as RefObject<HTMLDivElement>}>
+        <div className="w-full min-w-0" ref={target as RefObject<HTMLDivElement | null>}>
           <Input readOnly value={url} aria-label={t("build.overview.previewLink", "Preview link")} onFocus={(e) => e.currentTarget.select()} />
           <p role="status" className="mt-1 text-[12px] text-ink2">{manualCopy(t("build.overview.link", "Link"))}</p>
         </div>

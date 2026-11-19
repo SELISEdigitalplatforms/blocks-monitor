@@ -2,6 +2,7 @@
 import { useT } from "@/madp/i18n";
 import { PRIORITY_WORD } from "./priority";
 import { Link } from "react-router-dom";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { ArrowRight, ScanText } from "lucide-react";
 import { useDesignBrief, useObjective, useOpenClarifications, useRequirements, useSuggestions, useTechDecisions } from "@/madp/blocks/requirements/hooks";
 import { useRequirementsContext } from "@/madp/blocks/requirements/context";
@@ -75,7 +76,7 @@ export function SummaryView({ projectId, data }: { projectId: string; data: Summ
         ) : <Empty>{t("analysis.requirements.sumNoDecisions", "No technical decisions recorded yet.")}</Empty>}
       </div>
 
-      <Link to={`/p/${projectId}/sanitization`}
+      <Link to={prefixPath(`/p/${projectId}/sanitization`)}
         className="mt-5 inline-flex items-center gap-1.5 rounded-md text-[13px] font-medium text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-accent/50">
         {t("analysis.requirements.openSanitization", "Open Understanding your project")} <ArrowRight size={14} strokeWidth={1.75} aria-hidden />
       </Link>

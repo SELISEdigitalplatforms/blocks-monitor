@@ -12,6 +12,7 @@ import { collabErrorMessage } from "@/madp/blocks/collab/messages";
 import { phaseLabelOf } from "@/madp/domain/phases";
 import { Banner, Button, Card, Chip, EmptyState, Input, PageHeader } from "@/madp/ui/kit";
 import { useCulture, useT } from "@/madp/i18n";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 export function WikiPicker() {
   const t = useT();
@@ -79,7 +80,7 @@ export function WikiPicker() {
                         ? (n === 1 ? t("wiki.picker.pageCountOne", "1 page") : t("wiki.picker.pageCount", "{count} pages", { count: n }))
                         : t("wiki.picker.pageCountUnknown", "– pages")}</span>
                     </div>
-                    <Link to={`/p/${p.id}/wiki`} aria-label={t("wiki.picker.openAria", "Open the wiki of {name}", { name: p.name })}
+                    <Link to={prefixPath(`/p/${p.id}/wiki`)} aria-label={t("wiki.picker.openAria", "Open the wiki of {name}", { name: p.name })}
                       className="mt-5 inline-flex items-center gap-2 rounded-block text-[14px] font-medium text-ink outline-none after:absolute after:inset-0 after:rounded-card">
                       <BookOpen size={16} /> {t("wiki.picker.open", "Open the wiki")}
                     </Link>

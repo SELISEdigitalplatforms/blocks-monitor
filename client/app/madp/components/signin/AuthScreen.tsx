@@ -35,7 +35,7 @@ export function AuthScreen({ mode, content }: { mode: AuthScreenMode; content?: 
   const forced = mustChange && (mode === "signin" || mode === "signup");
   const [leaving, setLeaving] = useState(false);
   const [pending, setPending] = useState(false);
-  const timer = useRef<number>();
+  const timer = useRef<number>(undefined);
   const activeLink = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);

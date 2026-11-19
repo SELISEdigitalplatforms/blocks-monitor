@@ -22,9 +22,9 @@ export function stepLabel(step: { id: NavStepId; label: string; short?: string }
   return width >= 768 && width < 1280 ? step.short ?? stepShortName(step.id) : step.label;
 }
 
-/** The step a project path belongs to, or null. */
+/** The step a project path belongs to, or null. Matches both /p/:id/:slug and /app/:itemId/p/:id/:slug. */
 export function navStepFromPath(pathname: string): NavStepId | null {
-  const slug = /^\/p\/[^/]+\/([^/]+)\/?$/.exec(pathname)?.[1];
+  const slug = /\/p\/[^/]+\/([^/]+)\/?$/.exec(pathname)?.[1];
   return slug ? pageFromSlug(slug) : null;
 }
 
@@ -189,9 +189,9 @@ export interface Journey {
   total: number;
 }
 
-/** The page a project path shows: a stored step's page, the Business Analysis page ("analysis"), or null. */
+/** The page a project path shows: a stored step's page, the Business Analysis page ("analysis"), or null. Matches both /p/:id/:slug and /app/:itemId/p/:id/:slug. */
 export function viewFromPath(pathname: string): NavStepId | "analysis" | null {
-  const slug = /^\/p\/[^/]+\/([^/]+)\/?$/.exec(pathname)?.[1];
+  const slug = /\/p\/[^/]+\/([^/]+)\/?$/.exec(pathname)?.[1];
   if (slug === PHASE_SLUG.analysis || slug === "analysis-next") return "analysis";
   return slug ? pageFromSlug(slug) : null;
 }

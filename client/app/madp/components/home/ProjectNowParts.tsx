@@ -10,6 +10,7 @@ import { projectsNow, waitingCount, waitingForYou, type NowTeam, type ProjectNow
 import { latestActivity } from "@/madp/domain/dashboard";
 import { Card } from "@/madp/ui/kit";
 import { cn } from "@/madp/lib/cn";
+import { rewritePath } from "@/madp/lib/pathPrefix";
 import { useT } from "@/madp/i18n";
 
 /** The workspace's active members, as the change request page reads them (useDeliveryContext): who may approve a
@@ -114,7 +115,7 @@ export function WaitingForYouCard({ items, isLoading, className, bodyClassName, 
             </li>
           ))}
           {items.length > max && (
-            <li className="pt-1 text-[13px] text-ink2">{t("shell.home.andMoreOn", "and {count} more on", { count: items.length - max })} <Link to="/projects" className="font-medium text-[rgb(var(--c-accent-text))] hover:underline">{t("shell.nav.projects", "Projects")}</Link></li>
+            <li className="pt-1 text-[13px] text-ink2">{t("shell.home.andMoreOn", "and {count} more on", { count: items.length - max })} <Link to={rewritePath("/projects")} className="font-medium text-[rgb(var(--c-accent-text))] hover:underline">{t("shell.nav.projects", "Projects")}</Link></li>
           )}
         </ul>
       )}

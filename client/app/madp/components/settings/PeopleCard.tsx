@@ -1,3 +1,4 @@
+import type React from "react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { ChevronLeft, ChevronRight, KeyRound, MailPlus, MoreHorizontal, ShieldCheck, ShieldOff, UserCheck, UserPlus, UserX, Users } from "lucide-react";
 import { Avatar, Button, Card, Chip, IconButton, Input, Label, MENU_ITEM, MENU_PANEL, Modal } from "@/madp/ui/kit";
@@ -52,7 +53,7 @@ function RowMenu({ row, isMe, onResend, onActive, onAdmin }: {
   };
 
   const selfTip = (msg: string) => (isMe ? msg : undefined);
-  const items: { key: string; label: string; icon: JSX.Element; onClick: () => void; disabledReason?: string }[] = [
+  const items: { key: string; label: string; icon: React.JSX.Element; onClick: () => void; disabledReason?: string }[] = [
     { key: "resend", label: t("settings.people.resend", "Resend the invitation"), icon: <MailPlus size={16} strokeWidth={1.75} />, onClick: onResend },
     row.active
       ? { key: "active", label: t("settings.people.deactivate", "Deactivate"), icon: <UserX size={16} strokeWidth={1.75} />, onClick: onActive, disabledReason: selfTip(t("settings.people.cantDeactivateSelf", "You can't deactivate your own account.")) }

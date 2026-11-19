@@ -3,6 +3,7 @@ import { FileCheck2 } from "lucide-react";
 import type { DeliveryTicketEvent } from "@/madp/blocks/delivery/types";
 import { fmtWhen } from "@/madp/components/intake/IntakeShared";
 import { useT } from "@/madp/i18n";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 /** The proof MADP agents recorded on a ticket: its stored "artifact" TicketEvents (a file, a check, a report), in the order given (the ticket drawer gives them newest first).
  *  Nothing is derived or invented; without recorded evidence it says so. */
@@ -31,7 +32,7 @@ export function EvidenceCards({ evidence, authorOf, projectId, done }: {
           </li>
         ))}
       </ul>
-      <Link to={`/p/${projectId}/build?tab=studio`} className="inline-block text-[12px] font-medium text-[rgb(var(--c-accent-text))] hover:underline">{t("build.board.evidence.studio", "Open in the Studio")}</Link>
+      <Link to={prefixPath(`/p/${projectId}/build?tab=studio`)} className="inline-block text-[12px] font-medium text-[rgb(var(--c-accent-text))] hover:underline">{t("build.board.evidence.studio", "Open in the Studio")}</Link>
     </div>
   );
 }

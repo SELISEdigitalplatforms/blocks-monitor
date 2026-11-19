@@ -19,6 +19,7 @@ import { liveProductSays } from "./analystModel";
 import { useT } from "@/madp/i18n";
 import { AnalystSays, ErrorNote, Note } from "./Talk";
 import { WorkingDots } from "./Working";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 /** The requirements' stored approval and the scope's stored lock, read only for a live product (the queries stay off
  *  otherwise; they are the same reads as the analysis' own rows, so nothing extra is fetched). A lock is a person's:
@@ -76,7 +77,7 @@ export function LiveProductSays({ projectId, doc }: { projectId: string; doc: Li
             {t("analysis.analyst.live.requestChange", "Request a change")}
           </Button>
         ) : (
-          <Link to={`/p/${projectId}/build`} className={LINK}>
+          <Link to={prefixPath(`/p/${projectId}/build`)} className={LINK}>
             {t("analysis.analyst.live.goToEngineering", "Go to Software Engineering")}<ArrowRight size={15} aria-hidden />
           </Link>
         )}

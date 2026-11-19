@@ -65,7 +65,7 @@ function revealObserver(): IntersectionObserver | null {
 
 /** becomes true (once) when the element first scrolls into view, or is found already above it. The second flag says it
  *  was revealed out of sight, so it should simply be there rather than animate in. */
-export function useRevealed<T extends Element>(): [RefObject<T>, boolean, boolean] {
+export function useRevealed<T extends Element>(): [RefObject<T | null>, boolean, boolean] {
   const ref = useRef<T>(null);
   const [state, setState] = useState<"hidden" | "shown" | "instant">(() => (hasObserver() ? "hidden" : "instant"));
   useEffect(() => {
@@ -95,7 +95,7 @@ export function Reveal({ as, delay = 0, className, style, children, id }: {
 }
 
 /** true while the element is on screen (with a margin); used to pause animation loops */
-export function useInView<T extends Element>(rootMargin = "120px 0px"): [RefObject<T>, boolean] {
+export function useInView<T extends Element>(rootMargin = "120px 0px"): [RefObject<T | null>, boolean] {
   const ref = useRef<T>(null);
   const [inView, setInView] = useState(false);
   useEffect(() => {

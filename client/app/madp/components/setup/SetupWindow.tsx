@@ -24,7 +24,7 @@ export interface SetupWindowProps {
   dir?: 1 | -1;
   headingId: string;
   /** The form element (Enter in it continues). */
-  formRef: RefObject<HTMLFormElement>;
+  formRef: RefObject<HTMLFormElement | null>;
   onClose: () => void;
   onBack?: () => void;
   onNext: () => void;

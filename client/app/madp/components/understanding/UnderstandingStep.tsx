@@ -35,6 +35,7 @@ import { FilesCard } from "./FilesCard";
 import { RequirementsCard, SetAsideList, type RequirementDecision } from "./RequirementsCard";
 import { ConflictsCard } from "./ConflictsCard";
 import { QuestionsCard } from "./QuestionsCard";
+import { rewritePath } from "@/madp/lib/pathPrefix";
 
 const briefKey = (projectId: string) => ["understanding-brief", projectId] as const;
 
@@ -158,7 +159,7 @@ export function UnderstandingStep({ projectId, workspaceId }: { projectId: strin
     return (
       <StepFrame title={title}>
         <EmptyState icon={<FileText size={20} strokeWidth={1.75} />} title={t("analysis.understanding.recordUnavailable", "This project's record isn't available.")}
-          action={<Link to="/projects" className="font-medium text-[rgb(var(--c-accent-text))] hover:underline">{t("analysis.understanding.backToProjects", "Back to projects")}</Link>} />
+          action={<Link to={rewritePath("/projects")} className="font-medium text-[rgb(var(--c-accent-text))] hover:underline">{t("analysis.understanding.backToProjects", "Back to projects")}</Link>} />
       </StepFrame>
     );
   }

@@ -1,6 +1,7 @@
 // Pure rules for the "from the factory" notes: who follows a project, where a note links and how
 // its event key is built. No I/O; bundled by the server functions.
 import { isSafeInternalLink } from "./notifications";
+import { prefixPath, rewritePath } from "../lib/pathPrefix";
 
 export type NotificationAudience = "project-followers" | "project-followers-and-actor";
 
@@ -33,9 +34,9 @@ const PAGE: Record<Exclude<FactoryNoteKind, "release.created">, string> = {
 };
 
 export function factoryNoteLink(kind: FactoryNoteKind, projectId: string, opts?: { env?: FactoryNoteEnv }): string {
-  const base = `/p/${encodeURIComponent(projectId)}`;
+  const base = prefixPath(`/p/${encodeURIComponent(projectId)}`);
   const link = kind === "release.created" ? `${base}/delivered?env=${opts?.env ?? "dev"}` : `${base}/${PAGE[kind]}`;
-  return isSafeInternalLink(link) ? link : "/dashboard";
+  return isSafeInternalLink(link) ? link : rewritePath("/dashboard");
 }
 
 export function factoryNoteEventKey(kind: FactoryNoteKind, projectId: string, discriminator: string): string {

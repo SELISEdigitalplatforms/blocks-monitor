@@ -29,11 +29,11 @@ function syncWorkspaceState() {
     return;
   }
 
-  const blocksProjectId = selectedProject?.ItemId ?? (selectedProject as Record<string, unknown> | null)?.itemId as string ?? "";
-  const blocksProjectName = (selectedProject as Record<string, unknown> | null)?.Name as string ?? "Project";
-  const userId = (user as Record<string, unknown>).id as string ?? "";
-  const email = (user as Record<string, unknown>).email as string ?? "";
-  const name = (user as Record<string, unknown>).name as string ?? email;
+  const blocksProjectId = selectedProject?.itemId ?? (selectedProject as unknown as Record<string, unknown> | null)?.itemId as string ?? "";
+  const blocksProjectName = (selectedProject as unknown as Record<string, unknown> | null)?.Name as string ?? "Project";
+  const userId = (user as unknown as Record<string, unknown>).id as string ?? "";
+  const email = (user as unknown as Record<string, unknown>).email as string ?? "";
+  const name = (user as unknown as Record<string, unknown>).name as string ?? email;
 
   // Detect Blocks project change — clear MADP cache so stale data doesn't show
   if (lastBlocksProjectId && lastBlocksProjectId !== blocksProjectId) {

@@ -16,7 +16,7 @@ const TAIL = 12;
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
 export function ChatLayer({ officeId, agents, stages, stage, compact = false, projectId }: {
-  officeId: string; agents: AgentView[]; stages: StageState[]; stage: RefObject<HTMLElement>; compact?: boolean; projectId?: string | null;
+  officeId: string; agents: AgentView[]; stages: StageState[]; stage: RefObject<HTMLElement | null>; compact?: boolean; projectId?: string | null;
 }) {
   const sel = useOfficeStage((s) => s.selected);
   const agent = sel && sel.office === officeId ? agents.find((a) => a.id === sel.agent) : undefined;
@@ -24,7 +24,7 @@ export function ChatLayer({ officeId, agents, stages, stage, compact = false, pr
   return <ChatFrame key={agent.id} officeId={officeId} agent={agent} stages={stages} stage={stage} compact={compact} projectId={projectId} />;
 }
 
-function ChatFrame({ officeId, agent, stages, stage, compact, projectId }: { officeId: string; agent: AgentView; stages: StageState[]; stage: RefObject<HTMLElement>; compact: boolean; projectId?: string | null }) {
+function ChatFrame({ officeId, agent, stages, stage, compact, projectId }: { officeId: string; agent: AgentView; stages: StageState[]; stage: RefObject<HTMLElement | null>; compact: boolean; projectId?: string | null }) {
   const titleId = useId();
   const sheet = useSheet();
   const anchorEl = useOfficeStage((s) => (s.anchor && s.anchor.office === officeId ? s.anchor.el : null));

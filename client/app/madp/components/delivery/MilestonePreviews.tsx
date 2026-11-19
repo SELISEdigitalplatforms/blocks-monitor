@@ -46,7 +46,7 @@ function PreviewLink({ milestone, url }: { milestone: DeliveryMilestone; url: st
         {state === "copied" ? t("build.release.copy.copied", "Copied") : t("build.release.previews.copyLink", "Copy link")}
       </Button>
       {state === "manual" && (
-        <div className="w-full min-w-0" ref={target as RefObject<HTMLDivElement>}>
+        <div className="w-full min-w-0" ref={target as RefObject<HTMLDivElement | null>}>
           <Input readOnly value={url} aria-label={t("build.release.previews.link", "Preview link")} onFocus={(e) => e.currentTarget.select()} />
           <p role="status" className="mt-1 text-[12px] text-ink2">{manualCopy(t("build.release.copy.link", "Link"))}</p>
         </div>

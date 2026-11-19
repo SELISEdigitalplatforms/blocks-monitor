@@ -11,6 +11,7 @@ import { useT } from "@/madp/i18n";
 import type { ProjectRecord } from "@/madp/blocks/projects/records";
 import { useNewSinceHandOver, type DocTreeData } from "@/madp/blocks/projects/docReads";
 import { handOverState } from "./businessUi";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 
 export function HandOverBar({ project, data, canEdit }: { project: ProjectRecord; data: DocTreeData | undefined; canEdit: boolean }) {
@@ -58,7 +59,7 @@ export function HandOverBar({ project, data, canEdit }: { project: ProjectRecord
           <>
             <p className="min-w-0 flex-1 text-[14px] text-ink2">{state.summary}</p>
             <Button variant="primary" iconRight={<ArrowRight size={16} strokeWidth={1.75} />}
-              onClick={() => navigate(`/p/${project.id}/sanitization`)}>{state.label}</Button>
+              onClick={() => navigate(prefixPath(`/p/${project.id}/sanitization`))}>{state.label}</Button>
           </>
         ) : (
           <>

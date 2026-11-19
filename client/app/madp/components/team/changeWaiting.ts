@@ -18,6 +18,7 @@ import { unansweredQuestions } from "@/madp/domain/changeAnalysis";
 import { isTerminal, type EngineJobKind, type EngineJobStatus } from "@/madp/domain/engineJob";
 import { analysisOf, changeStage } from "@/madp/components/changes/changeFlow";
 import { t } from "@/madp/i18n";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 export type ChangeWaitKind = "answer" | "approve" | "analyseAgain" | "startBuild" | "buildAgain";
 
@@ -165,7 +166,7 @@ export function sortChangeWaits(waits: readonly ChangeWait[]): ChangeWait[] {
 
 /** Where a wait is acted on: its change request. */
 export function changeWaitHref(projectId: string, w: Pick<ChangeWait, "number">): string {
-  return `/p/${projectId}/build?cr=${w.number}`;
+  return prefixPath(`/p/${projectId}/build?cr=${w.number}`);
 }
 
 /** A wait in the client's words, as one line of "Waiting for you" with its button's word. */

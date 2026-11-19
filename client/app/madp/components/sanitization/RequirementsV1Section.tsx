@@ -3,6 +3,7 @@
 import { nameOr, priorityName } from "@/madp/components/requirements/domainLabels";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { ArrowDown, ArrowUp, ListChecks, Plus, Trash2 } from "lucide-react";
 import { Button, Card, EmptyState, Input, Label, Select, Textarea } from "@/madp/ui/kit";
 import { useEngineJobs } from "@/madp/blocks/engine/jobs";
@@ -50,7 +51,7 @@ function CompletedV1({ workspaceId, projectId, members, existing }: SectionProps
         <p className="text-[14px] text-ink2">
           {info ? t("settings.sanitization.requirements.confirmedOnBy", "Confirmed on {at} by {name}", { at: formatAt(info.at), name: members.nameOf(info.byUserId) }) : t("settings.sanitization.requirements.confirmed", "Confirmed")}
           {" · "}
-          <Link className="font-medium text-[rgb(var(--c-accent-text))] underline-offset-2 hover:underline" to={`/p/${projectId}/requirements`}>
+          <Link className="font-medium text-[rgb(var(--c-accent-text))] underline-offset-2 hover:underline" to={prefixPath(`/p/${projectId}/requirements`)}>
             {existing ? t("settings.sanitization.requirements.openGoalsExisting", "Open Goals for the change") : t("settings.sanitization.requirements.openGoalsNew", "Open Goals & requirements")}
           </Link>
         </p>

@@ -122,7 +122,7 @@ export function createDataTransport(o: {
     const headers: Record<string, string> = { "content-type": "application/json" };
     // Blocks shell integration: inject the genesis-os access token so the BFF proxy can authenticate.
     try {
-      const store = (window as Record<string, unknown>).__GENESIS_AUTH_STORE__;
+      const store = (window as unknown as Record<string, unknown>).__GENESIS_AUTH_STORE__;
       if (store && typeof store === "object" && "getState" in store) {
         const token = (store as { getState: () => Record<string, unknown> }).getState().accessToken as string | undefined;
         if (token) headers.authorization = `Bearer ${token}`;

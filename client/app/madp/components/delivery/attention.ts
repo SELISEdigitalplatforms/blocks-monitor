@@ -20,6 +20,7 @@ import { checksSettled, fileVerdicts, type ChecksPolicy } from "@/madp/domain/ch
 import { analysisOf, changeStage, decisionOf } from "@/madp/components/changes/changeFlow";
 import { openAfterDeploy } from "@/madp/components/build/afterDeployUi";
 import { changeChecksState } from "@/madp/components/build/changeChecksUi";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { t } from "@/madp/i18n";
 
 export type AttentionGroup = "checks" | "unfinished" | "lost" | "passed";
@@ -102,7 +103,7 @@ export function attentionItems(i: AttentionInput): AttentionItem[] {
     const analysis = analysisOf(cr);
     const newestBuild = latestJobFor(i.jobs, "change.build", { changeRequestId: cr.id });
     const stage = analysis ? changeStage(cr.status, analysis, decisionOf(cr), newestBuild, null, { updatedAt: cr.updatedAt ?? null, now: i.now }) : null;
-    const base = { changeId: cr.id, number: cr.number, code: changeCode(cr), title: cr.title, href: `/p/${i.projectId}/build?cr=${cr.number}` };
+    const base = { changeId: cr.id, number: cr.number, code: changeCode(cr), title: cr.title, href: prefixPath(`/p/${i.projectId}/build?cr=${cr.number}`) };
     const may = (a: AttentionAction): AttentionAction => (i.canRun ? a : OPEN);
 
     if (stage === "buildLost") {

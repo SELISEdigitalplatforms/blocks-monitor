@@ -31,6 +31,7 @@ import { warmBusinessStep, warmStep2, warmStepChunks } from "./prefetch";
 import { JourneyStage } from "./JourneyStage";
 import { OfficeStage } from "./visit/OfficeStage";
 import { pickStory } from "./journey/stories";
+import { prefixPath, rewritePath } from "@/madp/lib/pathPrefix";
 
 const CinematicWorld = lazy(() => import("./CinematicWorld"));
 
@@ -127,8 +128,8 @@ export function CinematicStage({ initial = INITIAL }: { initial?: CineState }) {
   const speaking = line && s.phase !== "entering"
     ? { who: line.who === PRODUCT_LEAD ? "pm" as const : "host" as const, key: lineKey, seconds: reduced ? 0 : line.text.length / 48 }
     : null;
-  const businessUrl = s.projectId ? `/p/${s.projectId}/business` : null;
-  const stepTwoUrl = s.projectId ? `/p/${s.projectId}/sanitization` : null;
+  const businessUrl = s.projectId ? prefixPath(`/p/${s.projectId}/business`) : null;
+  const stepTwoUrl = s.projectId ? prefixPath(`/p/${s.projectId}/sanitization`) : null;
   const inFlight = busy(s);
 
   const leave = () => {
@@ -219,7 +220,7 @@ export function CinematicStage({ initial = INITIAL }: { initial?: CineState }) {
             {businessUrl ? t("studio.cinematic.stage.openSetup", "Open Project setup") : t("studio.cinematic.stage.useForm", "Use the form instead")}
           </Button>
           <Button variant="secondary" size="sm" aria-label={t("studio.cinematic.stage.close", "Close")} icon={<X size={16} />}
-            onClick={() => (businessUrl ? leave() : navigate("/dashboard"))} disabled={inFlight} />
+            onClick={() => (businessUrl ? leave() : navigate(rewritePath("/dashboard")))} disabled={inFlight} />
         </div>
       </div>
 

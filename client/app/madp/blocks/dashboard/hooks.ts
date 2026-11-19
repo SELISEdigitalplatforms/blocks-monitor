@@ -5,6 +5,7 @@
 // "Released" has ONE rule: only Release rows with Status "released" reach the records (read filter plus a mapping guard), so the
 // Released KPI, the Releases card and the activity feed agree; rolled-back and failed rows never count or use up the row cap.
 import { useMemo } from "react";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { blocksAllResultOptions, useBlocksAllResult } from "../data/hooks";
 import { whereOf } from "../data/gql";
@@ -19,7 +20,7 @@ export const DASHBOARD_FIELDS = {
   Project: [
     "ItemId", "Name", "ClientName", "Stage", "ResumeTo", "AssigneeUserId", "CreatedByUserId", "LastUpdatedDate",
     "CreatedDate", "BusinessHandedOverAt", "SanitizationCompletedAt", "RequirementsConfirmedAt", "ScopeLockedAt",
-    "ApprovalOwnerUserId", "RepoMode", "Status",
+    "ApprovalOwnerUserId", "RepoMode", "Status", "BlocksProjectRef",
   ],
   EngineJob: ["ItemId", "ProjectId", "Kind", "Status", "Progress", "RequestedByUserId", "CreatedDate", "FinishedAt", "ErrorCode", "InputJson"],
   Release: ["ProjectId", "Environment", "Version", "Status", "ReleasedAt", "EngineJobId"],
@@ -111,19 +112,29 @@ export function useDashboardData(): DashboardData {
   const openChanges = read("OpenChangeRequest", workspaceId, "CreatedDate", w.in("Status", [...WAITING_CHANGE_STATUSES]));
   const policies = read("ApprovalPolicy", workspaceId, "CreatedDate");
   const policySteps = read("PolicyStep", workspaceId, "CreatedDate", w.eq("ParentType", "policy"));
+  // In the Blocks shell, only show data for MADP projects linked to the current Blocks project
+  const { itemId: blocksProjectId } = useParams<{ itemId?: string }>();
   const results = [projects, jobs, releases, previews, approvals, requests, clarifications, tickets, changes, milestones, openChanges, policies, policySteps];
   const records = useMemo<DashboardRecords>(() => {
     if (!projects.data) return EMPTY;
-    const pendingRequests = new Map(((requests.data?.items ?? []) as Raw[]).map((r) => [str(r.ItemId), r]));
+    // Filter raw project rows to only those belonging to the current Blocks project
+    const rawProjects = (projects.data.items as Raw[]);
+    const filteredRaw = blocksProjectId
+      ? rawProjects.filter((r) => str(r.BlocksProjectRef) === blocksProjectId)
+      : rawProjects;
+    // Build a set of allowed project IDs so we can filter related records
+    const allowedIds = new Set(filteredRaw.map((r) => str(r.ItemId)));
+    const inScope = (r: Raw) => !blocksProjectId || allowedIds.has(str(r.ProjectId));
+    const pendingRequests = new Map(((requests.data?.items ?? []) as Raw[]).filter(inScope).map((r) => [str(r.ItemId), r]));
     const base: DashboardRecords = liveDashboardRecords({
-      projects: (projects.data.items as Raw[]).map((r) => ({
+      projects: filteredRaw.map((r) => ({
         id: str(r.ItemId), name: str(r.Name), clientName: str(r.ClientName), stage: str(r.Stage),
         step: stepOfStage(str(r.Stage), str(r.ResumeTo)), assigneeUserId: str(r.AssigneeUserId), createdByUserId: str(r.CreatedByUserId),
         updatedAt: str(r.LastUpdatedDate), createdAt: str(r.CreatedDate), handedOverAt: str(r.BusinessHandedOverAt), sanitizedAt: str(r.SanitizationCompletedAt),
         confirmedAt: str(r.RequirementsConfirmedAt), lockedAt: str(r.ScopeLockedAt),
         approverUserId: str(r.ApprovalOwnerUserId), repoMode: str(r.RepoMode), status: str(r.Status) || "active",
       })).filter((p) => p.id !== ""),
-      jobs: ((jobs.data?.items ?? []) as Raw[]).flatMap((r) =>
+      jobs: ((jobs.data?.items ?? []) as Raw[]).filter(inScope).flatMap((r) =>
         isEngineJobKind(r.Kind) && isEngineJobStatus(r.Status) && str(r.ItemId) !== ""
           ? [{
               id: str(r.ItemId), projectId: str(r.ProjectId), kind: r.Kind, status: r.Status,
@@ -134,11 +145,11 @@ export function useDashboardData(): DashboardData {
               ...jobInputFacts(r.Kind, str(r.InputJson)),
             }]
           : []),
-      releases: ((releases.data?.items ?? []) as Raw[]).flatMap((r): DashRelease[] =>
+      releases: ((releases.data?.items ?? []) as Raw[]).filter(inScope).flatMap((r): DashRelease[] =>
         ENVS.includes(str(r.Environment)) && str(r.Status) === "released"
           ? [{ projectId: str(r.ProjectId), env: str(r.Environment) as ReleaseEnv, version: str(r.Version), status: str(r.Status), releasedAt: str(r.ReleasedAt), ...(str(r.EngineJobId) ? { jobId: str(r.EngineJobId) } : {}) }]
           : []),
-      approvals: ((approvals.data?.items ?? []) as Raw[]).flatMap((r) => {
+      approvals: ((approvals.data?.items ?? []) as Raw[]).filter(inScope).flatMap((r) => {
         const request = pendingRequests.get(str(r.ParentId));
         if (!request) return [];
         return [{
@@ -147,17 +158,17 @@ export function useDashboardData(): DashboardData {
           requestId: str(r.ParentId), requestedByUserId: str(request.RequestedByUserId),
         }];
       }),
-      clarifications: ((clarifications.data?.items ?? []) as Raw[]).map((r) => ({
+      clarifications: ((clarifications.data?.items ?? []) as Raw[]).filter(inScope).map((r) => ({
         id: str(r.ItemId), projectId: str(r.ProjectId), number: num(r.Number), question: str(r.Question), ownerUserId: str(r.OwnerUserId),
       })),
-      tickets: ((tickets.data?.items ?? []) as Raw[]).map((r) => ({ id: str(r.ItemId), projectId: str(r.ProjectId), title: str(r.Title), doneAt: str(r.DoneAt) })),
-      changes: ((changes.data?.items ?? []) as Raw[]).map((r) => ({
+      tickets: ((tickets.data?.items ?? []) as Raw[]).filter(inScope).map((r) => ({ id: str(r.ItemId), projectId: str(r.ProjectId), title: str(r.Title), doneAt: str(r.DoneAt) })),
+      changes: ((changes.data?.items ?? []) as Raw[]).filter(inScope).map((r) => ({
         id: str(r.ItemId), projectId: str(r.ProjectId), number: num(r.Number), title: str(r.Title), status: str(r.Status), createdAt: str(r.CreatedDate),
       })),
-      milestones: ((milestones.data?.items ?? []) as Raw[]).map((r) => ({
+      milestones: ((milestones.data?.items ?? []) as Raw[]).filter(inScope).map((r) => ({
         id: str(r.ItemId), projectId: str(r.ProjectId), name: str(r.Name), status: str(r.Status),
       })),
-      openChanges: ((openChanges.data?.items ?? []) as Raw[]).map((r) => ({
+      openChanges: ((openChanges.data?.items ?? []) as Raw[]).filter(inScope).map((r) => ({
         id: str(r.ItemId), projectId: str(r.ProjectId), number: num(r.Number), lane: str(r.Lane), status: str(r.Status),
         analysis: str(r.Analysis).trim() ? str(r.Analysis) : null, decidedAt: str(r.DecidedAt) || null,
         createdByUserId: str(r.RequestedByUserId) || str(r.CreatedByUserId) || null,
@@ -167,7 +178,7 @@ export function useDashboardData(): DashboardData {
     // newest first: the projects by their latest activity, so every list that follows the records' order (what waits
     // for you, the project lists) has the project with the newest release, job, change or task on top
     return { ...base, projects: byRecent(base.projects, latestActivity(base)) };
-  }, [projects.data?.items, jobs.data?.items, releases.data?.items, approvals.data?.items, requests.data?.items, clarifications.data?.items, tickets.data?.items, changes.data?.items, milestones.data?.items, openChanges.data?.items, policies.data?.items, policySteps.data?.items]);
+  }, [blocksProjectId, projects.data?.items, jobs.data?.items, releases.data?.items, approvals.data?.items, requests.data?.items, clarifications.data?.items, tickets.data?.items, changes.data?.items, milestones.data?.items, openChanges.data?.items, policies.data?.items, policySteps.data?.items]);
   const error = (results.find((r) => r.error)?.error ?? null) as BlocksDataError | null;
   return {
     records,

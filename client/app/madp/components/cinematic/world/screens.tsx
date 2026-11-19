@@ -46,7 +46,7 @@ function useLiveCanvas(w: number, h: number, draw: (g: CanvasRenderingContext2D,
         if (!alive) { bmp.close(); return; }
         bitmap?.close();
         bitmap = bmp;
-        tex.image = bmp;
+        tex.image = bmp as unknown as HTMLCanvasElement;
         tex.flipY = false;
         tex.needsUpdate = true;
         window.dispatchEvent(new Event("cine:busy"));

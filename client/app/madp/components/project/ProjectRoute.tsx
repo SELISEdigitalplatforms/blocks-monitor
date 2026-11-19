@@ -10,6 +10,7 @@ import { useProject } from "@/madp/blocks/projects/reads";
 import { isBlocksProjectId } from "@/madp/domain/projects";
 import { JOURNEY_SLUG } from "@/madp/domain/journey";
 import { stepPath } from "@/madp/domain/phases";
+import { rewritePath } from "@/madp/lib/pathPrefix";
 import { preloadStepChunk, prefetchProjectStep, stepSlugOf } from "@/madp/components/project/stepPrefetch";
 import { ProjectNav } from "@/madp/components/project/ProjectNav";
 import { TeamLauncher } from "@/madp/components/team";
@@ -27,7 +28,7 @@ function Skeleton() {
 /** The layout of /p/:id: makes the project in the route the active one, or sends an unknown id to the projects. */
 export function ProjectRoute() {
   const { id = "" } = useParams();
-  return isBlocksProjectId(id) ? <BlocksProjectRoute id={id} /> : <Navigate to="/projects" replace state={{ notice: missingNotice() }} />;
+  return isBlocksProjectId(id) ? <BlocksProjectRoute id={id} /> : <Navigate to={rewritePath("/projects")} replace state={{ notice: missingNotice() }} />;
 }
 
 /** What the projects page says when a project or step link leads nowhere (read at render time). */
@@ -121,14 +122,14 @@ function BlocksProjectRoute({ id }: { id: string }) {
   if ((query.error && !project) || switchFailed) return failed;
   // the skeleton is for the first load only: a cached project renders at once while TanStack refreshes it
   if ((decision === "wait" && !project) || typeof decision === "object") return <Skeleton />;
-  if (decision === "missing" || !project) return <Navigate to="/projects" replace state={{ notice: missingNotice() }} />;
+  if (decision === "missing" || !project) return <Navigate to={rewritePath("/projects")} replace state={{ notice: missingNotice() }} />;
   return <><ProjectNav projectId={id} /><TeamLauncher projectId={id} /><Outlet /></>;
 }
 
 /** The index of /p/:id: opens the project where it stands (the same step the shell links to). */
 export function ProjectEntry() {
   const { id = "" } = useParams();
-  return isBlocksProjectId(id) ? <BlocksProjectEntry id={id} /> : <Navigate to="/projects" replace state={{ notice: missingNotice() }} />;
+  return isBlocksProjectId(id) ? <BlocksProjectEntry id={id} /> : <Navigate to={rewritePath("/projects")} replace state={{ notice: missingNotice() }} />;
 }
 
 function BlocksProjectEntry({ id }: { id: string }) {
@@ -138,6 +139,6 @@ function BlocksProjectEntry({ id }: { id: string }) {
   useEffect(() => { if (step) preloadStepChunk(step); }, [step]);
   if (query.error && query.data === undefined) return <Banner tone="danger" title={t("project.route.loadFailed", "This project could not be loaded.")} action={<Button size="sm" variant="ghost" onClick={() => void query.refetch()}>{t("project.route.retry", "Retry")}</Button>} />;
   if (query.data === undefined) return <Skeleton />;
-  if (query.data === null || query.data.status === "deleting") return <Navigate to="/projects" replace state={{ notice: missingNotice() }} />;
+  if (query.data === null || query.data.status === "deleting") return <Navigate to={rewritePath("/projects")} replace state={{ notice: missingNotice() }} />;
   return <Navigate to={stepPath(id, query.data.step)} replace />;
 }

@@ -1,6 +1,7 @@
 /** Open questions tab: the open or deferred Clarifications, read only. They are answered in Product sanitization. */
 import { useT } from "@/madp/i18n";
 import { Link } from "react-router-dom";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { ArrowRight, CircleQuestionMark } from "lucide-react";
 import { useOpenClarifications } from "@/madp/blocks/requirements/hooks";
 import { FORMER_MEMBER, useMemberName, useProjectsContext } from "@/madp/blocks/projects/context";
@@ -46,7 +47,7 @@ export function QuestionsView({ projectId, questions, loading = false, onRetry }
           ))}
         </ul>
       )}
-      <Link to={`/p/${projectId}/sanitization`}
+      <Link to={prefixPath(`/p/${projectId}/sanitization`)}
         className="mt-4 inline-flex items-center gap-1.5 rounded-md text-[13px] font-medium text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-accent/50">
         {t("analysis.requirements.answerInSanitization", "Answer in Understanding your project")} <ArrowRight size={14} strokeWidth={1.75} aria-hidden />
       </Link>

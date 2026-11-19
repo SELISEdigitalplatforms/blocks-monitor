@@ -14,6 +14,7 @@ import type { ChecklistState } from "@/madp/components/analysis/pm/pmModel";
 import { checkProjectName } from "@/madp/domain/projects";
 import { checkWebsite, type StartAnswers } from "@/madp/domain/guidedStart";
 import { stepIndex, type JourneyStep } from "@/madp/domain/journey";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 /* ── the steps ───────────────────────────────────────────────────────────── */
 
@@ -125,9 +126,9 @@ export const SPEAKER_OF_PHASE: Record<OfficePhase, "assistant" | "pm"> = { setup
 export function leaveUrl(project: FlowProject | null): string {
   if (!project) return "/new";
   const phase = phaseOfProject(project);
-  if (phase === "setup") return `/p/${project.id}/business`;
-  if (phase === "analysis") return `/p/${project.id}/analysis`;
-  return `/p/${project.id}/build`;
+  if (phase === "setup") return prefixPath(`/p/${project.id}/business`);
+  if (phase === "analysis") return prefixPath(`/p/${project.id}/analysis`);
+  return prefixPath(`/p/${project.id}/build`);
 }
 
 /** The project to continue in the office: the one asked for (?project=), else none (a new visit). */

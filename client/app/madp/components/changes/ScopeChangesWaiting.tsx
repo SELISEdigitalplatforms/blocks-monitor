@@ -12,6 +12,7 @@ import { changeCode } from "@/madp/domain/delivery";
 import { JOURNEY_SLUG } from "@/madp/domain/journey";
 import { byNewestNumber } from "@/madp/lib/newest";
 import { analysisOf, changeStage, decisionOf } from "./changeFlow";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 /** The change requests that wait for a new scope version, newest first (pure). */
 export function changesKeptForScope(requests: readonly DeliveryChangeRequest[]): DeliveryChangeRequest[] {
@@ -41,7 +42,7 @@ export function ScopeChangesWaiting({ projectId }: { projectId: string }) {
             <li key={cr.id} className="min-w-0 rounded-block bg-surface2 px-3.5 py-3">
               <p className="text-[14px] font-medium text-ink [overflow-wrap:anywhere]">{code} · {cr.title || code}</p>
               {cr.description && <p className="mt-1 text-[13px] leading-relaxed text-ink2 [overflow-wrap:anywhere]">{excerpt(cr.description)}</p>}
-              <Link to={`/p/${projectId}/${JOURNEY_SLUG.build}?cr=${cr.number}`}
+              <Link to={prefixPath(`/p/${projectId}/${JOURNEY_SLUG.build}?cr=${cr.number}`)}
                 className="mt-2 inline-block text-[13px] font-medium text-accent underline-offset-2 hover:underline">{t("build.step.change.open", "Open {code}", { code })}</Link>
             </li>
           );

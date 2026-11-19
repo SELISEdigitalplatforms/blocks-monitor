@@ -26,6 +26,7 @@ import {
   type StreamChange, type StreamOption, type StreamPlan, type StreamsSuggestion,
 } from "@/madp/domain/parallelStreams";
 import { cn } from "@/madp/lib/cn";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { t, useT } from "@/madp/i18n";
 import { aChange } from "@/madp/components/build/buildStep";
 import { Card, Chip } from "@/madp/ui/kit";
@@ -249,7 +250,7 @@ export function ParallelStreams({ ctx, projectId, jobs, changes, tickets, events
   return (
     <ParallelStreamsView chosen={chosen} inUse={Math.min(inUse, chosen)} inUseWhy={advice?.why ?? ""} suggestion={suggestion}
       options={streamOptions(suggestion, canChoose, chosen)} plan={plan}
-      linkOf={(id) => { const c = byId.get(id); return c ? `/p/${projectId}/build?cr=${c.number}` : null; }}
+      linkOf={(id) => { const c = byId.get(id); return c ? prefixPath(`/p/${projectId}/build?cr=${c.number}`) : null; }}
       lineOf={(id) => streamLine(byJob.get(id), { jobs: allJobs, changes, tickets, events })}
       nameOf={(id) => streamRunName(byJob.get(id), { jobs: allJobs, changes, tickets, events })}
       pending={save.pending} error={save.error} success={save.success}

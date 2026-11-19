@@ -23,6 +23,7 @@ import { formatDateTime } from "@/madp/lib/dates";
 import { cn } from "@/madp/lib/cn";
 import { envName, envWord } from "@/madp/components/delivery/releaseUi";
 import { useT } from "@/madp/i18n";
+import { prefixPath, rewritePath } from "@/madp/lib/pathPrefix";
 
 /* ── rows ─────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
@@ -199,10 +200,10 @@ export function AppPreview({ projectId, version, environment }: { projectId: str
   }, [about, pages.length]);
   useEffect(() => { window.scrollTo(0, 0); }, [index]);
 
-  const back = { href: `/p/${projectId}/${target?.kind === "preview" ? "build" : "delivered"}`, label: t("build.preview.openProject", "Open the project") };
+  const back = { href: prefixPath(`/p/${projectId}/${target?.kind === "preview" ? "build" : "delivered"}`), label: t("build.preview.openProject", "Open the project") };
   if (ctx.status === "not_found" || ctx.status === "error") {
     return <Notice title={t("build.preview.unavailableTitle", "This app isn't available")} text={t("build.preview.unavailableText", "It belongs to a project you can't open with this account, or the project no longer exists.")}
-      action={<Link to="/projects" className={NOTICE_LINK}>{t("build.preview.goProjects", "Go to your projects")}</Link>} />;
+      action={<Link to={rewritePath("/projects")} className={NOTICE_LINK}>{t("build.preview.goProjects", "Go to your projects")}</Link>} />;
   }
   const loading = ctx.status === "loading" || previews.isLoading || releases.isLoading
     || (n !== null && (featuresQ.isPending || storiesQ.isPending || milestonesQ.isPending)) || screensQ.isPending;

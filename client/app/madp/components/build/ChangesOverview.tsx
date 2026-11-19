@@ -18,6 +18,7 @@ import { Bar, Card, Chip } from "@/madp/ui/kit";
 import type { ChipTone } from "@/madp/data/types";
 import { cn } from "@/madp/lib/cn";
 import { byNewestNumber } from "@/madp/lib/newest";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { isActiveEngineJob } from "@/madp/blocks/engine/types";
 
 /** The chip tone of a change request's word (changeStatusWord), in the language it was said in. */
@@ -66,7 +67,7 @@ export function ChangesOverview({ projectId, changes, tickets, jobs, focusNumber
   const counts = changeTickets(tickets);
   const focus = focusNumber !== null ? changes.find((c) => c.number === focusNumber) ?? null : null;
   const newest = (c: DeliveryChangeRequest) => latestJobFor(jobs, "change.build", { changeRequestId: c.id });
-  const pathOf = (c: DeliveryChangeRequest) => `/p/${projectId}/build?cr=${c.number}`;
+  const pathOf = (c: DeliveryChangeRequest) => prefixPath(`/p/${projectId}/build?cr=${c.number}`);
 
   const focusCard = (() => {
     if (!focus) {
@@ -153,7 +154,7 @@ export function ChangeRequestsCard({ projectId, changes, tickets, jobs, focusId 
             const incs = incrementCount(c);
             return (
               <li key={c.id} className={cn("flex min-w-0 items-start gap-3 border-b border-line py-3 last:border-b-0", c.id === focusId && "font-medium")}>
-                <Link to={`/p/${projectId}/build?cr=${c.number}`} className="num shrink-0 pt-px font-mono text-[13px] text-[rgb(var(--c-accent-text))] underline-offset-2 hover:underline">{changeCode(c)}</Link>
+                <Link to={prefixPath(`/p/${projectId}/build?cr=${c.number}`)} className="num shrink-0 pt-px font-mono text-[13px] text-[rgb(var(--c-accent-text))] underline-offset-2 hover:underline">{changeCode(c)}</Link>
                 <div className="min-w-0 flex-1">
                   <p className="min-w-0 break-words text-[14px] text-ink">{c.title || t("changes.page.title", "Change request")}</p>
                   <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[12px] font-normal text-ink3">

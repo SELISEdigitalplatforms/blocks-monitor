@@ -14,6 +14,7 @@ import { FeedbackLayer } from "@/madp/components/feedback/FeedbackLayer";
 import { ScopeFeedbackProvider } from "@/madp/components/scope/blocks/ScopeFeedback";
 import { stepIndex } from "@/madp/domain/journey";
 import { useT } from "@/madp/i18n";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 const PART: Record<DocPart, ComponentType<AnalysisCtx>> = {
   understood: UnderstoodPart,
@@ -97,8 +98,8 @@ export function AnalysisWorkspace(ctx: AnalysisCtx) {
           );
         })}
         <p className="px-1 text-[13px] text-ink3">
-          {t("analysis.workspace.movesOnTo", "When the scope is locked, the project moves on to")} <Link to={`/p/${ctx.projectId}/build`} className="font-medium text-ink2 underline-offset-4 hover:underline">{phaseName("engineering")}</Link>.
-          {" "}{t("analysis.workspace.formerPages", "Need the former detailed pages?")} <Link to={`/p/${ctx.projectId}/analysis?view=sections`} className="font-medium text-ink2 underline-offset-4 hover:underline">{t("analysis.workspace.showThem", "Show them")}</Link>.
+          {t("analysis.workspace.movesOnTo", "When the scope is locked, the project moves on to")} <Link to={prefixPath(`/p/${ctx.projectId}/build`)} className="font-medium text-ink2 underline-offset-4 hover:underline">{phaseName("engineering")}</Link>.
+          {" "}{t("analysis.workspace.formerPages", "Need the former detailed pages?")} <Link to={prefixPath(`/p/${ctx.projectId}/analysis?view=sections`)} className="font-medium text-ink2 underline-offset-4 hover:underline">{t("analysis.workspace.showThem", "Show them")}</Link>.
         </p>
       </div>
     </div>

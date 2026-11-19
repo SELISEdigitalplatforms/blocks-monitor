@@ -3,6 +3,7 @@
  *  as the business analyst's own sentence. Read only. */
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { Lightbulb, PencilLine } from "lucide-react";
 import { blocksAllOptions } from "@/madp/blocks/data/hooks";
 import { whereOf } from "@/madp/blocks/data/gql";
@@ -62,7 +63,7 @@ export function UnderstoodSection({ workspaceId, projectId, project, objective, 
   return (
     <Card title={t("settings.sanitization.understood.title", "What we understood")} icon={<Lightbulb size={18} strokeWidth={1.75} />}
       action={canEdit && project.Stage === "sanitization" ? (
-        <Link to={`/p/${projectId}/business`} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium text-ink2 outline-none transition hover:bg-surface2 hover:text-ink focus-visible:ring-2 focus-visible:ring-accent/50">
+        <Link to={prefixPath(`/p/${projectId}/business`)} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium text-ink2 outline-none transition hover:bg-surface2 hover:text-ink focus-visible:ring-2 focus-visible:ring-accent/50">
           <PencilLine size={14} aria-hidden />{t("settings.sanitization.understood.addMaterial", "Something's off? Add to your material")}
         </Link>
       ) : undefined}>

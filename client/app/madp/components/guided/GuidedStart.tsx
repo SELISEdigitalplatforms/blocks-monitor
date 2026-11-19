@@ -27,6 +27,7 @@ import { t, useT } from "@/madp/i18n";
 import { AboutStep, GoalStep, KindStep, ReadyStep, StepHeading, WhereExistingStep, WhereNewStep } from "./GuidedSteps";
 import { Illustration } from "@/madp/components/setup/SetupWindow";
 import { closeGuidedStart, finishGuidedStart, goToStep, hasAnswers, loadGuidedDraft, setAnswers, useGuidedStart } from "./store";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 export { openGuidedStart } from "./store";
 
@@ -117,11 +118,15 @@ function GuidedStartDialog() {
       if (Object.keys(validateStep(st, s.answers, login)).length) { go(st, -1); setShowErrors(true); return; }
     }
     if (!requestId.current) requestId.current = newRequestId();
-    create(toCreateArgs(s.answers, login), requestId.current).then(
+    const createArgs = toCreateArgs(s.answers, login);
+    // In Blocks shell: always stamp the current Blocks project ID
+    const blocksId = (window as unknown as Record<string, unknown>).__BLOCKS_ITEM_ID__ as string | undefined;
+    if (blocksId && !createArgs.blocksProjectRef) createArgs.blocksProjectRef = blocksId;
+    create(createArgs, requestId.current).then(
       (r) => {
         requestId.current = null;
         finishGuidedStart();
-        navigate(`/p/${r.project.id}/business`);
+        navigate(prefixPath(`/p/${r.project.id}/business`));
       },
       (e: unknown) => setFailure(isNotConfigured(e) ? NOT_CONFIGURED_MESSAGE : messageFor(e)),
     );

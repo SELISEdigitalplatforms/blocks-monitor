@@ -12,6 +12,7 @@ import { MAX_JOB_ATTEMPTS, isTerminal } from "@/madp/domain/engineJob";
 import { analysisOf, buildCount, changeStage, decisionOf, featureProgress, ticketCount } from "@/madp/components/changes/changeFlow";
 import { changeWaitJobOf, changesWaiting, releaseDeployInput, waitOf, type ChangeWait } from "./changeWaiting";
 import { t } from "@/madp/i18n";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 export type TeamContactId = "analyst" | "lead";
 export const TEAM_CONTACT_IDS: readonly TeamContactId[] = ["analyst", "lead"];
@@ -207,7 +208,7 @@ export function analystThread(rows: AnalystRows): TeamThread {
   const notUsable = changesNotUsable(rows.jobs, checksSettled(rows.changes));
   for (const cr of [...rows.changes].sort((a, b) => a.number - b.number)) {
     const code = changeCode(cr);
-    const href = `/p/${rows.projectId}/build?cr=${cr.number}`;
+    const href = prefixPath(`/p/${rows.projectId}/build?cr=${cr.number}`);
     const analysis = analysisOf(cr);
     const decision = decisionOf(cr);
     const analyses = jobsOf(rows.jobs, "change.analyse", cr.id);
@@ -425,7 +426,7 @@ interface Target { key: string; title: string; href: string; name: string }
 /** Build updates (build.run, change.build, preview.deploy) in plain words, grouped by what they build; the approved
  *  changes ready to build; and the technical questions with their answers. */
 export function leadThread(rows: LeadRows): TeamThread {
-  const buildPath = `/p/${rows.projectId}/build`;
+  const buildPath = prefixPath(`/p/${rows.projectId}/build`);
   const jobs = rows.jobs.filter(isBuildJob).sort(byCreated);
   const anyActive = jobs.some(isActive);
   const waits = teamWaits(rows);

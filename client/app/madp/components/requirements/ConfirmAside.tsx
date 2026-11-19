@@ -14,6 +14,7 @@ import { useRequirementsContext } from "@/madp/blocks/requirements/context";
 import { ViewOnlyNote } from "@/madp/components/workspace/ViewOnlyNote";
 import { Button, Card } from "@/madp/ui/kit";
 import { cn } from "@/madp/lib/cn";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { IntakeRefusal, LABEL } from "../intake/IntakeShared";
 import { blockerText, checklistItems, suggestionsSummary, type ChecklistItem, type ConfirmBlocker } from "./glance";
 import { requirementsErrorMessage } from "./messages";
@@ -153,7 +154,7 @@ export function ConfirmAside({ projectId, editing, onOpenTab, withAction = true 
   const onConfirm = () => {
     setRefusal(null);
     confirm.mutate({}, {
-      onSuccess: () => navigate(`/p/${projectId}/scope`),
+      onSuccess: () => navigate(prefixPath(`/p/${projectId}/scope`)),
       onError: (e) => {
         const missing = e instanceof FunctionError && Array.isArray(e.params?.missing) ? (e.params.missing as ConfirmBlocker[]) : null;
         setRefusal(missing && missing.length > 0 ? missing.map(blockerText).join(" ") : requirementsErrorMessage(e));

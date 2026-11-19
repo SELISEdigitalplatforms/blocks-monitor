@@ -51,6 +51,7 @@ import { SummarySection, countSummary } from "./SummarySection";
 import type { ApplyRequest } from "./applyRequest";
 import { attachedStoryCount, lockChecklist, scopePageState, scopeShareTarget } from "./pageState";
 import { useJobRefresh } from "./useJobRefresh";
+import { rewritePath } from "@/madp/lib/pathPrefix";
 
 /** the page fills the shell's main area */
 const PAGE = "flex w-full min-w-0 flex-col";
@@ -167,7 +168,7 @@ export function BlocksScopeView({ projectId }: { projectId: string }) {
         <StepFrame title={TITLE} role={ROLE} deliverable={DELIVERABLE}>
           <Card>
             <EmptyState icon={<FileText size={28} strokeWidth={1.75} aria-hidden />} title={t("analysis.scope.view.notAvailable", "This project isn't available.")}
-              action={<Link to="/projects" className="font-medium text-[rgb(var(--c-accent-text))] hover:underline">{t("analysis.scope.view.backToProjects", "Back to projects")}</Link>} />
+              action={<Link to={rewritePath("/projects")} className="font-medium text-[rgb(var(--c-accent-text))] hover:underline">{t("analysis.scope.view.backToProjects", "Back to projects")}</Link>} />
           </Card>
         </StepFrame>
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, type RefObject } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { BookOpen, Check, ChevronDown, FolderOpen, Lock, UserRound } from "lucide-react";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { STATUS_TEXT, journeyOf, viewFromPath, type Journey, type JourneyItem } from "@/madp/components/project/projectSteps";
 import { inProgressPercent, isReady, usePhaseProgressStore, type PhaseProgress } from "@/madp/components/project/phaseProgress";
 import { useProject } from "@/madp/blocks/projects/reads";
@@ -57,7 +58,7 @@ export function isStuck(scrollY: number, bandTop: number, stickyTop: number): bo
 }
 
 /** Keeps --project-nav-h on the document root (from the band's size) and says whether the bar is stuck (from the scroll). */
-function useStickyBar(band: RefObject<HTMLElement>): boolean {
+function useStickyBar(band: RefObject<HTMLElement | null>): boolean {
   const [stuck, setStuck] = useState(false);
   useLayoutEffect(() => {
     const root = document.documentElement;
@@ -111,7 +112,7 @@ function JourneyBar({ projectId, journey, wikiOpen }: { projectId: string; journ
   const phone = usePhone();
   const t = useT();
   useEffect(() => setOpen(false), [pathname]);
-  const producedOpen = /^\/p\/[^/]+\/produced\/?$/.test(pathname);
+  const producedOpen = /\/p\/[^/]+\/produced\/?$/.test(pathname);
 
   const shown = journey.now ?? journey.viewing;
   const at = journey.at ?? shown?.n ?? 0;
@@ -135,7 +136,7 @@ function JourneyBar({ projectId, journey, wikiOpen }: { projectId: string; journ
             <span className="h-2 w-2 rounded-full bg-accent" />
           </span>
           {journey.now ? (
-            <Link to={`/p/${projectId}/${journey.now.slug}`} title={t("project.nav.goTo", "Go to {step}", { step: journey.now.label })} aria-label={t("project.nav.whereNowAria", "{step}, where the project is now", { step: journey.now.label })}
+            <Link to={prefixPath(`/p/${projectId}/${journey.now.slug}`)} title={t("project.nav.goTo", "Go to {step}", { step: journey.now.label })} aria-label={t("project.nav.whereNowAria", "{step}, where the project is now", { step: journey.now.label })}
               className={cn("min-w-0 truncate rounded font-medium text-ink underline-offset-4 hover:underline", FOCUS)}>{shortLabel}</Link>
           ) : (
             <span className="min-w-0 truncate font-medium text-ink" title={label}>{shortLabel}</span>
@@ -156,13 +157,13 @@ function JourneyBar({ projectId, journey, wikiOpen }: { projectId: string; journ
           {t("project.nav.allSteps", "All steps")}
           <ChevronDown aria-hidden size={14} strokeWidth={2} className={cn("transition-transform motion-reduce:transition-none", open && "rotate-180")} />
         </button>
-        <Link to={`/p/${projectId}/wiki`} aria-current={wikiOpen ? "page" : undefined} title={t("project.nav.wiki", "Wiki")}
+        <Link to={prefixPath(`/p/${projectId}/wiki`)} aria-current={wikiOpen ? "page" : undefined} title={t("project.nav.wiki", "Wiki")}
           className={cn("inline-flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-2.5 text-[13px] font-medium transition-colors lg:px-3", FOCUS,
             wikiOpen ? "bg-accent-soft text-accent" : "text-ink2 hover:bg-surface2 hover:text-ink")}>
           <BookOpen aria-hidden size={16} strokeWidth={1.75} />
           <span className="max-lg:sr-only">{t("project.nav.wiki", "Wiki")}</span>
         </Link>
-        <Link to={`/p/${projectId}/produced`} aria-current={producedOpen ? "page" : undefined} title={t("project.nav.produced", "What MADP produced")} aria-label={t("project.nav.produced", "What MADP produced")}
+        <Link to={prefixPath(`/p/${projectId}/produced`)} aria-current={producedOpen ? "page" : undefined} title={t("project.nav.produced", "What MADP produced")} aria-label={t("project.nav.produced", "What MADP produced")}
           className={cn("inline-flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-2.5 text-[13px] font-medium transition-colors lg:px-3", FOCUS,
             producedOpen ? "bg-accent-soft text-accent" : "text-ink2 hover:bg-surface2 hover:text-ink")}>
           <FolderOpen aria-hidden size={16} strokeWidth={1.75} />
@@ -257,7 +258,7 @@ function StepSegments({ projectId, journey, progress }: { projectId: string; jou
         return (
           <li key={s.id} className="flex min-w-0 flex-1">
             {s.open ? (
-              <Link data-seg to={`/p/${projectId}/${s.slug}`} aria-current={here ? "page" : undefined} title={s.what}
+              <Link data-seg to={prefixPath(`/p/${projectId}/${s.slug}`)} aria-current={here ? "page" : undefined} title={s.what}
                 className={cn(cell, "transition-colors hover:bg-surface2", FOCUS, here && "bg-surface2/60")}>{body}</Link>
             ) : (
               <span data-seg role="link" tabIndex={0} aria-disabled="true" title={s.reason ?? t("project.nav.notAvailableYet", "Not available yet")} className={cn(cell, "cursor-not-allowed", FOCUS)}>{body}</span>
@@ -272,7 +273,7 @@ function StepSegments({ projectId, journey, progress }: { projectId: string; jou
 const ITEMS = "a[href]";
 
 /** The desktop panel under "All steps": Escape and a click outside close it, the arrow keys move between the open steps. */
-function StepsPopover({ anchor, id, onClose, children }: { anchor: RefObject<HTMLButtonElement>; id: string; onClose: (focusTrigger?: boolean) => void; children: ReactNode }) {
+function StepsPopover({ anchor, id, onClose, children }: { anchor: RefObject<HTMLButtonElement | null>; id: string; onClose: (focusTrigger?: boolean) => void; children: ReactNode }) {
   const t = useT();
   const panel = useRef<HTMLDivElement>(null);
   const closeRef = useRef(onClose);
@@ -324,12 +325,12 @@ function StepList({ projectId, journey, onPick, heading }: { projectId: string; 
         {journey.items.map((s) => <StepRow key={s.id} projectId={projectId} step={s} onPick={onPick} />)}
       </ol>
       <div className="mt-1 border-t border-line pt-1">
-        <Link to={`/p/${projectId}/wiki`} onClick={onPick}
+        <Link to={prefixPath(`/p/${projectId}/wiki`)} onClick={onPick}
           className={cn("flex items-center gap-3 rounded-block px-3 py-2.5 text-[13px] text-ink2 transition-colors hover:bg-surface2 hover:text-ink", FOCUS)}>
           <BookOpen aria-hidden size={16} strokeWidth={1.75} className="shrink-0" />
           <span><span className="font-medium text-ink">{t("project.nav.wiki", "Wiki")}</span>{` · ${t("project.nav.wikiHint", "everything about the project, open at every step")}`}</span>
         </Link>
-        <Link to={`/p/${projectId}/produced`} onClick={onPick}
+        <Link to={prefixPath(`/p/${projectId}/produced`)} onClick={onPick}
           className={cn("flex items-center gap-3 rounded-block px-3 py-2.5 text-[13px] text-ink2 transition-colors hover:bg-surface2 hover:text-ink", FOCUS)}>
           <FolderOpen aria-hidden size={16} strokeWidth={1.75} className="shrink-0" />
           <span><span className="font-medium text-ink">{t("project.nav.produced", "What MADP produced")}</span>{` · ${t("project.nav.producedHint", "every file the agents saved, to open or download")}`}</span>
@@ -387,7 +388,7 @@ function StepRow({ projectId, step, onPick }: { projectId: string; step: Journey
   return (
     <li>
       {step.open ? (
-        <Link to={`/p/${projectId}/${step.slug}`} onClick={onPick} aria-current={step.viewing ? "page" : undefined}
+        <Link to={prefixPath(`/p/${projectId}/${step.slug}`)} onClick={onPick} aria-current={step.viewing ? "page" : undefined}
           className={cn(row, "transition-colors hover:bg-surface2 focus-visible:bg-surface2", FOCUS, step.viewing && "bg-surface2/60")}>
           {body}
         </Link>

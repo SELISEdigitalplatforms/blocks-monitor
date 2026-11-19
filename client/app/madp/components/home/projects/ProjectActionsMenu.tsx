@@ -10,6 +10,7 @@ import type { ProjectNow } from "@/madp/domain/projectNow";
 import { IconButton, MENU_ITEM, MENU_PANEL } from "@/madp/ui/kit";
 import { Popover } from "@/madp/ui/popover";
 import { cn } from "@/madp/lib/cn";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import type { LatestRelease, QuickAction } from "./projectCards";
 import { QUICK_ICON } from "./QuickActions";
 import { useT } from "@/madp/i18n";
@@ -96,7 +97,7 @@ export function ProjectActionsMenu({ project, onOpen, onRename, onDelete, quick 
           })}
           {quick.length > 0 && <div role="separator" className="mx-2 my-1.5 h-px bg-line" />}
           <button type="button" role="menuitem" onClick={pick(onOpen)} className={ITEM}><ArrowRight size={16} strokeWidth={1.75} /> {t("common.actions.open", "Open")}</button>
-          <button type="button" role="menuitem" onClick={pick((p) => navigate(`/p/${p.id}/wiki`))} className={ITEM}><BookOpen size={16} strokeWidth={1.75} /> {t("shell.nav.wiki", "Wiki")}</button>
+          <button type="button" role="menuitem" onClick={pick((p) => navigate(prefixPath(`/p/${p.id}/wiki`)))} className={ITEM}><BookOpen size={16} strokeWidth={1.75} /> {t("shell.nav.wiki", "Wiki")}</button>
           {canEdit && <button type="button" role="menuitem" onClick={pick(onRename)} className={ITEM}><PenLine size={16} strokeWidth={1.75} /> {t("shell.projects.rename", "Rename")}</button>}
           {canDelete && (
             <button type="button" role="menuitem" onClick={pick(onDelete)} className={cn(ITEM, "text-danger hover:text-danger focus-visible:text-danger")}>

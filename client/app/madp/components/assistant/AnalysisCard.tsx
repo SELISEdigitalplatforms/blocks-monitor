@@ -15,6 +15,7 @@ import { CodeRefChip } from "./CodeRefChip";
 import { FixProgress } from "./FixProgress";
 import { envLabel } from "./assistantWindowState";
 import { t, useT } from "@/madp/i18n";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 type ChipTone = NonNullable<ComponentProps<typeof Chip>["tone"]>;
 
@@ -78,7 +79,7 @@ function FixActions({ message, projectId, jobs }: { message: AssistantMessageRec
   const started = message.fixState === "started";
   const cr = crId ? requests.find((r) => r.id === crId) ?? null : null;
   const job = fixJobOf(jobs, crId);
-  const release = `/p/${projectId}/delivered`;
+  const release = prefixPath(`/p/${projectId}/delivered`);
   const failure = startFix.failure;
   const error = failure?.error ?? decline.error;
 

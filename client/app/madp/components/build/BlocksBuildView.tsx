@@ -64,6 +64,7 @@ import { AfterDeployNotice } from "./AfterDeployNotice";
 import { checksSettled } from "@/madp/domain/changeChecks";
 import { WaitingForYouLine } from "./WaitingForYouLine";
 import { UsagePill } from "@/madp/components/billing/UsagePill";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { t, useT } from "@/madp/i18n";
 import { toBuildUsage } from "@/madp/components/billing/types";
 import { useJobUsage } from "@/madp/components/billing/billingData";
@@ -437,7 +438,7 @@ export function BlocksBuildView({ projectId }: { projectId: string }) {
     case "change":
       primary = {
         label: step.primary.label, disabled: step.primary.disabled, reason: step.primary.reason ?? undefined,
-        href: step.change?.number != null ? `/p/${projectId}/build?cr=${step.change.number}` : undefined,
+        href: step.change?.number != null ? prefixPath(`/p/${projectId}/build?cr=${step.change.number}`) : undefined,
       };
       break;
     default:

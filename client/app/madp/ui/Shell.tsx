@@ -202,7 +202,7 @@ export function menuKeyTarget(key: string, spots: readonly MenuSpot[], at: numbe
 /** A menu's keyboard: focus starts on the first item; the arrow keys move through the items (plain and radio rows),
  *  within a column when the menu has columns ([data-menu-column]) and across them with Left / Right; Tab leaves and
  *  closes it. A text field in the menu ([data-menu-field]) is a stop for Up / Down; in it the other keys edit the text. */
-function useMenuKeys(open: boolean, close: () => void, panel?: RefObject<HTMLDivElement>) {
+function useMenuKeys(open: boolean, close: () => void, panel?: RefObject<HTMLDivElement | null>) {
   const own = useRef<HTMLDivElement>(null);
   const menu = panel ?? own;
   /** the row last focused in each column, so Left / Right come back to it */

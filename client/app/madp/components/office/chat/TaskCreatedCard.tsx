@@ -7,12 +7,13 @@ import { stepPathWith } from "@/madp/components/scope/links";
 import { searchWithTab } from "@/madp/components/requirements/requirementsTab";
 import type { AgentChatTask } from "@/madp/blocks/collab/records";
 import { useT } from "@/madp/i18n";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 const ICON = { size: 16, strokeWidth: 1.75, "aria-hidden": true } as const;
 
 /** The change request view for a change request code (CR-001 → ?cr=1), which shows the request and when it can be built. */
 export function taskChangeLink(projectId: string, code: string): string {
-  return `/p/${projectId}/${JOURNEY_SLUG.build}?cr=${Number(code.replace(/\D/g, ""))}`;
+  return prefixPath(`/p/${projectId}/${JOURNEY_SLUG.build}?cr=${Number(code.replace(/\D/g, ""))}`);
 }
 
 /** The Build → Board link for a board task: the ticket's ItemId from the card's data or the server link (/p/:id/board?ticket=<ItemId>), else the board alone. */
@@ -43,7 +44,7 @@ export function TaskCreatedCard({ task, projectId }: { task: Pick<AgentChatTask,
       : task.target === "streams-setting" || task.target === "continue-setting"
         ? {
           icon: <GitBranch {...ICON} />, head: task.target === "streams-setting" ? t("studio.office.task.parallelStreamsHead", "Parallel streams") : t("studio.office.task.nextIncrementsHead", "Next increments"),
-          note: task.text ?? t("studio.office.task.saved", "Saved."), action: t("studio.office.task.openBuildQueue", "Open the build queue"), run: () => navigate(`/p/${projectId}/${JOURNEY_SLUG.build}?tab=queue`),
+          note: task.text ?? t("studio.office.task.saved", "Saved."), action: t("studio.office.task.openBuildQueue", "Open the build queue"), run: () => navigate(prefixPath(`/p/${projectId}/${JOURNEY_SLUG.build}?tab=queue`)),
         }
       : task.target === "screen-comment" || task.target === "scope-comment"
         ? {

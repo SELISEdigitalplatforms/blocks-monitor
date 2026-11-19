@@ -39,7 +39,7 @@ createRoot(document.getElementById("root")!).render(
                     dark: "/Logo_Dark.svg",
                     light: "/Logo_Light.svg",
                   },
-                  name: "blocks-madp",
+                  name: "blocks-madp" as never,
                 }}
               >
                 <RouterProvider router={router} />

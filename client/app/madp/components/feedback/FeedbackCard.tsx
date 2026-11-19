@@ -27,6 +27,7 @@ import {
 } from "./feedbackApply";
 import { feedbackItemSelector, openFeedback, setNotice, useFeedbackUi, type FeedbackTarget } from "./feedbackUi";
 import { t, useT } from "@/madp/i18n";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 const TEXT_BTN = "inline-flex items-center gap-1 rounded-full text-[12px] font-medium text-ink2 outline-none transition hover:text-ink focus-visible:ring-2 focus-visible:ring-accent/50";
 
@@ -76,7 +77,7 @@ function TeamText({ text, projectId }: { text: string; projectId: string }) {
     const at = m.index ?? 0;
     if (at > last) parts.push(text.slice(last, at));
     parts.push(
-      <Link key={at} to={`/p/${projectId}/${JOURNEY_SLUG.build}?cr=${Number(m[1])}`} className="font-medium text-accent hover:underline">{m[0]}</Link>,
+      <Link key={at} to={prefixPath(`/p/${projectId}/${JOURNEY_SLUG.build}?cr=${Number(m[1])}`)} className="font-medium text-accent hover:underline">{m[0]}</Link>,
     );
     last = at + m[0].length;
   }

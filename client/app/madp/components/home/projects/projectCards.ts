@@ -6,6 +6,7 @@ import { phaseNameOf } from "@/madp/components/project/stepNames";
 import { ENV_LABEL, isActiveJob, releaseRows, type DashJob, type DashProject, type DashRelease, type ReleaseEnv } from "@/madp/domain/dashboard";
 import type { EngineJobKind } from "@/madp/domain/engineJob";
 import { getCulture, t } from "@/madp/i18n";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 /* ── the view: grid or list, remembered per browser ───────────────────────── */
 
@@ -114,7 +115,7 @@ export interface QuickAction {
  *  None for a project being deleted. */
 export function quickActions(p: { id: string; step: JourneyStep; status?: string }, building = false): QuickAction[] {
   if (p.status === "deleting") return [];
-  const out: QuickAction[] = [{ id: "docs", label: t("shell.projects.quick.docs", "Docs"), title: t("shell.projects.quick.docsTitle", "What MADP produced for this project"), to: `/p/${p.id}/produced`, highlight: false }];
+  const out: QuickAction[] = [{ id: "docs", label: t("shell.projects.quick.docs", "Docs"), title: t("shell.projects.quick.docsTitle", "What MADP produced for this project"), to: prefixPath(`/p/${p.id}/produced`), highlight: false }];
   const phase = phaseOf(p.step);
   const engineering = phase === "engineering" || phase === "release";
   if (engineering) {

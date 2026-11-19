@@ -17,6 +17,7 @@ import { applyCheckoutCode, checkoutErrorText, startCheckout, useBillingAccount,
 import { dayText, dueSentence, money, paidWith, summaryLines } from "./checkoutText";
 import { FunctionError } from "@/madp/blocks/fn";
 import type { BillingPlan } from "./types";
+import { rewritePath } from "@/madp/lib/pathPrefix";
 
 /** A button that opens a page (a button, never a button inside a link). */
 function GoButton({ to, variant, children }: { to: string; variant?: "primary" | "ghost"; children: string }) {
@@ -149,7 +150,7 @@ function Done({ title, text }: { title: string; text: string }) {
       </div>
       <div className="flex flex-wrap gap-3">
         <GoButton to="/billing">{t("billing.checkout.billingAndReceipts", "Billing and receipts")}</GoButton>
-        <GoButton to="/dashboard" variant="ghost">{t("billing.checkout.backToProjects", "Back to your projects")}</GoButton>
+        <GoButton to={rewritePath("/dashboard")} variant="ghost">{t("billing.checkout.backToProjects", "Back to your projects")}</GoButton>
       </div>
     </div>
   );
@@ -213,7 +214,7 @@ function PaidCheckout({ plan, workspaceId, workspaceName, initialCode }: { plan:
   if (!current) return <Loading />;
 
   if (current.status === "paid" && current.receipt) {
-    return <Paid checkout={current} workspaceName={workspaceName} onDone={() => navigate("/dashboard")} />;
+    return <Paid checkout={current} workspaceName={workspaceName} onDone={() => navigate(rewritePath("/dashboard"))} />;
   }
 
   const closed = current.status !== "open";

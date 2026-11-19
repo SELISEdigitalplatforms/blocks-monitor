@@ -50,6 +50,7 @@ import { promotionMoveText, releaseKey, releaseMilestones, whereItRuns } from ".
 import { RELEASE_ROLE, releaseNotes, releaseStep, type ReleaseChipId } from "./releaseStep";
 import { envName, envWord, pickTarget } from "./releaseUi";
 import { BlocksConnectNotice } from "@/madp/components/engine/BlocksConnectCard";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { t, useCulture, useT } from "@/madp/i18n";
 
 const targets = () => [
@@ -255,7 +256,7 @@ export function BlocksReleaseView({ projectId }: { projectId: string }) {
         chipsLabel={t("build.release.page.checklist", "Release checklist")}
         primary={{
           label: building ? t("build.release.step.goToEngineering", "Go to Software Engineering") : t("build.release.page.goToCurrent", "Go to the current step"),
-          href: `/p/${projectId}/${building ? "build" : "business"}`,
+          href: prefixPath(`/p/${projectId}/${building ? "build" : "business"}`),
         }}
         details={<div className="flex min-w-0 flex-col gap-6">{policyEditor(params.get("env") === "production" ? "production" : "stage")}{changePanel}</div>}
         detailsLabel={t("build.release.page.detailsGate", "Details · approvals, change requests")} detailsOpen={detailsOpen}>
@@ -382,7 +383,7 @@ export function BlocksReleaseView({ projectId }: { projectId: string }) {
   let primary: StepPrimary | null = null;
   switch (step.primary.kind) {
     case "build":
-      primary = { label: step.primary.label, href: `/p/${projectId}/build` };
+      primary = { label: step.primary.label, href: prefixPath(`/p/${projectId}/build`) };
       break;
     case "approve":
       primary = {
@@ -444,7 +445,7 @@ export function BlocksReleaseView({ projectId }: { projectId: string }) {
         {t("build.release.page.addFeature", "Add a feature")}
       </Button>
     )}
-    <Link to={`/p/${projectId}/produced`}
+    <Link to={prefixPath(`/p/${projectId}/produced`)}
       className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-surface2 px-3.5 text-[13px] font-medium text-ink outline-none transition hover:bg-line focus-visible:ring-2 focus-visible:ring-accent/50">
       <FolderOpen size={15} strokeWidth={1.75} aria-hidden />{t("build.release.page.produced", "What MADP produced")}
     </Link>

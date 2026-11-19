@@ -11,6 +11,7 @@ import { relativeTime } from "./ProjectsView";
 import { useProjectsNow, WaitingChips, WorkingLine } from "./ProjectNowParts";
 import type { ProjectNow } from "@/madp/domain/projectNow";
 import { projectActivityAt, projectsByActivity } from "@/madp/domain/dashboard";
+import { rewritePath } from "@/madp/lib/pathPrefix";
 import { useT } from "@/madp/i18n";
 
 const MAX = 4;
@@ -60,7 +61,7 @@ export function RecentProjects({ className }: { className?: string }) {
   const items = projectsByActivity(useProjectList().data ?? [], activity);
   return (
     <Card className={className} title={t("shell.home.recentProjects", "Recent projects")} icon={<FolderKanban size={18} strokeWidth={1.75} />}
-      action={<ArrowButton label={t("shell.dashboard.allProjects", "All projects")} onClick={() => navigate("/projects")} />}>
+      action={<ArrowButton label={t("shell.dashboard.allProjects", "All projects")} onClick={() => navigate(rewritePath("/projects"))} />}>
       <ul className="flex flex-col divide-y divide-line">
         {items.slice(0, MAX).map((p) => <Row key={p.id} p={p} now={now.get(p.id)} activity={activity} />)}
       </ul>

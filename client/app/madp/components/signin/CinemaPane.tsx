@@ -9,7 +9,7 @@ import { cn } from "@/madp/lib/cn";
 import { useT } from "@/madp/i18n";
 import type { AuthMode } from "./auth";
 import { Lifecycle } from "./Lifecycle";
-import "@/madp/components/landing/landing.css";
+import "@/components/landing/landing.css";
 import "./cinema.css";
 
 /** The line under the headline, per tab, in the current language. */

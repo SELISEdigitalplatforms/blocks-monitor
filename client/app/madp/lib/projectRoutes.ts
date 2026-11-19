@@ -1,9 +1,10 @@
 import type { ProjectStatus } from "@/madp/data/types";
+import { prefixPath } from "./pathPrefix";
 
 export type ProjectPage = "business" | "sanitization" | "brief" | "requirements" | "objective" | "scope" | "build" | "delivered";
 
 /** A project's page, by project id. */
-export const projectRoute = (id: string, page: ProjectPage): string => `/p/${id}/${page}`;
+export const projectRoute = (id: string, page: ProjectPage): string => prefixPath(`/p/${id}/${page}`);
 
 export interface NextStep { label: string; to: string }
 

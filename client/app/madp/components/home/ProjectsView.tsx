@@ -31,6 +31,7 @@ import { ProjectActionsMenu as ActionsMenu, useCanDo, type ProjectActions as Act
 import { ProjectGrid, ProjectGridSkeleton } from "./projects/ProjectGrid";
 import { useProjectsView, ViewToggle } from "./projects/ViewToggle";
 import { t, useT } from "@/madp/i18n";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 
 export { relativeTime };
 
@@ -109,7 +110,7 @@ export function ProjectsView() {
   const building = useMemo(() => buildingProjects(records.jobs), [records.jobs]);
   const releases = useMemo(() => latestReleases(records.projects, records.releases), [records.projects, records.releases]);
   const [view, setView] = useProjectsView();
-  const act: Actions = { onOpen: (p: ProjectRecord) => navigate(`/p/${p.id}`), onWarm: warm, onRename: setRenaming, onDelete: setDeleting, now, building, releases, activity };
+  const act: Actions = { onOpen: (p: ProjectRecord) => navigate(prefixPath(`/p/${p.id}`)), onWarm: warm, onRename: setRenaming, onDelete: setDeleting, now, building, releases, activity };
 
   return (
     <div className="pb-4">
@@ -277,7 +278,7 @@ export function ProjectTable({ items, ...act }: Actions & { items: ProjectRecord
                   {isDeleting ? (
                     <span className="block break-words text-[15px] font-medium">{project.name}</span>
                   ) : (
-                    <Link to={`/p/${project.id}`} onClick={(e) => e.stopPropagation()}
+                    <Link to={prefixPath(`/p/${project.id}`)} onClick={(e) => e.stopPropagation()}
                       className="block break-words rounded-md text-left text-[15px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-accent/50">{project.name}</Link>
                   )}
                   {where(project) && <span className="block break-words text-[13px] text-ink3">{where(project)}</span>}

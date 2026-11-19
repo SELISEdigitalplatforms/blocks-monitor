@@ -41,6 +41,7 @@ import { PhaseBar, StepList } from "./Steps";
 import { useVisit } from "./store";
 import "../cinematic.css";
 import "./visit.css";
+import { prefixPath, rewritePath } from "@/madp/lib/pathPrefix";
 
 const World = lazy(() => import("../world/World"));
 
@@ -285,7 +286,7 @@ export function OfficeStage() {
   // after the lock: "Your team starts building" → the room fades and Software Engineering opens
   useEffect(() => {
     if (!toBuild || !project) return;
-    const id = window.setTimeout(() => navigate(`/p/${project.id}/build`, { replace: true }), reduced ? 200 : 1500);
+    const id = window.setTimeout(() => navigate(prefixPath(`/p/${project.id}/build`), { replace: true }), reduced ? 200 : 1500);
     return () => window.clearTimeout(id);
   }, [toBuild, project, navigate, reduced]);
 
@@ -323,7 +324,7 @@ export function OfficeStage() {
                 {leaveLabel}
               </button>
             )}
-            <button type="button" aria-label={t("studio.office.visit.top.close", "Close")} onClick={() => navigate("/dashboard")}
+            <button type="button" aria-label={t("studio.office.visit.top.close", "Close")} onClick={() => navigate(rewritePath("/dashboard"))}
               className="cine-pill grid h-10 w-10 place-items-center text-ink2 transition-colors hover:text-ink">
               <X size={17} />
             </button>

@@ -24,7 +24,7 @@ export function createBridgedFetch(): typeof fetch {
  * Falls back to the MADP default if not configured.
  */
 export function getBlocksApiUrl(): string {
-  const env = (window as Record<string, unknown>).__BLOCKS_ENV__ as Record<string, string> | undefined;
+  const env = (window as unknown as Record<string, unknown>).__BLOCKS_ENV__ as Record<string, string> | undefined;
   return env?.BLOCKS_IAM_BASE_URL?.replace("/iam.", "/api.") || "https://blocksapi.slsblx.com";
 }
 
@@ -32,6 +32,6 @@ export function getBlocksApiUrl(): string {
  * Returns the project key from the shell's runtime env.
  */
 export function getBlocksProjectKey(): string {
-  const env = (window as Record<string, unknown>).__BLOCKS_ENV__ as Record<string, string> | undefined;
+  const env = (window as unknown as Record<string, unknown>).__BLOCKS_ENV__ as Record<string, string> | undefined;
   return env?.BLOCKS_X_BLOCKS_KEY || "";
 }

@@ -6,6 +6,7 @@ import { byNewestNumber } from "@/madp/lib/newest";
 import { AttachButton, AttachChipList, AttachZone, SentFiles, attachHold, useAttachDraft } from "@/madp/components/feedback/AttachFiles";
 import { useTalkAttachments } from "@/madp/blocks/collab/talkUpload";
 import { Link } from "react-router-dom";
+import { prefixPath } from "@/madp/lib/pathPrefix";
 import { Plus } from "lucide-react";
 import type { DeliveryContext } from "@/madp/blocks/delivery/context";
 import type { DeliveryChangeRequest, DeliveryMilestone, DeliveryRelease } from "@/madp/blocks/delivery/types";
@@ -106,7 +107,7 @@ export function ChangeRequestsPanel({ ctx, changeRequests, milestones, releases,
                   <Chip tone="neutral">{crStatusLabel(c.status)}</Chip>
                 </div>
                 <p className="mt-2 text-[12px] text-ink2">{t("build.release.changes.savedWaits", "It is saved. It can be built once the first release is on the development environment.")}</p>
-                <Link to={`/p/${ctx.projectId}/build?cr=${c.number}`} className="mt-2 inline-block text-[13px] font-medium text-accent hover:underline">
+                <Link to={prefixPath(`/p/${ctx.projectId}/build?cr=${c.number}`)} className="mt-2 inline-block text-[13px] font-medium text-accent hover:underline">
                   {t("build.release.changes.open", "Open the change request")}
                 </Link>
               </li>
@@ -191,7 +192,7 @@ export function ChangeRequestsPanel({ ctx, changeRequests, milestones, releases,
                 {stage !== "legacy" && (
                   <ChangeLifecycleBar className="mt-3" steps={lifecycleSteps(c.status, stage, analysis, decision.decidedAt, broken ? "broken" : !!open)} />
                 )}
-                <Link to={`/p/${ctx.projectId}/build?cr=${c.number}`} className="mt-2 inline-block text-[13px] font-medium text-accent hover:underline">
+                <Link to={prefixPath(`/p/${ctx.projectId}/build?cr=${c.number}`)} className="mt-2 inline-block text-[13px] font-medium text-accent hover:underline">
                   {stage === "legacy"
                     ? (c.status === "building" ? t("build.release.changes.nextFollowBuild", "Follow the build") : t("build.release.changes.open", "Open the change request"))
                     : broken ? t("build.release.changes.seeNotWorking", "See what does not work yet")

@@ -23,7 +23,7 @@ import { useProjectStore } from "@seliseblocks/genesis-os/store";
 function MadpPathRedirect() {
   const location = useLocation();
   const project = useProjectStore.getState().selectedProject;
-  const itemId = project?.ItemId ?? (project as Record<string, unknown> | null)?.itemId as string ?? "";
+  const itemId = (project as Record<string, unknown> | null)?.ItemId as string ?? (project as Record<string, unknown> | null)?.itemId as string ?? "";
 
   if (!itemId) return <Navigate to="/app/console" replace />;
 
@@ -192,11 +192,11 @@ export const routes = [
                         children: [
                           {
                             index: true,
-                            element: <Suspense fallback={null}><MadpProjectStep /></Suspense>,
+                            element: <Suspense fallback={null}><MadpProjectStep step={1} /></Suspense>,
                           },
                           {
                             path: "business",
-                            element: <Suspense fallback={null}><MadpProjectStep /></Suspense>,
+                            element: <Suspense fallback={null}><MadpProjectStep step={1} /></Suspense>,
                           },
                           {
                             path: "analysis",

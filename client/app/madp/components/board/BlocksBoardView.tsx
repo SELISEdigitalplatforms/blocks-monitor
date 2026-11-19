@@ -27,6 +27,7 @@ import { BoardHeader } from "./BoardHeader";
 import { MILESTONE_STRIP, MilestoneLane } from "./MilestoneLane";
 import { boardCounts, creditedAgent, filterBlocksTickets, isBuilding, milestoneTag, NO_BLOCKS_FILTER, type BlocksBoardFilter } from "./blocksBoard";
 import { useFeatureNames } from "./useFeatureNames";
+import { prefixPath, rewritePath } from "@/madp/lib/pathPrefix";
 import { useT } from "@/madp/i18n";
 
 const PAGE = "flex w-full min-w-0 flex-col";
@@ -103,7 +104,7 @@ export function BlocksBoardView({ projectId, highlightTicketId }: { projectId: s
       <div className={PAGE}>
         <Card>
           <EmptyState icon={<Kanban size={28} strokeWidth={1.75} aria-hidden />} title={t("build.board.notAvailable", "This project isn't available")}
-            action={<Button variant="primary" data-primary="true" onClick={() => navigate("/projects")}>{t("build.board.openProjects", "Open projects")}</Button>} />
+            action={<Button variant="primary" data-primary="true" onClick={() => navigate(rewritePath("/projects"))}>{t("build.board.openProjects", "Open projects")}</Button>} />
         </Card>
       </div>
     );
@@ -126,7 +127,7 @@ export function BlocksBoardView({ projectId, highlightTicketId }: { projectId: s
           <Card>
             <EmptyState icon={<Kanban size={28} strokeWidth={1.75} aria-hidden />} title={t("build.board.lockFirst", "Lock the scope and milestones first")}
               text={t("build.board.lockFirstText", "The task board is planned from the locked scope and its milestones.")}
-              action={<Button variant="primary" data-primary="true" onClick={() => navigate(`/p/${projectId}/scope`)}>{t("build.page.openScope", "Open the scope")}</Button>} />
+              action={<Button variant="primary" data-primary="true" onClick={() => navigate(prefixPath(`/p/${projectId}/scope`))}>{t("build.page.openScope", "Open the scope")}</Button>} />
           </Card>
         ) : (
           <div className="flex flex-col gap-6">

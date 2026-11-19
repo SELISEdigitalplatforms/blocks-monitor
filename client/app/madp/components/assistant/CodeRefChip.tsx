@@ -22,7 +22,7 @@ export function CodeRefChip({ source }: { source: CodeRef }) {
       )}
     >
       {state === "copied" ? <Check size={13} strokeWidth={1.75} className="shrink-0" /> : <FileCode2 size={13} strokeWidth={1.75} className="shrink-0" />}
-      <span ref={target as React.RefObject<HTMLSpanElement>} className="[overflow-wrap:anywhere]">{label}</span>
+      <span ref={target as React.RefObject<HTMLSpanElement | null>} className="[overflow-wrap:anywhere]">{label}</span>
       <span className="sr-only" aria-live="polite">{state === "copied" ? t("assistant.codeRef.copied", "Copied") : ""}</span>
     </button>
   );

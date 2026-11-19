@@ -157,8 +157,8 @@ export function revealItem(panel: HTMLElement, item: HTMLElement, view: Pick<Win
 /* ── the panel ────────────────────────────────────────────────────────────── */
 
 type PanelProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
-  anchorRef: RefObject<HTMLElement>;
-  panelRef?: RefObject<HTMLDivElement>;
+  anchorRef: RefObject<HTMLElement | null>;
+  panelRef?: RefObject<HTMLDivElement | null>;
   placement?: PopoverPlacement;
   offset?: number;
   /** below sm the panel spans the viewport with 16 px gutters */

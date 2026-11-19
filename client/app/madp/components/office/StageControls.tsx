@@ -18,7 +18,7 @@ export function useStageHint(): { state: HintState; dismiss: () => void } {
   const [state, setState] = useState<HintState>(() => {
     try { return localStorage.getItem(HINT_KEY) === "1" ? "hidden" : "shown"; } catch { return "shown"; }
   });
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
   const dismiss = useCallback(() => {
     if (state !== "shown") return;
