@@ -1,14 +1,16 @@
+import { useParams } from "react-router-dom";
 import { useProjectList } from "@/madp/blocks/projects";
 import { Card, EmptyState } from "@/madp/ui/kit";
 import { Hammer } from "lucide-react";
 import { Navigate } from "react-router-dom";
 
 export default function BlocksBuild() {
+  const { itemId = "" } = useParams();
   const list = useProjectList();
   const projects = list.data ?? [];
-  const latest = projects.find((p) => p.status === "active");
+  const linked = projects.find((p) => p.status === "active" && (p as Record<string, unknown>).blocksProjectRef === itemId);
 
   if (list.isPending) return <div className="h-64 rounded-xl bg-muted/20 animate-pulse" />;
-  if (!latest) return <Card><EmptyState icon={<Hammer size={48} strokeWidth={1.5} />} title="No active build" text="Start the analysis first to begin building." /></Card>;
-  return <Navigate to={`../p/${latest.id}/build`} replace />;
+  if (!linked) return <Card><EmptyState icon={<Hammer size={48} strokeWidth={1.5} />} title="No active build" text="Start the analysis first to begin building." /></Card>;
+  return <Navigate to={`/app/${itemId}/p/${linked.id}/build`} replace />;
 }

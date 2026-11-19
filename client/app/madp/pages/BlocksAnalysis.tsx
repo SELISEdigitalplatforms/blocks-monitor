@@ -1,10 +1,11 @@
 /**
  * Blocks shell wrapper for the MADP Analysis workflow.
- * - If no MADP project exists: auto-creates one, then navigates to Business step
+ * Links each Blocks project to its own MADP project via BlocksProjectRef.
+ * - If no MADP project exists for THIS Blocks project: auto-creates one
  * - If a project exists: navigates to the project's current step
  */
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useProjectList } from "@/madp/blocks/projects";
 import { useCreateProjectOnce } from "@/madp/blocks/projects/mutations";
 import { useProjectStore } from "@seliseblocks/genesis-os/store";
@@ -18,33 +19,42 @@ export default function BlocksAnalysis() {
   const [failure, setFailure] = useState<string | null>(null);
   const [created, setCreated] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { itemId = "" } = useParams();
 
-  const projects = list.data ?? [];
-  const latest = projects.find((p) => p.status === "active");
+  // Current Blocks project ID from the URL
+  const blocksProjectId = itemId;
 
   const blocksProject = useProjectStore((s) => s.selectedProject);
   const proj = blocksProject as Record<string, unknown> | null;
   const blocksName = (proj?.Name ?? proj?.name ?? proj?.ProjectName ?? proj?.projectName ?? "Project") as string;
 
-  // Get the current itemId from the URL to build absolute paths
-  const currentPath = window.location.pathname;
-  const itemIdMatch = currentPath.match(/\/app\/([^/]+)\//);
-  const itemId = itemIdMatch?.[1] ?? "";
+  const projects = list.data ?? [];
 
-  // Redirect when project exists or just created — use the project's current step
+  // Find the MADP project that belongs to THIS Blocks project (by BlocksProjectRef)
+  const linkedProject = projects.find(
+    (p) => p.status === "active" && (p as Record<string, unknown>).blocksProjectRef === blocksProjectId
+  );
+
+  // Fallback: if no linked project, check if there's one with matching name
+  const matchByName = !linkedProject
+    ? projects.find((p) => p.status === "active" && p.name === blocksName)
+    : null;
+
+  const madpProject = linkedProject || matchByName;
+
+  // Redirect when project exists or just created
   useEffect(() => {
     if (created && itemId) {
       navigate(`/app/${itemId}/p/${created}/business`, { replace: true });
-    } else if (latest && itemId) {
-      // Map MADP stage to the correct page
-      const step = latest.step ?? "business";
+    } else if (madpProject && itemId) {
+      const step = madpProject.step ?? "business";
       const page = step === "build" || step === "release" ? step
         : step === "scope" || step === "requirements" || step === "sanitization" || step === "understanding"
           ? "analysis"
           : "business";
-      navigate(`/app/${itemId}/p/${latest.id}/${page}`, { replace: true });
+      navigate(`/app/${itemId}/p/${madpProject.id}/${page}`, { replace: true });
     }
-  }, [created, latest, navigate, itemId]);
+  }, [created, madpProject, navigate, itemId]);
 
   if (list.isPending) {
     return (
@@ -59,15 +69,15 @@ export default function BlocksAnalysis() {
     return <Card><Banner tone="danger" title="Could not load" text="Please try again later." /></Card>;
   }
 
-  // If we already know there's a project, show loading while redirect fires
-  if (latest || created) {
+  if (madpProject || created) {
     return <div className="h-64 rounded-xl bg-muted/20 animate-pulse" />;
   }
 
+  // No MADP project for this Blocks project — show initialization
   const handleInitialize = () => {
     setFailure(null);
     create(
-      { name: blocksName, projectType: "greenfield" },
+      { name: blocksName, projectType: "greenfield", blocksProjectRef: blocksProjectId },
       newRequestId(),
     ).then(
       (r) => setCreated(r.project.id),
