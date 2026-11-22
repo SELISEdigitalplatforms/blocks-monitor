@@ -237,3 +237,7 @@ deploy.log
 
 # --- local architecture notes (never commit) ---
 doc/
+
+# StrykerJS (I04-WP4)
+.stryker-tmp
+client/reports/mutation
