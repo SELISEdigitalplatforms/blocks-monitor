@@ -1,0 +1,3 @@
+type: changed
+breaking: false
+summary: The test project references Alert.DomainService directly, so a mutation-testing tool (Stryker.NET) can find the project it mutates; no runtime change.
