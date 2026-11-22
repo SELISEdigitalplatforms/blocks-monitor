@@ -68,6 +68,15 @@ module.exports = {
         caughtErrorsIgnorePattern: "^_",
       },
     ],
+    // Maintainability ratchet (I04-WP8 step 3). Warnings only, at today's maximum, so nothing warns yet. A function
+    // that grows past these limits warns, and the gate counts the warnings against the baseline. Lower the limits
+    // as the code is split up. Measured 2026-11-22 on trunk 55ad53a: highest complexity 29 (pages/monitor/details.tsx),
+    // longest function 398 lines (components/module/monitor/form/monitor-form-fields.tsx).
+    complexity: ["warn", 29],
+    "max-lines-per-function": [
+      "warn",
+      { max: 398, skipBlankLines: false, skipComments: false },
+    ],
     // Naming conventions. Kept intentionally permissive to match the code that exists today
     // (see CONTRIBUTING.md for the target conventions); ratchet toward stricter formats over time.
     // Object/property/import names are left unchecked because they mirror server wire fields.
