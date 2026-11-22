@@ -1,0 +1,63 @@
+{
+  "schemaName": "EngineHostSample",
+  "collectionName": "blx_EngineHostSamples",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "HostId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "EngineHost.HostId of the host."
+    },
+    {
+      "name": "At",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO time of the sample (one per minute; kept 7 days, older ones are deleted by the worker)."
+    },
+    {
+      "name": "CpuPercent",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "CPU busy share, 0..100."
+    },
+    {
+      "name": "MemUsedMb",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Memory in use, MB."
+    },
+    {
+      "name": "RunningJobs",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Engine jobs running."
+    },
+    {
+      "name": "ActiveAgents",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Claude Code agents running."
+    },
+    {
+      "name": "RequestKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Idempotency key, set by the engine worker (engine-host:<HostId>, engine-sample:<HostId>:<minute>, ai-account:<HostId>:<Label>); unique index."
+    }
+  ]
+}

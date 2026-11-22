@@ -1,0 +1,143 @@
+{
+  "schemaName": "PlanningJob",
+  "collectionName": "blx_PlanningJobs",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "ProjectId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Owning project ItemId."
+    },
+    {
+      "name": "Type",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Job type: cr (change request) | bug (bug fix) | nf (new feature)."
+    },
+    {
+      "name": "Title",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Short title of the change/bug/feature."
+    },
+    {
+      "name": "Description",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Detailed description of what needs to change."
+    },
+    {
+      "name": "Status",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Lifecycle: queued | planning | planned | approved | running | done | failed."
+    },
+    {
+      "name": "Priority",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Priority: critical | high | normal | low."
+    },
+    {
+      "name": "RequestedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the person who submitted the request."
+    },
+    {
+      "name": "PlannedModules",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "JSON array of affected module IDs identified by the planner."
+    },
+    {
+      "name": "PlannedAgents",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "JSON array of agent IDs to run for this job."
+    },
+    {
+      "name": "ArtifactsDir",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Path to the isolated planning artifacts directory."
+    },
+    {
+      "name": "PlanSummary",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Human-readable summary of the planner's output."
+    },
+    {
+      "name": "TicketIds",
+      "type": "String",
+      "isArray": true,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Ticket ItemIds created from this planning job."
+    },
+    {
+      "name": "RunId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Engine run ID for tracking."
+    },
+    {
+      "name": "PlannedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "When the planner completed."
+    },
+    {
+      "name": "ApprovedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "When the user approved the plan."
+    },
+    {
+      "name": "ApprovedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the person who approved."
+    },
+    {
+      "name": "CompletedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "When the full pipeline completed for this job."
+    }
+  ]
+}

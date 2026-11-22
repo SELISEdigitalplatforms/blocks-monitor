@@ -1,0 +1,6 @@
+{
+  "name": "mf-workspace-added",
+  "language": "en-US",
+  "subject": "You were added to {{workspaceName}} on MADP Factory",
+  "bodyFile": "mf-workspace-added.en-US.html"
+}

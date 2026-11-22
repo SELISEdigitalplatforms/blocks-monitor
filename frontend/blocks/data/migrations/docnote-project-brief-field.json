@@ -1,0 +1,12 @@
+{
+  "fields": [
+    {
+      "name": "IsProjectBrief",
+      "type": "Boolean",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "True for the Project brief note written from the guided project wizard answers."
+    }
+  ]
+}

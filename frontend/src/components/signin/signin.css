@@ -1,0 +1,37 @@
+/* Sign-in / sign-up card: entrance, cross-fade and hand-off. Only transform and opacity animate. */
+
+@keyframes si-card-in {
+  from { opacity: 0; transform: translateY(18px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes si-field-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes si-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+[data-entrance='on'] .si-card { animation: si-card-in 520ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+[data-entrance='on'] .si-field { animation: si-field-in 360ms ease-out both; animation-delay: calc(300ms + var(--si-i, 0) * 40ms); }
+
+.si-swap[data-switched] { animation: si-fade 200ms ease-out both; }
+
+.si-curtain {
+  opacity: 0;
+  transform-origin: left center;
+  transform: scaleX(0.52);
+  transition: transform 450ms cubic-bezier(0.65, 0, 0.35, 1), opacity 120ms linear;
+}
+[data-handoff] .si-curtain { opacity: 1; transform: none; }
+
+.si-form { transition: opacity 300ms ease; }
+[data-handoff] .si-form { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-entrance='on'] .si-card,
+  [data-entrance='on'] .si-field,
+  .si-swap[data-switched] { animation: none; }
+  .si-curtain, .si-form { transition: none; }
+}

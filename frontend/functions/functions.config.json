@@ -1,0 +1,95 @@
+{
+  "$comment": "Catalogue of the MADP Factory server functions (Host B: Blocks Logic Functions). Read by scripts/functions-build.mjs and scripts/functions-deploy.mjs. Variable names avoid the word KEY because the platform refuses typed values there; ${...} placeholders are filled by the deploy script, {{secret.<id>}} is the platform's own reference syntax.",
+  "projectKey": "D9c1e01c294f04d9e8af59b5caf80ebcb",
+  "allowInstallScripts": false,
+  "trigger": {
+    "httpEnabled": true,
+    "httpMethod": "Post",
+    "httpMethods": [
+      "POST"
+    ],
+    "authMode": "Token",
+    "permissions": [],
+    "roleMatch": "Any",
+    "permissionMatch": "Any",
+    "combine": "Or",
+    "workflowEnabled": false,
+    "reuseSandbox": true,
+    "responseMode": "sync"
+  },
+  "variables": [
+    {
+      "key": "BLOCKS_API_URL",
+      "value": "${apiUrl}"
+    },
+    {
+      "key": "BLOCKS_TENANT",
+      "value": "${projectKey}"
+    },
+    {
+      "key": "SVC_CLIENT_ID",
+      "value": "${ids.fnDataClientId}"
+    },
+    {
+      "key": "SVC_CLIENT_SECRET",
+      "value": "{{secret.${ids.fnDataSecretId}}}"
+    }
+  ],
+  "functions": {
+    "workspace": {
+      "slug": "mf-workspace",
+      "description": "Workspace server operations: create and settings, members, invitations, roles and custom roles, with membership and permission checks on every write.",
+      "roles": [
+        "mf-user",
+        "mf-super-admin"
+      ]
+    },
+    "project": {
+      "slug": "mf-project",
+      "description": "Project server operations: project lifecycle, sanitization, requirements, scope, board and build steps, plus the generic engine job controls.",
+      "roles": [
+        "mf-user",
+        "mf-super-admin"
+      ]
+    },
+    "delivery": {
+      "slug": "mf-delivery",
+      "description": "Delivery server operations: releases, promotions dev to stage to production, approvals and previews, each checked against the project's configured approvals.",
+      "roles": [
+        "mf-user",
+        "mf-super-admin"
+      ]
+    },
+    "collab": {
+      "slug": "mf-collab",
+      "description": "Collaboration server operations: comments, feedback threads, notifications, shares, attachments and the wiki, with server-side permission checks.",
+      "roles": [
+        "mf-user",
+        "mf-super-admin"
+      ]
+    },
+    "admin": {
+      "slug": "mf-admin",
+      "description": "Platform administration server operations: platform roles and assignments, settings, account management and the audit trail for platform administrators.",
+      "roles": [
+        "mf-user",
+        "mf-super-admin"
+      ]
+    },
+    "billing": {
+      "slug": "mf-billing",
+      "description": "Plans, credit and usage: plan catalogue, organization balances, coupons, purchase requests, the usage report, checkout, plan changes, payments, renewal and paywall settings, with membership checks for organization reads, owners for plan changes and platform permissions for administration.",
+      "roles": [
+        "mf-user",
+        "mf-super-admin"
+      ]
+    },
+    "engine": {
+      "slug": "mf-engine",
+      "description": "MADP engine bridge: lets the MADP engine claim jobs, report progress and deliver results into the factory, restricted to the mf-engine role.",
+      "roles": [
+        "mf-engine"
+      ]
+    }
+  }
+}

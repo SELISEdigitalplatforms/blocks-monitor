@@ -1,0 +1,2331 @@
+{
+  "$comment": "Allowed values and limits per schema field. enum -> regex validation ^(a|b)$, required -> notempty, maxLength/minLength -> maxlength/minlength, min/max -> range. For array fields, enum and pattern apply to each element (enforced by the functions).",
+  "version": 1,
+  "schemas": {
+    "Account": {
+      "UserId": {
+        "required": true
+      },
+      "Email": {
+        "required": true,
+        "pattern": "^[^@ ]+@[^@ ]+[.][^@ ]+$",
+        "maxLength": 254
+      },
+      "DisplayName": {
+        "maxLength": 120
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "active",
+          "deactivated"
+        ]
+      }
+    },
+    "AgentChatMessage": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "AgentRole": {
+        "required": true,
+        "enum": [
+          "planner",
+          "dev",
+          "reviewer",
+          "qa",
+          "secops",
+          "docs",
+          "shipper"
+        ]
+      },
+      "Role": {
+        "required": true,
+        "enum": [
+          "user",
+          "agent"
+        ]
+      },
+      "Kind": {
+        "required": true,
+        "enum": [
+          "text",
+          "task-created"
+        ]
+      },
+      "Text": {
+        "maxLength": 2000
+      }
+    },
+    "AiAccount": {
+      "Label": {
+        "required": true,
+        "pattern": "^[a-z0-9][a-z0-9-]{0,39}$"
+      },
+      "Provider": {
+        "required": true,
+        "enum": [
+          "claude-subscription",
+          "anthropic-api"
+        ]
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "active",
+          "standby",
+          "cooling",
+          "disabled"
+        ]
+      },
+      "Usage5hPercent": {
+        "min": -1,
+        "max": 100
+      },
+      "Usage7dPercent": {
+        "min": -1,
+        "max": 100
+      },
+      "Priority": {
+        "min": 0,
+        "max": 1000
+      },
+      "Note": {
+        "maxLength": 300
+      },
+      "HostId": {
+        "required": true,
+        "maxLength": 100
+      }
+    },
+    "ApprovalPolicy": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Environment": {
+        "required": true,
+        "enum": [
+          "stage",
+          "production"
+        ]
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "active",
+          "disabled"
+        ]
+      },
+      "Note": {
+        "maxLength": 1000
+      }
+    },
+    "ApprovalRequest": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "PolicyId": {
+        "required": true
+      },
+      "Environment": {
+        "required": true,
+        "enum": [
+          "stage",
+          "production"
+        ]
+      },
+      "Version": {
+        "required": true,
+        "pattern": "^[0-9]+[.][0-9]+([.][0-9]+)?$"
+      },
+      "Attempt": {
+        "required": true,
+        "min": 1,
+        "max": 1000
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "pending",
+          "approved",
+          "rejected",
+          "cancelled"
+        ]
+      }
+    },
+    "ApprovalStep": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "ParentType": {
+        "required": true,
+        "enum": [
+          "policy",
+          "request"
+        ]
+      },
+      "ParentId": {
+        "required": true
+      },
+      "StepKey": {
+        "required": true,
+        "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"
+      },
+      "StepType": {
+        "required": true,
+        "enum": [
+          "architect",
+          "security",
+          "qa",
+          "custom"
+        ]
+      },
+      "Label": {
+        "maxLength": 60
+      },
+      "Decision": {
+        "enum": [
+          "",
+          "pending",
+          "approved",
+          "rejected"
+        ]
+      },
+      "Comment": {
+        "maxLength": 5000
+      },
+      "SortOrder": {
+        "min": 0,
+        "max": 100
+      }
+    },
+    "AssistantMessage": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Environment": {
+        "required": true,
+        "enum": [
+          "dev",
+          "stage",
+          "production"
+        ]
+      },
+      "Role": {
+        "required": true,
+        "enum": [
+          "user",
+          "assistant"
+        ]
+      },
+      "Kind": {
+        "required": true,
+        "enum": [
+          "text",
+          "analysis"
+        ]
+      },
+      "Text": {
+        "maxLength": 10000
+      },
+      "RefsJson": {
+        "maxLength": 10000
+      },
+      "AttachmentsJson": {
+        "maxLength": 8000
+      },
+      "AnalysisJson": {
+        "maxLength": 50000
+      },
+      "FixState": {
+        "enum": [
+          "none",
+          "offered",
+          "started",
+          "declined"
+        ]
+      }
+    },
+    "Attachment": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "OwnerType": {
+        "required": true,
+        "enum": [
+          "design-brief",
+          "feedback-comment",
+          "change-request",
+          "clarification",
+          "assistant-message",
+          "agent-chat",
+          "ticket"
+        ]
+      },
+      "OwnerId": {
+        "required": true
+      },
+      "FileName": {
+        "maxLength": 255
+      },
+      "StoredName": {
+        "maxLength": 255
+      },
+      "Kind": {
+        "enum": [
+          "email",
+          "notes",
+          "pdf",
+          "doc",
+          "sheet",
+          "slides",
+          "image",
+          "photo",
+          "audio",
+          "video",
+          "archive",
+          "other"
+        ]
+      },
+      "SizeBytes": {
+        "min": 0,
+        "max": 52428800
+      },
+      "Origin": {
+        "enum": [
+          "upload",
+          "paste",
+          "seed",
+          "engine"
+        ]
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "pending",
+          "ready",
+          "rejected",
+          "deleted"
+        ]
+      }
+    },
+    "AuditEvent": {
+      "ActorUserId": {
+        "required": true
+      },
+      "Action": {
+        "required": true,
+        "pattern": "^[a-z][a-zA-Z]*([.][a-z][a-zA-Z-]*)+$"
+      },
+      "TargetType": {
+        "pattern": "^(|[a-z][a-z0-9-]{0,39})$"
+      },
+      "DetailsJson": {
+        "maxLength": 4000
+      }
+    },
+    "Board": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "ScopeVersion": {
+        "min": 1,
+        "max": 1000
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "building",
+          "ready"
+        ]
+      },
+      "PlanHours": {
+        "min": 0,
+        "max": 100000
+      }
+    },
+    "Challenge": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "OpinionId": {
+        "required": true
+      },
+      "ChallengeType": {
+        "pattern": "^(|[a-z][a-z0-9-]{0,39})$"
+      },
+      "Severity": {
+        "required": true,
+        "enum": [
+          "high",
+          "medium",
+          "low"
+        ]
+      },
+      "TargetType": {
+        "enum": [
+          "requirement",
+          "feature",
+          "story",
+          "screen",
+          "objective",
+          "acceptance",
+          "milestone"
+        ]
+      },
+      "FixType": {
+        "pattern": "^(|[a-z][a-z0-9-]{0,39})$"
+      },
+      "Question": {
+        "maxLength": 5000
+      },
+      "Why": {
+        "maxLength": 5000
+      },
+      "SuggestedFix": {
+        "maxLength": 5000
+      },
+      "AnswerText": {
+        "maxLength": 5000
+      },
+      "FinalText": {
+        "maxLength": 5000
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "open",
+          "answered",
+          "accepted",
+          "dismissed"
+        ]
+      }
+    },
+    "ChangeRequest": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Number": {
+        "required": true,
+        "min": 1,
+        "max": 2147483647
+      },
+      "Lane": {
+        "required": true,
+        "enum": [
+          "change",
+          "enhance",
+          "add",
+          "fix"
+        ]
+      },
+      "FeatureRef": {
+        "pattern": "^(|feature:[a-z0-9][a-z0-9-]{0,62})$"
+      },
+      "Title": {
+        "required": true,
+        "maxLength": 200
+      },
+      "Description": {
+        "maxLength": 10000
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "draft",
+          "requested",
+          "analysing",
+          "questions",
+          "review",
+          "approved",
+          "rejected",
+          "building",
+          "released-dev",
+          "promoted-stage",
+          "promoted-production",
+          "failed",
+          "cancelled"
+        ]
+      },
+      "Version": {
+        "pattern": "^(|[0-9]+[.][0-9]+([.][0-9]+)?)$"
+      },
+      "Analysis": {
+        "maxLength": 100000
+      },
+      "DecisionNote": {
+        "maxLength": 2000
+      },
+      "Checks": {
+        "maxLength": 20000
+      }
+    },
+    "ChangeRequestAttachment": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "ChangeRequestId": {
+        "required": true
+      },
+      "AttachmentId": {
+        "required": true
+      },
+      "Position": {
+        "min": 0,
+        "max": 100
+      },
+      "Caption": {
+        "maxLength": 500
+      }
+    },
+    "Clarification": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Number": {
+        "required": true,
+        "min": 1,
+        "max": 2147483647
+      },
+      "Question": {
+        "required": true,
+        "maxLength": 2000
+      },
+      "Answer": {
+        "maxLength": 10000
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "open",
+          "answered",
+          "deferred"
+        ]
+      },
+      "SourceType": {
+        "enum": [
+          "",
+          "doc-note",
+          "doc-file",
+          "attachment",
+          "meeting",
+          "email",
+          "person",
+          "engine"
+        ]
+      },
+      "SortOrder": {
+        "min": 0,
+        "max": 1000000
+      }
+    },
+    "Coupon": {
+      "Code": {
+        "required": true,
+        "pattern": "^[A-Z0-9][A-Z0-9-]{3,31}$"
+      },
+      "AmountUsd": {
+        "min": 0,
+        "max": 1000000
+      },
+      "MaxRedemptions": {
+        "min": 0,
+        "max": 1000000
+      },
+      "Note": {
+        "maxLength": 500
+      },
+      "Kind": {
+        "enum": [
+          "credit",
+          "plan",
+          "discount"
+        ]
+      },
+      "PlanKeys": {
+        "pattern": "^[a-z][a-z0-9-]{1,31}$"
+      },
+      "DurationMonths": {
+        "min": 1,
+        "max": 36
+      },
+      "PercentOff": {
+        "min": 0,
+        "max": 100
+      },
+      "AmountOffUsd": {
+        "min": 0,
+        "max": 1000000
+      },
+      "PerPersonLimit": {
+        "min": 0,
+        "max": 1000
+      }
+    },
+    "CreditEntry": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "Kind": {
+        "required": true,
+        "enum": [
+          "signup",
+          "plan",
+          "coupon",
+          "purchase",
+          "usage",
+          "adjustment"
+        ]
+      },
+      "Note": {
+        "maxLength": 500
+      },
+      "DetailJson": {
+        "maxLength": 2000
+      },
+      "AmountUsd": {
+        "min": -1000000,
+        "max": 1000000
+      }
+    },
+    "Decision": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Number": {
+        "required": true,
+        "min": 1,
+        "max": 2147483647
+      },
+      "Title": {
+        "required": true,
+        "maxLength": 200
+      },
+      "Statement": {
+        "maxLength": 5000
+      },
+      "Rationale": {
+        "maxLength": 5000
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "proposed",
+          "accepted",
+          "rejected",
+          "superseded"
+        ]
+      }
+    },
+    "DesignBrief": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Mode": {
+        "required": true,
+        "enum": [
+          "figma",
+          "sample",
+          "describe"
+        ]
+      },
+      "Instructions": {
+        "maxLength": 20000
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "draft",
+          "confirmed"
+        ]
+      },
+      "Origin": {
+        "enum": [
+          "",
+          "live-product"
+        ]
+      }
+    },
+    "DesignScreen": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Key": {
+        "required": true,
+        "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"
+      },
+      "Version": {
+        "required": true,
+        "min": 1,
+        "max": 1000
+      },
+      "Name": {
+        "maxLength": 120
+      },
+      "Width": {
+        "min": 1,
+        "max": 20000
+      },
+      "Height": {
+        "min": 1,
+        "max": 20000
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "generated",
+          "accepted",
+          "changes-requested",
+          "superseded"
+        ]
+      }
+    },
+    "DocFile": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Name": {
+        "required": true,
+        "maxLength": 255
+      },
+      "StoredName": {
+        "maxLength": 255
+      },
+      "Kind": {
+        "enum": [
+          "email",
+          "notes",
+          "pdf",
+          "doc",
+          "sheet",
+          "slides",
+          "image",
+          "photo",
+          "audio",
+          "video",
+          "archive",
+          "other"
+        ]
+      },
+      "SizeBytes": {
+        "min": 0,
+        "max": 52428800
+      },
+      "SortOrder": {
+        "min": 0,
+        "max": 1000000
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "pending",
+          "ready",
+          "rejected",
+          "deleted"
+        ]
+      }
+    },
+    "DocFolder": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Name": {
+        "required": true,
+        "maxLength": 120,
+        "minLength": 1
+      },
+      "Kind": {
+        "required": true,
+        "enum": [
+          "meeting",
+          "presentation",
+          "event",
+          "ideation",
+          "other"
+        ]
+      },
+      "SortOrder": {
+        "min": 0,
+        "max": 1000000
+      },
+      "Status": {
+        "enum": [
+          "",
+          "active",
+          "deleting"
+        ]
+      }
+    },
+    "DocNote": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Title": {
+        "required": true,
+        "maxLength": 200,
+        "minLength": 1
+      },
+      "BodyMd": {
+        "maxLength": 200000
+      },
+      "SortOrder": {
+        "min": 0,
+        "max": 1000000
+      }
+    },
+    "EngineHost": {
+      "HostId": {
+        "required": true,
+        "maxLength": 100
+      },
+      "Name": {
+        "maxLength": 60
+      },
+      "CpuPercent": {
+        "min": 0,
+        "max": 100
+      },
+      "Release": {
+        "maxLength": 120
+      }
+    },
+    "EngineHostSample": {
+      "HostId": {
+        "required": true,
+        "maxLength": 100
+      },
+      "At": {
+        "required": true,
+        "maxLength": 40
+      },
+      "CpuPercent": {
+        "min": 0,
+        "max": 100
+      }
+    },
+    "EngineJob": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Kind": {
+        "required": true,
+        "enum": [
+          "requirements.draft",
+          "sanitization.assist",
+          "design.generate",
+          "scope.draft",
+          "scope.grill",
+          "scope.success",
+          "milestones.suggest",
+          "board.plan",
+          "build.run",
+          "change.build",
+          "change.analyse",
+          "fix.analyse",
+          "preview.deploy",
+          "wiki.generate",
+          "chat.reply",
+          "setup.assist",
+          "file.extract",
+          "feedback.apply",
+          "engine.skills-sync",
+          "docs.generate",
+          "product.document",
+          "platform.feedback"
+        ]
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "queued",
+          "claimed",
+          "running",
+          "succeeded",
+          "failed",
+          "cancelled"
+        ]
+      },
+      "ActiveKey": {
+        "required": true,
+        "maxLength": 200
+      },
+      "TargetType": {
+        "pattern": "^(|[a-z][a-z0-9-]{0,39})$"
+      },
+      "InputJson": {
+        "maxLength": 200000
+      },
+      "Progress": {
+        "min": 0,
+        "max": 100
+      },
+      "Message": {
+        "maxLength": 2000
+      },
+      "Attempts": {
+        "min": 0,
+        "max": 10
+      },
+      "UsageJson": {
+        "maxLength": 2000
+      }
+    },
+    "Feature": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "ScopeVersion": {
+        "required": true,
+        "min": 1,
+        "max": 1000
+      },
+      "Key": {
+        "required": true,
+        "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"
+      },
+      "Title": {
+        "required": true,
+        "maxLength": 200
+      },
+      "Description": {
+        "maxLength": 5000
+      },
+      "Priority": {
+        "required": true,
+        "enum": [
+          "must",
+          "nice",
+          "later"
+        ]
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "planned",
+          "dropped"
+        ]
+      },
+      "RequirementRefs": {
+        "pattern": "^requirement:[a-z0-9][a-z0-9-]{0,62}$"
+      },
+      "Origin": {
+        "enum": [
+          "",
+          "live-product"
+        ]
+      }
+    },
+    "FeedbackComment": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "ThreadId": {
+        "required": true
+      },
+      "Kind": {
+        "required": true,
+        "enum": [
+          "comment",
+          "system",
+          "agent",
+          "proposal"
+        ]
+      },
+      "Text": {
+        "required": true,
+        "maxLength": 5000
+      }
+    },
+    "FeedbackThread": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "TargetType": {
+        "required": true,
+        "enum": [
+          "requirement",
+          "feature",
+          "story",
+          "screen",
+          "objective",
+          "acceptance",
+          "milestone",
+          "success",
+          "clarification",
+          "decision",
+          "tech-decision",
+          "sanitization",
+          "extra"
+        ]
+      },
+      "TargetId": {
+        "required": true
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "open",
+          "resolved",
+          "working",
+          "updated"
+        ]
+      }
+    },
+    "Invitation": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "Email": {
+        "required": true,
+        "pattern": "^[^@ ]+@[^@ ]+[.][^@ ]+$",
+        "maxLength": 254
+      },
+      "RoleKey": {
+        "required": true,
+        "pattern": "^[a-z][a-z0-9-]{1,39}$"
+      },
+      "Kind": {
+        "required": true,
+        "enum": [
+          "existing-account",
+          "pending-account"
+        ]
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "pending",
+          "approved",
+          "rejected",
+          "accepted",
+          "cancelled"
+        ]
+      },
+      "Note": {
+        "maxLength": 1000
+      }
+    },
+    "ItemVersion": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "ItemKey": {
+        "required": true,
+        "pattern": "^((requirement|feature|story|screen|acceptance|milestone|clarification|decision|tech-decision):[a-z0-9][a-z0-9-]{0,62}|objective:main)$"
+      },
+      "N": {
+        "required": true,
+        "min": 1,
+        "max": 20
+      },
+      "Text": {
+        "maxLength": 20000
+      },
+      "Origin": {
+        "enum": [
+          "feedback",
+          "second-opinion",
+          "person",
+          "engine"
+        ]
+      }
+    },
+    "Membership": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "Email": {
+        "required": true,
+        "pattern": "^[^@ ]+@[^@ ]+[.][^@ ]+$",
+        "maxLength": 254
+      },
+      "DisplayName": {
+        "maxLength": 120
+      },
+      "RoleKey": {
+        "required": true,
+        "pattern": "^[a-z][a-z0-9-]{1,39}$"
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "pending-account",
+          "invited",
+          "active",
+          "suspended",
+          "removed"
+        ]
+      }
+    },
+    "Milestone": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "ScopeVersion": {
+        "required": true,
+        "min": 1,
+        "max": 1000
+      },
+      "Number": {
+        "required": true,
+        "min": 1,
+        "max": 100
+      },
+      "Name": {
+        "required": true,
+        "maxLength": 120
+      },
+      "Goal": {
+        "maxLength": 2000
+      },
+      "FeatureRefs": {
+        "pattern": "^feature:[a-z0-9][a-z0-9-]{0,62}$"
+      },
+      "PreviewPoint": {
+        "maxLength": 500
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "planned",
+          "building",
+          "preview-ready",
+          "done"
+        ]
+      },
+      "Origin": {
+        "enum": [
+          "",
+          "live-product"
+        ]
+      }
+    },
+    "Notification": {
+      "RecipientUserId": {
+        "required": true
+      },
+      "EventKey": {
+        "required": true,
+        "maxLength": 200
+      },
+      "Kind": {
+        "required": true,
+        "enum": [
+          "invited",
+          "access-requested",
+          "assigned",
+          "shared",
+          "business.handed-over",
+          "requirements.ready",
+          "scope.ready",
+          "build.started",
+          "job.succeeded",
+          "job.failed",
+          "preview.ready",
+          "approval.requested",
+          "approval.decided",
+          "release.created",
+          "release.promoted",
+          "change.released"
+        ]
+      },
+      "ParamsJson": {
+        "maxLength": 2000
+      },
+      "Link": {
+        "pattern": "^/",
+        "maxLength": 500
+      },
+      "EmailStatus": {
+        "enum": [
+          "none",
+          "pending",
+          "sent",
+          "failed"
+        ]
+      }
+    },
+    "Objective": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Statement": {
+        "maxLength": 5000
+      },
+      "HighLevelMd": {
+        "maxLength": 50000
+      },
+      "ArchitectureMd": {
+        "maxLength": 50000
+      },
+      "SpecVersion": {
+        "min": 0,
+        "max": 1000
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "draft",
+          "confirmed"
+        ]
+      },
+      "Origin": {
+        "enum": [
+          "",
+          "live-product"
+        ]
+      }
+    },
+    "Operation": {
+      "RequestId": {
+        "required": true,
+        "maxLength": 100
+      },
+      "Op": {
+        "required": true,
+        "pattern": "^[a-z][a-zA-Z]*([.][a-z][a-zA-Z-]*)+$"
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "pending",
+          "done",
+          "failed"
+        ]
+      },
+      "ResultJson": {
+        "maxLength": 20000
+      },
+      "Attempt": {
+        "min": 0,
+        "max": 10
+      }
+    },
+    "Payment": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "Kind": {
+        "required": true,
+        "enum": [
+          "new",
+          "upgrade",
+          "renewal"
+        ]
+      },
+      "PlanKey": {
+        "required": true,
+        "maxLength": 32
+      },
+      "Provider": {
+        "required": true,
+        "enum": [
+          "coupon",
+          "blocks",
+          "blocks-utilities"
+        ]
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "open",
+          "paid",
+          "failed",
+          "expired",
+          "cancelled",
+          "refunded"
+        ]
+      },
+      "AmountUsd": {
+        "min": 0,
+        "max": 1000000
+      },
+      "DiscountUsd": {
+        "min": 0,
+        "max": 1000000
+      },
+      "PaidUsd": {
+        "min": 0,
+        "max": 1000000
+      },
+      "CreditUsd": {
+        "min": -1000000,
+        "max": 1000000
+      },
+      "CouponCode": {
+        "maxLength": 32
+      },
+      "ReceiptNo": {
+        "maxLength": 40
+      },
+      "ProviderRef": {
+        "maxLength": 200
+      },
+      "Note": {
+        "maxLength": 500
+      },
+      "DetailJson": {
+        "maxLength": 4000
+      }
+    },
+    "Plan": {
+      "Key": {
+        "required": true,
+        "pattern": "^[a-z][a-z0-9-]{1,31}$"
+      },
+      "Name": {
+        "required": true,
+        "maxLength": 60
+      },
+      "Assisted": {
+        "required": true,
+        "enum": [
+          "none",
+          "tech-lead",
+          "business",
+          "dedicated"
+        ]
+      },
+      "FeaturesJson": {
+        "maxLength": 4000
+      },
+      "PriceUsd": {
+        "min": 0,
+        "max": 1000000
+      },
+      "CreditUsd": {
+        "min": 0,
+        "max": 1000000
+      },
+      "MaxParallelStreams": {
+        "min": 0,
+        "max": 50
+      },
+      "Priority": {
+        "min": 0,
+        "max": 100
+      }
+    },
+    "PlatformRole": {
+      "Key": {
+        "required": true,
+        "pattern": "^[a-z][a-z0-9-]{1,39}$"
+      },
+      "Name": {
+        "required": true,
+        "maxLength": 60
+      },
+      "Description": {
+        "maxLength": 500
+      },
+      "Permissions": {
+        "enum": [
+          "platform.users.view",
+          "platform.users.manage",
+          "platform.people.manage",
+          "platform.workspaces.view",
+          "platform.workspaces.manage",
+          "platform.orgs.manage",
+          "platform.roles.manage",
+          "platform.workspaceRoles.view",
+          "platform.audit.view",
+          "platform.settings.manage",
+          "platform.engine.view",
+          "platform.engine.manage",
+          "platform.ai.manage",
+          "platform.billing.manage",
+          "platform.usage.view",
+          "workspace.manage",
+          "members.manage",
+          "roles.manage",
+          "project.create",
+          "project.edit",
+          "project.run",
+          "project.delete",
+          "project.assign",
+          "business.edit",
+          "sanitization.edit",
+          "requirements.edit",
+          "design.edit",
+          "scope.lock",
+          "milestones.edit",
+          "board.edit",
+          "build.run",
+          "release.request",
+          "release.approve",
+          "release.manage-approvals",
+          "release.promote",
+          "wiki.edit",
+          "share",
+          "items.shareExternal",
+          "comment",
+          "view"
+        ]
+      },
+      "Scope": {
+        "enum": [
+          "platform",
+          "organization"
+        ]
+      }
+    },
+    "PlatformRoleAssignment": {
+      "UserId": {
+        "required": true
+      },
+      "RoleKey": {
+        "required": true,
+        "pattern": "^[a-z][a-z0-9-]{1,39}$"
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "active",
+          "revoked"
+        ]
+      }
+    },
+    "PlatformSetting": {
+      "Key": {
+        "required": true,
+        "enum": [
+          "allowed-email-domains",
+          "allowed-email-exceptions",
+          "engine.rotateAtPercent",
+          "billing.priceFactor",
+          "billing.signupCreditUsd",
+          "billing.provider",
+          "billing.enforce",
+          "billing.internalWorkspaceIds",
+          "billing.source",
+          "auth.signup",
+          "rbac.source",
+          "iam.sync",
+          "iam.parity"
+        ]
+      },
+      "ValueJson": {
+        "maxLength": 20000
+      },
+      "Description": {
+        "maxLength": 500
+      }
+    },
+    "Preview": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "MilestoneId": {
+        "required": true
+      },
+      "Environment": {
+        "required": true,
+        "enum": [
+          "dev"
+        ]
+      },
+      "Version": {
+        "required": true,
+        "pattern": "^[0-9]+[.][0-9]+([.][0-9]+)?$"
+      },
+      "Url": {
+        "pattern": "^(|https://.+)$"
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "queued",
+          "deploying",
+          "ready",
+          "failed",
+          "expired"
+        ]
+      }
+    },
+    "Project": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "Name": {
+        "required": true,
+        "maxLength": 120,
+        "minLength": 1
+      },
+      "ClientName": {
+        "maxLength": 120
+      },
+      "ClientContact": {
+        "maxLength": 120
+      },
+      "Brief": {
+        "maxLength": 50000
+      },
+      "Stage": {
+        "required": true,
+        "enum": [
+          "business",
+          "sanitization",
+          "requirements",
+          "scope",
+          "board",
+          "build",
+          "release",
+          "paused",
+          "abandoned"
+        ]
+      },
+      "ResumeTo": {
+        "enum": [
+          "",
+          "business",
+          "sanitization",
+          "requirements",
+          "scope",
+          "board",
+          "build",
+          "release"
+        ]
+      },
+      "CurrentScopeVersion": {
+        "min": 0,
+        "max": 1000
+      },
+      "RepoProvider": {
+        "enum": [
+          "",
+          "github",
+          "factory"
+        ]
+      },
+      "RepoMode": {
+        "enum": [
+          "",
+          "new",
+          "existing"
+        ]
+      },
+      "RepoVisibility": {
+        "enum": [
+          "",
+          "private",
+          "internal",
+          "public"
+        ]
+      },
+      "Rev": {
+        "min": 0,
+        "max": 2147483647
+      },
+      "Status": {
+        "enum": [
+          "",
+          "active",
+          "deleting"
+        ]
+      },
+      "LiveProductJson": {
+        "maxLength": 50000
+      },
+      "ChecksPolicy": {
+        "maxLength": 200
+      },
+      "ParallelStreams": {
+        "maxLength": 1000
+      },
+      "StreamsAdvice": {
+        "maxLength": 1000
+      },
+      "ContinueIncrements": {
+        "maxLength": 300
+      }
+    },
+    "ProjectAnswer": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "QuestionKey": {
+        "required": true,
+        "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"
+      },
+      "Text": {
+        "maxLength": 5000
+      }
+    },
+    "ProjectAssignment": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      }
+    },
+    "PurchaseRequest": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "UserId": {
+        "required": true
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "pending",
+          "approved",
+          "declined"
+        ]
+      },
+      "Note": {
+        "maxLength": 500
+      },
+      "DecisionNote": {
+        "maxLength": 500
+      },
+      "AmountUsd": {
+        "min": 0,
+        "max": 1000000
+      }
+    },
+    "Release": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Environment": {
+        "required": true,
+        "enum": [
+          "dev",
+          "stage",
+          "production"
+        ]
+      },
+      "Version": {
+        "required": true,
+        "pattern": "^[0-9]+[.][0-9]+([.][0-9]+)?$"
+      },
+      "Url": {
+        "pattern": "^(|https://.+)$"
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "released",
+          "failed",
+          "rolled-back"
+        ]
+      },
+      "Origin": {
+        "enum": [
+          "",
+          "live-product"
+        ]
+      }
+    },
+    "Requirement": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Number": {
+        "required": true,
+        "min": 1,
+        "max": 2147483647
+      },
+      "Key": {
+        "required": true,
+        "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"
+      },
+      "Title": {
+        "required": true,
+        "maxLength": 200
+      },
+      "Text": {
+        "maxLength": 10000
+      },
+      "Category": {
+        "enum": [
+          "functional",
+          "integration",
+          "nfr",
+          "security",
+          "data",
+          "ux",
+          "other"
+        ]
+      },
+      "Priority": {
+        "required": true,
+        "enum": [
+          "must",
+          "nice",
+          "later"
+        ]
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "draft",
+          "confirmed",
+          "assumed",
+          "dropped"
+        ]
+      },
+      "SpecVersion": {
+        "min": 0,
+        "max": 1000
+      },
+      "SortOrder": {
+        "min": 0,
+        "max": 1000000
+      },
+      "Origin": {
+        "enum": [
+          "",
+          "live-product"
+        ]
+      }
+    },
+    "ScopeVersion": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Number": {
+        "required": true,
+        "min": 1,
+        "max": 1000
+      },
+      "Title": {
+        "maxLength": 200
+      },
+      "Summary": {
+        "maxLength": 5000
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "draft",
+          "locked",
+          "unlocked",
+          "superseded"
+        ]
+      },
+      "PlanHours": {
+        "min": 0,
+        "max": 100000
+      },
+      "Origin": {
+        "enum": [
+          "",
+          "live-product"
+        ]
+      }
+    },
+    "SecondOpinion": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "ScopeVersion": {
+        "min": 1,
+        "max": 1000
+      },
+      "Readiness": {
+        "min": 0,
+        "max": 100
+      },
+      "OpenHigh": {
+        "min": 0,
+        "max": 1000
+      },
+      "OpenMedium": {
+        "min": 0,
+        "max": 1000
+      },
+      "OpenLow": {
+        "min": 0,
+        "max": 1000
+      }
+    },
+    "Share": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "ItemType": {
+        "required": true,
+        "enum": [
+          "scope",
+          "screens",
+          "screen",
+          "requirements",
+          "wiki-page",
+          "preview"
+        ]
+      },
+      "ItemRef": {
+        "required": true,
+        "maxLength": 200
+      },
+      "SharedWithUserId": {
+        "required": true
+      }
+    },
+    "ShareLink": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "ItemType": {
+        "required": true,
+        "enum": [
+          "doc.file",
+          "doc.note",
+          "design.screen",
+          "attachment",
+          "wiki.page",
+          "change.request",
+          "change.attachment",
+          "release.preview",
+          "scope"
+        ]
+      },
+      "ItemRef": {
+        "required": true,
+        "minLength": 1,
+        "maxLength": 128
+      },
+      "TokenHash": {
+        "required": true,
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "ViewCount": {
+        "min": 0
+      }
+    },
+    "Story": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "ScopeVersion": {
+        "required": true,
+        "min": 1,
+        "max": 1000
+      },
+      "FeatureRef": {
+        "required": true,
+        "pattern": "^feature:[a-z0-9][a-z0-9-]{0,62}$"
+      },
+      "Key": {
+        "required": true,
+        "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"
+      },
+      "Title": {
+        "required": true,
+        "maxLength": 200
+      },
+      "Text": {
+        "maxLength": 5000
+      },
+      "ActorRole": {
+        "maxLength": 60
+      },
+      "Priority": {
+        "enum": [
+          "must",
+          "nice",
+          "later"
+        ]
+      },
+      "EstimateHours": {
+        "min": 0,
+        "max": 1000
+      }
+    },
+    "Subscription": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "PlanKey": {
+        "required": true,
+        "maxLength": 32
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "active",
+          "pending",
+          "cancelled",
+          "past_due"
+        ]
+      },
+      "NextPlanKey": {
+        "maxLength": 32
+      },
+      "CouponCode": {
+        "maxLength": 32
+      },
+      "ProviderRef": {
+        "maxLength": 200
+      },
+      "StatusNote": {
+        "maxLength": 500
+      }
+    },
+    "Suggestion": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Source": {
+        "required": true,
+        "enum": [
+          "engine",
+          "chat",
+          "person"
+        ]
+      },
+      "Key": {
+        "required": true,
+        "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"
+      },
+      "Title": {
+        "maxLength": 200
+      },
+      "Text": {
+        "maxLength": 2000
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "open",
+          "accepted",
+          "dismissed"
+        ]
+      }
+    },
+    "TechDecision": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Number": {
+        "required": true,
+        "min": 1,
+        "max": 2147483647
+      },
+      "Area": {
+        "required": true,
+        "enum": [
+          "stack",
+          "architecture",
+          "integration",
+          "nfr",
+          "security",
+          "data",
+          "hosting",
+          "other"
+        ]
+      },
+      "Title": {
+        "required": true,
+        "maxLength": 200
+      },
+      "Choice": {
+        "maxLength": 2000
+      },
+      "Rationale": {
+        "maxLength": 5000
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "proposed",
+          "accepted",
+          "rejected",
+          "superseded"
+        ]
+      }
+    },
+    "Ticket": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Number": {
+        "required": true,
+        "min": 1,
+        "max": 2147483647
+      },
+      "PlanRef": {
+        "required": true,
+        "maxLength": 200
+      },
+      "Title": {
+        "required": true,
+        "maxLength": 200
+      },
+      "TicketType": {
+        "required": true,
+        "enum": [
+          "story",
+          "task",
+          "fix"
+        ]
+      },
+      "FeatureRef": {
+        "pattern": "^(|feature:[a-z0-9][a-z0-9-]{0,62})$"
+      },
+      "AgentRole": {
+        "enum": [
+          "",
+          "planner",
+          "dev",
+          "reviewer",
+          "qa",
+          "secops",
+          "docs",
+          "shipper"
+        ]
+      },
+      "Column": {
+        "required": true,
+        "enum": [
+          "planned",
+          "dev",
+          "review",
+          "test",
+          "security",
+          "docs",
+          "gate",
+          "done"
+        ]
+      },
+      "EstimateHours": {
+        "min": 0,
+        "max": 1000
+      },
+      "SortOrder": {
+        "min": 0,
+        "max": 1000000
+      },
+      "Description": {
+        "maxLength": 10000
+      },
+      "Source": {
+        "required": true,
+        "enum": [
+          "plan",
+          "change-request",
+          "fix",
+          "chat",
+          "feedback"
+        ]
+      }
+    },
+    "TicketEvent": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "TicketId": {
+        "required": true
+      },
+      "Kind": {
+        "required": true,
+        "enum": [
+          "move",
+          "comment",
+          "artifact",
+          "note"
+        ]
+      },
+      "FromColumn": {
+        "enum": [
+          "",
+          "planned",
+          "dev",
+          "review",
+          "test",
+          "security",
+          "docs",
+          "gate",
+          "done"
+        ]
+      },
+      "ToColumn": {
+        "enum": [
+          "",
+          "planned",
+          "dev",
+          "review",
+          "test",
+          "security",
+          "docs",
+          "gate",
+          "done"
+        ]
+      },
+      "AuthorLabel": {
+        "maxLength": 60
+      },
+      "Text": {
+        "maxLength": 5000
+      }
+    },
+    "WikiPage": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "Slug": {
+        "required": true,
+        "pattern": "^[a-z0-9][a-z0-9/-]{0,120}$"
+      },
+      "PageGroup": {
+        "required": true,
+        "enum": [
+          "overview",
+          "guide",
+          "features",
+          "logic",
+          "technical",
+          "decisions",
+          "releases"
+        ]
+      },
+      "Title": {
+        "required": true,
+        "maxLength": 200
+      },
+      "BodyMd": {
+        "maxLength": 200000
+      },
+      "SourcesJson": {
+        "maxLength": 20000
+      },
+      "Origin": {
+        "required": true,
+        "enum": [
+          "factory",
+          "person"
+        ]
+      }
+    },
+    "WikiPageHistory": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "ProjectId": {
+        "required": true
+      },
+      "PageId": {
+        "required": true
+      },
+      "BodyMd": {
+        "maxLength": 200000
+      },
+      "Origin": {
+        "required": true,
+        "enum": [
+          "factory",
+          "person"
+        ]
+      }
+    },
+    "Workspace": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "Name": {
+        "required": true,
+        "maxLength": 60,
+        "minLength": 1
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "active",
+          "suspended",
+          "archived"
+        ]
+      }
+    },
+    "WorkspaceRole": {
+      "WorkspaceId": {
+        "required": true
+      },
+      "Key": {
+        "required": true,
+        "pattern": "^[a-z][a-z0-9-]{1,39}$"
+      },
+      "Name": {
+        "required": true,
+        "maxLength": 60
+      },
+      "Description": {
+        "maxLength": 500
+      },
+      "Permissions": {
+        "enum": [
+          "workspace.manage",
+          "members.manage",
+          "roles.manage",
+          "project.create",
+          "project.delete",
+          "project.assign",
+          "business.edit",
+          "sanitization.edit",
+          "requirements.edit",
+          "design.edit",
+          "scope.lock",
+          "board.edit",
+          "build.run",
+          "release.request",
+          "release.approve",
+          "release.manage-approvals",
+          "release.promote",
+          "wiki.edit",
+          "share",
+          "items.shareExternal",
+          "comment",
+          "view"
+        ]
+      }
+    },
+    "SignUp": {
+      "UserId": {
+        "required": true,
+        "maxLength": 128
+      },
+      "Email": {
+        "required": true,
+        "maxLength": 254
+      },
+      "Name": {
+        "maxLength": 120
+      },
+      "OrganizationName": {
+        "maxLength": 80
+      },
+      "PlanKey": {
+        "pattern": "^(|[a-z0-9][a-z0-9-]{0,31})$"
+      },
+      "Status": {
+        "required": true,
+        "enum": [
+          "pending",
+          "verified"
+        ]
+      },
+      "TokenHash": {
+        "pattern": "^(|[0-9a-f]{64})$"
+      },
+      "SentCount": {
+        "min": 0,
+        "max": 100000
+      }
+    }
+  }
+}

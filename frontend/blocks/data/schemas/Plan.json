@@ -1,0 +1,119 @@
+{
+  "schemaName": "Plan",
+  "collectionName": "blx_Plans",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "CreatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the creating actor, set by the function."
+    },
+    {
+      "name": "UpdatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the last writer, set by the function."
+    },
+    {
+      "name": "Key",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Plan key (lower-case, e.g. free|classic|speed|enterprise); unique."
+    },
+    {
+      "name": "Name",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Plan name shown to people."
+    },
+    {
+      "name": "PriceUsd",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Price per month in USD; 0 for Free; absent/0 with ContactSales for a price agreed with sales."
+    },
+    {
+      "name": "CreditUsd",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Credit in USD granted when the plan starts (each month for paid plans; the sign-up credit for Free)."
+    },
+    {
+      "name": "Assisted",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Human help: none|tech-lead|business|dedicated."
+    },
+    {
+      "name": "MaxParallelStreams",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Changes built side by side; 0 = custom (agreed with sales)."
+    },
+    {
+      "name": "Priority",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Queue weight: higher goes first."
+    },
+    {
+      "name": "FeaturesJson",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "JSON array of plain feature lines."
+    },
+    {
+      "name": "ContactSales",
+      "type": "Boolean",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "True: no list price, people contact sales."
+    },
+    {
+      "name": "Active",
+      "type": "Boolean",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "False: not offered any more (existing subscriptions keep it)."
+    },
+    {
+      "name": "SortOrder",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Order on the plan cards."
+    },
+    {
+      "name": "RequestKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Idempotency key, set by the server; unique index."
+    }
+  ]
+}

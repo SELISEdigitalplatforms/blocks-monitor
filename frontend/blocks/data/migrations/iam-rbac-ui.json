@@ -1,0 +1,8 @@
+{
+  "$comment": "Roles and permissions in Blocks OS IAM (functions/admin/ops/iam/*). Additive: Workspace.IamOrganizationId holds the id of the IAM organization that mirrors the workspace (written by iam.sync.run and iam.access.set; read only by the iam.* ops). PlatformSetting keys (validations.json Key enum): rbac.source (\"factory\" | \"iam\", default \"factory\" when absent), iam.sync (the last check and sync) and iam.parity (the last parity check result). Apply expand-first BEFORE deploying the functions or the web app.",
+  "schemas": [
+    { "schemaName": "Workspace", "fields": [
+      { "name": "IamOrganizationId", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Id of the Blocks OS IAM organization that mirrors this workspace (set by the IAM sync)." }
+    ] }
+  ]
+}

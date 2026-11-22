@@ -1,0 +1,1583 @@
+{
+  "$comment": "Real MongoDB indexes per schema (max 15). Unique indexes only on always-set fields. Every schema has a unique RequestKey (idempotency key, set by the server on every insert); every seedable schema has a NON-unique SeedKey index (stamped by the server on seeded rows; a unique index would break ordinary rows that leave it empty, so the seed looks a row up by SeedKey before inserting and must never run twice concurrently). The gateway rejects a client ItemId, so these keys replace deterministic ids. Applied by the coordinator from the commands printed by node scripts/data-indexes.mjs.",
+  "version": 1,
+  "schemas": [
+    {
+      "schemaName": "Account",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "UserId"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "Email"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "AgentChatMessage",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "AgentRole",
+            "At"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "AiAccount",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "HostId",
+            "Label"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "ApprovalPolicy",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Environment"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "ApprovalRequest",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Environment",
+            "Version",
+            "Attempt"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Status"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "ApprovalStep",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ParentId",
+            "StepKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "ParentType"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Decision"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "AssistantMessage",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "At"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Attachment",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "OwnerType",
+            "OwnerId"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "FileId"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "AuditEvent",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "WorkspaceId",
+            "At:desc"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ActorUserId",
+            "At:desc"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "TargetType",
+            "TargetId"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Board",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "Challenge",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "OpinionId"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Status"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "ChangeRequest",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Number"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Status"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "ChangeRequestAttachment",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ChangeRequestId",
+            "AttachmentId"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "Clarification",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Number"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Status"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Decision",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Number"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "DesignBrief",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "DesignScreen",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Key",
+            "Version"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "DesignBriefId"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "DocFile",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "FolderId",
+            "SortOrder"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "StorageObjectId"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "DocFolder",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "ParentId",
+            "SortOrder"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "DocNote",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "FolderId",
+            "SortOrder"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "EngineHost",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "HostId"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "EngineHostSample",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "HostId"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "EngineJob",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "ActiveKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Kind",
+            "Status"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "Status",
+            "Kind"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "WorkspaceId",
+            "Status"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Feature",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "ScopeVersion",
+            "Key"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "FeedbackComment",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ThreadId",
+            "At"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "FeedbackThread",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "TargetType",
+            "TargetId"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "Invitation",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "WorkspaceId",
+            "Status"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "Email",
+            "Status"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "Kind",
+            "Status"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "ItemVersion",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "ItemKey",
+            "N"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "Membership",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "WorkspaceId",
+            "Email"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "UserId",
+            "Status"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "Email",
+            "Status"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "WorkspaceId",
+            "Status"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Milestone",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "ScopeVersion",
+            "Number"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "Notification",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "RecipientUserId",
+            "IsRead"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "RecipientUserId",
+            "ProjectId"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "WorkspaceId"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Objective",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "Operation",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "RequestId"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "Status"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ActorUserId",
+            "Op"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "PlatformRole",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "Key"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "PlatformRoleAssignment",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "UserId",
+            "RoleKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "RoleKey",
+            "Status"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "PlatformSetting",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "Key"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "Preview",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "MilestoneId",
+            "Version"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Status"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Project",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "WorkspaceId"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "WorkspaceId",
+            "Stage"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "AssigneeUserId"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "ProjectAnswer",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "QuestionKey"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "ProjectAssignment",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "At:desc"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Release",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Environment",
+            "Version"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "Requirement",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Number"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Key"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "ScopeVersion",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Number"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "SecondOpinion",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "ScopeVersion"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Share",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "ItemType",
+            "ItemRef",
+            "SharedWithUserId"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SharedWithUserId"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "ShareLink",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "TokenHash"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "ItemType",
+            "ItemRef"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Story",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "ScopeVersion",
+            "Key"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "FeatureRef"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Suggestion",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Key"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Status"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "SetupSuggestion",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Key"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Status"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "RequirementExtra",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "SortOrder"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "TechDecision",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Number"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Area"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Ticket",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Number"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "PlanRef"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "MilestoneId"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Column"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "TicketEvent",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "TicketId",
+            "At"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "At:desc"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "WikiPage",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "ProjectId",
+            "Slug"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "WikiPageHistory",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "PageId",
+            "At:desc"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Workspace",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "SeedKey"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "WorkspaceId"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "Status"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "WorkspaceRole",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "WorkspaceId",
+            "Key"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "Coupon",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "Code"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "CreditEntry",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "WorkspaceId",
+            "At"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "Kind",
+            "At"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "JobId"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "CouponCode"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Plan",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "Key"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "schemaName": "PurchaseRequest",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "Status"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "WorkspaceId"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Subscription",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "WorkspaceId"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "Status",
+            "RenewsAt"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "Payment",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "WorkspaceId",
+            "Status"
+          ],
+          "unique": false
+        },
+        {
+          "fields": [
+            "Status",
+            "ExpiresAt"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "schemaName": "SignUp",
+      "indexes": [
+        {
+          "fields": [
+            "RequestKey"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "UserId"
+          ],
+          "unique": true
+        },
+        {
+          "fields": [
+            "Email"
+          ],
+          "unique": false
+        }
+      ]
+    }
+  ]
+}

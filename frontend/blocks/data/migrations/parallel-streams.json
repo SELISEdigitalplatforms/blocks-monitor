@@ -1,0 +1,9 @@
+{
+  "$comment": "Additive fields for parallel streams (src/domain/parallelStreams.ts): independent change requests of one product build side by side and land on development one at a time through a merge queue. Apply expand-first on every tenant BEFORE deploying the web app, the functions or the engine. Until then every reader falls back to one stream (today's behaviour): the web reads both fields with a read of its own (a tenant without them answers the default), cr.startBuild / cr.fixChecks / build.retryAfterDeploy read them with a read that falls back to one stream, and the engine's project load only reads the fields the tenant has. cr.parallelStreams writes Project.ParallelStreams; the engine writes Project.StreamsAdvice after a change analysis and at the start of a change build. Validations: validations.json (both maxLength 1000).",
+  "schemas": [
+    { "schemaName": "Project", "fields": [
+      { "name": "ParallelStreams", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "How many independent change requests build side by side, JSON {v:1, chosen: 1..5, suggested: 1..5, reason, by, at} (src/domain/parallelStreams.ts parseStreamsChoice; absent: 1, one build at a time); written by cr.parallelStreams." },
+      { "name": "StreamsAdvice", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "What the engine host allows for parallel streams, JSON {v:1, cap: 1..5, why, repos, at} (src/domain/parallelStreams.ts parseStreamsAdvice): its repositories ready for separate working copies and its environment's limits on check runs; written by the engine (change.analyse, change.build)." }
+    ] }
+  ]
+}

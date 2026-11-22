@@ -1,0 +1,16 @@
+# Local store (this folder's own data/ only): the SQLite database, uploaded files and the session secret.
+/data/
+# Vite's pre-bundle cache for this app.
+/.vite-cache/
+/dist/
+node_modules/
+# Keep the dependency lockfile for reproducible worker installations with npm ci.
+
+# Playwright artifacts
+/.playwright-mcp/
+# Server-only Figma credentials. Commit only the placeholder templates.
+/config/figma-mcp.local.json
+
+# Local env secrets and HTTPS certs
+.env.local
+/.cert/

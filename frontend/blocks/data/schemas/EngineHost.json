@@ -1,0 +1,159 @@
+{
+  "schemaName": "EngineHost",
+  "collectionName": "blx_EngineHosts",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "HostId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The engine worker's id (EngineJob.ClaimedBy of its jobs); one row per host, written by its heartbeat every 30 s (server/blocks/engineWorker/heartbeat.ts)."
+    },
+    {
+      "name": "Name",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The host name (letters, digits, dot, dash only)."
+    },
+    {
+      "name": "LastSeenAt",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO time of the last heartbeat; older than 2 minutes = the worker stopped reporting."
+    },
+    {
+      "name": "CpuPercent",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "CPU busy share since the previous heartbeat (/proc/stat deltas), 0..100."
+    },
+    {
+      "name": "Load1",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "1-minute load average."
+    },
+    {
+      "name": "Load5",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "5-minute load average."
+    },
+    {
+      "name": "Load15",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "15-minute load average."
+    },
+    {
+      "name": "CpuCount",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Logical CPUs."
+    },
+    {
+      "name": "MemUsedMb",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Memory in use (MemTotal - MemAvailable), MB."
+    },
+    {
+      "name": "MemTotalMb",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Memory in total, MB."
+    },
+    {
+      "name": "DiskUsedGb",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Used space of the file system holding the engine's project folders, GB."
+    },
+    {
+      "name": "DiskTotalGb",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Size of that file system, GB."
+    },
+    {
+      "name": "RunningJobs",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Engine jobs this worker runs now."
+    },
+    {
+      "name": "RunningLanes",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Official MADP lanes (child processes) running now."
+    },
+    {
+      "name": "ActiveAgents",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Claude Code agent processes under those lanes now."
+    },
+    {
+      "name": "QueueLength",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Queued engine jobs the worker sees."
+    },
+    {
+      "name": "Release",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The engine release the worker runs (release id, or checkout)."
+    },
+    {
+      "name": "Uptime",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Seconds the host has been up."
+    },
+    {
+      "name": "RequestKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Idempotency key, set by the engine worker (engine-host:<HostId>, engine-sample:<HostId>:<minute>, ai-account:<HostId>:<Label>); unique index."
+    }
+  ]
+}

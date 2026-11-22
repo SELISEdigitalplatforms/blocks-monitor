@@ -1,0 +1,94 @@
+{
+  "page": {
+    "documentTitle": "Preise · MADP Factory",
+    "skipToContent": "Zum Inhalt springen"
+  },
+  "header": {
+    "eyebrow": "Preise",
+    "title": "Pläne für jedes Tempo, {dim}",
+    "titleDim": "Guthaben inklusive.",
+    "lede": "Jeder Plan enthält Guthaben für die Arbeit der Agenten, von der Engine gemessen und während der Arbeit angezeigt. Die bezahlten Pläne ergänzen Ihr Team um eine echte Person."
+  },
+  "section": {
+    "note": "Preise in US-Dollar pro Monat. Belastet wird erst, wenn Sie beim Checkout bestätigen."
+  },
+  "cards": {
+    "yourPlan": "Ihr Plan",
+    "mostPopular": "Am beliebtesten",
+    "pricePerMonth": "{currency} {amount} pro Monat",
+    "perMonth": "/ Monat",
+    "custom": "Individuell",
+    "loading": "Pläne werden geladen",
+    "unavailableTitle": "Die Pläne konnten nicht geladen werden",
+    "unavailableText": "Wir konnten die Pläne und ihre Preise gerade nicht lesen. Versuchen Sie es in einem Moment erneut.",
+    "emptyTitle": "Zurzeit werden keine Pläne angeboten",
+    "emptyText": "Die Pläne und ihre Preise sind noch nicht veröffentlicht. Schauen Sie in einem Moment wieder vorbei.",
+    "retry": "Erneut versuchen",
+    "retrying": "Wird erneut versucht…"
+  },
+  "text": {
+    "creditAgreed": "Guthaben nach Vereinbarung",
+    "creditSignUp": "USD {amount} Guthaben bei der Registrierung",
+    "noCredit": "Kein Guthaben enthalten",
+    "creditMonthly": "USD {amount} Guthaben jeden Monat",
+    "creditAsNeeded": "Guthaben nach Bedarf kaufen",
+    "buildsCustom": "Parallele Builds nach Bedarf",
+    "buildsOne": "Ein Build gleichzeitig",
+    "buildsOther": "{count} Builds parallel",
+    "queueStandard": "Standard-Warteschlange",
+    "queueHighest": "Höchste Priorität in der Warteschlange",
+    "queueHigh": "Hohe Priorität in der Warteschlange",
+    "queueRaised": "Erhöhte Priorität in der Warteschlange"
+  },
+  "help": {
+    "none": "Selbstständig, in Ihrem Tempo",
+    "techLead": "Mit einem Tech-Lead-Berater",
+    "business": "Mit einem Business-Berater",
+    "dedicated": "Mit einem eigenen Team"
+  },
+  "actions": {
+    "manage": "Plan verwalten",
+    "contactSales": "Verkauf kontaktieren",
+    "choose": "{plan} wählen",
+    "startFree": "Kostenlos starten",
+    "switchTo": "Zu {plan} wechseln"
+  },
+  "credit": {
+    "title": "So funktioniert das Guthaben",
+    "text": "Pläne gelten pro Organisation, nie pro Platz. Guthaben ist das einzige Mass für die Arbeit, und Sie sehen es überall, wo gearbeitet wird.",
+    "step1Title": "Ihr Plan bringt Guthaben",
+    "step1Text": "Free startet bei der Registrierung mit Guthaben. Bezahlte Pläne laden ihr Guthaben zu Beginn jedes Monats auf.",
+    "step2Title": "Die Arbeit verbraucht es",
+    "step2Text": "Die Engine misst jede Arbeit der Agenten in Tokens, und die Kosten werden von Ihrem Guthaben abgezogen. Lesen und Prüfen kosten nichts.",
+    "step3Title": "Sie sehen immer, wo Sie stehen",
+    "step3Text": "Was Sie verbraucht haben und was übrig ist, sehen Sie auf dem Bildschirm, pro Projekt und pro Build, während die Arbeit läuft."
+  },
+  "faq": {
+    "title": "Fragen, bevor Sie wählen",
+    "usageQ": "Was zählt als Nutzung?",
+    "usageA": "Nur Arbeit, die die Engine für Sie erledigt: analysieren, planen, bauen, testen und releasen. Die Engine misst jede Arbeit in Tokens, den Einheiten, die ihre Modelle zählen, und die Kosten werden von Ihrem Guthaben abgezogen. Anmelden, Lesen, Prüfen und Freigeben kosten nichts.",
+    "runOutQ": "Was passiert, wenn mein Guthaben aufgebraucht ist?",
+    "runOutA": "Sie sehen es kommen: Die Nutzungsanzeige zeigt Ihnen, wenn das Guthaben knapp wird. Ist keines mehr übrig, wartet neue Arbeit, bis Guthaben hinzukommt, durch Einlösen eines Codes oder einen Planwechsel. Bereits laufende Arbeit wird abgeschlossen, und nichts, was Sie erstellt haben, geht verloren.",
+    "changeQ": "Kann ich meinen Plan wechseln?",
+    "changeA": "Ja, jederzeit. Ein Upgrade gilt sofort, mit dem Guthaben des neuen Plans. Ein Downgrade gilt ab Ihrer nächsten Verlängerung. Sie können auch auf Ende der laufenden Periode kündigen und vor deren Ablauf wieder fortsetzen.",
+    "payQ": "Wie bezahle ich?",
+    "payA": "Heute mit einem Code: Ein Gutschein unseres Verkaufsteams bezahlt Ihren Plan oder lädt Guthaben auf, und Sie geben ihn beim Checkout ein. Kartenzahlungen werden gerade angebunden und erscheinen beim Checkout, sobald sie bereit sind.",
+    "consultantsQ": "Sind die Berater echte Menschen?",
+    "consultantsYes": "Ja.",
+    "techLeadOn": "ein Tech-Lead-Berater bei {plan}",
+    "businessOn": "ein Business-Berater bei {plan}",
+    "listAnd": "{items} und {last}",
+    "peopleOne": "{list} arbeitet neben den Agenten mit Ihnen.",
+    "peopleOther": "{list} arbeiten neben den Agenten mit Ihnen.",
+    "teamOne": "{plans} bietet ein eigenes Team.",
+    "teamOther": "{plans} bieten ein eigenes Team."
+  },
+  "contact": {
+    "title": "Sprechen Sie mit uns über {plan}",
+    "sending": "Wird gesendet …",
+    "send": "An den Verkauf senden",
+    "sent": "Vielen Dank. Unser Verkaufsteam hat Ihre Nachricht erhalten und antwortet innerhalb eines Arbeitstags per E-Mail.",
+    "intro": "Erzählen Sie uns kurz von Ihrem Team und davon, was Sie bauen möchten. Guthaben, parallele Builds und Team vereinbaren wir mit Ihnen.",
+    "orgLoading": "Ihre Organisation wird noch geladen. Bitte versuchen Sie es gleich noch einmal."
+  }
+}

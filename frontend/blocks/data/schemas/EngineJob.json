@@ -1,0 +1,191 @@
+{
+  "schemaName": "EngineJob",
+  "collectionName": "blx_EngineJobs",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "WorkspaceId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the owning Workspace."
+    },
+    {
+      "name": "ReaderIds",
+      "type": "String",
+      "isArray": true,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Server-stamped ACL: IAM user ids that may read the row."
+    },
+    {
+      "name": "CreatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the creating actor, set by the function."
+    },
+    {
+      "name": "UpdatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the last writer."
+    },
+    {
+      "name": "ProjectId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the owning Project."
+    },
+    {
+      "name": "Kind",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Job kind. One of: requirements.draft|sanitization.assist|design.generate|scope.grill|milestones.suggest|board.plan|build.run|change.build|change.analyse|fix.analyse|preview.deploy|wiki.generate|chat.reply|engine.skills-sync."
+    },
+    {
+      "name": "Status",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Job status. One of: queued|claimed|running|succeeded|failed|cancelled."
+    },
+    {
+      "name": "ActiveKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "<Kind>:<TargetId or project> while queued, claimed or running; the job's own ItemId once finished; the unique (ProjectId, ActiveKey) index allows one active job per kind and target, which replaces the design's Run schema."
+    },
+    {
+      "name": "TargetType",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Kind of row the job targets."
+    },
+    {
+      "name": "TargetId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemId of the row the job targets."
+    },
+    {
+      "name": "InputJson",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Job input as a JSON string."
+    },
+    {
+      "name": "OutputRefs",
+      "type": "String",
+      "isArray": true,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ItemIds of the rows the job produced."
+    },
+    {
+      "name": "Progress",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Progress percentage, 0 to 100."
+    },
+    {
+      "name": "Message",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Latest progress or status message."
+    },
+    {
+      "name": "Attempts",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Number of claim attempts."
+    },
+    {
+      "name": "ClaimedBy",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Engine identity that claimed the job."
+    },
+    {
+      "name": "ClaimedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "When the job was claimed."
+    },
+    {
+      "name": "StartedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "When the job started running."
+    },
+    {
+      "name": "FinishedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "When the job finished."
+    },
+    {
+      "name": "ErrorCode",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Error code when the job failed."
+    },
+    {
+      "name": "RequestedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the requester."
+    },
+    {
+      "name": "RequestKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Idempotency key <op>:<requestId>[:<n>], set by the server; unique index."
+    },
+    {
+      "name": "UsageJson",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "What the job's lanes measured, JSON {v:1, tokens:{in,out,cacheRead,cacheWrite,total}, costUsd, models:[...], agents, lanes} (src/domain/billing.ts parseJobUsage); written by the engine worker as each lane finishes."
+    }
+  ]
+}

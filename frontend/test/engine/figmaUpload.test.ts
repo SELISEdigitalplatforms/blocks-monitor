@@ -1,0 +1,32 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { startFigmaUploadBridge } from '../../server/local/engine/ai/figmaUpload';
+let dir: string, stop: () => void;
+beforeEach(() => { vi.useFakeTimers(); dir = fs.mkdtempSync(path.join(os.tmpdir(), 'figma-upload-test-')); });
+afterEach(() => { stop?.(); vi.useRealTimers(); fs.rmSync(dir, { recursive: true, force: true }); });
+it('uploads exact UTF-8 screen bytes to Figma without auth headers and retains the receipt', async () => {
+  const html = '<html><body>Menu — £12</body></html>';
+  fs.writeFileSync(path.join(dir, 'screens.html'), html);
+  const fetcher = vi.fn().mockResolvedValue({ ok: true, text: async () => JSON.stringify({ success: true, nodeIds: ['1:2'] }) });
+  stop = startFigmaUploadBridge(dir, fetcher);
+  fs.writeFileSync(path.join(dir, 'figma-upload-response.json'), JSON.stringify({ ok: true, requestId: 'old-upload' }));
+  fs.writeFileSync(path.join(dir, 'figma-upload-request.json'), JSON.stringify({ requestId: 'upload-1', url: 'https://mcp.figma.com/html-to-figma/single-use', file: 'screens.html' }));
+  await vi.advanceTimersByTimeAsync(500);
+  expect(fetcher).toHaveBeenCalledOnce();
+  const options = fetcher.mock.calls[0][1];
+  expect(options.body.toString('utf8')).toBe(html);
+  expect(options.credentials).toBe('omit');
+  expect(options.redirect).toBe('error');
+  expect(options.headers).toEqual({ 'Content-Type': 'text/html; charset=utf-8' });
+  expect(fs.existsSync(path.join(dir, 'figma-upload-request.json'))).toBe(false);
+  expect(JSON.parse(fs.readFileSync(path.join(dir, 'figma-upload-response.json'), 'utf8'))).toMatchObject({ ok: true, requestId: 'upload-1', data: { nodeIds: ['1:2'] } });
+});
+it.each(['https://attacker.test/html', 'https://mcp.figma.com/other', 'http://mcp.figma.com/html'])('refuses non-provider or non-HTML destinations: %s', async (url) => {
+  const fetcher = vi.fn(); stop = startFigmaUploadBridge(dir, fetcher);
+  fs.writeFileSync(path.join(dir, 'figma-upload-request.json'), JSON.stringify({ url, file: 'screens.html' }));
+  await vi.advanceTimersByTimeAsync(500);
+  expect(fetcher).not.toHaveBeenCalled();
+  expect(JSON.parse(fs.readFileSync(path.join(dir, 'figma-upload-response.json'), 'utf8')).code).toBe('invalid_destination');
+});

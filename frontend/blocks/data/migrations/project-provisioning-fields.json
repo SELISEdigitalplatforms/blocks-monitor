@@ -1,0 +1,9 @@
+{
+  "fields": [
+    { "name": "BlocksProjectDomain", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "HTTPS development domain assigned by Blocks OS; server-owned." },
+    { "name": "BlocksProvisioningStatus", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Server-owned provisioning state: pending, creating, ready, needs-reconciliation." },
+    { "name": "BlocksProvisioningName", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Immutable unique OS project name used to reconcile uncertain CLI creation." },
+    { "name": "BlocksProvisioningAt", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "ISO timestamp of provisioning claim or successful attachment; server-owned." },
+    { "name": "BlocksProvisioningError", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Safe provisioning failure summary; no raw CLI output or credentials." }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "password": {
+    "mismatch": "Die beiden Passwörter stimmen nicht überein.",
+    "ruleLength": "Verwenden Sie mindestens {min} Zeichen (höchstens {max}). Ein Satz aus ein paar Wörtern eignet sich gut.",
+    "ruleCommon": "Dieses Passwort ist zu verbreitet oder zu leicht zu erraten. Wählen Sie ein anderes.",
+    "ruleEmail": "Verwenden Sie nicht Ihre E-Mail-Adresse als Passwort.",
+    "ruleOther": "Wählen Sie ein anderes Passwort.",
+    "checkLength": "Mindestens {min} Zeichen oder ein Satz aus ein paar Wörtern",
+    "checkCommon": "Kein verbreitetes oder leicht zu erratendes Passwort",
+    "checkEmail": "Nicht Ihre E-Mail-Adresse",
+    "pasteLink": "Fügen Sie den Link aus Ihrer E-Mail ein.",
+    "unavailable": "MADP Factory ist gerade nicht erreichbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    "finishFailed": "Ihr Passwort wurde geändert, aber MADP Factory konnte die Einrichtung nicht abschliessen. Bitte versuchen Sie es erneut.",
+    "resetSent": "Falls für diese E-Mail-Adresse ein Konto existiert, ist ein Link zum Zurücksetzen unterwegs.",
+    "activationSent": "Ein neuer Aktivierungslink ist unterwegs zu Ihrer E-Mail-Adresse.",
+    "notAccepted": "Dieses Passwort wurde nicht akzeptiert: {reason}",
+    "resetInvalid": "Dieser Link zum Zurücksetzen ist abgelaufen oder wurde bereits verwendet. Fordern Sie einen neuen an.",
+    "activationInvalid": "Dieser Aktivierungslink ist abgelaufen oder wurde bereits verwendet. Senden Sie sich einen neuen.",
+    "wrongCurrent": "Ihr aktuelles Passwort ist nicht korrekt.",
+    "changeNotAccepted": "Diese Änderung wurde nicht akzeptiert: {reason}"
+  }
+}

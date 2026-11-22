@@ -1,0 +1,16 @@
+{
+  "scenario": "example-workspace",
+  "version": 1,
+  "description": "Alpine Fresh AG workspace with the B2B Order Portal project at Scope confirmation: Business notes from the client emails and call, Product sanitization clarifications, decisions and tech decisions, requirements and objective v1, a confirmed design brief, scope v1 with features, stories and milestones, and the release approval policy.",
+  "order": ["Workspace", "Membership", "Project", "ProjectAssignment", "DocFolder", "DocNote", "Clarification", "Decision", "TechDecision", "Requirement", "Objective", "DesignBrief", "ScopeVersion", "Feature", "Story", "Milestone", "ApprovalPolicy", "ApprovalStep"],
+  "users": {
+    "qa-a": {
+      "emailEnv": "MF_SEED_QA_A_EMAIL",
+      "description": "QA account A: workspace admin, project assignee and architect approver"
+    },
+    "qa-b": {
+      "emailEnv": "MF_SEED_QA_B_EMAIL",
+      "description": "QA account B: workspace member, expert and security/QA approver"
+    }
+  }
+}

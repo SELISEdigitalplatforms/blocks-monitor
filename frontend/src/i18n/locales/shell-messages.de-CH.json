@@ -1,0 +1,55 @@
+{
+  "messages": {
+    "fn": {
+      "workspaceInactive": "Dieser Workspace wurde von einer Plattform-Administration gesperrt."
+    },
+    "iam": {
+      "forbidden": "Der Zugriffsdienst der Plattform hat diese Änderung abgelehnt. Es wurde nichts geändert.",
+      "notFound": "Diese Rolle oder Organisation existiert im Zugriffsdienst nicht mehr.",
+      "unavailable": "Rollen und Berechtigungen sind gerade nicht erreichbar. Es wurde nichts geändert. Bitte versuchen Sie es gleich noch einmal."
+    },
+    "tenancy": {
+      "accountNotFound": "Diese Person hat noch kein Konto.",
+      "alreadyMember": "Diese Person ist bereits im Workspace oder eingeladen.",
+      "builtInRole": "Vordefinierte Rollen können nicht geändert oder gelöscht werden.",
+      "domainNotAllowed": "E-Mail-Adressen bei {domain} sind auf dieser Plattform nicht zugelassen.",
+      "invalidArgs": "Einige Angaben sind ungültig. Prüfen Sie sie und versuchen Sie es erneut.",
+      "invalidDomain": "Geben Sie eine gültige E-Mail-Domain ein, zum Beispiel example.com.",
+      "invalidEmail": "Geben Sie eine gültige E-Mail-Adresse ein.",
+      "invalidInput": "Einige Angaben sind ungültig. Prüfen Sie sie und versuchen Sie es erneut.",
+      "invalidName": "Verwenden Sie 1 bis 60 Zeichen für den Namen.",
+      "invalidRole": "Wählen Sie eine gültige Rolle.",
+      "inviteeInactive": "Dieses Konto ist deaktiviert. Wenden Sie sich an eine Plattform-Administration.",
+      "lastOwner": "Ein Workspace braucht mindestens einen Workspace-Admin.",
+      "memberNotFound": "Diese Person ist nicht im Workspace.",
+      "membershipSuspended": "Die Mitgliedschaft dieser Person ist gesperrt.",
+      "noDomains": "Lassen Sie mindestens eine E-Mail-Domain oder Ausnahme zu.",
+      "notAllowed": "Sie haben keinen Zugriff.",
+      "notHeld": "Sie können nur Berechtigungen vergeben, die Sie selbst haben.",
+      "notPending": "Diese Einladung ist nicht mehr offen.",
+      "outranked": "Sie können niemanden ändern, der Berechtigungen hat, die Ihnen fehlen.",
+      "roleExists": "Eine Rolle mit diesem Schlüssel existiert bereits.",
+      "roleInUseMany": "{count} Personen haben diese Rolle noch. Weisen Sie ihnen zuerst eine andere Rolle zu.",
+      "roleInUseOne": "1 Person hat diese Rolle noch. Weisen Sie ihr zuerst eine andere Rolle zu.",
+      "roleInUseSome": "Einige Personen haben diese Rolle noch. Weisen Sie ihnen zuerst eine andere Rolle zu.",
+      "roleKeyTaken": "Eine Rolle mit diesem Schlüssel existiert bereits.",
+      "roleLimit": "Ein Workspace kann höchstens 5 eigene Rollen haben.",
+      "roleNotFound": "Diese Rolle existiert im Workspace nicht mehr.",
+      "selfChange": "Nur die Super-Administration kann ihre eigenen Plattformrollen ändern.",
+      "selfDeactivate": "Sie können sich nicht selbst deaktivieren.",
+      "signInRequired": "Melden Sie sich zuerst an.",
+      "superAdminOnly": "Nur die Super-Administration kann dies tun.",
+      "targetNoAccount": "Diese Person hat noch kein Konto.",
+      "thisDomain": "dieser Domain",
+      "tooMany": "Es sind zu viele Einträge. Entfernen Sie einige und versuchen Sie es erneut.",
+      "unknownRole": "Diese Rolle existiert im Workspace nicht.",
+      "workspaceNotFound": "Dieser Workspace existiert nicht mehr.",
+      "workspaceRenamed": "Jemand anderes hat diesen Workspace gerade umbenannt. Prüfen Sie den aktuellen Namen und versuchen Sie es erneut.",
+      "wouldLockOut": "Mit dieser Einstellung würden Sie sich aussperren. Lassen Sie Ihre eigene E-Mail-Domain zugelassen."
+    },
+    "workspaceName": {
+      "control": "Der Name darf keine Tabulatoren, Zeilenumbrüche oder andere Steuerzeichen enthalten.",
+      "length": "Verwenden Sie 2 bis 60 Zeichen für den Namen des Workspace."
+    }
+  }
+}

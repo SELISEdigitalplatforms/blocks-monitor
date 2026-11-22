@@ -1,0 +1,11 @@
+{
+  "schemaName": "GithubConnection",
+  "collectionName": "blx_GithubConnections",
+  "schemaType": 1,
+  "fields": [
+    { "name": "UserId", "type": "String", "isArray": false, "isPIIData": true, "isUniqueData": true, "description": "Verified Factory IAM user id. This is an integration credential, not an identity registry." },
+    { "name": "Login", "type": "String", "isArray": false, "isPIIData": true, "isUniqueData": false, "description": "GitHub login confirmed by the GitHub user API." },
+    { "name": "ConnectedAt", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "UTC timestamp of successful OAuth connection." },
+    { "name": "TokenCiphertext", "type": "String", "isArray": false, "isPIIData": true, "isUniqueData": false, "description": "AES-256-GCM envelope bound to Factory tenant/user. Key stays in server configuration. Service-only read/write; never return to the browser." }
+  ]
+}

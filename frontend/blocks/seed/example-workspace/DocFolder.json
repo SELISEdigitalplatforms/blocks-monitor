@@ -1,0 +1,32 @@
+[
+  {
+    "$key": "folder-meetings",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ParentId": "",
+    "Name": "Meetings",
+    "Kind": "meeting",
+    "SortOrder": 1
+  },
+  {
+    "$key": "folder-correspondence",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ParentId": "",
+    "Name": "Correspondence",
+    "Kind": "other",
+    "SortOrder": 2
+  },
+  {
+    "$key": "folder-customer-documents",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "ParentId": "",
+    "Name": "Customer documents",
+    "Kind": "other",
+    "SortOrder": 3
+  }
+]

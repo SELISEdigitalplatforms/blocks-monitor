@@ -1,0 +1,349 @@
+{
+  "name": "mf-doorbell",
+  "settings": {},
+  "nodes": [
+    {
+      "id": "n1",
+      "name": "Notification inserted",
+      "category": "trigger",
+      "type": "dataGateway",
+      "version": "v1",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "parameters": {
+        "collectionName": "blx_Notifications",
+        "collectionName_composite": "blx_Notifications:::Notification:::",
+        "schemaName": "Notification",
+        "operation": "Inserted"
+      },
+      "settings": {},
+      "pinData": null
+    },
+    {
+      "id": "n2",
+      "name": "Shape",
+      "category": "transform",
+      "type": "code",
+      "version": "v1",
+      "position": {
+        "x": 260,
+        "y": 0
+      },
+      "parameters": {
+        "mode": "each",
+        "language": "js",
+        "script": "var TEMPLATES = {\n  \"job.failed\": { purpose: \"mf-build-failed\", subject: [\"projectName\"], body: [\"projectName\", \"jobKind\", \"failure\", \"failedAt\", \"link\"] },\n  \"invited\": { purpose: \"mf-workspace-added\", subject: [\"workspaceName\"], body: [\"actorName\", \"workspaceName\", \"roleName\", \"link\"] },\n  \"access-requested\": { purpose: \"mf-access-requested\", subject: [\"email\"], body: [\"actorName\", \"email\", \"workspaceName\", \"link\"] }\n};\nvar APP_URL = \"__APP_URL__\";\nvar row = $json || {};\nvar recipient = \"\";\nif (typeof row.RecipientUserId === \"string\" && /^[A-Za-z0-9-]{1,64}$/.test(row.RecipientUserId)) {\n  recipient = row.RecipientUserId;\n}\nvar params = {};\ntry {\n  var parsed = JSON.parse(row.ParamsJson);\n  if (parsed !== null && typeof parsed === \"object\" && !Array.isArray(parsed)) {\n    params = parsed;\n  }\n} catch (e) {\n  params = {};\n}\nfunction clean(value, cap) {\n  var text = \"\";\n  if (typeof value === \"string\") {\n    text = value;\n  } else if (typeof value === \"number\" && isFinite(value)) {\n    text = String(value);\n  }\n  return text.replace(/[\\u0000-\\u001f\\u007f-\\u009f]/g, \"\").slice(0, cap);\n}\nfunction validEmail(value) {\n  if (typeof value !== \"string\") { return \"\"; }\n  var address = value.trim().toLowerCase();\n  if (address.length === 0 || address.length > 254) { return \"\"; }\n  if (/[\\s\\u0000-\\u001f\\u007f-\\u009f]/.test(address)) { return \"\"; }\n  var at = address.indexOf(\"@\");\n  if (at < 1 || at !== address.lastIndexOf(\"@\")) { return \"\"; }\n  if (address.indexOf(\".\", at) === -1) { return \"\"; }\n  if (address.length === at + 1) { return \"\"; }\n  return address;\n}\nfunction safePath(value) {\n  if (typeof value !== \"string\") { return false; }\n  if (value.length === 0 || value.length > 300) { return false; }\n  if (value.charAt(0) !== \"/\" || value.charAt(1) === \"/\") { return false; }\n  if (/[\\\\\\s\\u0000-\\u001f\\u007f-\\u009f]/.test(value)) { return false; }\n  return true;\n}\nvar kind = typeof row.Kind === \"string\" ? row.Kind : \"\";\nvar template = Object.prototype.hasOwnProperty.call(TEMPLATES, kind) ? TEMPLATES[kind] : null;\nvar to = validEmail(params.emailTo);\nvar email = recipient !== \"\" && row.EmailStatus === \"pending\" && template !== null &&\n  params.emailTemplate === (template ? template.purpose : \"\") && to !== \"\";\nvar subject = {};\nvar body = {};\nif (email) {\n  var i;\n  for (i = 0; i < template.subject.length; i++) {\n    subject[template.subject[i]] = clean(params[template.subject[i]], 120);\n  }\n  for (i = 0; i < template.body.length; i++) {\n    var key = template.body[i];\n    if (key === \"link\") {\n      body.link = APP_URL + (safePath(row.Link) ? row.Link : \"/home\");\n    } else {\n      body[key] = clean(params[key], 200);\n    }\n  }\n}\nreturn {\n  recipient: recipient,\n  ring: recipient !== \"\",\n  email: email,\n  to: email ? to : \"\",\n  template: email ? template.purpose : \"\",\n  subject: subject,\n  body: body\n};\n"
+      },
+      "settings": {},
+      "pinData": null
+    },
+    {
+      "id": "n3",
+      "name": "Can ring?",
+      "category": "logic",
+      "type": "if",
+      "version": "v1",
+      "position": {
+        "x": 520,
+        "y": 0
+      },
+      "parameters": {
+        "conditionType": "all",
+        "conditions": [
+          {
+            "left": "{{$node[\"Shape\"].json.output.ring}}",
+            "operator": "equals",
+            "right": "true",
+            "type": "string"
+          }
+        ]
+      },
+      "settings": {},
+      "pinData": null
+    },
+    {
+      "id": "n4",
+      "name": "Ring",
+      "category": "action",
+      "type": "httpRequest",
+      "version": "v1",
+      "position": {
+        "x": 780,
+        "y": 0
+      },
+      "parameters": {
+        "httpMethod": "POST",
+        "url": "__API_URL__/logic/v4/Notifier/Notify",
+        "haveQueryParameters": false,
+        "haveHeaders": true,
+        "headers": {
+          "x-blocks-key": "__TENANT_KEY__"
+        },
+        "authenticationType": "",
+        "haveBody": true,
+        "bodyContentType": "json",
+        "body": "{\"configurationName\":\"mf-doorbell\",\"userIds\":[\"{{$node[\"Shape\"].json.output.recipient}}\"],\"denormalizedPayload\":\"{\\\"t\\\":\\\"bell\\\"}\",\"saveDenormalizedPayloadAsAnObject\":false,\"connectionId\":\"mf\",\"responseKey\":\"mf\",\"responseValue\":\"bell\"}"
+      },
+      "settings": {},
+      "pinData": null
+    },
+    {
+      "id": "n5",
+      "name": "Email?",
+      "category": "logic",
+      "type": "if",
+      "version": "v1",
+      "position": {
+        "x": 1040,
+        "y": 0
+      },
+      "parameters": {
+        "conditionType": "all",
+        "conditions": [
+          {
+            "left": "{{$node[\"Shape\"].json.output.email}}",
+            "operator": "equals",
+            "right": "true",
+            "type": "string"
+          }
+        ]
+      },
+      "settings": {},
+      "pinData": null
+    },
+    {
+      "id": "n6",
+      "name": "Template mf-workspace-added?",
+      "category": "logic",
+      "type": "if",
+      "version": "v1",
+      "position": {
+        "x": 1300,
+        "y": 0
+      },
+      "parameters": {
+        "conditionType": "all",
+        "conditions": [
+          {
+            "left": "{{$node[\"Shape\"].json.output.template}}",
+            "operator": "equals",
+            "right": "mf-workspace-added",
+            "type": "string"
+          }
+        ]
+      },
+      "settings": {},
+      "pinData": null
+    },
+    {
+      "id": "n7",
+      "name": "Send mf-workspace-added",
+      "category": "action",
+      "type": "sendMail",
+      "version": "v1",
+      "position": {
+        "x": 1560,
+        "y": -80
+      },
+      "parameters": {
+        "Template": "mf-workspace-added",
+        "EmailTemplate": "mf-workspace-added",
+        "Language": "en-US",
+        "To": "{{$node[\"Shape\"].json.output.to}}",
+        "SubjectDataContext": {
+          "workspaceName": "{{$node[\"Shape\"].json.output.subject.workspaceName}}"
+        },
+        "BodyDataContext": {
+          "actorName": "{{$node[\"Shape\"].json.output.body.actorName}}",
+          "workspaceName": "{{$node[\"Shape\"].json.output.body.workspaceName}}",
+          "roleName": "{{$node[\"Shape\"].json.output.body.roleName}}",
+          "link": "{{$node[\"Shape\"].json.output.body.link}}"
+        },
+        "Attachments": []
+      },
+      "settings": {},
+      "pinData": null
+    },
+    {
+      "id": "n8",
+      "name": "Template mf-access-requested?",
+      "category": "logic",
+      "type": "if",
+      "version": "v1",
+      "position": {
+        "x": 1560,
+        "y": 80
+      },
+      "parameters": {
+        "conditionType": "all",
+        "conditions": [
+          {
+            "left": "{{$node[\"Shape\"].json.output.template}}",
+            "operator": "equals",
+            "right": "mf-access-requested",
+            "type": "string"
+          }
+        ]
+      },
+      "settings": {},
+      "pinData": null
+    },
+    {
+      "id": "n9",
+      "name": "Send mf-access-requested",
+      "category": "action",
+      "type": "sendMail",
+      "version": "v1",
+      "position": {
+        "x": 1820,
+        "y": 80
+      },
+      "parameters": {
+        "Template": "mf-access-requested",
+        "EmailTemplate": "mf-access-requested",
+        "Language": "en-US",
+        "To": "{{$node[\"Shape\"].json.output.to}}",
+        "SubjectDataContext": {
+          "email": "{{$node[\"Shape\"].json.output.subject.email}}"
+        },
+        "BodyDataContext": {
+          "actorName": "{{$node[\"Shape\"].json.output.body.actorName}}",
+          "email": "{{$node[\"Shape\"].json.output.body.email}}",
+          "workspaceName": "{{$node[\"Shape\"].json.output.body.workspaceName}}",
+          "link": "{{$node[\"Shape\"].json.output.body.link}}"
+        },
+        "Attachments": []
+      },
+      "settings": {},
+      "pinData": null
+    },
+    {
+      "id": "n10",
+      "name": "Template mf-build-failed?",
+      "category": "logic",
+      "type": "if",
+      "version": "v1",
+      "position": {
+        "x": 1820,
+        "y": 240
+      },
+      "parameters": {
+        "conditionType": "all",
+        "conditions": [
+          {
+            "left": "{{$node[\"Shape\"].json.output.template}}",
+            "operator": "equals",
+            "right": "mf-build-failed",
+            "type": "string"
+          }
+        ]
+      },
+      "settings": {},
+      "pinData": null
+    },
+    {
+      "id": "n11",
+      "name": "Send mf-build-failed",
+      "category": "action",
+      "type": "sendMail",
+      "version": "v1",
+      "position": {
+        "x": 2080,
+        "y": 240
+      },
+      "parameters": {
+        "Template": "mf-build-failed",
+        "EmailTemplate": "mf-build-failed",
+        "Language": "en-US",
+        "To": "{{$node[\"Shape\"].json.output.to}}",
+        "SubjectDataContext": {
+          "projectName": "{{$node[\"Shape\"].json.output.subject.projectName}}"
+        },
+        "BodyDataContext": {
+          "projectName": "{{$node[\"Shape\"].json.output.body.projectName}}",
+          "jobKind": "{{$node[\"Shape\"].json.output.body.jobKind}}",
+          "failure": "{{$node[\"Shape\"].json.output.body.failure}}",
+          "failedAt": "{{$node[\"Shape\"].json.output.body.failedAt}}",
+          "link": "{{$node[\"Shape\"].json.output.body.link}}"
+        },
+        "Attachments": []
+      },
+      "settings": {},
+      "pinData": null
+    }
+  ],
+  "edges": [
+    {
+      "id": "xy-edge__n1-n2",
+      "source": "n1",
+      "target": "n2",
+      "sourceHandle": "source",
+      "targetHandle": "target"
+    },
+    {
+      "id": "xy-edge__n2-n3",
+      "source": "n2",
+      "target": "n3",
+      "sourceHandle": "source",
+      "targetHandle": "target"
+    },
+    {
+      "id": "xy-edge__n3-n4",
+      "source": "n3",
+      "target": "n4",
+      "sourceHandle": "if-true",
+      "targetHandle": "target"
+    },
+    {
+      "id": "xy-edge__n4-n5",
+      "source": "n4",
+      "target": "n5",
+      "sourceHandle": "source",
+      "targetHandle": "target"
+    },
+    {
+      "id": "xy-edge__n5-n6",
+      "source": "n5",
+      "target": "n6",
+      "sourceHandle": "if-true",
+      "targetHandle": "target"
+    },
+    {
+      "id": "xy-edge__n6-n7",
+      "source": "n6",
+      "target": "n7",
+      "sourceHandle": "if-true",
+      "targetHandle": "target"
+    },
+    {
+      "id": "xy-edge__n6-n8",
+      "source": "n6",
+      "target": "n8",
+      "sourceHandle": "if-false",
+      "targetHandle": "target"
+    },
+    {
+      "id": "xy-edge__n8-n9",
+      "source": "n8",
+      "target": "n9",
+      "sourceHandle": "if-true",
+      "targetHandle": "target"
+    },
+    {
+      "id": "xy-edge__n8-n10",
+      "source": "n8",
+      "target": "n10",
+      "sourceHandle": "if-false",
+      "targetHandle": "target"
+    },
+    {
+      "id": "xy-edge__n10-n11",
+      "source": "n10",
+      "target": "n11",
+      "sourceHandle": "if-true",
+      "targetHandle": "target"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "mf-access-requested",
+  "language": "en-US",
+  "subject": "Account requested for {{email}}",
+  "bodyFile": "mf-access-requested.en-US.html"
+}

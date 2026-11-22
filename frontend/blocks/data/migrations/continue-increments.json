@@ -1,0 +1,8 @@
+{
+  "$comment": "Additive field for 'Continue with the next increment when the checks pass' (src/domain/continueIncrements.ts): with it on, once an increment of a feature passes its own checks on development, the engine asks for the next increment of the same change by itself (a queued build, the same stream rules). Apply expand-first on every tenant BEFORE deploying the web app, the functions or the engine. Until then the setting is off everywhere: the web reads the field with a read of its own (a tenant without it answers off), the engine's project load only reads the fields the tenant has, and cr.continueIncrements is refused by the gateway. Validations: validations.json (maxLength 300).",
+  "schemas": [
+    { "schemaName": "Project", "fields": [
+      { "name": "ContinueIncrements", "type": "String", "isArray": false, "isPIIData": false, "isUniqueData": false, "description": "Continue with the next increment of a feature when its checks pass on development, JSON {v:1, on, by, at} (src/domain/continueIncrements.ts parseContinueSetting; absent: off, every increment waits for a person); written by cr.continueIncrements." }
+    ] }
+  ]
+}

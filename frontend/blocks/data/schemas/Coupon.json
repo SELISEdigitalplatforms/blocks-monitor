@@ -1,0 +1,143 @@
+{
+  "schemaName": "Coupon",
+  "collectionName": "blx_Coupons",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "CreatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the creating actor, set by the function."
+    },
+    {
+      "name": "UpdatedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the last writer, set by the function."
+    },
+    {
+      "name": "Code",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Upper-case code people type; unique."
+    },
+    {
+      "name": "AmountUsd",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Credit in USD the coupon grants."
+    },
+    {
+      "name": "PlanKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Optional Plan.Key the coupon puts the organization on."
+    },
+    {
+      "name": "MaxRedemptions",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "How many organizations may redeem it; 0 = no limit."
+    },
+    {
+      "name": "Redemptions",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "How many have redeemed it."
+    },
+    {
+      "name": "ExpiresAt",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO time after which it cannot be redeemed (empty: never)."
+    },
+    {
+      "name": "Active",
+      "type": "Boolean",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "False: deactivated."
+    },
+    {
+      "name": "Note",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Internal note."
+    },
+    {
+      "name": "Kind",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "credit|plan|discount (empty on coupons saved before kinds: credit plus the optional PlanKey)."
+    },
+    {
+      "name": "PlanKeys",
+      "type": "String",
+      "isArray": true,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Plans a plan or discount code may be used for (empty: every paid plan)."
+    },
+    {
+      "name": "DurationMonths",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "plan: months the code pays; discount: months the discount applies."
+    },
+    {
+      "name": "PercentOff",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "discount: whole percent off (0: none)."
+    },
+    {
+      "name": "AmountOffUsd",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "discount: fixed USD off (0: none)."
+    },
+    {
+      "name": "PerPersonLimit",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "How many times one person may use the code; 0 = no limit."
+    },
+    {
+      "name": "RequestKey",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Idempotency key, set by the server; unique index."
+    }
+  ]
+}

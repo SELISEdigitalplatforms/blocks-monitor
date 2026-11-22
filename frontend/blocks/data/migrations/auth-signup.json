@@ -1,0 +1,148 @@
+{
+  "$comment": "Public sign-up (server/fnHost/signup.ts, src/domain/signup.ts). Additive: one new schema, SignUp, read and written by the service identity only (the public /api/auth routes act as the service; no person reads these rows). PlatformSetting key auth.signup (\"open\" | \"invite-only\", default \"open\") is read with that default when absent. Apply expand-first BEFORE deploying the web app. Validations: validations.json; indexes: indexes.json; policies: policies.json and rules.json (service only).",
+  "schemas": [
+    {
+      "schemaName": "SignUp",
+      "collectionName": "blx_SignUps",
+      "new": true,
+      "fields": [
+        {
+          "name": "ReaderIds",
+          "type": "String",
+          "isArray": true,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Always empty: only the service identity reads sign-up rows."
+        },
+        {
+          "name": "CreatedByUserId",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "IAM user id of the creating actor, set by the server."
+        },
+        {
+          "name": "UpdatedByUserId",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "IAM user id of the last writer, set by the server."
+        },
+        {
+          "name": "UserId",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "The IAM user created by the sign-up (inactive until the address is verified)."
+        },
+        {
+          "name": "Email",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": true,
+          "isUniqueData": false,
+          "description": "The address signed up with (lower-case)."
+        },
+        {
+          "name": "Name",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": true,
+          "isUniqueData": false,
+          "description": "The name the person typed."
+        },
+        {
+          "name": "OrganizationName",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Name of the first organization, created after the first sign-in."
+        },
+        {
+          "name": "PlanKey",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Plan picked on the pricing page (?plan=), or empty."
+        },
+        {
+          "name": "Status",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "pending|verified."
+        },
+        {
+          "name": "TokenHash",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "SHA-256 (hex) of the current verification link's secret; empty once used. The secret itself is never stored."
+        },
+        {
+          "name": "TokenExpiresAt",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO time the current verification link stops working (24 hours after it was sent)."
+        },
+        {
+          "name": "SentCount",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Verification e-mails sent for this sign-up."
+        },
+        {
+          "name": "LastSentAt",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO time of the last verification e-mail."
+        },
+        {
+          "name": "VerifiedAt",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO time the address was verified."
+        },
+        {
+          "name": "WorkspaceId",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "The first organization, once created after the first sign-in."
+        },
+        {
+          "name": "CreatedAt",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO time of the sign-up."
+        },
+        {
+          "name": "RequestKey",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Idempotency key signup:<userId>."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,232 @@
+@import "@fontsource-variable/outfit";
+@import "@fontsource-variable/jetbrains-mono";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* MADP Factory UI: ONE design system for every screen (Sphere UI calm dashboard + V_DTOR pro editor),
+   light and dark from the same token names. Colours as "r g b" channels for Tailwind alpha. */
+:root {
+  --c-canvas: 241 242 244;      /* #F1F2F4 */
+  --c-surface: 255 255 255;
+  --c-surface2: 247 248 250;
+  --c-line: 230 232 236;
+  --c-ink: 11 11 15;            /* #0B0B0F */
+  --c-ink2: 72 76 88;
+  --c-ink3: 104 109 122;        /* the lightest text: still 4.5:1 on the canvas */
+  --c-accent: 31 91 255;        /* #1F5BFF, electric blue, the ONLY action colour (the same fill in both themes) */
+  --c-accent-hover: 26 79 224;  /* hover darkens in both themes */
+  --c-accent-soft: 232 238 255;
+  --c-accent-ink: 255 255 255;
+  --c-ai: 112 80 245;           /* violet, ONLY for AI-generated content and the assistant */
+  --c-ai-soft: 240 236 255;
+  --c-ai-ink: 255 255 255;
+  --c-success: 4 135 95;
+  --c-success-soft: 209 250 229;
+  --c-landing-dim: 126 131 145;   /* the quiet half of a landing headline (large text): 3.4:1, AA at 3:1 */
+  --c-landing-cool: 244 247 255;  /* the cool white of the light-theme landing glows */
+  --c-landing-pass: 21 128 61;    /* #15803D, the landing's status dots: 5.0:1 on white */
+  --c-warning: 217 119 6;
+  --c-warning-soft: 254 243 199;
+  --c-danger: 220 50 55;
+  --c-danger-soft: 254 226 226;
+  /* the same colours as text: 4.5:1 on every surface and on their own soft fill (text-accent, text-success, …; the
+     chips name them directly: text-[rgb(var(--c-accent-text))], …). Light: the accent itself, 4.5:1 on accent-soft. */
+  --c-accent-text: 31 91 255;
+  --c-ai-text: 98 62 232;
+  --c-success-text: 4 120 87;
+  --c-warning-text: 161 72 8;
+  --c-danger-text: 192 38 45;
+  --c-bar: 11 11 15;            /* data bars */
+  --c-stage: 14 15 19;          /* the 3D stage panel: dark in both themes, like a screen */
+  --c-scrim: 10 12 20;          /* behind modals and drawers: dims the page in both themes */
+  --hatch: rgb(11 11 15 / 0.14);
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --c-canvas: 14 15 19;         /* #0E0F13 */
+  --c-surface: 23 24 29;        /* #17181D */
+  --c-surface2: 30 32 39;
+  --c-line: 38 40 47;
+  --c-ink: 245 246 248;
+  --c-ink2: 176 180 190;
+  --c-ink3: 138 143 156;
+  --c-accent: 31 91 255;
+  --c-accent-hover: 26 79 224;
+  --c-accent-soft: 31 41 71;
+  --c-ai: 112 80 245;
+  --c-ai-soft: 40 34 70;
+  --c-success: 52 211 153;
+  --c-success-soft: 16 52 42;
+  --c-landing-dim: 107 111 123;   /* the theme's own tertiary ink: 3.8:1 (large text, AA at 3:1) */
+  --c-landing-cool: 244 247 255;  /* only used by light-theme rules */
+  --c-landing-pass: 52 211 153;   /* equal to the dark --c-success */
+  --c-warning: 245 158 11;
+  --c-warning-soft: 56 40 12;
+  --c-danger: 220 50 55;
+  --c-danger-soft: 60 24 27;
+  --c-accent-text: 125 160 255;  /* the accent (#1F5BFF) is about 2.7:1 on the dark accent-soft; this blue is 5.7:1 */
+  --c-ai-text: 165 145 255;
+  --c-success-text: 52 211 153;
+  --c-warning-text: 245 158 11;
+  --c-danger-text: 248 113 113;
+  --c-bar: 232 233 236;
+  --c-stage: 10 11 14;
+  --c-scrim: 0 0 0;
+  --hatch: rgb(232 233 236 / 0.16);
+  color-scheme: dark;
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+  /* the page colour from the first paint (and behind overscroll), in the current theme */
+  html { background: rgb(var(--c-canvas)); }
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+  * { @apply border-line; }
+  ::selection { background: rgb(var(--c-accent) / 0.2); }
+  :focus-visible { outline: 2px solid rgb(var(--c-accent)); outline-offset: 2px; border-radius: 12px; }
+}
+
+@layer utilities {
+  /* As text, the accent and status colours use their -text tokens (AA on every surface and on their soft fill); fills,
+     lines and glows keep the base colour. Same class names, so every text-accent, hover:text-accent, … follows. */
+  .text-accent { color: rgb(var(--c-accent-text)); }
+  .text-ai { color: rgb(var(--c-ai-text)); }
+  .text-success { color: rgb(var(--c-success-text)); }
+  .text-warning { color: rgb(var(--c-warning-text)); }
+  .text-danger { color: rgb(var(--c-danger-text)); }
+  .num { font-variant-numeric: tabular-nums; }
+  .hatched {
+    background-image: repeating-linear-gradient(135deg, var(--hatch) 0 2px, transparent 2px 7px);
+  }
+  .scroll-thin { scrollbar-width: thin; scrollbar-color: rgb(var(--c-ink3) / 0.4) transparent; }
+  .scroll-wiki { scrollbar-width: thin; scrollbar-color: rgb(var(--c-line)) transparent; }
+  .scroll-wiki::-webkit-scrollbar { width: 6px; }
+  .scroll-wiki::-webkit-scrollbar-track { background: transparent; }
+  .scroll-wiki::-webkit-scrollbar-thumb { background: rgb(var(--c-line)); border-radius: 9999px; }
+  /* A quiet scrollbar for a column that scrolls on its own (the analyst's column on the Business Analysis page): a
+     reserved gutter, so it never sits over the content, and a slim thumb that shows only while the pointer or the
+     keyboard focus is in the column. Chromium and Firefox use the standard properties (Chromium does not repaint a
+     ::-webkit-scrollbar-thumb when the column's :hover changes, but it does repaint scrollbar-color, and it ignores
+     the ::-webkit-scrollbar parts once scrollbar-color is set); the parts are for Safari. Theme tokens. */
+  .scroll-quiet { scrollbar-gutter: stable; }
+  @supports (scrollbar-color: auto) {
+    .scroll-quiet { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+    .scroll-quiet:hover, .scroll-quiet:focus-within { scrollbar-color: rgb(var(--c-ink3) / 0.4) transparent; }
+  }
+  .scroll-quiet::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scroll-quiet::-webkit-scrollbar-track, .scroll-quiet::-webkit-scrollbar-corner { background: transparent; }
+  .scroll-quiet::-webkit-scrollbar-thumb { background-color: transparent; background-clip: padding-box; border: 2px solid transparent; border-radius: 9999px; }
+  .scroll-quiet:hover::-webkit-scrollbar-thumb, .scroll-quiet:focus-within::-webkit-scrollbar-thumb { background-color: rgb(var(--c-ink3) / 0.4); }
+  .scroll-quiet::-webkit-scrollbar-thumb:hover, .scroll-quiet::-webkit-scrollbar-thumb:active { background-color: rgb(var(--c-ink3) / 0.65); }
+  .wiki-flash { animation: wikiFlash 2.4s ease-out both; }
+  .card-hover { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+  .card-hover:hover { transform: translateY(-1px); box-shadow: 0 8px 24px -16px rgb(10 12 20 / 0.35); }
+}
+
+/* The go-live celebration on the Release page (delivery/Celebration.tsx); off with reduced motion. */
+@keyframes madp-confetti {
+  0%   { transform: translate3d(0,0,0) rotate(0deg); opacity: 0; animation-timing-function: cubic-bezier(.15,.75,.35,1); }
+  5%   { opacity: 1; }
+  42%  { transform: translate3d(calc(var(--dx) * .72), var(--up), 0) rotate(calc(var(--rot) * .45)); animation-timing-function: cubic-bezier(.45,0,.85,.55); }
+  78%  { opacity: 1; }
+  100% { transform: translate3d(var(--dx), var(--fall), 0) rotate(var(--rot)); opacity: 0; }
+}
+@keyframes madp-ring {
+  0%   { transform: scale(.55); opacity: .6; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes wikiFlash {
+  from { background-color: rgb(var(--c-accent-soft)); box-shadow: 0 0 0 2px rgb(var(--c-accent) / 0.4); }
+  to { background-color: transparent; box-shadow: 0 0 0 2px transparent; }
+}
+@keyframes wikiTint {
+  0%, 99% { background-color: rgb(var(--c-accent-soft) / 0.5); }
+  100% { background-color: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wiki-flash { animation: wikiTint 1s linear both !important; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important; animation-delay: 0ms !important;
+    transition-duration: 0.001ms !important; transition-delay: 0ms !important;
+  }
+}
+
+/* The step progress bar (ui/ShimmerProgress.tsx): a gradient fill to the current step, a light sweep inside it and a
+   soft push into the next step, so a step in progress never looks stuck. */
+.shimmer-progress-fill {
+  position: absolute; inset: 0 auto 0 0; width: var(--sp-pct); overflow: hidden; border-radius: 9999px;
+  background-image: linear-gradient(90deg, rgb(var(--c-accent) / 0.55) 0%, rgb(var(--c-accent)) 62%, rgb(110 152 255) 100%);
+  transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.shimmer-progress-sweep {
+  position: absolute; inset: 0 auto 0 0; width: 45%;
+  background-image: linear-gradient(90deg, transparent 0%, rgb(255 255 255 / 0.6) 50%, transparent 100%);
+  animation: shimmer-progress-sweep 1.9s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+.shimmer-progress-push {
+  position: absolute; inset: 0 auto 0 0; left: var(--sp-pct); width: calc(var(--sp-seg) * 0.55); transform-origin: left center;
+  background-image: linear-gradient(90deg, rgb(var(--c-accent) / 0.45), rgb(var(--c-accent) / 0));
+  border-radius: 0 9999px 9999px 0;
+  transition: left 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: shimmer-progress-push 1.9s ease-in-out infinite;
+}
+@keyframes shimmer-progress-sweep {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(240%); }
+}
+@keyframes shimmer-progress-push {
+  0% { transform: scaleX(0); opacity: 0.9; }
+  70% { transform: scaleX(1); opacity: 0.35; }
+  100% { transform: scaleX(1); opacity: 0; }
+}
+/* the guided start's step transitions: forward slides in from the right, back from the left */
+@keyframes guided-in-forward { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes guided-in-back { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+.guided-in-forward { animation: guided-in-forward 0.38s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.guided-in-back { animation: guided-in-back 0.38s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes guided-pop { 0% { transform: scale(1); } 40% { transform: scale(1.025); } 100% { transform: scale(1); } }
+.guided-pop { animation: guided-pop 0.32s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .shimmer-progress-sweep, .shimmer-progress-push { display: none; }
+  .guided-in-forward, .guided-in-back, .guided-pop { animation: none !important; }
+}
+
+/* The top bar's credit details (components/billing/CreditPill.tsx) pour out of the credit pill: the panel starts
+   clipped to the pill's own shape (its top right corner, --credit-pill-w wide, 48 px high, fully round) and its
+   surface flows down and out into the card, rounding into a drop on the way and settling with a small spring; the
+   content fades in once the shape is there. Closing runs the shape back into the pill. The shadow sits on the
+   unclipped shell so it follows the shape. Reduced motion: a plain fade. */
+.credit-shell { filter: drop-shadow(0 16px 32px rgb(10 12 20 / 0.16)) drop-shadow(0 2px 6px rgb(10 12 20 / 0.06)); }
+.credit-surface { clip-path: inset(0 round 24px); transform-origin: top right; }
+.credit-liquid-in { animation: credit-liquid-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.credit-liquid-out { animation: credit-liquid-out 220ms cubic-bezier(0.55, 0, 0.7, 0.2) both; }
+.credit-content-in { animation: credit-content-in 180ms ease-out 120ms both; }
+.credit-content-out { animation: credit-content-out 90ms ease-in both; }
+.credit-fade-in { animation: credit-fade 150ms ease-out both; }
+.credit-fade-out { animation: credit-fade 120ms ease-in reverse both; }
+@keyframes credit-liquid-in {
+  0% { clip-path: inset(0 0 calc(100% - 48px) calc(100% - var(--credit-pill-w, 200px)) round 24px); transform: none; }
+  45% { clip-path: inset(0 0 38% 18% round 24px 24px 64px 64px); transform: scale(0.99, 1.02); }
+  75% { clip-path: inset(0 0 0 0 round 24px 24px 32px 32px); transform: scale(1.005, 0.995); }
+  100% { clip-path: inset(0 round 24px); transform: none; }
+}
+@keyframes credit-liquid-out {
+  0% { clip-path: inset(0 round 24px); }
+  55% { clip-path: inset(0 0 45% 22% round 24px 24px 56px 56px); }
+  100% { clip-path: inset(0 0 calc(100% - 48px) calc(100% - var(--credit-pill-w, 200px)) round 24px); }
+}
+@keyframes credit-content-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@keyframes credit-content-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes credit-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  /* the global rule above zeroes every animation; the credit panel keeps its short fade */
+  .credit-fade-in { animation-duration: 150ms !important; }
+  .credit-fade-out { animation-duration: 120ms !important; }
+}

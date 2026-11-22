@@ -1,0 +1,15 @@
+[
+  {
+    "$key": "assign-qa-a",
+    "$ref": {
+      "ProjectId": "Project:b2b-order-portal"
+    },
+    "$user": {
+      "AssigneeUserId": "qa-a",
+      "AssignedByUserId": "qa-a"
+    },
+    "$at": {
+      "At": "-8d"
+    }
+  }
+]

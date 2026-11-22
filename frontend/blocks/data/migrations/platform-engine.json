@@ -1,0 +1,330 @@
+{
+  "$comment": "New schemas for Platform \u2192 Engine & capacity and AI accounts (src/domain/platformEngine.ts). Additive: apply expand-first on every tenant BEFORE deploying the engine worker or the functions. Until then the worker leaves them alone (its catalog has no such schema: no heartbeat rows, no account rows; lanes still lease from the pool when MF_AI_ACCOUNTS_DIR is set) and platform.engine.status / platform.ai.accounts.list answer empty lists. Writers: the engine worker only (service identity: heartbeat.ts, aiAccountSync.ts); platform.ai.accounts.save updates Status, Priority and Note; the rotation threshold is the PlatformSetting engine.rotateAtPercent (default 99). Policies: policies.json (read super admin + service, write service). Indexes: indexes.json. Validations: validations.json. No credentials are ever stored in these schemas.",
+  "newSchemas": [
+    {
+      "schemaName": "EngineHost",
+      "collectionName": "blx_EngineHosts",
+      "schemaType": 1,
+      "fields": [
+        {
+          "name": "HostId",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "The engine worker's id (EngineJob.ClaimedBy of its jobs); one row per host, written by its heartbeat every 30 s (server/blocks/engineWorker/heartbeat.ts)."
+        },
+        {
+          "name": "Name",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "The host name (letters, digits, dot, dash only)."
+        },
+        {
+          "name": "LastSeenAt",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO time of the last heartbeat; older than 2 minutes = the worker stopped reporting."
+        },
+        {
+          "name": "CpuPercent",
+          "type": "Float",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "CPU busy share since the previous heartbeat (/proc/stat deltas), 0..100."
+        },
+        {
+          "name": "Load1",
+          "type": "Float",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "1-minute load average."
+        },
+        {
+          "name": "Load5",
+          "type": "Float",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "5-minute load average."
+        },
+        {
+          "name": "Load15",
+          "type": "Float",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "15-minute load average."
+        },
+        {
+          "name": "CpuCount",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Logical CPUs."
+        },
+        {
+          "name": "MemUsedMb",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Memory in use (MemTotal - MemAvailable), MB."
+        },
+        {
+          "name": "MemTotalMb",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Memory in total, MB."
+        },
+        {
+          "name": "DiskUsedGb",
+          "type": "Float",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Used space of the file system holding the engine's project folders, GB."
+        },
+        {
+          "name": "DiskTotalGb",
+          "type": "Float",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Size of that file system, GB."
+        },
+        {
+          "name": "RunningJobs",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Engine jobs this worker runs now."
+        },
+        {
+          "name": "RunningLanes",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Official MADP lanes (child processes) running now."
+        },
+        {
+          "name": "ActiveAgents",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Claude Code agent processes under those lanes now."
+        },
+        {
+          "name": "QueueLength",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Queued engine jobs the worker sees."
+        },
+        {
+          "name": "Release",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "The engine release the worker runs (release id, or checkout)."
+        },
+        {
+          "name": "Uptime",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Seconds the host has been up."
+        },
+        {
+          "name": "RequestKey",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Idempotency key, set by the engine worker (engine-host:<HostId>, engine-sample:<HostId>:<minute>, ai-account:<HostId>:<Label>); unique index."
+        }
+      ]
+    },
+    {
+      "schemaName": "EngineHostSample",
+      "collectionName": "blx_EngineHostSamples",
+      "schemaType": 1,
+      "fields": [
+        {
+          "name": "HostId",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "EngineHost.HostId of the host."
+        },
+        {
+          "name": "At",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO time of the sample (one per minute; kept 7 days, older ones are deleted by the worker)."
+        },
+        {
+          "name": "CpuPercent",
+          "type": "Float",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "CPU busy share, 0..100."
+        },
+        {
+          "name": "MemUsedMb",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Memory in use, MB."
+        },
+        {
+          "name": "RunningJobs",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Engine jobs running."
+        },
+        {
+          "name": "ActiveAgents",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Claude Code agents running."
+        },
+        {
+          "name": "RequestKey",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Idempotency key, set by the engine worker (engine-host:<HostId>, engine-sample:<HostId>:<minute>, ai-account:<HostId>:<Label>); unique index."
+        }
+      ]
+    },
+    {
+      "schemaName": "AiAccount",
+      "collectionName": "blx_AiAccounts",
+      "schemaType": 1,
+      "fields": [
+        {
+          "name": "Label",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "The account's name on the engine host (its folder under MF_AI_ACCOUNTS_DIR, or api-key). Never a credential, an e-mail address or a path."
+        },
+        {
+          "name": "Provider",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "claude-subscription | anthropic-api."
+        },
+        {
+          "name": "Status",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "active (in rotation) | standby (only when no active account can) | cooling (the engine rests it until ResetsAt) | disabled (never used). People set active, standby or disabled; the engine sets cooling."
+        },
+        {
+          "name": "Usage5hPercent",
+          "type": "Float",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Share of the 5-hour window used, 0..100, as the engine last measured it; -1 = not measured yet."
+        },
+        {
+          "name": "Usage7dPercent",
+          "type": "Float",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Share of the 7-day window used, 0..100; -1 = not measured yet."
+        },
+        {
+          "name": "ResetsAt",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO time the binding window resets (or the rest ends); empty when unknown."
+        },
+        {
+          "name": "LastUsedAt",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "ISO time a lane last started or ended on the account."
+        },
+        {
+          "name": "Priority",
+          "type": "Int",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Order among accounts with equal headroom: lower first (default 100)."
+        },
+        {
+          "name": "Note",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "People's note (plain text, no credentials)."
+        },
+        {
+          "name": "HostId",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "The engine host the account lives on (EngineHost.HostId)."
+        },
+        {
+          "name": "OnHost",
+          "type": "Boolean",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "False when the account's folder is no longer on the host (the row is kept)."
+        },
+        {
+          "name": "RequestKey",
+          "type": "String",
+          "isArray": false,
+          "isPIIData": false,
+          "isUniqueData": false,
+          "description": "Idempotency key, set by the engine worker (engine-host:<HostId>, engine-sample:<HostId>:<minute>, ai-account:<HostId>:<Label>); unique index."
+        }
+      ]
+    }
+  ]
+}

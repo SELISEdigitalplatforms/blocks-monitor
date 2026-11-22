@@ -1,0 +1,6 @@
+{
+  "name": "mf-build-failed",
+  "language": "en-US",
+  "subject": "Build failed for {{projectName}} on MADP Factory",
+  "bodyFile": "mf-build-failed.en-US.html"
+}

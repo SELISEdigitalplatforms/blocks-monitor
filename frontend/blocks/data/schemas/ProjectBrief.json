@@ -1,0 +1,95 @@
+{
+  "schemaName": "ProjectBrief",
+  "collectionName": "blx_ProjectBriefs",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "ProjectId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Owning project ItemId."
+    },
+    {
+      "name": "Version",
+      "type": "Int",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Auto-increment version number per rebuild."
+    },
+    {
+      "name": "Status",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Brief status: building | ready | stale | failed."
+    },
+    {
+      "name": "InputFingerprint",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "SHA-256 of all inputs (form data hash + sorted extraction content hashes); detects staleness."
+    },
+    {
+      "name": "BriefObjectId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Blocks Storage object ID for the full brief JSON when it exceeds the inline limit."
+    },
+    {
+      "name": "BriefJson",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "The unified brief JSON inline (when ≤50KB); empty when stored in Storage."
+    },
+    {
+      "name": "SourceExtractionIds",
+      "type": "String",
+      "isArray": true,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "AttachmentExtraction ItemIds used in this brief version."
+    },
+    {
+      "name": "FormDataHash",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Hash of the form/wizard answers at the time of brief generation."
+    },
+    {
+      "name": "GeneratedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "When this brief version was generated."
+    },
+    {
+      "name": "ConfirmedAt",
+      "type": "DateTime",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "When the user confirmed this brief; null until confirmed."
+    },
+    {
+      "name": "ConfirmedByUserId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "IAM user id of the person who confirmed."
+    }
+  ]
+}

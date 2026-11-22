@@ -1,0 +1,11 @@
+import { Navigate } from "react-router-dom";
+import { useProjectPage } from "@/components/project/useProjectPage";
+import { ScopeView } from "@/components/scope/ScopeView";
+
+/** The scope document, with its one next step beside it: start the build. Like the build and the live page, any other
+ *  id goes to the project list; opened before the scope exists, the page says so in place. */
+export default function Scope() {
+  const page = useProjectPage();
+  if (page.kind === "unknown") return <Navigate to="/projects" replace />;
+  return <ScopeView />;
+}
