@@ -97,14 +97,14 @@ export function Nav({ overHero, quiet, onHero, page }: {
               overHero ? "lp-nav-glass bg-ink/[0.06] text-ink2 ring-1 ring-ink/10 hover:bg-ink/[0.1] hover:text-ink" : "bg-surface2 text-ink2 ring-1 ring-line hover:bg-line hover:text-ink")}>
             {dark ? <Moon size={18} strokeWidth={1.75} /> : <Sun size={18} strokeWidth={1.75} />}
           </button>
-          <Link to="/sign-in"
+          <button type="button" onClick={() => { void import("@/blocks/iamRedirect").then(m => m.redirectToIamLogin()); }}
             className={cn("group inline-flex h-11 items-center gap-2 rounded-full px-5 text-[14px] font-medium transition sm:pr-4",
               !quiet ? "bg-accent text-white hover:bg-accent-hover"
                 : overHero ? "lp-nav-glass bg-ink/[0.06] text-ink ring-1 ring-ink/10 hover:bg-ink/[0.1]"
                   : "bg-surface2 text-ink ring-1 ring-line hover:bg-line")}>
             {t("landing.cta.startBuilding", "Start building")}
             <ArrowRight size={16} strokeWidth={1.75} className="hidden transition-transform group-hover:translate-x-0.5 sm:block" />
-          </Link>
+          </button>
         </div>
       </div>
     </header>

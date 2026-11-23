@@ -1,6 +1,5 @@
 /** 06 · The close: "Your next release, verified.", slow light on the page canvas (no band, no panel), one action. Then the
  *  footer. */
-import { Link } from "react-router-dom";
 import { ArrowRight, ArrowUp, KeyRound } from "lucide-react";
 import { SamplesMenu } from "@/components/hero/SamplesMenu";
 import { PRODUCT } from "@/data/facts";
@@ -31,11 +30,11 @@ export function Closing() {
             </p>
           </Reveal>
           <Reveal delay={300} className="mt-11 flex flex-wrap items-center justify-center gap-3">
-            <Link to="/sign-in"
+            <button type="button" onClick={() => { void import("@/blocks/iamRedirect").then(m => m.redirectToIamLogin()); }}
               className="lp-accent-lift group inline-flex h-12 items-center gap-2 rounded-full bg-accent pl-6 pr-5 text-[15px] font-medium text-white shadow-[0_14px_50px_-12px_rgb(var(--c-accent)/0.9)] transition hover:bg-accent-hover">
               {t("landing.cta.startBuilding", "Start building")}
               <ArrowRight size={18} strokeWidth={1.75} className="transition-transform group-hover:translate-x-0.5" />
-            </Link>
+            </button>
             <button type="button" onClick={scrollToTop}
               className="lp-ghost inline-flex h-12 items-center gap-2 rounded-full bg-ink/[0.06] pl-6 pr-5 text-[15px] font-medium text-ink ring-1 ring-ink/15 transition hover:bg-ink/[0.1]">
               {t("landing.closing.backToTop", "Back to the top")}

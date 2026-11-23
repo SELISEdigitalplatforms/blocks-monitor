@@ -119,9 +119,25 @@ export function createDataTransport(o: {
   }
 
   async function post(reads: DataRead[]): Promise<Response> {
+    const headers: Record<string, string> = { "content-type": "application/json" };
+    // OIDC session token or genesis-os token for BFF auth
+    try {
+      const { getOidcAccessToken } = await import("../oidcSession");
+      const oidcToken = getOidcAccessToken();
+      if (oidcToken) headers.authorization = `Bearer ${oidcToken}`;
+    } catch { /* ignore */ }
+    if (!headers.authorization) {
+      try {
+        const store = (window as unknown as Record<string, unknown>).__GENESIS_AUTH_STORE__;
+        if (store && typeof store === "object" && "getState" in store) {
+          const token = (store as { getState: () => Record<string, unknown> }).getState().accessToken as string | undefined;
+          if (token) headers.authorization = `Bearer ${token}`;
+        }
+      } catch { /* ignore */ }
+    }
     return o.fetch(DATA_ENDPOINT, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers,
       credentials: "same-origin",
       body: JSON.stringify({ reads }),
     });

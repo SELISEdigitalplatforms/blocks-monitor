@@ -354,7 +354,22 @@ export function createFunctionCaller(
 /** Host A: our own origin (the Vite dev server), not the Blocks API. */
 export async function localPost(path: string, body: unknown): Promise<{ status: number; body: unknown; retryAfter?: string | null }> {
   const headers: Record<string, string> = { "content-type": "application/json", accept: "application/json" };
-  const t = getAccessToken();
+  let t = getAccessToken();
+  // OIDC session token (from Blocks IAM login) or genesis-os token (from Blocks shell)
+  if (!t) {
+    try {
+      const { getOidcAccessToken } = await import("./oidcSession");
+      t = getOidcAccessToken();
+    } catch { /* ignore */ }
+  }
+  if (!t) {
+    try {
+      const store = (window as unknown as Record<string, unknown>).__GENESIS_AUTH_STORE__;
+      if (store && typeof store === "object" && "getState" in store) {
+        t = (store as { getState: () => Record<string, unknown> }).getState().accessToken as string | undefined;
+      }
+    } catch { /* ignore */ }
+  }
   if (t) headers.authorization = "Bearer " + t;
   const res = await fetch(path, { method: "POST", credentials: "include", headers, body: JSON.stringify(body) });
   return { status: res.status, body: await res.json().catch(() => null), retryAfter: res.headers.get("retry-after") };

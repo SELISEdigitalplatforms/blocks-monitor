@@ -19,10 +19,26 @@ export async function authCall(method: "GET" | "POST", path: string, payload?: u
   try {
     return await Promise.race([
       (async (): Promise<AuthAnswer> => {
+        const headers: Record<string, string> = { "content-type": "application/json", accept: "application/json" };
+        // OIDC session token or genesis-os token for BFF auth
+        try {
+          const { getOidcAccessToken } = await import("./oidcSession");
+          const oidcToken = getOidcAccessToken();
+          if (oidcToken) headers.authorization = `Bearer ${oidcToken}`;
+        } catch { /* ignore */ }
+        if (!headers.authorization) {
+          try {
+            const store = (window as unknown as Record<string, unknown>).__GENESIS_AUTH_STORE__;
+            if (store && typeof store === "object" && "getState" in store) {
+              const token = (store as { getState: () => Record<string, unknown> }).getState().accessToken as string | undefined;
+              if (token) headers.authorization = `Bearer ${token}`;
+            }
+          } catch { /* ignore */ }
+        }
         const res = await fetch(`/api/auth/${path}`, {
           method,
           credentials: "same-origin",
-          headers: { "content-type": "application/json", accept: "application/json" },
+          headers,
           body: method === "POST" ? JSON.stringify(payload ?? {}) : undefined,
           signal: ctl.signal,
         });

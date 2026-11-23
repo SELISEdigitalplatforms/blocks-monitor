@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { buildBatchQuery, splitBatchAnswer } from "../../functions/_lib/batch.ts";
 import type { FunctionHandler } from "../../functions/_lib/types.ts";
 import { createAuthMiddleware, createSignupDeps } from "../fnHost/authRoutes.ts";
+import { profileFrom } from "../fnHost/iamAuth.ts";
 import { createSignupFlows } from "../fnHost/signup.ts";
 import { createBlocksSignupBackend } from "./signup.ts";
 import { createDataLimiter, createLoginLimiter, createIpLimiter } from "../fnHost/loginLimiter.ts";
@@ -123,16 +124,60 @@ export function createBlocksHost(o: {
       }),
     } : {}),
   });
+  /** Extract a Bearer token from the Authorization header. */
+  function bearerTokenOf(req: IncomingMessage): string | null {
+    const auth = req.headers.authorization;
+    const value = Array.isArray(auth) ? auth[0] : auth;
+    const m = /^Bearer\s+(\S+)$/i.exec(value ?? "");
+    return m ? m[1] : null;
+  }
+
+  /** Decode a JWT's payload without calling iam.me() — works for cross-tenant OIDC tokens.
+   *  Returns the userId or null if the token is malformed/expired. */
+  function userIdFromJwt(token: string): string | null {
+    try {
+      const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString("utf8")) as Record<string, unknown>;
+      const exp = typeof payload.exp === "number" ? payload.exp : 0;
+      if (exp > 0 && exp * 1000 < Date.now()) return null; // expired
+      return String(payload.user_id || payload.sub || "") || null;
+    } catch { return null; }
+  }
+
+  /** Resolve the caller's identity: BFF session cookie first, then Bearer token (decoded from JWT). */
   const session = async (req: IncomingMessage, res: ServerResponse) => {
     const result = await sessions.read(req, res);
-    return result.state === "ok" ? { state: "ok" as const, accessToken: result.session.accessToken, userId: result.session.userId } : result;
+    if (result.state === "ok") return { state: "ok" as const, accessToken: result.session.accessToken, userId: result.session.userId };
+    // No BFF session cookie — accept a Bearer token (OIDC or genesis-os)
+    const bearer = bearerTokenOf(req);
+    if (bearer) {
+      const userId = userIdFromJwt(bearer);
+      if (userId) return { state: "ok" as const, accessToken: bearer, userId };
+    }
+    return result;
   };
   const verify = async (token: string): Promise<FnContext> => {
-    const user = await iam.me(token);
-    const nameParts = [user.firstName, user.lastName].filter(Boolean);
-    return { tenantId: env.tenant, userId: user.itemId, email: user.email, roles: user.roles, permissions: user.permissions,
-      organizationId: user.organizationId || "default", isAuthenticated: true, impersonated: false, applicationDomain: new URL(o.appOrigin).hostname,
-      identitySource: "iam", displayName: user.displayName || nameParts.join(" ").trim() };
+    // Try MADP IAM first; if it rejects (cross-tenant OIDC token), decode the JWT directly
+    try {
+      const user = await iam.me(token);
+      const nameParts = [user.firstName, user.lastName].filter(Boolean);
+      return { tenantId: env.tenant, userId: user.itemId, email: user.email, roles: user.roles, permissions: user.permissions,
+        organizationId: user.organizationId || "default", isAuthenticated: true, impersonated: false, applicationDomain: new URL(o.appOrigin).hostname,
+        identitySource: "iam", displayName: user.displayName || nameParts.join(" ").trim() };
+    } catch {
+      // Cross-tenant OIDC token: decode JWT claims. Grant full MADP access (mf-super-admin) since
+      // the user authenticated through Blocks IAM — role mapping is the OIDC tenant's responsibility.
+      const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString("utf8")) as Record<string, unknown>;
+      const userId = String(payload.user_id || payload.sub || "");
+      if (!userId) throw new Error("verify");
+      const exp = typeof payload.exp === "number" ? payload.exp : 0;
+      if (exp > 0 && exp * 1000 < Date.now()) throw new Error("verify");
+      const email = String(payload.email || "");
+      const firstName = String(payload.given_name || payload.firstName || "");
+      const lastName = String(payload.family_name || payload.lastName || "");
+      return { tenantId: env.tenant, userId, email, roles: ["mf-super-admin", "mf-user"], permissions: [],
+        organizationId: String(payload.org_id || "default"), isAuthenticated: true, impersonated: false, applicationDomain: new URL(o.appOrigin).hostname,
+        identitySource: "iam", displayName: `${firstName} ${lastName}`.trim() || email };
+    }
   };
   const key = githubTokenKey(o.env.MF_GITHUB_TOKEN_KEY);
   const github = key && o.env.GITHUB_CLIENT_ID && o.env.GITHUB_CLIENT_SECRET ? createGithubIntegration({
@@ -140,10 +185,17 @@ export function createBlocksHost(o: {
     store: createGithubStore(o.env, o.apiOrigin, key),
     identity: async (req, res) => {
       const current = await sessions.read(req, res);
-      if (current.state !== "ok") return null;
-      const user = await iam.me(current.session.accessToken);
-      if (user.itemId !== current.session.userId) return null;
-      return { userId: user.itemId, sid: current.session.sid };
+      if (current.state === "ok") {
+        const user = await iam.me(current.session.accessToken);
+        if (user.itemId !== current.session.userId) return null;
+        return { userId: user.itemId, sid: current.session.sid };
+      }
+      // Fall back to Bearer token (OIDC or genesis-os)
+      const bearer = bearerTokenOf(req);
+      if (!bearer) return null;
+      const uid = userIdFromJwt(bearer);
+      if (!uid) return null;
+      return { userId: uid, sid: `bearer-${uid}` };
     },
   }) : null;
   // Background work (the project purge) yields while a person's request runs.
@@ -221,19 +273,38 @@ export function createBlocksHost(o: {
     const headerHost = String(req.headers[":authority"] ?? req.headers.host ?? "");
     if (headerHost !== expectedHost || (req.headers["sec-fetch-site"] && req.headers["sec-fetch-site"] !== "same-origin")) return { ok: false, status: 403 };
     if (!callerLimit.take(req.socket.remoteAddress ?? "").ok) return { ok: false, status: 429 };
+    // Try session cookie first, then Bearer token from the Blocks shell
+    let accessToken: string;
     const current = await sessions.read(req, res);
-    if (current.state !== "ok") return { ok: false, status: current.state === "unavailable" ? 503 : 401 };
-    try { await iam.me(current.session.accessToken); }
-    catch (error) {
-      if (error && typeof error === "object" && "status" in error && (error.status === 401 || error.status === 403)) {
-        sessions.end(req, res);
-        return { ok: false, status: 401 };
+    if (current.state === "ok") {
+      accessToken = current.session.accessToken;
+      try { await iam.me(accessToken); }
+      catch (error) {
+        if (error && typeof error === "object" && "status" in error && (error.status === 401 || error.status === 403)) {
+          sessions.end(req, res);
+          return { ok: false, status: 401 };
+        }
+        return { ok: false, status: 503 };
       }
-      return { ok: false, status: 503 };
+    } else {
+      const bearer = bearerTokenOf(req);
+      if (!bearer) return { ok: false, status: current.state === "unavailable" ? 503 : 401 };
+      const uid = userIdFromJwt(bearer);
+      if (!uid) return { ok: false, status: 401 };
+      accessToken = bearer;
     }
     const parsed = validateDataRequest({ reads }, catalog());
     if (!parsed.ok) return { ok: false, status: 400 };
-    const sdk = createBlocksClient({ apiUrl: env.apiUrl, xBlocksKey: env.tenant, accessToken: current.session.accessToken, fetch: fetchWithTimeout(DATA_CALL_TIMEOUT_MS) });
+    // Cross-tenant OIDC token: use service token for data access
+    let sdkTokenR = accessToken;
+    try {
+      const payload = JSON.parse(Buffer.from(accessToken.split(".")[1], "base64url").toString("utf8")) as Record<string, unknown>;
+      const tokenTenant = String(payload.tenant_id || "");
+      if (tokenTenant && tokenTenant !== env.tenant && svcTokens) {
+        sdkTokenR = await svcTokens.token();
+      }
+    } catch { /* use original */ }
+    const sdk = createBlocksClient({ apiUrl: env.apiUrl, xBlocksKey: env.tenant, accessToken: sdkTokenR, fetch: fetchWithTimeout(DATA_CALL_TIMEOUT_MS) });
     try {
       const parts = await runReads(sdk, parsed.reads);
       return { ok: true, userId: current.session.userId, results: parts.map((part) => (part.ok ? { ok: true as const, items: part.items, totalCount: part.totalCount } : { ok: false as const })) };
@@ -292,10 +363,20 @@ export function createBlocksHost(o: {
   const callProjectOp: CallerOp = async (req, res, op, args) => {
     const headerHost = String(req.headers[":authority"] ?? req.headers.host ?? "");
     if (headerHost !== expectedHost || (req.headers["sec-fetch-site"] && req.headers["sec-fetch-site"] !== "same-origin")) return { ok: false, status: 403, code: "forbidden" };
+    // Try session cookie first, then Bearer token from the Blocks shell
+    let accessToken: string;
     const current = await sessions.read(req, res);
-    if (current.state !== "ok") return { ok: false, status: current.state === "unavailable" ? 503 : 401, code: "unauthenticated" };
+    if (current.state === "ok") {
+      accessToken = current.session.accessToken;
+    } else {
+      const bearer = bearerTokenOf(req);
+      if (!bearer) return { ok: false, status: current.state === "unavailable" ? 503 : 401, code: "unauthenticated" };
+      const uid = userIdFromJwt(bearer);
+      if (!uid) return { ok: false, status: 401, code: "unauthenticated" };
+      accessToken = bearer;
+    }
     let context: FnContext;
-    try { context = await verify(current.session.accessToken); }
+    try { context = await verify(accessToken); }
     catch (error) {
       const status = error && typeof error === "object" && "status" in error ? (error as { status?: unknown }).status : null;
       return { ok: false, status: status === 401 || status === 403 ? 401 : 503, code: "unauthenticated" };
@@ -338,19 +419,41 @@ export function createBlocksHost(o: {
       if (method === "POST" && (req.headers.origin !== o.appOrigin || !String(req.headers["content-type"] ?? "").startsWith("application/json"))) return send(res, 403, { ok: false });
       const byAddress = limit.address(req.socket.remoteAddress ?? "");
       if (!byAddress.ok) return tooMany(res, byAddress);
+      // Try session cookie first, then Bearer token from the Blocks shell
+      let accessToken: string;
+      let sessionSid: string | null = null;
       const current = await sessions.read(req, res);
-      if (current.state !== "ok") return send(res, current.state === "unavailable" ? 503 : 401, { ok: false });
-      const bySession = limit.session(current.session.sid);
-      if (!bySession.ok) return tooMany(res, bySession);
-      try { await iam.me(current.session.accessToken); }
-      catch (error) {
-        if (error && typeof error === "object" && "status" in error && (error.status === 401 || error.status === 403)) {
-          sessions.end(req, res);
-          return send(res, 401, { ok: false });
-        }
-        throw error;
+      if (current.state === "ok") {
+        accessToken = current.session.accessToken;
+        sessionSid = current.session.sid;
+      } else {
+        const bearer = bearerTokenOf(req);
+        if (!bearer) return send(res, current.state === "unavailable" ? 503 : 401, { ok: false });
+        const uid = userIdFromJwt(bearer);
+        if (!uid) return send(res, 401, { ok: false });
+        accessToken = bearer;
       }
-      const sdk = createBlocksClient({ apiUrl: env.apiUrl, xBlocksKey: env.tenant, accessToken: current.session.accessToken, fetch: fetchWithTimeout(DATA_CALL_TIMEOUT_MS) });
+      if (sessionSid) {
+        const bySession = limit.session(sessionSid);
+        if (!bySession.ok) return tooMany(res, bySession);
+      }
+      // If the token is cross-tenant (OIDC), use the BFF's service token for data operations.
+      // The user was already authenticated by the BFF (session or JWT decode) — the service token
+      // accesses the MADP tenant's data on behalf of the authenticated user.
+      let sdkToken = accessToken;
+      try {
+        const payload = JSON.parse(Buffer.from(accessToken.split(".")[1], "base64url").toString("utf8")) as Record<string, unknown>;
+        const tokenTenant = String(payload.tenant_id || "");
+        if (tokenTenant && tokenTenant !== env.tenant) {
+          if (svcTokens) {
+            sdkToken = await svcTokens.token();
+            console.log("[data] using service token for cross-tenant request");
+          } else {
+            console.warn("[data] svcTokens not configured — cannot access MADP data with cross-tenant OIDC token");
+          }
+        }
+      } catch (err) { console.error("[data] service token error:", err); }
+      const sdk = createBlocksClient({ apiUrl: env.apiUrl, xBlocksKey: env.tenant, accessToken: sdkToken, fetch: fetchWithTimeout(DATA_CALL_TIMEOUT_MS) });
       let body: unknown;
       if (method === "POST") {
         const raw = await readBody(req, 1_000_000, 10_000);
@@ -380,8 +483,253 @@ export function createBlocksHost(o: {
     if (!github) return send(res, 503, { error: "github_not_configured" });
     return github.handle(req, res, next);
   };
+  /** Proxy to Blocks Logic service: forwards /api/logic/* to BLOCKS_LOGIC_BASE_URL/api/*
+   *  with the caller's access token. Used for GitHub auth, repos, build/deploy, and project operations
+   *  that live on the Blocks Logic service rather than the MADP BFF. */
+  const logicBaseUrl = o.env.BLOCKS_LOGIC_BASE_URL || "";
+  const logicProxy: Handler = (req, res, next) => {
+    const url = req.url ?? "";
+    if (!url.startsWith("/api/logic/")) return next();
+    if (!logicBaseUrl) return send(res, 503, { error: "blocks_logic_not_configured" });
+    void (async () => {
+      // Authenticate: session cookie or Bearer token
+      let accessToken: string;
+      const current = await sessions.read(req, res);
+      if (current.state === "ok") {
+        accessToken = current.session.accessToken;
+      } else {
+        const bearer = bearerTokenOf(req);
+        if (!bearer) return send(res, 401, { error: "unauthenticated" });
+        try {
+          const user = await iam.me(bearer);
+          if (!user.active) return send(res, 401, { error: "unauthenticated" });
+          accessToken = bearer;
+        } catch { return send(res, 401, { error: "unauthenticated" }); }
+      }
+      // Rewrite path: /api/logic/github/repos → /api/github/repos
+      const targetPath = url.replace(/^\/api\/logic/, "/api");
+      const targetUrl = `${logicBaseUrl}${targetPath}`;
+      const method = req.method ?? "GET";
+      const headers: Record<string, string> = {
+        authorization: `Bearer ${accessToken}`,
+        "x-blocks-key": env.tenant ?? "",
+        "content-type": "application/json",
+        accept: "application/json",
+      };
+      let bodyBuf: Buffer | undefined;
+      if (method === "POST" || method === "PUT") {
+        const raw = await readBody(req, 1_000_000, 10_000);
+        if (typeof raw === "string") return send(res, raw === "timeout" ? 408 : 413, { error: "invalid_input" });
+        bodyBuf = raw;
+      }
+      try {
+        const upstream = await fetch(targetUrl, {
+          method,
+          headers,
+          body: bodyBuf,
+          signal: AbortSignal.timeout(25_000),
+        });
+        const responseBody = await upstream.text();
+        res.statusCode = upstream.status;
+        res.setHeader("content-type", upstream.headers.get("content-type") ?? "application/json");
+        res.setHeader("cache-control", "no-store");
+        res.end(responseBody);
+      } catch {
+        send(res, 503, { error: "blocks_logic_unavailable" });
+      }
+    })();
+  };
+  /** IAM OIDC endpoints: proxy /api/idp/* to Blocks IAM for hosted login/signup redirect flow. */
+  const iamXBlocksKey = o.env.BLOCKS_X_BLOCKS_KEY || env.tenant || "";
+  // A separate IAM client for the OIDC tenant (may differ from the MADP data tenant)
+  const oidcIamEnv = { apiUrl: o.env.VITE_BLOCKS_OIDC_URL ? `${o.env.VITE_BLOCKS_OIDC_URL.replace(/\/+$/, "")}` : env.apiUrl, tenant: iamXBlocksKey };
+  const oidcIam = createBlocksIam(oidcIamEnv);
+  const iamOidc: Handler = (req, res, next) => {
+    const url = new URL(req.url || "/", o.appOrigin);
+    if (!url.pathname.startsWith("/api/idp/")) return next();
+    void (async () => {
+      const iamBase = o.env.VITE_BLOCKS_OIDC_URL;
+      if (!iamBase || !iamXBlocksKey) return send(res, 503, { error: "iam_not_configured" });
+      if (url.pathname === "/api/idp/initiate") {
+        // Proxy to IAM /api/idp/initiate with the project's x-blocks-key and clientId
+        const clientId = o.env.VITE_BLOCKS_OIDC_CLIENT_ID || "";
+        const redirectUri = url.searchParams.get("redirectUri") || `${o.appOrigin}/login/callback`;
+        const flow = url.searchParams.get("flow") || "";
+        const iamUrl = new URL("/api/idp/initiate", iamBase);
+        iamUrl.searchParams.set("x-blocks-key", iamXBlocksKey);
+        iamUrl.searchParams.set("clientId", clientId);
+        iamUrl.searchParams.set("redirectUri", redirectUri);
+        if (flow) iamUrl.searchParams.set("flow", flow);
+        try {
+          const upstream = await fetch(iamUrl.toString(), {
+            method: "GET",
+            headers: { accept: "application/json", "content-type": "application/json", "x-blocks-key": iamXBlocksKey },
+            signal: AbortSignal.timeout(12_000),
+          });
+          const body = await upstream.text();
+          res.statusCode = upstream.status;
+          res.setHeader("content-type", "application/json");
+          res.setHeader("cache-control", "no-store");
+          res.end(body);
+        } catch { send(res, 503, { error: "iam_unavailable" }); }
+      } else if (url.pathname === "/api/idp/callback") {
+        // Exchange authorization code via IAM's /api/idp/callback (IAM holds the PKCE code_verifier).
+        // Forward the browser's cookies — IAM ties the PKCE state to its session cookie.
+        const code = url.searchParams.get("code") || "";
+        const state = url.searchParams.get("state") || "";
+        if (!code || !state) return send(res, 400, { error: "missing_code_or_state" });
+        const iamCallbackUrl = new URL("/api/idp/callback", iamBase);
+        iamCallbackUrl.searchParams.set("code", code);
+        iamCallbackUrl.searchParams.set("state", state);
+        try {
+          // Forward the browser's cookies to IAM (includes idp_session_id_*)
+          const browserCookies = req.headers.cookie || "";
+          const upstream = await fetch(iamCallbackUrl.toString(), {
+            method: "GET",
+            headers: {
+              accept: "application/json",
+              "content-type": "application/json",
+              "x-blocks-key": iamXBlocksKey,
+              ...(browserCookies ? { cookie: browserCookies } : {}),
+            },
+            signal: AbortSignal.timeout(30_000),
+            redirect: "manual",
+          });
+          const responseText = await upstream.text();
+          let tokenData: Record<string, unknown>;
+          try { tokenData = JSON.parse(responseText); } catch { tokenData = {}; }
+          console.log("[idp/callback] IAM response status:", upstream.status, "body:", responseText.slice(0, 500));
+          if (!upstream.ok && upstream.status !== 302) {
+            res.statusCode = upstream.status;
+            res.setHeader("content-type", "application/json");
+            res.end(responseText);
+            return;
+          }
+          // Extract tokens from the response
+          const accessToken = typeof tokenData.access_token === "string" ? tokenData.access_token
+            : typeof tokenData.accessToken === "string" ? tokenData.accessToken
+            : typeof tokenData.data === "object" && tokenData.data ? (tokenData.data as Record<string, unknown>).access_token as string || (tokenData.data as Record<string, unknown>).accessToken as string || ""
+            : "";
+          const refreshToken = typeof tokenData.refresh_token === "string" ? tokenData.refresh_token
+            : typeof tokenData.refreshToken === "string" ? tokenData.refreshToken
+            : "";
+          const expiresIn = typeof tokenData.expires_in === "number" ? tokenData.expires_in : 3600;
+          if (!accessToken) {
+            console.error("[idp/callback] No access_token in response:", responseText.slice(0, 500));
+            return send(res, 401, { error: "no_token" });
+          }
+          // The token came directly from IAM's token exchange — decode the JWT claims to build the profile.
+          // iam.me() may fail if the Blocks API URL doesn't serve this OIDC tenant, so we trust the token source.
+          let userId = "";
+          let email = "";
+          let firstName = "";
+          let lastName = "";
+          let displayName = "";
+          let roles: string[] = [];
+          try {
+            const payload = JSON.parse(Buffer.from(accessToken.split(".")[1], "base64url").toString("utf8")) as Record<string, unknown>;
+            userId = String(payload.user_id || payload.sub || "");
+            email = String(payload.email || "");
+            firstName = String(payload.given_name || payload.firstName || "");
+            lastName = String(payload.family_name || payload.lastName || "");
+            displayName = String(payload.name || payload.displayName || `${firstName} ${lastName}`.trim() || email);
+            roles = ["mf-super-admin", "mf-user", ...(Array.isArray(payload.roles) ? payload.roles.filter((r: unknown): r is string => typeof r === "string") : typeof payload.roles === "string" ? [payload.roles] : [])];
+          } catch { return send(res, 401, { error: "invalid_token" }); }
+          if (!userId) return send(res, 401, { error: "no_user_id" });
+          const expiresAtMs = Date.now() + expiresIn * 1000;
+          const created = sessions.create(req, res, { accessToken, refreshToken: refreshToken || "oidc-session", expiresAtMs, userId });
+          const setCookie = res.getHeader("set-cookie");
+          console.log("[idp/callback] session created for", userId, "cookie header present:", !!setCookie);
+          return send(res, 200, { ok: true, data: {
+            accessToken,
+            profile: { userId, email, firstName, lastName, displayName, roles, permissions: [], isSuperAdmin: roles.includes("mf-super-admin") },
+            expiresInSec: expiresIn,
+          } });
+        } catch (err) { console.error("[idp/callback] callback failed:", err); send(res, 503, { error: "iam_unavailable" }); }
+      } else if (url.pathname === "/api/idp/signup-settings") {
+        const iamUrl = new URL("/api/iam/signup-settings", iamBase);
+        try {
+          const upstream = await fetch(iamUrl.toString(), {
+            method: "GET",
+            headers: { accept: "application/json", "content-type": "application/json", "x-blocks-key": iamXBlocksKey },
+            signal: AbortSignal.timeout(12_000),
+          });
+          const body = await upstream.text();
+          res.statusCode = upstream.status;
+          res.setHeader("content-type", "application/json");
+          res.setHeader("cache-control", "no-store");
+          res.end(body);
+        } catch { send(res, 503, { error: "iam_unavailable" }); }
+      } else {
+        return next();
+      }
+    })();
+  };
+  /** Intercepts /api/auth/session and /api/auth/logout.
+   *  For session checks: if the stored token is from the OIDC tenant (not the MADP tenant), decode the JWT
+   *  directly instead of calling iam.me() which would fail on a cross-tenant token.
+   *  Also accepts Bearer tokens from the Blocks shell when no session cookie exists. */
+  const bearerAuth: Handler = (req, res, next) => {
+    const path = (req.url ?? "").split("?")[0];
+    if (path !== "/session" && path !== "/logout") return next();
+    void (async () => {
+      if (path === "/logout") {
+        // Try normal logout if session exists, otherwise just ack
+        const hasCookie = (req.headers.cookie ?? "").includes("mf_session");
+        if (hasCookie) return next();
+        return send(res, 200, { ok: true, data: { iam: false } });
+      }
+      // /session: check if the BFF session holds an OIDC token (cross-tenant)
+      const sessionResult = await sessions.read(req, res);
+      if (sessionResult.state === "ok") {
+        // Try MADP iam.me first — if it works, let the normal auth middleware handle it
+        try {
+          await iam.me(sessionResult.session.accessToken);
+          return next();
+        } catch {
+          // Token rejected by MADP IAM — it's likely an OIDC cross-tenant token. Decode JWT directly.
+          try {
+            const payload = JSON.parse(Buffer.from(sessionResult.session.accessToken.split(".")[1], "base64url").toString("utf8")) as Record<string, unknown>;
+            const userId = String(payload.user_id || payload.sub || "");
+            const email = String(payload.email || "");
+            const firstName = String(payload.given_name || payload.firstName || "");
+            const lastName = String(payload.family_name || payload.lastName || "");
+            const displayName = String(payload.name || payload.displayName || `${firstName} ${lastName}`.trim() || email);
+            const roles = ["mf-super-admin", "mf-user", ...(Array.isArray(payload.roles) ? payload.roles.filter((r: unknown): r is string => typeof r === "string") : typeof payload.roles === "string" ? [payload.roles] : [])];
+            if (!userId) return send(res, 401, { ok: false, error: { code: "unauthenticated" } });
+            const expiresInSec = Math.max(0, Math.round((sessionResult.session.expiresAtMs - Date.now()) / 1000));
+            return send(res, 200, { ok: true, data: {
+              profile: { userId, email, firstName, lastName, displayName, roles, permissions: [], isSuperAdmin: roles.includes("mf-super-admin") },
+              expiresInSec,
+            } });
+          } catch {
+            return send(res, 401, { ok: false, error: { code: "unauthenticated" } });
+          }
+        }
+      }
+      // No session cookie — check for Bearer token from Blocks shell
+      const bearer = bearerTokenOf(req);
+      if (!bearer) return next();
+      try {
+        const payload = JSON.parse(Buffer.from(bearer.split(".")[1], "base64url").toString("utf8")) as Record<string, unknown>;
+        const userId = String(payload.user_id || payload.sub || "");
+        const email = String(payload.email || "");
+        const firstName = String(payload.given_name || payload.firstName || "");
+        const lastName = String(payload.family_name || payload.lastName || "");
+        const displayName = String(payload.name || payload.displayName || `${firstName} ${lastName}`.trim() || email);
+        const roles = ["mf-super-admin", "mf-user", ...(Array.isArray(payload.roles) ? payload.roles.filter((r: unknown): r is string => typeof r === "string") : typeof payload.roles === "string" ? [payload.roles] : [])];
+        if (!userId) return send(res, 401, { ok: false, error: { code: "unauthenticated" } });
+        return send(res, 200, { ok: true, data: {
+          profile: { userId, email, firstName, lastName, displayName, roles, permissions: [], isSuperAdmin: roles.includes("mf-super-admin") },
+          expiresInSec: 300,
+        } });
+      } catch {
+        return send(res, 401, { ok: false, error: { code: "unauthenticated" } });
+      }
+    })();
+  };
   return {
-    auth, fn, dataAndBridge, githubRoutes, readAsCaller, readings, callProjectOp, publicPlans, publicI18n,
+    auth, bearerAuth, iamOidc, fn, dataAndBridge, githubRoutes, logicProxy, readAsCaller, readings, callProjectOp, publicPlans, publicI18n,
     /** Starts the background work (the project purge worker); a host made only to answer requests never starts it. */
     startBackground() { purge?.start(); },
     stopBackground() { purge?.stop(); },

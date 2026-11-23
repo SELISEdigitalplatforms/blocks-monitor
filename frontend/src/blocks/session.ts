@@ -45,11 +45,35 @@ export interface SessionState {
   notice: string | null;
 }
 
-export const useSession = create<SessionState>(() => ({
-  status: "restoring",
-  profile: null,
-  notice: null,
-}));
+/** Check sessionStorage synchronously for a saved OIDC session so the very first render knows the user is signed in. */
+function initialSessionState(): SessionState {
+  try {
+    const raw = globalThis.sessionStorage?.getItem("madp-oidc-session-v1");
+    if (raw) {
+      const data = JSON.parse(raw) as { accessToken?: string; profile?: Record<string, unknown>; expiresAtMs?: number };
+      if (data.accessToken && data.profile && data.expiresAtMs && data.expiresAtMs > Date.now()) {
+        const p = data.profile;
+        return {
+          status: "signed-in",
+          profile: {
+            userId: String(p.userId || ""),
+            email: String(p.email || ""),
+            firstName: String(p.firstName || ""),
+            lastName: String(p.lastName || ""),
+            displayName: String(p.displayName || ""),
+            roles: Array.isArray(p.roles) ? p.roles : [],
+            permissions: Array.isArray(p.permissions) ? p.permissions : [],
+            isSuperAdmin: p.isSuperAdmin === true,
+          },
+          notice: null,
+        };
+      }
+    }
+  } catch { /* no sessionStorage or invalid data */ }
+  return { status: "restoring", profile: null, notice: null };
+}
+
+export const useSession = create<SessionState>(initialSessionState);
 
 let timer: ReturnType<typeof setTimeout> | null = null;
 let inflight: Promise<RefreshOutcome> | null = null;
@@ -231,8 +255,15 @@ function clearLocal(notice: string | null, broadcast: boolean): void {
   if (broadcast) broadcastSignedOut();
 }
 
-/** End the session locally with no server call. */
+/** End the session locally with no server call. Skip when OIDC session is active (API failures don't mean signed out). */
 export function endSession(notice: string | null): void {
+  try {
+    const raw = globalThis.sessionStorage?.getItem("madp-oidc-session-v1");
+    if (raw) {
+      const data = JSON.parse(raw) as { expiresAtMs?: number };
+      if (data.expiresAtMs && data.expiresAtMs > Date.now()) return; // OIDC session is valid — don't sign out
+    }
+  } catch { /* ignore */ }
   clearLocal(notice, true);
 }
 
@@ -292,6 +323,14 @@ export function whenRefreshSettled(): Promise<void> {
  * A 401 ends the session with the calm message. Always resolves undefined (the browser holds no token).
  */
 export async function refreshNow(): Promise<string | undefined> {
+  // OIDC session: never end the session from a refresh failure — the OIDC token is the source of truth
+  try {
+    const raw = globalThis.sessionStorage?.getItem("madp-oidc-session-v1");
+    if (raw) {
+      const data = JSON.parse(raw) as { accessToken?: string; expiresAtMs?: number };
+      if (data.accessToken && data.expiresAtMs && data.expiresAtMs > Date.now()) return data.accessToken;
+    }
+  } catch { /* ignore */ }
   const gen = generation;
   const outcome = await refreshOnce();
   if (gen !== generation) return undefined;
@@ -359,8 +398,26 @@ export async function signIn(input: {
  *  (RESTORE_RETRIES, the keep-alive's backoff), then the person is signed out here with a notice that says why. */
 export async function restoreSession(afterCallback = false): Promise<void> {
   dropLegacyTokens();
-  // IAM's callback must set the cookie before a session restoration is attempted.
-  if (!afterCallback && hostedLoginEnabled() && globalThis.location?.pathname === "/login/callback") return;
+  // Skip on the callback page — the OIDC callback handler sets the session directly.
+  if (!afterCallback && globalThis.location?.pathname === "/login/callback") return;
+  // If an OIDC session exists, use it directly — no /api/auth/session, no workspace bootstrap.
+  // The OIDC token is the single source of truth for auth.
+  try {
+    const { readOidcSession } = await import("./oidcSession");
+    const oidc = readOidcSession();
+    if (oidc) {
+      const p = oidc.profile;
+      const session = readSession({ ok: true, data: { profile: p, expiresInSec: Math.round((oidc.expiresAtMs - Date.now()) / 1000) } });
+      if (session) {
+        generation++;
+        clearSignOutPending();
+        retryAttempt = 0;
+        useSession.setState({ status: "signed-in", profile: session.profile, notice: null });
+        // Don't schedule refresh — no /api/auth/session to ping. The OIDC token has its own expiry.
+        return;
+      }
+    }
+  } catch { /* oidcSession not available, continue normally */ }
   // A freshly validated hosted login supersedes an interrupted earlier sign-out.
   if (afterCallback) clearSignOutPending();
   if (isSignOutPending()) {

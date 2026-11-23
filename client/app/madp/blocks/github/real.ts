@@ -9,9 +9,23 @@ import type { GithubBranch, GithubConnection, GithubRepo, GithubSource } from ".
 const API = "/api/github";
 const DISCONNECTED: GithubConnection = { connected: false, login: null, connectedAt: null };
 
+/** Read the genesis-os access token from the Blocks shell auth store. */
+function genesisToken(): string | undefined {
+  try {
+    const store = (window as unknown as Record<string, unknown>).__GENESIS_AUTH_STORE__;
+    if (store && typeof store === "object" && "getState" in store) {
+      return (store as { getState: () => Record<string, unknown> }).getState().accessToken as string | undefined;
+    }
+  } catch { /* ignore */ }
+  return undefined;
+}
+
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const token = genesisToken();
+  if (token) headers.authorization = `Bearer ${token}`;
   const res = await fetch(`${API}${path}`, {
-    headers: { "Content-Type": "application/json" },
+    headers,
     ...init,
   });
   if (!res.ok) {

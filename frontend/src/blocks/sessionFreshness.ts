@@ -87,6 +87,14 @@ export function startSessionFreshness(o: {
   deps?: Partial<SessionFreshnessDeps>;
 } = {}): () => void {
   if (stopCurrent) return stopCurrent;
+  // OIDC session: skip session freshness — no /api/auth/session pings needed.
+  try {
+    const raw = globalThis.sessionStorage?.getItem("madp-oidc-session-v1");
+    if (raw) {
+      const data = JSON.parse(raw) as { expiresAtMs?: number };
+      if (data.expiresAtMs && data.expiresAtMs > Date.now()) return () => {};
+    }
+  } catch { /* continue */ }
   deps = { ...DEFAULT_DEPS, ...o.deps };
   const win = o.win !== undefined ? o.win : typeof window !== "undefined" ? window : null;
   const doc = o.doc !== undefined ? o.doc : typeof document !== "undefined" ? document : null;

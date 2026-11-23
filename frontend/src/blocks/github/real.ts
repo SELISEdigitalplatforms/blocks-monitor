@@ -9,9 +9,32 @@ import type { GithubBranch, GithubConnection, GithubRepo, GithubSource } from ".
 const API = "/api/github";
 const DISCONNECTED: GithubConnection = { connected: false, login: null, connectedAt: null };
 
+/** Get the access token: OIDC session first, then genesis-os shell store. */
+function getToken(): string | undefined {
+  // OIDC session token (from Blocks IAM login)
+  try {
+    const raw = sessionStorage.getItem("madp-oidc-session-v1");
+    if (raw) {
+      const data = JSON.parse(raw) as { accessToken?: string; expiresAtMs?: number };
+      if (data.accessToken && data.expiresAtMs && data.expiresAtMs > Date.now()) return data.accessToken;
+    }
+  } catch { /* ignore */ }
+  // Genesis-os shell token
+  try {
+    const store = (window as unknown as Record<string, unknown>).__GENESIS_AUTH_STORE__;
+    if (store && typeof store === "object" && "getState" in store) {
+      return (store as { getState: () => Record<string, unknown> }).getState().accessToken as string | undefined;
+    }
+  } catch { /* ignore */ }
+  return undefined;
+}
+
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const token = getToken();
+  if (token) headers.authorization = `Bearer ${token}`;
   const res = await fetch(`${API}${path}`, {
-    headers: { "Content-Type": "application/json" },
+    headers,
     ...init,
   });
   if (!res.ok) {

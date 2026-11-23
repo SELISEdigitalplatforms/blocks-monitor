@@ -458,11 +458,26 @@ export function refreshAccess(): Promise<boolean> {
   return accessInflight;
 }
 
-/** Idempotent: removes the legacy session key and follows the session. */
+/** Idempotent: removes the legacy session key and follows the session.
+ *  When an OIDC session is active, skip workspace sync entirely — no me.bootstrap or data reads.
+ *  Those calls target the MADP tenant and fail with an OIDC cross-tenant token. */
 export function startWorkspaceSync(): void {
   if (started) return;
   started = true;
   removeLegacy();
+  // Check if OIDC session is active — skip workspace sync to avoid cross-tenant me.bootstrap calls
+  try {
+    const raw = globalThis.sessionStorage?.getItem("madp-oidc-session-v1");
+    if (raw) {
+      const data = JSON.parse(raw) as { expiresAtMs?: number };
+      if (data.expiresAtMs && data.expiresAtMs > Date.now()) {
+        // OIDC session active — set workspace as ready with defaults so the UI doesn't block
+        resetWorkspaceStore(false);
+        useWorkspaces.setState({ ready: true, isSuperAdmin: true, platformPermissions: [...PLATFORM_PERMISSIONS] });
+        return;
+      }
+    }
+  } catch { /* continue with normal sync */ }
   unsubscribeSession = useSession.subscribe(onSession);
   onSession();
 }

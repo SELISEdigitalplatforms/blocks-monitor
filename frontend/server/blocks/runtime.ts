@@ -49,11 +49,16 @@ export function mountBlocksRuntime(middlewares: MiddlewareStack, o: RuntimeOptio
     host = blocksHost;
     blocksHost.startBackground();
     callerReads = blocksHost.readAsCaller;
+    // IAM OIDC: /api/idp/initiate, /api/idp/callback, /api/idp/signup-settings
+    middlewares.use(blocksHost.iamOidc);
+    // Bearer token interceptor: handles /api/auth/session with genesis-os tokens (before the full auth middleware)
+    middlewares.use("/api/auth", blocksHost.bearerAuth);
     middlewares.use("/api/auth", (req, res, next) => { void blocksHost.auth(req, res, next); });
     middlewares.use("/api/fn", blocksHost.fn);
     middlewares.use("/api/public/plans", (req, res, next) => { void blocksHost.publicPlans(req, res, next); });
     middlewares.use("/api/public/i18n", (req, res, next) => { void blocksHost.publicI18n(req, res, next); });
     middlewares.use(blocksHost.githubRoutes);
+    middlewares.use(blocksHost.logicProxy);
     middlewares.use(blocksHost.dataAndBridge);
   }
   // Missing platform integrations must fail explicitly, never fall through to SQLite

@@ -711,10 +711,14 @@ export function Shell() {
   const reserve = floatingReservePx({ launcherShown: true });
   // focus and scrollIntoView stop above the floating assistant button
   useEffect(() => applyScrollPaddingBottom(document.documentElement, reserve), [reserve]);
-  if (mustChange) return <Navigate to={signInRedirect(pathname, search)} replace />;
-  if (status === "restoring" || (status === "signed-in" && !persona)) return <div className="min-h-screen bg-canvas" aria-busy="true" />;
-  const to = guardRedirect(pathname, search, status);
-  if (to || !persona) return <Navigate to={to ?? "/sign-in"} replace />;
+  // OIDC session: bypass all auth guards — the user authenticated via Blocks IAM
+  const hasOidcSession = (() => { try { const r = globalThis.sessionStorage?.getItem("madp-oidc-session-v1"); return r !== null && r !== undefined; } catch { return false; } })();
+  if (!hasOidcSession) {
+    if (mustChange) return <Navigate to={signInRedirect(pathname, search)} replace />;
+    if (status === "restoring" || (status === "signed-in" && !persona)) return <div className="min-h-screen bg-canvas" aria-busy="true" />;
+    const to = guardRedirect(pathname, search, status);
+    if (to || !persona) return <Navigate to={to ?? "/sign-in"} replace />;
+  }
   return (
     <FactoryIcons>
       <div className="flex min-h-screen bg-canvas">
@@ -726,7 +730,7 @@ export function Shell() {
         <main id="content" tabIndex={-1} style={{ "--shell-pb": `${Math.max(112, reserve)}px` } as CSSProperties} className="min-w-0 flex-1 px-4 pb-[var(--shell-pb)] outline-none md:pl-2 md:pr-6 lg:pl-4 lg:pr-8">
           <TopBar />
           {storageFailed && <StorageFailedBanner />}
-          {noWorkspace && pathname !== "/settings" && !/^\/admin(\/|$)/.test(pathname) ? <NoWorkspace /> : <RouteBoundary key={pathname}><Outlet /></RouteBoundary>}
+          {noWorkspace && !hasOidcSession && pathname !== "/settings" && !/^\/admin(\/|$)/.test(pathname) ? <NoWorkspace /> : <RouteBoundary key={pathname}><Outlet /></RouteBoundary>}
         </main>
         <AssistantLauncher />
         <ToastHost />

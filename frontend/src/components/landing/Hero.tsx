@@ -6,7 +6,7 @@
  *  The homepage shows the Story concept; the sample pages (/samples/foundry|blueprint|line, linked in the footer)
  *  are the same page with one of the alternative concepts. */
 import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { ArrowDown, ArrowRight } from "lucide-react";
 import { ConceptScene } from "@/components/hero/ConceptScene";
 import { DEFAULT_CONCEPT, isConcept, type ConceptId } from "@/components/hero/types";
@@ -186,11 +186,11 @@ export function Hero() {
             {t("landing.hero.lede", "Every app is planned, built, reviewed, tested, secured and released on SELISE Blocks, with quality gates at every step and industry-grade results.")}
           </p>
           <div className="lp-in mt-10 flex flex-wrap items-center gap-3" style={{ ["--lp-d" as string]: "700ms" }}>
-            <Link to="/sign-in"
+            <button type="button" onClick={() => { void import("@/blocks/iamRedirect").then(m => m.redirectToIamLogin()); }}
               className="group inline-flex h-12 items-center gap-2 rounded-full bg-accent pl-6 pr-5 text-[15px] font-medium text-white shadow-[0_10px_40px_-10px_rgb(var(--c-accent)/0.8)] transition hover:bg-accent-hover">
               {t("landing.cta.startBuilding", "Start building")}
               <ArrowRight size={18} strokeWidth={1.75} className="transition-transform group-hover:translate-x-0.5" />
-            </Link>
+            </button>
             <button type="button" onClick={() => scrollToId("how")}
               className="lp-frost inline-flex h-12 items-center gap-2 rounded-full bg-ink/[0.06] pl-6 pr-5 text-[15px] font-medium text-ink ring-1 ring-ink/15 backdrop-blur-sm transition hover:bg-ink/[0.12]">
               {t("landing.hero.seeItShip", "See it ship")}
