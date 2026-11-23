@@ -113,8 +113,8 @@ export function DashboardView() {
       actions={!ready ? <span aria-hidden className="inline-block h-10 w-36 animate-pulse rounded-full bg-surface2" />
         : canCreate ? (
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="secondary" icon={<DoorOpen size={16} strokeWidth={1.75} />} onClick={() => navigate("/new/cinematic")}>{t("shell.dashboard.startInOffice", "Start in the office")}</Button>
-            <Button variant="primary" icon={<Plus size={16} strokeWidth={1.75} />} onClick={() => openGuidedStart()}>{t("shell.dashboard.newProject", "New project")}</Button>
+            <Button variant="secondary" icon={<DoorOpen size={16} strokeWidth={1.75} />} onClick={() => navigate("/new")}>{t("shell.dashboard.startInOffice", "Start in the office")}</Button>
+            <Button variant="primary" icon={<Plus size={16} strokeWidth={1.75} />} onClick={() => navigate("/new")}>{t("shell.dashboard.newProject", "New project")}</Button>
           </div>
         ) : undefined} />
   );
@@ -200,7 +200,7 @@ export function DashboardView() {
                   <h2 className="mt-3 text-[17px] font-medium">{t("shell.dashboard.liveNow", "Live now")}</h2>
                   <p className="mt-1 text-[14px] text-white/70">{canCreate ? t("shell.dashboard.liveEmptyCreate", "Start a project and watch your team work on it here.") : t("shell.dashboard.workspaceProjectsAppear", "The projects of this workspace appear here.")}</p>
                   {!ready ? <span aria-hidden className="mx-auto mt-4 block h-10 w-36 animate-pulse rounded-full bg-surface2" />
-                    : canCreate && <Button variant="primary" className="mt-4" onClick={() => openGuidedStart()}>{t("shell.dashboard.startProject", "Start a project")}</Button>}
+                    : canCreate && <Button variant="primary" className="mt-4" onClick={() => navigate("/new")}>{t("shell.dashboard.startProject", "Start a project")}</Button>}
                 </div>
               </div>
             )}

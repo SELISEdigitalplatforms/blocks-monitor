@@ -471,9 +471,46 @@ export function startWorkspaceSync(): void {
     if (raw) {
       const data = JSON.parse(raw) as { expiresAtMs?: number };
       if (data.expiresAtMs && data.expiresAtMs > Date.now()) {
-        // OIDC session active — set workspace as ready with defaults so the UI doesn't block
+        // OIDC session active — fetch real workspaces from the data endpoint (uses service token on BFF)
+        const oidcData = JSON.parse(raw) as { accessToken?: string; profile?: Record<string, unknown>; expiresAtMs?: number };
+        const profile = oidcData.profile;
+        const userId = String(profile?.userId || "");
+        const email = String(profile?.email || "");
+        const displayName = String(profile?.displayName || email);
         resetWorkspaceStore(false);
-        useWorkspaces.setState({ ready: true, isSuperAdmin: true, platformPermissions: [...PLATFORM_PERMISSIONS] });
+        // Set ready immediately with a placeholder, then update when data arrives
+        const setWs = (wsId: string, wsName: string) => {
+          useWorkspaces.setState({
+            ready: true, isSuperAdmin: true, userId, email, workspaceId: wsId,
+            platformPermissions: [...PLATFORM_PERMISSIONS],
+            workspaces: [{ id: wsId, name: wsName, createdAt: new Date().toISOString(), role: "admin", roleKey: "admin", roleName: "Admin", status: "active", membershipId: userId, viaPlatform: false }],
+            members: [{ id: userId, workspaceId: wsId, name: displayName, email, role: "admin", status: "active", invitedAt: null, joinedAt: new Date().toISOString(), userId, membershipId: userId, roleKey: "admin", roleName: "Admin", permissions: [...WORKSPACE_PERMISSIONS], isCustomRole: false }],
+            team: [{ id: userId, workspaceId: wsId, name: displayName, email, role: "admin", status: "active", invitedAt: null, joinedAt: new Date().toISOString(), userId, membershipId: userId, roleKey: "admin", roleName: "Admin", permissions: [...WORKSPACE_PERMISSIONS], isCustomRole: false }],
+            me: { id: userId, workspaceId: wsId, name: displayName, email, role: "admin", status: "active", invitedAt: null, joinedAt: new Date().toISOString(), userId, membershipId: userId, roleKey: "admin", roleName: "Admin", permissions: [...WORKSPACE_PERMISSIONS], isCustomRole: false },
+          });
+        };
+        // Auto-resolve a workspace (internal implementation detail — users never see it).
+        // Fetch existing, or create one silently if none exists.
+        const headers: Record<string, string> = { "content-type": "application/json" };
+        if (oidcData.accessToken) headers.authorization = `Bearer ${oidcData.accessToken}`;
+        fetch("/api/data", {
+          method: "POST", credentials: "same-origin", headers,
+          body: JSON.stringify({ reads: [{ schema: "Workspace", fields: ["ItemId", "Name", "Status"], filter: [{ field: "Status", op: "eq", value: "active" }], sort: [{ field: "CreatedDate", dir: "desc" }], pageNo: 1, pageSize: 1 }] }),
+        }).then(r => r.json()).then(async (data: { results?: Array<{ ok: boolean; items: Array<{ ItemId: string; Name: string }> }> }) => {
+          const ws = data.results?.[0]?.items?.[0];
+          if (ws) { setWs(ws.ItemId, ws.Name); return; }
+          // No workspace — auto-create one via workspace.create
+          try {
+            const res = await fetch("/api/fn/workspace", {
+              method: "POST", credentials: "same-origin", headers,
+              body: JSON.stringify({ op: "workspace.create", requestId: crypto.randomUUID(), args: { name: "Workspace" } }),
+            });
+            const result = await res.json() as { ok?: boolean; data?: { workspace?: { ItemId?: string; Name?: string } } };
+            if (result.ok && result.data?.workspace?.ItemId) {
+              setWs(result.data.workspace.ItemId, result.data.workspace.Name || "Workspace");
+            } else { setWs("fallback", "Workspace"); }
+          } catch { setWs("fallback", "Workspace"); }
+        }).catch(() => setWs("fallback", "Workspace"));
         return;
       }
     }
