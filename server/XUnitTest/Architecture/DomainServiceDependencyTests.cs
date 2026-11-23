@@ -13,7 +13,7 @@ public class DomainServiceDependencyTests
     private static readonly string[] ForbiddenAssemblyNames = { "Api", "Worker" };
 
     [Fact]
-    public void NoDomainServiceType_DependsOnTheApiOrWorkerAssembly()
+    public void NoDomainServiceTypeDependsOnTheApiOrWorkerAssembly()
     {
         var domainService = typeof(AlertRecipientService).Assembly;
         domainService.GetName().Name.Should().Be("Alert.DomainService");
@@ -24,10 +24,11 @@ public class DomainServiceDependencyTests
     }
 
     [Fact]
-    public void TheDetector_FlagsATypeThatDependsOnTheApiAssembly()
+    public void TheDetectorFlagsATypeThatDependsOnTheApiAssembly()
     {
         // Proves the detector sees a dependency: the probe names an Api type in a property signature.
         // A property yields one entry for each accessor signature, so check the set, not a count.
+        new DependencyProbe().Should().NotBeNull(); // instantiated, so the probe is not dead code (CA1812)
         var violations = ViolationsOf(typeof(DependencyProbe)).ToList();
 
         violations.Should().NotBeEmpty();
@@ -118,7 +119,7 @@ public class DomainServiceDependencyTests
 }
 
 // Probe for the detector only. It is never used by the product.
-public sealed class DependencyProbe
+internal sealed class DependencyProbe
 {
     public MonitorController Controller { get; set; } = null!;
 }
