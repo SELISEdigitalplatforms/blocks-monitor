@@ -478,6 +478,92 @@ export function createBlocksHost(o: {
       return send(res, 200, await sdk.http.request(path, { method, ...(body === undefined ? {} : { body }) }));
     })().catch((error: unknown) => send(res, error instanceof BlocksApiError && error.status === 401 ? 401 : 503, { ok: false, error: { code: "unavailable" } }));
   };
+  /** Resolve the OIDC access token from session cookie or Bearer header. */
+  async function resolveAccessToken(req: IncomingMessage, res: ServerResponse): Promise<string | null> {
+    const current = await sessions.read(req, res);
+    if (current.state === "ok") return current.session.accessToken;
+    const bearer = bearerTokenOf(req);
+    if (bearer && userIdFromJwt(bearer)) return bearer;
+    return null;
+  }
+
+  /** Extract the tenant_id from a JWT. */
+  function tenantFromJwt(token: string): string {
+    try {
+      const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString("utf8")) as Record<string, unknown>;
+      return typeof payload.tenant_id === "string" ? payload.tenant_id : iamXBlocksKey;
+    } catch { return iamXBlocksKey; }
+  }
+
+  /** POST /api/blocks-project/create: creates a Blocks project via Logic API.
+   *  Payload: { name, resources?: [{ resourceId, name, link }], applicationContexts?: [...] }
+   *  Returns: { tenantGroupId, isSuccess } — the new project's tenant ID. */
+  const blocksProjectCreate: Handler = (req, res, next) => {
+    if ((req.url ?? "").split("?")[0] !== "/api/blocks-project/create" || req.method !== "POST") return next();
+    void (async () => {
+      const accessToken = await resolveAccessToken(req, res);
+      if (!accessToken) return send(res, 401, { error: "unauthenticated" });
+      const raw = await readBody(req, 100_000, 10_000);
+      if (typeof raw === "string") return send(res, raw === "timeout" ? 408 : 413, { error: "invalid_input" });
+      let body: Record<string, unknown>;
+      try { body = JSON.parse(raw.toString("utf8")); } catch { return send(res, 400, { error: "invalid_input" }); }
+      if (!logicBaseUrl) return send(res, 503, { error: "blocks_logic_not_configured" });
+      const tokenTenant = tenantFromJwt(accessToken);
+      // Build the Blocks OS project creation payload
+      const payload: Record<string, unknown> = {
+        name: body.name || body.projectName || "",
+        isAcceptBlocksTerms: true,
+        isUseBlocksExclusively: true,
+        resources: Array.isArray(body.resources) ? body.resources : [],
+        applicationContexts: Array.isArray(body.applicationContexts) ? body.applicationContexts : [
+          { environment: "dev", domain: `https://dev-${String(body.name || "app").toLowerCase().replace(/[^a-z0-9]/g, "")}.seliseblocks.com`, cookieDomain: "seliseblocks.com" },
+        ],
+      };
+      try {
+        const upstream = await fetch(`${logicBaseUrl}/api/Project/Create`, {
+          method: "POST",
+          headers: { authorization: `Bearer ${accessToken}`, "x-blocks-key": tokenTenant, "content-type": "application/json", accept: "application/json" },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(30_000),
+        });
+        const responseText = await upstream.text();
+        console.log("[blocks-project/create] response:", upstream.status, responseText.slice(0, 500));
+        res.statusCode = upstream.status;
+        res.setHeader("content-type", "application/json");
+        res.setHeader("cache-control", "no-store");
+        res.end(responseText);
+      } catch (err) {
+        console.error("[blocks-project/create] failed:", err);
+        send(res, 503, { error: "blocks_project_unavailable" });
+      }
+    })();
+  };
+  /** POST /api/blocks-project/add-asset: connects a GitHub repo to an existing Blocks project.
+   *  Body: { tenantGroupId, resource: { resourceId, name, link } }
+   *  Called when user connects a repo AFTER project creation. */
+  const blocksProjectAddAsset: Handler = (req, res, next) => {
+    if ((req.url ?? "").split("?")[0] !== "/api/blocks-project/add-asset" || req.method !== "POST") return next();
+    void (async () => {
+      const accessToken = await resolveAccessToken(req, res);
+      if (!accessToken) return send(res, 401, { error: "unauthenticated" });
+      const raw = await readBody(req, 100_000, 10_000);
+      if (typeof raw === "string") return send(res, raw === "timeout" ? 408 : 413, { error: "invalid_input" });
+      if (!logicBaseUrl) return send(res, 503, { error: "blocks_logic_not_configured" });
+      try {
+        const upstream = await fetch(`${logicBaseUrl}/api/Project/AddAsset`, {
+          method: "POST",
+          headers: { authorization: `Bearer ${accessToken}`, "x-blocks-key": tenantFromJwt(accessToken), "content-type": "application/json", accept: "application/json" },
+          body: raw,
+          signal: AbortSignal.timeout(25_000),
+        });
+        const responseBody = await upstream.text();
+        res.statusCode = upstream.status;
+        res.setHeader("content-type", upstream.headers.get("content-type") ?? "application/json");
+        res.setHeader("cache-control", "no-store");
+        res.end(responseBody);
+      } catch { send(res, 503, { error: "blocks_logic_unavailable" }); }
+    })();
+  };
   const githubRoutes: Handler = (req, res, next) => {
     if (!(req.url ?? "").startsWith("/api/github/")) return next();
     if (!github) return send(res, 503, { error: "github_not_configured" });
@@ -493,6 +579,7 @@ export function createBlocksHost(o: {
     if (!logicBaseUrl) return send(res, 503, { error: "blocks_logic_not_configured" });
     void (async () => {
       // Authenticate: session cookie or Bearer token
+      // Authenticate: session cookie or Bearer token (JWT decode, no iam.me)
       let accessToken: string;
       const current = await sessions.read(req, res);
       if (current.state === "ok") {
@@ -500,11 +587,9 @@ export function createBlocksHost(o: {
       } else {
         const bearer = bearerTokenOf(req);
         if (!bearer) return send(res, 401, { error: "unauthenticated" });
-        try {
-          const user = await iam.me(bearer);
-          if (!user.active) return send(res, 401, { error: "unauthenticated" });
-          accessToken = bearer;
-        } catch { return send(res, 401, { error: "unauthenticated" }); }
+        const uid = userIdFromJwt(bearer);
+        if (!uid) return send(res, 401, { error: "unauthenticated" });
+        accessToken = bearer;
       }
       // Rewrite path: /api/logic/github/repos → /api/github/repos
       const targetPath = url.replace(/^\/api\/logic/, "/api");
@@ -729,7 +814,7 @@ export function createBlocksHost(o: {
     })();
   };
   return {
-    auth, bearerAuth, iamOidc, fn, dataAndBridge, githubRoutes, logicProxy, readAsCaller, readings, callProjectOp, publicPlans, publicI18n,
+    auth, bearerAuth, iamOidc, fn, dataAndBridge, githubRoutes, logicProxy, blocksProjectCreate, blocksProjectAddAsset, readAsCaller, readings, callProjectOp, publicPlans, publicI18n,
     /** Starts the background work (the project purge worker); a host made only to answer requests never starts it. */
     startBackground() { purge?.start(); },
     stopBackground() { purge?.stop(); },
