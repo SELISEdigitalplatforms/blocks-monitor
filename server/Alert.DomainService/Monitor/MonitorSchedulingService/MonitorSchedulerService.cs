@@ -70,9 +70,12 @@ namespace DomainService.Monitor.Services
 
                     if (nextTask != null)
                     {
+                        // The queued task keeps the config read when it was queued. Ping with the latest loaded one
+                        // (I04-WP36), so a recipient saved after the monitor was created reaches its first check.
+                        var pingConfig = _activeMonitors.TryGetValue(nextTask.Config.ItemId, out var latestConfig) ? latestConfig : nextTask.Config;
                         try
                         {
-                            _ = Task.Run(() => _pingService.MonitorPingAsync(nextTask.Config));
+                            _ = Task.Run(() => _pingService.MonitorPingAsync(pingConfig));
                         }
                         catch (Exception ex)
                         {
