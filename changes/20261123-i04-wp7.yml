@@ -1,0 +1,3 @@
+type: added
+breaking: false
+summary: "Gherkin acceptance tests for monitors (create a monitor, an incident opens, an alert recipient is emailed), in a separate server/AcceptanceTest project that runs against a self-hosted test stack."

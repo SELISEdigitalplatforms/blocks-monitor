@@ -241,3 +241,6 @@ doc/
 # StrykerJS (I04-WP4)
 .stryker-tmp
 client/reports/mutation
+
+# Acceptance tests (I04-WP7): connection settings written by the selfhost scripts
+server/AcceptanceTest/acceptance.settings.json

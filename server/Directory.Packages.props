@@ -52,6 +52,10 @@
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
     <PackageVersion Include="SeliseBlocks.ConfigurationDriver" Version="10.0.0-preview.1" />
+    <!-- I04-WP7 (acceptance tests): Reqnroll BSD-3-Clause (read on nuget.org 2026-11-23, released 2026-03-23); xunit.v3 Apache-2.0.
+         Reqnroll.xunit (v2) was not used: it pulls Xunit.SkippableFact, which is MS-PL (not on the A5 list). -->
+    <PackageVersion Include="Reqnroll.xunit.v3" Version="3.3.4" />
+    <PackageVersion Include="xunit.v3" Version="2.0.0" />
     <!-- Transitive pin: MimeKit (via MailKit) pulls Pkcs 10.0.0 (GHSA-846f-f764-76mx, GHSA-2fmv-rv2c-59x7). -->
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
