@@ -507,7 +507,7 @@ export function createBlocksHost(o: {
       if (typeof raw === "string") return send(res, raw === "timeout" ? 408 : 413, { error: "invalid_input" });
       let body: Record<string, unknown>;
       try { body = JSON.parse(raw.toString("utf8")); } catch { return send(res, 400, { error: "invalid_input" }); }
-      if (!logicBaseUrl) return send(res, 503, { error: "blocks_logic_not_configured" });
+      if (!blocksOsUrl) return send(res, 503, { error: "blocks_os_not_configured" });
       const tokenTenant = tenantFromJwt(accessToken);
       // Build the Blocks OS project creation payload
       const payload: Record<string, unknown> = {
@@ -520,7 +520,7 @@ export function createBlocksHost(o: {
         ],
       };
       try {
-        const upstream = await fetch(`${logicBaseUrl}/api/Project/Create`, {
+        const upstream = await fetch(`${blocksOsUrl}/api/Project/Create`, {
           method: "POST",
           headers: { authorization: `Bearer ${accessToken}`, "x-blocks-key": tokenTenant, "content-type": "application/json", accept: "application/json" },
           body: JSON.stringify(payload),
@@ -548,9 +548,9 @@ export function createBlocksHost(o: {
       if (!accessToken) return send(res, 401, { error: "unauthenticated" });
       const raw = await readBody(req, 100_000, 10_000);
       if (typeof raw === "string") return send(res, raw === "timeout" ? 408 : 413, { error: "invalid_input" });
-      if (!logicBaseUrl) return send(res, 503, { error: "blocks_logic_not_configured" });
+      if (!blocksOsUrl) return send(res, 503, { error: "blocks_os_not_configured" });
       try {
-        const upstream = await fetch(`${logicBaseUrl}/api/Project/AddAsset`, {
+        const upstream = await fetch(`${blocksOsUrl}/api/Project/AddAsset`, {
           method: "POST",
           headers: { authorization: `Bearer ${accessToken}`, "x-blocks-key": tenantFromJwt(accessToken), "content-type": "application/json", accept: "application/json" },
           body: raw,
@@ -573,6 +573,8 @@ export function createBlocksHost(o: {
    *  with the caller's access token. Used for GitHub auth, repos, build/deploy, and project operations
    *  that live on the Blocks Logic service rather than the MADP BFF. */
   const logicBaseUrl = o.env.BLOCKS_LOGIC_BASE_URL || "";
+  /** Blocks OS API for project management (Create, AddAsset, Gets). Falls back to Logic API. */
+  const blocksOsUrl = o.env.BLOCKS_OS_BASE_URL || logicBaseUrl;
   const logicProxy: Handler = (req, res, next) => {
     const url = req.url ?? "";
     if (!url.startsWith("/api/logic/")) return next();

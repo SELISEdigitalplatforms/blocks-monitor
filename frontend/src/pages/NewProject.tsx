@@ -120,7 +120,26 @@ export default function NewProject() {
     const args = { ...(trimmed ? { name: trimmed } : {}), projectType: type, ...(brief.trim() ? { scratchMd: brief.trim() } : {}),
       ...(ref?.ok ? { repo: `${ref.value.owner}/${ref.value.name}`, repoBranch: ref.value.branch } : {}) };
     create(args, requestId.current).then(
-      (r) => { requestId.current = null; navigate(`/p/${r.project.id}/business`, { replace: true }); },
+      async (r) => {
+        requestId.current = null;
+        // Also create a Blocks project so it appears in the user's Blocks account
+        try {
+          const oidcRaw = sessionStorage.getItem("madp-oidc-session-v1");
+          if (oidcRaw) {
+            const oidc = JSON.parse(oidcRaw) as { accessToken?: string };
+            if (oidc.accessToken) {
+              const res = await fetch("/api/blocks-project/create", {
+                method: "POST", credentials: "include",
+                headers: { "content-type": "application/json", authorization: `Bearer ${oidc.accessToken}` },
+                body: JSON.stringify({ name: trimmed || r.project.name || "Project" }),
+              });
+              const blocksResult = await res.json().catch(() => null);
+              console.log("[NewProject] Blocks project created:", blocksResult);
+            }
+          }
+        } catch (err) { console.warn("[NewProject] Blocks project creation failed:", err); }
+        navigate(`/p/${r.project.id}/business`, { replace: true });
+      },
       (e: unknown) => { setFailure(isNotConfigured(e) ? NOT_CONFIGURED_MESSAGE : messageFor(e)); },
     );
   };
