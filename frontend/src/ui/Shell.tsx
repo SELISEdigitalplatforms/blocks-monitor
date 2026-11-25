@@ -71,11 +71,10 @@ export function canOpenBuild(step: JourneyStep | null | undefined): boolean {
   return step === "board" || step === "build" || step === "release";
 }
 
-/** The rail's New opens the guided project start over the page (a plain click; a new tab still opens the /new form). */
+/** The rail's New navigates to the /new form. */
 function startGuided(e: ReactMouseEvent) {
-  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-  e.preventDefault();
-  openGuidedStart();
+  // Let the Link navigate normally to /new
+  return;
 }
 
 /** The nav items with their state on this page. New is always open: the workspace holds many projects. Build opens the

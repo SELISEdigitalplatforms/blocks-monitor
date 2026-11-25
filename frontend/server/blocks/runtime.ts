@@ -57,6 +57,7 @@ export function mountBlocksRuntime(middlewares: MiddlewareStack, o: RuntimeOptio
     middlewares.use("/api/fn", blocksHost.fn);
     middlewares.use("/api/public/plans", (req, res, next) => { void blocksHost.publicPlans(req, res, next); });
     middlewares.use("/api/public/i18n", (req, res, next) => { void blocksHost.publicI18n(req, res, next); });
+    middlewares.use(blocksHost.blocksProjectList);
     middlewares.use(blocksHost.blocksProjectCreate);
     middlewares.use(blocksHost.blocksProjectAddAsset);
     middlewares.use(blocksHost.githubRoutes);

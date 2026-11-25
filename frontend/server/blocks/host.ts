@@ -278,13 +278,10 @@ export function createBlocksHost(o: {
     const current = await sessions.read(req, res);
     if (current.state === "ok") {
       accessToken = current.session.accessToken;
-      try { await iam.me(accessToken); }
-      catch (error) {
-        if (error && typeof error === "object" && "status" in error && (error.status === 401 || error.status === 403)) {
-          sessions.end(req, res);
-          return { ok: false, status: 401 };
-        }
-        return { ok: false, status: 503 };
+      // Validate: JWT decode (works for cross-tenant OIDC tokens too)
+      if (!userIdFromJwt(accessToken)) {
+        sessions.end(req, res);
+        return { ok: false, status: 401 };
       }
     } else {
       const bearer = bearerTokenOf(req);
@@ -494,6 +491,33 @@ export function createBlocksHost(o: {
       return typeof payload.tenant_id === "string" ? payload.tenant_id : iamXBlocksKey;
     } catch { return iamXBlocksKey; }
   }
+
+  /** GET /api/blocks-project/list: lists projects from Blocks OS. */
+  const blocksProjectList: Handler = (req, res, next) => {
+    const url = req.url ?? "";
+    if (url.split("?")[0] !== "/api/blocks-project/list" || req.method !== "GET") return next();
+    void (async () => {
+      const accessToken = await resolveAccessToken(req, res);
+      if (!accessToken) return send(res, 401, { error: "unauthenticated" });
+      if (!blocksOsUrl) return send(res, 503, { error: "blocks_os_not_configured" });
+      const tokenTenant = tenantFromJwt(accessToken);
+      const params = new URL(url, o.appOrigin).searchParams;
+      const page = params.get("page") || "1";
+      const pageSize = params.get("pageSize") || "50";
+      try {
+        const upstream = await fetch(`${blocksOsUrl}/api/Project/Gets?page=${page}&pageSize=${pageSize}&tenantGroupId=${encodeURIComponent(tokenTenant)}`, {
+          method: "GET",
+          headers: { authorization: `Bearer ${accessToken}`, "x-blocks-key": tokenTenant, accept: "application/json" },
+          signal: AbortSignal.timeout(15_000),
+        });
+        const responseText = await upstream.text();
+        res.statusCode = upstream.status;
+        res.setHeader("content-type", "application/json");
+        res.setHeader("cache-control", "no-store");
+        res.end(responseText);
+      } catch { send(res, 503, { error: "blocks_os_unavailable" }); }
+    })();
+  };
 
   /** POST /api/blocks-project/create: creates a Blocks project via Logic API.
    *  Payload: { name, resources?: [{ resourceId, name, link }], applicationContexts?: [...] }
@@ -816,7 +840,7 @@ export function createBlocksHost(o: {
     })();
   };
   return {
-    auth, bearerAuth, iamOidc, fn, dataAndBridge, githubRoutes, logicProxy, blocksProjectCreate, blocksProjectAddAsset, readAsCaller, readings, callProjectOp, publicPlans, publicI18n,
+    auth, bearerAuth, iamOidc, fn, dataAndBridge, githubRoutes, logicProxy, blocksProjectList, blocksProjectCreate, blocksProjectAddAsset, readAsCaller, readings, callProjectOp, publicPlans, publicI18n,
     /** Starts the background work (the project purge worker); a host made only to answer requests never starts it. */
     startBackground() { purge?.start(); },
     stopBackground() { purge?.stop(); },

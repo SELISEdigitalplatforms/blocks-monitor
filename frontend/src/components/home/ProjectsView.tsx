@@ -61,9 +61,9 @@ function useWarmProject(): (p: ProjectRecord) => void {
   };
 }
 
-/** "New project" opens the guided project start over the page; nothing is created until its last step. */
+/** "New project" navigates to the /new form. */
 function useCreate() {
-  const create = async () => { openGuidedStart(); };
+  const create = async () => { window.location.href = "/new"; };
   return { creating: false, error: null as string | null, create };
 }
 
