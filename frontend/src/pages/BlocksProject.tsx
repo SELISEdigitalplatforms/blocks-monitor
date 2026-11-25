@@ -32,6 +32,8 @@ interface ProjectEnv {
 export default function BlocksProject() {
   const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentTab = location.pathname.endsWith("/build") ? "build" : location.pathname.endsWith("/deploy") ? "deploy" : location.pathname.endsWith("/settings") ? "settings" : location.pathname.endsWith("/analysis") ? "analysis" : "overview";
   const [project, setProject] = useState<ProjectEnv | null>(null);
   const [loading, setLoading] = useState(true);
   const [githubAuthed, setGithubAuthed] = useState<boolean | null>(null);
@@ -305,27 +307,19 @@ export default function BlocksProject() {
       </div>
 
       {/* Project Tabs */}
-      {(() => {
-        const loc = useLocation();
-        const path = loc.pathname;
-        const tab = path.endsWith("/build") ? "build" : path.endsWith("/deploy") ? "deploy" : path.endsWith("/settings") ? "settings" : path.endsWith("/analysis") ? "analysis" : "overview";
-        const tabs = [
+      <nav className="mb-5 flex gap-1 rounded-block bg-surface2 p-1">
+        {[
           { key: "overview", label: "Overview", to: `/project/${id}` },
           { key: "analysis", label: "Analysis", to: `/project/${id}/analysis` },
           { key: "build", label: "Build & Deploy", to: `/project/${id}/build` },
           { key: "settings", label: "Settings", to: `/project/${id}/settings` },
-        ];
-        return (
-          <nav className="mb-5 flex gap-1 rounded-block bg-surface2 p-1">
-            {tabs.map((t) => (
-              <button key={t.key} type="button" onClick={() => navigate(t.to)}
-                className={`rounded-block px-4 py-2 text-[13px] font-medium transition ${tab === t.key ? "bg-surface text-ink shadow-card" : "text-ink3 hover:text-ink"}`}>
-                {t.label}
-              </button>
-            ))}
-          </nav>
-        );
-      })()}
+        ].map((tab) => (
+          <button key={tab.key} type="button" onClick={() => navigate(tab.to)}
+            className={`rounded-block px-4 py-2 text-[13px] font-medium transition ${currentTab === tab.key ? "bg-surface text-ink shadow-card" : "text-ink3 hover:text-ink"}`}>
+            {tab.label}
+          </button>
+        ))}
+      </nav>
 
       {/* GitHub Connection */}
       <Card title="GitHub Connection" icon={<Link2 size={18} />} className="mb-5">
