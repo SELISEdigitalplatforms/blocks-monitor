@@ -180,15 +180,17 @@ export function createBlocksHost(o: {
     }
   };
   const key = githubTokenKey(o.env.MF_GITHUB_TOKEN_KEY);
+  console.log("[github] config:", { hasKey: !!key, clientId: !!o.env.GITHUB_CLIENT_ID, clientSecret: !!o.env.GITHUB_CLIENT_SECRET });
   const github = key && o.env.GITHUB_CLIENT_ID && o.env.GITHUB_CLIENT_SECRET ? createGithubIntegration({
     origin: o.appOrigin, clientId: o.env.GITHUB_CLIENT_ID, clientSecret: o.env.GITHUB_CLIENT_SECRET,
     store: createGithubStore(o.env, o.apiOrigin, key),
     identity: async (req, res) => {
       const current = await sessions.read(req, res);
       if (current.state === "ok") {
-        const user = await iam.me(current.session.accessToken);
-        if (user.itemId !== current.session.userId) return null;
-        return { userId: user.itemId, sid: current.session.sid };
+        // Use JWT decode (works for cross-tenant OIDC tokens too)
+        const uid = userIdFromJwt(current.session.accessToken);
+        if (!uid) return null;
+        return { userId: uid, sid: current.session.sid };
       }
       // Fall back to Bearer token (OIDC or genesis-os)
       const bearer = bearerTokenOf(req);
