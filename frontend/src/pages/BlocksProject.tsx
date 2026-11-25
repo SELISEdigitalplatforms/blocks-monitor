@@ -73,11 +73,18 @@ export default function BlocksProject() {
   useEffect(() => {
     const token = getOidcToken();
     if (!token) return;
-    fetch("/api/logic/auth/isAuthorized", {
+    // Get user ID from OIDC token
+    let userId = "";
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      userId = payload.user_id || payload.sub || "";
+    } catch { /* ignore */ }
+    if (!userId) { setGithubAuthed(false); return; }
+    fetch(`/api/github/status/${encodeURIComponent(userId)}`, {
       headers: { authorization: `Bearer ${token}`, accept: "application/json" },
     })
       .then((r) => r.json())
-      .then((data: { isSuccess?: boolean }) => setGithubAuthed(data.isSuccess === true))
+      .then((data: { connected?: boolean }) => setGithubAuthed(data.connected === true))
       .catch(() => setGithubAuthed(false));
   }, []);
 
@@ -94,12 +101,15 @@ export default function BlocksProject() {
     const poll = setInterval(() => {
       const token = getOidcToken();
       if (!token) return;
-      fetch("/api/logic/auth/isAuthorized", {
+      let uid = "";
+      try { const p = JSON.parse(atob(token.split(".")[1])); uid = p.user_id || p.sub || ""; } catch {}
+      if (!uid) return;
+      fetch(`/api/github/status/${encodeURIComponent(uid)}`, {
         headers: { authorization: `Bearer ${token}`, accept: "application/json" },
       })
         .then((r) => r.json())
-        .then((data: { isSuccess?: boolean }) => {
-          if (data.isSuccess) {
+        .then((data: { connected?: boolean }) => {
+          if (data.connected) {
             setGithubAuthed(true);
             clearInterval(poll);
             try { popup?.close(); } catch { /* cross-origin */ }
@@ -114,13 +124,21 @@ export default function BlocksProject() {
   const loadRepos = async () => {
     const token = getOidcToken();
     if (!token) return;
+    let userId = "";
+    try { const p = JSON.parse(atob(token.split(".")[1])); userId = p.user_id || p.sub || ""; } catch {}
+    if (!userId) return;
     setLoadingRepos(true);
     try {
-      const res = await fetch("/api/logic/github/repos?ProjectKey=", {
+      const res = await fetch(`/api/github/repos/${encodeURIComponent(userId)}`, {
         headers: { authorization: `Bearer ${token}`, accept: "application/json" },
       });
       const data = await res.json();
-      const items = data?.data?.items || data?.items || (Array.isArray(data) ? data : []);
+      const items = (data?.repos || []).map((r: { owner?: string; name?: string; fullName?: string; private?: boolean; description?: string; defaultBranch?: string }) => ({
+        id: `${r.owner}/${r.name}`,
+        full_name: r.fullName || `${r.owner}/${r.name}`,
+        html_url: `https://github.com/${r.fullName || `${r.owner}/${r.name}`}`,
+        description: r.description || "",
+      }));
       setRepos(items);
     } catch { setRepos([]); }
     finally { setLoadingRepos(false); }
