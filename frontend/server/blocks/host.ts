@@ -143,16 +143,17 @@ export function createBlocksHost(o: {
     } catch { return null; }
   }
 
-  /** Resolve the caller's identity: BFF session cookie first, then Bearer token (decoded from JWT). */
+  /** Resolve the caller's identity: Bearer token first (OIDC), then BFF session cookie. */
   const session = async (req: IncomingMessage, res: ServerResponse) => {
-    const result = await sessions.read(req, res);
-    if (result.state === "ok") return { state: "ok" as const, accessToken: result.session.accessToken, userId: result.session.userId };
-    // No BFF session cookie — accept a Bearer token (OIDC or genesis-os)
+    // Check Bearer token first — avoids stale session cookie issues after server restart
     const bearer = bearerTokenOf(req);
     if (bearer) {
       const userId = userIdFromJwt(bearer);
       if (userId) return { state: "ok" as const, accessToken: bearer, userId };
     }
+    // Fall back to BFF session cookie
+    const result = await sessions.read(req, res);
+    if (result.state === "ok") return { state: "ok" as const, accessToken: result.session.accessToken, userId: result.session.userId };
     return result;
   };
   const verify = async (token: string): Promise<FnContext> => {
