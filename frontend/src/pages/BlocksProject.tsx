@@ -4,7 +4,7 @@
  */
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ExternalLink, FolderGit2, Plus, Rocket, Settings } from "lucide-react";
+import { ArrowLeft, ExternalLink, FolderGit2, Plus, Rocket, Settings, Check, Link2 } from "lucide-react";
 import { Button, Card, EmptyState, PageHeader } from "@/ui/kit";
 import { getActiveProject, setActiveProject, clearActiveProject } from "@/blocks/activeProject";
 
@@ -34,9 +34,13 @@ export default function BlocksProject() {
   const navigate = useNavigate();
   const [project, setProject] = useState<ProjectEnv | null>(null);
   const [loading, setLoading] = useState(true);
+  const [githubAuthed, setGithubAuthed] = useState<boolean | null>(null);
+  const [repos, setRepos] = useState<Array<{ id: number; full_name: string; html_url: string; description?: string }>>([]);
+  const [loadingRepos, setLoadingRepos] = useState(false);
   const [addingRepo, setAddingRepo] = useState(false);
   const [repoUrl, setRepoUrl] = useState("");
   const [repoMsg, setRepoMsg] = useState("");
+  const [selectedRepos, setSelectedRepos] = useState<Set<string>>(new Set());
 
   // Ensure active project is set
   useEffect(() => {
@@ -64,6 +68,85 @@ export default function BlocksProject() {
       setLoading(false);
     }
   }, [id]);
+
+  // Check GitHub authorization status
+  useEffect(() => {
+    const token = getOidcToken();
+    if (!token) return;
+    fetch("/api/logic/release/isAuthorized", {
+      headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+    })
+      .then((r) => r.json())
+      .then((data: { isSuccess?: boolean }) => setGithubAuthed(data.isSuccess === true))
+      .catch(() => setGithubAuthed(false));
+  }, []);
+
+  // Connect GitHub via OAuth
+  const connectGithub = () => {
+    const clientId = import.meta.env.BLOCKS_GITHUB_SSO_CLIENT_ID || "Ov23liqWywFtITPvQ4Z9";
+    const redirectUri = `${window.location.origin}/api/github/callback`;
+    const state = crypto.randomUUID();
+    sessionStorage.setItem("github-oauth-state", state);
+    const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo%20read:user&state=${state}`;
+    window.open(url, "github-oauth", "width=600,height=700,popup=yes");
+    // Poll for auth status
+    const poll = setInterval(() => {
+      const token = getOidcToken();
+      if (!token) return;
+      fetch("/api/logic/release/isAuthorized", {
+        headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+      })
+        .then((r) => r.json())
+        .then((data: { isSuccess?: boolean }) => {
+          if (data.isSuccess) {
+            setGithubAuthed(true);
+            clearInterval(poll);
+          }
+        })
+        .catch(() => {});
+    }, 2000);
+    setTimeout(() => clearInterval(poll), 120_000);
+  };
+
+  // Load repos when GitHub is connected
+  const loadRepos = async () => {
+    const token = getOidcToken();
+    if (!token) return;
+    setLoadingRepos(true);
+    try {
+      const res = await fetch("/api/logic/github/repos", {
+        headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+      });
+      const data = await res.json();
+      const items = data?.data?.items || data?.items || (Array.isArray(data) ? data : []);
+      setRepos(items);
+    } catch { setRepos([]); }
+    finally { setLoadingRepos(false); }
+  };
+
+  // Add selected repos as assets
+  const addSelectedRepos = async () => {
+    const token = getOidcToken();
+    if (!token || selectedRepos.size === 0) return;
+    setRepoMsg("");
+    for (const fullName of selectedRepos) {
+      const repo = repos.find((r) => r.full_name === fullName);
+      if (!repo) continue;
+      try {
+        await fetch("/api/blocks-project/add-asset", {
+          method: "POST", credentials: "include",
+          headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            tenantGroupId: id,
+            resource: { resourceId: String(repo.id), name: repo.full_name, link: repo.html_url },
+          }),
+        });
+      } catch { /* continue */ }
+    }
+    setRepoMsg(`Connected ${selectedRepos.size} repo(s)!`);
+    setSelectedRepos(new Set());
+    setAddingRepo(false);
+  };
 
   // Load project details
   useEffect(() => {
@@ -148,14 +231,29 @@ export default function BlocksProject() {
         </Card>
       </div>
 
+      {/* GitHub Connection */}
+      <Card title="GitHub Connection" icon={<Link2 size={18} />} className="mb-5">
+        {githubAuthed === null && <p className="text-[13px] text-ink3">Checking GitHub status…</p>}
+        {githubAuthed === false && (
+          <div className="flex items-center justify-between">
+            <p className="text-[14px] text-ink2">Connect your GitHub account to access repositories.</p>
+            <Button variant="primary" icon={<Link2 size={16} />} onClick={connectGithub}>Connect GitHub</Button>
+          </div>
+        )}
+        {githubAuthed === true && !addingRepo && (
+          <div className="flex items-center justify-between">
+            <p className="flex items-center gap-2 text-[14px] text-green-600"><Check size={16} /> GitHub connected</p>
+            <Button variant="secondary" icon={<Plus size={16} />} onClick={() => { setAddingRepo(true); loadRepos(); }}>Add Repository</Button>
+          </div>
+        )}
+      </Card>
+
       {/* Connected Repos */}
-      <Card title="Connected Repositories" icon={<FolderGit2 size={18} />}
-        className="mb-5">
+      <Card title="Connected Repositories" icon={<FolderGit2 size={18} />} className="mb-5">
         {(project?.resources || []).length === 0 && !addingRepo && (
           <EmptyState
             title="No repositories connected"
-            text="Connect a GitHub repository to start building and deploying."
-            action={<Button variant="primary" icon={<Plus size={16} />} onClick={() => setAddingRepo(true)}>Connect Repository</Button>}
+            text={githubAuthed ? "Click 'Add Repository' above to connect a repo." : "Connect GitHub first, then add repositories."}
           />
         )}
         {(project?.resources || []).map((r, i) => (
@@ -166,21 +264,40 @@ export default function BlocksProject() {
             <Button variant="secondary" size="sm" icon={<Rocket size={14} />} onClick={() => {}}>Build</Button>
           </div>
         ))}
-        {!addingRepo && (project?.resources || []).length > 0 && (
-          <div className="mt-3">
-            <Button variant="ghost" size="sm" icon={<Plus size={14} />} onClick={() => setAddingRepo(true)}>Add another repo</Button>
-          </div>
-        )}
+
+        {/* Repo picker */}
         {addingRepo && (
-          <div className="mt-3 flex items-center gap-2">
-            <input type="text" value={repoUrl} onChange={(e) => setRepoUrl(e.target.value)}
-              placeholder="owner/repo or GitHub URL"
-              className="flex-1 rounded-block border border-line bg-surface px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-accent" />
-            <Button variant="primary" onClick={handleAddRepo}>Connect</Button>
-            <Button variant="ghost" onClick={() => { setAddingRepo(false); setRepoMsg(""); }}>Cancel</Button>
+          <div className="mt-3">
+            {loadingRepos && <p className="text-[13px] text-ink3">Loading your repositories…</p>}
+            {!loadingRepos && repos.length === 0 && <p className="text-[13px] text-ink3">No repositories found.</p>}
+            {!loadingRepos && repos.length > 0 && (
+              <div className="max-h-[300px] overflow-y-auto space-y-1 rounded-block border border-line p-2">
+                {repos.map((r) => (
+                  <label key={r.id} className="flex cursor-pointer items-center gap-3 rounded-block p-2 hover:bg-surface2">
+                    <input type="checkbox" checked={selectedRepos.has(r.full_name)}
+                      onChange={(e) => {
+                        const next = new Set(selectedRepos);
+                        e.target.checked ? next.add(r.full_name) : next.delete(r.full_name);
+                        setSelectedRepos(next);
+                      }}
+                      className="h-4 w-4 rounded border-line accent-accent" />
+                    <div className="min-w-0 flex-1">
+                      <span className="block truncate text-[14px] font-medium">{r.full_name}</span>
+                      {r.description && <span className="block truncate text-[12px] text-ink3">{r.description}</span>}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+            <div className="mt-3 flex items-center gap-2">
+              <Button variant="primary" disabled={selectedRepos.size === 0} onClick={addSelectedRepos}>
+                Connect {selectedRepos.size > 0 ? `${selectedRepos.size} repo(s)` : ""}
+              </Button>
+              <Button variant="ghost" onClick={() => { setAddingRepo(false); setRepoMsg(""); setSelectedRepos(new Set()); }}>Cancel</Button>
+            </div>
           </div>
         )}
-        {repoMsg && <p className="mt-2 text-[13px] text-ink2">{repoMsg}</p>}
+        {repoMsg && <p className="mt-2 text-[13px] font-medium text-green-600">{repoMsg}</p>}
       </Card>
     </div>
   );
