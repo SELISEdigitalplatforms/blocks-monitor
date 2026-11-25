@@ -60,7 +60,6 @@ export function mountBlocksRuntime(middlewares: MiddlewareStack, o: RuntimeOptio
     middlewares.use(blocksHost.blocksProjectList);
     middlewares.use(blocksHost.blocksProjectCreate);
     middlewares.use(blocksHost.blocksProjectAddAsset);
-    middlewares.use(blocksHost.githubOAuthCallback);
     middlewares.use(blocksHost.githubRoutes);
     middlewares.use(blocksHost.logicProxy);
     middlewares.use(blocksHost.dataAndBridge);

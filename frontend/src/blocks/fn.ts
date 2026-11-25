@@ -378,16 +378,20 @@ export async function localPost(path: string, body: unknown): Promise<{ status: 
     const pt = getActiveProjectTenant();
     if (pt) { headers["x-blocks-project-tenant"] = pt; hasProjectTenant = true; }
   } catch { /* ignore */ }
-  // OIDC session: suppress all MADP fn calls. Blocks projects use Blocks OS APIs directly.
+  // OIDC session: suppress background MADP fn calls but allow write ops through
   try {
     const oidc = sessionStorage.getItem("madp-oidc-session-v1");
     if (oidc) {
-      // Return well-shaped empty data so MADP components don't crash on undefined fields
-      return { status: 200, body: { ok: true, data: {
-        roles: [], assignments: [], permissions: [], workspaces: [], members: [],
-        workspace: null, subscription: null, credit: null, usage: null,
-        platformPermissions: [], accepted: [],
-      } }, retryAfter: null };
+      const parsed = typeof body === "object" ? body : JSON.parse(body as string);
+      const op = String((parsed as Record<string, unknown>)?.op || "");
+      // Allow project/share/business/delivery/scope writes — they create real data
+      if (!op.startsWith("project.") && !op.startsWith("share.") && !op.startsWith("business.") && !op.startsWith("delivery.") && !op.startsWith("scope.")) {
+        return { status: 200, body: { ok: true, data: {
+          roles: [], assignments: [], permissions: [], workspaces: [], members: [],
+          workspace: null, subscription: null, credit: null, usage: null,
+          platformPermissions: [], accepted: [],
+        } }, retryAfter: null };
+      }
     }
   } catch { /* continue */ }
   const res = await fetch(path, { method: "POST", credentials: "include", headers, body: JSON.stringify(body) });

@@ -94,53 +94,66 @@ export default function BlocksProject() {
     const clientId = "Ov23lihZrhV84qB0u85W";
     const redirectUri = `${window.location.origin}/api/github/callback`;
     const state = crypto.randomUUID();
-    const osUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo%20read:user&state=${state}`;
-    // Open Blocks OS in a popup — the user connects GitHub there
-    const popup = window.open(osUrl, "blocks-os-github", "width=1000,height=700,popup=yes");
-    // Poll for auth status after the user connects in Blocks OS
+    const osUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo%20read:user%20read:org&state=${state}`;
+    const popup = window.open(osUrl, "github-oauth", "width=600,height=700,popup=yes");
+    // Listen for the popup to reach our callback URL (same-origin)
     const poll = setInterval(() => {
-      const token = getOidcToken();
-      if (!token) return;
-      let uid = "";
-      try { const p = JSON.parse(atob(token.split(".")[1])); uid = p.user_id || p.sub || ""; } catch {}
-      if (!uid) return;
-      fetch(`/api/github/status/${encodeURIComponent(uid)}`, {
-        headers: { authorization: `Bearer ${token}`, accept: "application/json" },
-      })
-        .then((r) => r.json())
-        .then((data: { connected?: boolean }) => {
-          if (data.connected) {
-            setGithubAuthed(true);
-            clearInterval(poll);
-            try { popup?.close(); } catch { /* cross-origin */ }
-          }
-        })
-        .catch(() => {});
-    }, 2000);
+      try {
+        if (popup?.closed) {
+          clearInterval(poll);
+          // Popup closed — assume GitHub was connected, re-check status
+          setGithubAuthed(true);
+          return;
+        }
+        // Check if popup navigated to our callback (same-origin, can read URL)
+        const loc = popup?.location?.href;
+        if (loc && loc.includes("/api/github/callback")) {
+          clearInterval(poll);
+          setGithubAuthed(true);
+          setTimeout(() => { try { popup?.close(); } catch {} }, 1000);
+        }
+      } catch { /* cross-origin — keep polling */ }
+    }, 500);
     setTimeout(() => clearInterval(poll), 300_000);
   };
 
   // Load repos when GitHub is connected
   const loadRepos = async () => {
     const token = getOidcToken();
-    if (!token) return;
     let userId = "";
-    try { const p = JSON.parse(atob(token.split(".")[1])); userId = p.user_id || p.sub || ""; } catch {}
-    if (!userId) return;
+    if (token) {
+      try { const p = JSON.parse(atob(token.split(".")[1])); userId = p.user_id || p.sub || ""; } catch {}
+    }
+    if (!userId) {
+      // Try from session profile
+      try {
+        const raw = sessionStorage.getItem("madp-oidc-session-v1");
+        if (raw) {
+          const data = JSON.parse(raw) as { profile?: { userId?: string } };
+          userId = data.profile?.userId || "";
+        }
+      } catch {}
+    }
+    if (!userId) { console.warn("[loadRepos] no userId"); setRepos([]); setLoadingRepos(false); return; }
     setLoadingRepos(true);
     try {
+      const headers: Record<string, string> = { accept: "application/json" };
+      if (token) headers.authorization = `Bearer ${token}`;
       const res = await fetch(`/api/github/repos/${encodeURIComponent(userId)}`, {
-        headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+        headers, credentials: "include",
       });
       const data = await res.json();
-      const items = (data?.repos || []).map((r: { owner?: string; name?: string; fullName?: string; private?: boolean; description?: string; defaultBranch?: string }) => ({
-        id: `${r.owner}/${r.name}`,
-        full_name: r.fullName || `${r.owner}/${r.name}`,
-        html_url: `https://github.com/${r.fullName || `${r.owner}/${r.name}`}`,
-        description: r.description || "",
+      console.log("[loadRepos] status:", res.status, "data:", JSON.stringify(data).slice(0, 500));
+      const rawRepos = data?.repos || data?.data?.items || (Array.isArray(data) ? data : []);
+      const items = rawRepos.map((r: Record<string, unknown>) => ({
+        id: String(r.fullName || r.full_name || `${r.owner}/${r.name}` || r.id || ""),
+        full_name: String(r.fullName || r.full_name || `${r.owner}/${r.name}` || ""),
+        html_url: `https://github.com/${r.fullName || r.full_name || `${r.owner}/${r.name}`}`,
+        description: String(r.description || ""),
       }));
+      console.log("[loadRepos] parsed:", items.length, "repos");
       setRepos(items);
-    } catch { setRepos([]); }
+    } catch (err) { console.error("[loadRepos] error:", err); setRepos([]); }
     finally { setLoadingRepos(false); }
   };
 
@@ -254,16 +267,23 @@ export default function BlocksProject() {
       {/* GitHub Connection */}
       <Card title="GitHub Connection" icon={<Link2 size={18} />} className="mb-5">
         {githubAuthed === null && <p className="text-[13px] text-ink3">Checking GitHub status…</p>}
-        {githubAuthed === false && (
-          <div className="flex items-center justify-between">
-            <p className="text-[14px] text-ink2">Connect your GitHub account to access repositories.</p>
-            <Button variant="primary" icon={<Link2 size={16} />} onClick={connectGithub}>Connect GitHub</Button>
-          </div>
-        )}
         {githubAuthed === true && !addingRepo && (
           <div className="flex items-center justify-between">
             <p className="flex items-center gap-2 text-[14px] text-green-600"><Check size={16} /> GitHub connected</p>
-            <Button variant="secondary" icon={<Plus size={16} />} onClick={() => { setAddingRepo(true); loadRepos(); }}>Add Repository</Button>
+            <div className="flex gap-2">
+              <Button variant="secondary" icon={<Plus size={16} />} onClick={() => { setAddingRepo(true); loadRepos(); }}>Add Repository</Button>
+            </div>
+          </div>
+        )}
+        {githubAuthed === false && !addingRepo && (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[14px] text-ink2">Connect your GitHub account to access repositories.</p>
+              <Button variant="primary" icon={<Link2 size={16} />} onClick={connectGithub}>Connect GitHub</Button>
+            </div>
+            <button type="button" onClick={() => { setAddingRepo(true); loadRepos(); }} className="text-[13px] text-accent hover:underline text-left">
+              Already connected? Load repos anyway
+            </button>
           </div>
         )}
       </Card>
@@ -289,7 +309,7 @@ export default function BlocksProject() {
         {addingRepo && (
           <div className="mt-3">
             {loadingRepos && <p className="text-[13px] text-ink3">Loading your repositories…</p>}
-            {!loadingRepos && repos.length === 0 && <p className="text-[13px] text-ink3">No repositories found.</p>}
+            {!loadingRepos && repos.length === 0 && <p className="text-[13px] text-ink3">No repositories found. Try reconnecting GitHub.</p>}
             {!loadingRepos && repos.length > 0 && (
               <div className="max-h-[300px] overflow-y-auto space-y-1 rounded-block border border-line p-2">
                 {repos.map((r) => (
