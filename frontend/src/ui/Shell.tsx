@@ -88,7 +88,9 @@ function useNav() {
   const access = usePlatformAccess();
   // the Admin entry only where the admin function is mounted (not on the Blocks host yet)
   const admin = adminMounted() && hasPlatformAccess(access);
-  const items = NAV.map((n) => ({ ...n, to: n.label === "Build" ? buildTarget(routeId, latestId) : n.to, active: n.match(pathname) }));
+  // OIDC session: Build goes to /projects (pick a Blocks project first)
+  const isOidc = (() => { try { return !!globalThis.sessionStorage?.getItem("madp-oidc-session-v1"); } catch { return false; } })();
+  const items = NAV.map((n) => ({ ...n, to: n.label === "Build" && isOidc ? "/projects" : n.label === "Build" ? buildTarget(routeId, latestId) : n.to, active: n.match(pathname) || (isOidc && n.label === "Build" && pathname.startsWith("/project/")) }));
   return admin ? [...items, { to: "/admin", label: "Platform", text: () => t("shell.nav.platform", "Platform"), icon: ShieldCheck, active: /^\/admin(\/|$)/.test(pathname) }] : items;
 }
 
