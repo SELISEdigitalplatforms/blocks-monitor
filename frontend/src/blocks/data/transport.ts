@@ -135,21 +135,25 @@ export function createDataTransport(o: {
         }
       } catch { /* ignore */ }
     }
-    // Per-project isolation: include the active project tenant so the BFF routes to the correct data gateway
-    try {
-      const { getActiveProjectTenant } = await import("../activeProject");
-      const pt = getActiveProjectTenant();
-      if (pt) headers["x-blocks-project-tenant"] = pt;
-    } catch { /* ignore */ }
-    // OIDC session: suppress data reads UNLESS inside an MADP project page (/p/:id/*)
+    // OIDC session handling
     try {
       const oidc = sessionStorage.getItem("madp-oidc-session-v1");
       if (oidc) {
         const inMadpProject = typeof window !== "undefined" && /^\/p\/[^/]+/.test(window.location.pathname);
         if (!inMadpProject) {
-          const emptyResults = reads.map(() => ({ ok: true, items: [], totalCount: 0, pageNo: 1, pageSize: 10, hasNextPage: false }));
-          return new Response(JSON.stringify({ results: emptyResults }), { status: 200, headers: { "content-type": "application/json" } });
+          // Not on an MADP project page — only send project tenant for Blocks project pages
+          try {
+            const { getActiveProjectTenant } = await import("../activeProject");
+            const pt = getActiveProjectTenant();
+            if (pt) headers["x-blocks-project-tenant"] = pt;
+          } catch { /* ignore */ }
+          // If no active project, suppress the read entirely
+          if (!headers["x-blocks-project-tenant"]) {
+            const emptyResults = reads.map(() => ({ ok: true, items: [], totalCount: 0, pageNo: 1, pageSize: 10, hasNextPage: false }));
+            return new Response(JSON.stringify({ results: emptyResults }), { status: 200, headers: { "content-type": "application/json" } });
+          }
         }
+        // On MADP project pages (/p/:id/*): NEVER send project tenant — use shared MADP tenant
       }
     } catch { /* continue */ }
     return o.fetch(DATA_ENDPOINT, {

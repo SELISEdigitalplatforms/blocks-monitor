@@ -385,9 +385,12 @@ export async function localPost(path: string, body: unknown): Promise<{ status: 
     const oidc = sessionStorage.getItem("madp-oidc-session-v1");
     if (oidc) {
       const inMadpProject = /^\/p\/[^/]+/.test(window.location.pathname);
+      const parsed = typeof body === "object" ? body : JSON.parse(body as string);
+      const op = String((parsed as Record<string, unknown>)?.op || "");
+      // Don't send project tenant for ops that use the shared MADP tenant
+      const isSharedOp = op.startsWith("project.") || op.startsWith("workspace.");
+      if (isSharedOp) delete headers["x-blocks-project-tenant"];
       if (!inMadpProject) {
-        const parsed = typeof body === "object" ? body : JSON.parse(body as string);
-        const op = String((parsed as Record<string, unknown>)?.op || "");
         if (!op.startsWith("project.") && !op.startsWith("share.") && !op.startsWith("business.") && !op.startsWith("delivery.") && !op.startsWith("scope.") && !op.startsWith("collab.") && !op.startsWith("workspace.")) {
           return { status: 200, body: { ok: true, data: {
             roles: [], assignments: [], permissions: [], workspaces: [], members: [],
@@ -398,7 +401,9 @@ export async function localPost(path: string, body: unknown): Promise<{ status: 
       }
     }
   } catch { /* continue */ }
+  console.log("[localPost]", path, "token:", !!t, "tenant:", headers["x-blocks-project-tenant"] || "none", "page:", window.location.pathname);
   const res = await fetch(path, { method: "POST", credentials: "include", headers, body: JSON.stringify(body) });
+  console.log("[localPost]", path, "→", res.status);
   return { status: res.status, body: await res.json().catch(() => null), retryAfter: res.headers.get("retry-after") };
 }
 

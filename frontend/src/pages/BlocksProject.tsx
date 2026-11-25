@@ -259,23 +259,41 @@ export default function BlocksProject() {
             <Button variant="primary" icon={<Rocket size={16} />} onClick={() => navigate(`/project/${id}/deploy`)}>Deploy</Button>
             <Button variant="primary" onClick={async () => {
               const token = getOidcToken();
-              if (!token) { navigate("/new"); return; }
-              // Look up existing MADP project linked to this Blocks project
+              if (!token) return;
+              // Look up existing MADP project
               try {
                 const res = await window.fetch("/api/data", {
                   method: "POST", credentials: "include",
                   headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
                   body: JSON.stringify({ reads: [{ schema: "Project", fields: ["ItemId", "Stage"], filter: [{ field: "BlocksProjectRef", op: "eq", value: id }], pageNo: 1, pageSize: 1 }] }),
                 });
-                const data = await res.json() as { results?: Array<{ items?: Array<{ ItemId: string; Stage?: string }> }> };
+                const data = await res.json() as { results?: Array<{ items?: Array<{ ItemId: string }> }> };
                 const existing = data.results?.[0]?.items?.[0];
-                if (existing) {
-                  navigate(`/p/${existing.ItemId}/business`);
-                  return;
-                }
-              } catch { /* fall through */ }
-              // No MADP project yet — go to /new with the Blocks project pre-linked
-              navigate("/new", { state: { blocksProjectRef: id, prefillName: name } });
+                if (existing) { clearActiveProject(); navigate(`/p/${existing.ItemId}/business`); return; }
+              } catch { /* continue */ }
+              // Auto-create MADP project linked to this Blocks project
+              // Get workspace ID from the workspace store
+              let wsId = "";
+              try {
+                const wsRaw = await window.fetch("/api/data", {
+                  method: "POST", credentials: "include",
+                  headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+                  body: JSON.stringify({ reads: [{ schema: "Workspace", fields: ["ItemId"], filter: [{ field: "Status", op: "eq", value: "active" }], sort: [{ field: "CreatedDate", dir: "desc" }], pageNo: 1, pageSize: 1 }] }),
+                });
+                const wsData = await wsRaw.json() as { results?: Array<{ items?: Array<{ ItemId: string }> }> };
+                wsId = wsData.results?.[0]?.items?.[0]?.ItemId || "";
+              } catch { /* continue */ }
+              try {
+                const res = await window.fetch("/api/fn/project", {
+                  method: "POST", credentials: "include",
+                  headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+                  body: JSON.stringify({ op: "project.create", requestId: crypto.randomUUID(), args: { name, projectType: "greenfield", blocksProjectRef: id, ...(wsId ? { workspaceId: wsId } : {}) } }),
+                });
+                const result = await res.json() as { ok?: boolean; data?: { project?: { ItemId?: string } } };
+                const pid = result.data?.project?.ItemId;
+                if (pid) { clearActiveProject(); navigate(`/p/${pid}/business`); return; }
+                console.error("[OpenAnalysis] create failed:", result);
+              } catch (err) { console.error("[OpenAnalysis] error:", err); }
             }}>Open Analysis</Button>
           </div>
         }
