@@ -73,7 +73,7 @@ export default function BlocksProject() {
   useEffect(() => {
     const token = getOidcToken();
     if (!token) return;
-    fetch("/api/logic/release/isAuthorized", {
+    fetch("/api/logic/auth/isAuthorized", {
       headers: { authorization: `Bearer ${token}`, accept: "application/json" },
     })
       .then((r) => r.json())
@@ -81,19 +81,17 @@ export default function BlocksProject() {
       .catch(() => setGithubAuthed(false));
   }, []);
 
-  // Connect GitHub via OAuth
+  // Connect GitHub: open the Blocks OS project page where the user can connect GitHub
   const connectGithub = () => {
-    const clientId = import.meta.env.BLOCKS_GITHUB_SSO_CLIENT_ID || "Ov23liqWywFtITPvQ4Z9";
-    const redirectUri = `${window.location.origin}/api/github/callback`;
-    const state = crypto.randomUUID();
-    sessionStorage.setItem("github-oauth-state", state);
-    const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo%20read:user&state=${state}`;
-    window.open(url, "github-oauth", "width=600,height=700,popup=yes");
-    // Poll for auth status
+    const active = getActiveProject();
+    const osUrl = active?.domain || `https://dev-os.blocksdevelopers.com`;
+    // Open Blocks OS in a popup — the user connects GitHub there
+    const popup = window.open(osUrl, "blocks-os-github", "width=1000,height=700,popup=yes");
+    // Poll for auth status after the user connects in Blocks OS
     const poll = setInterval(() => {
       const token = getOidcToken();
       if (!token) return;
-      fetch("/api/logic/release/isAuthorized", {
+      fetch("/api/logic/auth/isAuthorized", {
         headers: { authorization: `Bearer ${token}`, accept: "application/json" },
       })
         .then((r) => r.json())
@@ -101,11 +99,12 @@ export default function BlocksProject() {
           if (data.isSuccess) {
             setGithubAuthed(true);
             clearInterval(poll);
+            try { popup?.close(); } catch { /* cross-origin */ }
           }
         })
         .catch(() => {});
     }, 2000);
-    setTimeout(() => clearInterval(poll), 120_000);
+    setTimeout(() => clearInterval(poll), 300_000);
   };
 
   // Load repos when GitHub is connected
@@ -114,7 +113,7 @@ export default function BlocksProject() {
     if (!token) return;
     setLoadingRepos(true);
     try {
-      const res = await fetch("/api/logic/github/repos", {
+      const res = await fetch("/api/logic/github/repos?ProjectKey=", {
         headers: { authorization: `Bearer ${token}`, accept: "application/json" },
       });
       const data = await res.json();
