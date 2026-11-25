@@ -604,12 +604,28 @@ export function createBlocksHost(o: {
         res.end("<html><body><p>GitHub authorization failed.</p><script>window.close();</script></body></html>");
         return;
       }
-      // Exchange the code via Blocks Logic API
+      // Exchange the GitHub code for an access token using client_id + client_secret
+      const ghClientId = o.env.GITHUB_CLIENT_ID || "";
+      const ghClientSecret = o.env.GITHUB_CLIENT_SECRET || "";
+      let ghToken = "";
+      if (ghClientId && ghClientSecret) {
+        try {
+          const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
+            method: "POST",
+            headers: { accept: "application/json", "content-type": "application/json" },
+            body: JSON.stringify({ client_id: ghClientId, client_secret: ghClientSecret, code }),
+            signal: AbortSignal.timeout(15_000),
+          });
+          const tokenData = await tokenRes.json() as { access_token?: string };
+          ghToken = tokenData.access_token || "";
+        } catch { /* failed */ }
+      }
+      // Store the GitHub token via Blocks Logic API
       const accessToken = await resolveAccessToken(req, res);
-      if (accessToken && logicBaseUrl) {
+      if (accessToken && logicBaseUrl && ghToken) {
         try {
           const tokenTenant = tenantFromJwt(accessToken);
-          await fetch(`${logicBaseUrl}/api/auth/accessToken?code=${encodeURIComponent(code)}&ProjectKey=${encodeURIComponent(tokenTenant)}`, {
+          await fetch(`${logicBaseUrl}/api/auth/accessToken?code=${encodeURIComponent(ghToken)}&ProjectKey=${encodeURIComponent(tokenTenant)}`, {
             method: "GET",
             headers: { authorization: `Bearer ${accessToken}`, "x-blocks-key": tokenTenant, accept: "application/json" },
             signal: AbortSignal.timeout(15_000),
