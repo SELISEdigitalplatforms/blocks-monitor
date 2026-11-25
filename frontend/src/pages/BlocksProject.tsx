@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ExternalLink, FolderGit2, Plus, Rocket, Settings } from "lucide-react";
 import { Button, Card, EmptyState, PageHeader } from "@/ui/kit";
-import { getActiveProject, setActiveProject } from "@/blocks/activeProject";
+import { getActiveProject, setActiveProject, clearActiveProject } from "@/blocks/activeProject";
 
 function getOidcToken(): string | undefined {
   try {
@@ -117,7 +117,7 @@ export default function BlocksProject() {
   return (
     <div className="pb-6">
       <div className="mb-4">
-        <button type="button" onClick={() => navigate("/projects")} className="inline-flex items-center gap-1.5 text-[13px] font-medium text-ink2 hover:text-accent">
+        <button type="button" onClick={() => { clearActiveProject(); navigate("/projects"); }} className="inline-flex items-center gap-1.5 text-[13px] font-medium text-ink2 hover:text-accent">
           <ArrowLeft size={14} /> Back to projects
         </button>
       </div>

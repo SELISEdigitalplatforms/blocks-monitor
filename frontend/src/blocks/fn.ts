@@ -378,11 +378,11 @@ export async function localPost(path: string, body: unknown): Promise<{ status: 
     const pt = getActiveProjectTenant();
     if (pt) { headers["x-blocks-project-tenant"] = pt; hasProjectTenant = true; }
   } catch { /* ignore */ }
-  // OIDC session: only call fn endpoint when an active project is set.
-  // Without a project, there's no tenant — return empty success immediately.
+  // OIDC session: suppress all MADP fn calls. Blocks projects use Blocks OS APIs directly,
+  // not the MADP BFF fn handlers (billing, admin, workspace don't exist per-project).
   try {
     const oidc = sessionStorage.getItem("madp-oidc-session-v1");
-    if (oidc && !hasProjectTenant) {
+    if (oidc) {
       return { status: 200, body: { ok: true, data: {} }, retryAfter: null };
     }
   } catch { /* continue */ }
