@@ -372,11 +372,20 @@ export async function localPost(path: string, body: unknown): Promise<{ status: 
   }
   if (t) headers.authorization = "Bearer " + t;
   // Per-project isolation: include the active project tenant
+  let hasProjectTenant = false;
   try {
     const { getActiveProjectTenant } = await import("./activeProject");
     const pt = getActiveProjectTenant();
-    if (pt) headers["x-blocks-project-tenant"] = pt;
+    if (pt) { headers["x-blocks-project-tenant"] = pt; hasProjectTenant = true; }
   } catch { /* ignore */ }
+  // OIDC session: only call fn endpoint when an active project is set.
+  // Without a project, there's no tenant — return empty success immediately.
+  try {
+    const oidc = sessionStorage.getItem("madp-oidc-session-v1");
+    if (oidc && !hasProjectTenant) {
+      return { status: 200, body: { ok: true, data: {} }, retryAfter: null };
+    }
+  } catch { /* continue */ }
   const res = await fetch(path, { method: "POST", credentials: "include", headers, body: JSON.stringify(body) });
   return { status: res.status, body: await res.json().catch(() => null), retryAfter: res.headers.get("retry-after") };
 }

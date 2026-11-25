@@ -151,7 +151,7 @@ export function BlocksProjectsView() {
                     type="button"
                     onClick={() => {
                       setActiveProject({ tenantGroupId: id, tenantId: p.tenantId || `D${id}`, name, domain: apps[0]?.domain });
-                      navigate(`/p/${id}/business`);
+                      navigate(`/project/${id}`);
                     }}
                     className="inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-[12px] font-medium text-white hover:bg-accent-hover"
                   >

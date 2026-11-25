@@ -141,6 +141,15 @@ export function createDataTransport(o: {
       const pt = getActiveProjectTenant();
       if (pt) headers["x-blocks-project-tenant"] = pt;
     } catch { /* ignore */ }
+    // OIDC session: only call data endpoint when an active project is set.
+    // Without a project, there's no tenant to query — return empty results immediately.
+    try {
+      const oidc = sessionStorage.getItem("madp-oidc-session-v1");
+      if (oidc && !headers["x-blocks-project-tenant"]) {
+        const emptyResults = reads.map(() => ({ ok: true, items: [], totalCount: 0, pageNo: 1, pageSize: 10, hasNextPage: false }));
+        return new Response(JSON.stringify({ results: emptyResults }), { status: 200, headers: { "content-type": "application/json" } });
+      }
+    } catch { /* continue */ }
     return o.fetch(DATA_ENDPOINT, {
       method: "POST",
       headers,

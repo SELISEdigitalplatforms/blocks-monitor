@@ -19,6 +19,7 @@ const Landing = lazy(() => import("@/pages/Landing"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Projects = lazy(() => import("@/pages/Projects"));
+const BlocksProject = lazy(() => import("@/pages/BlocksProject"));
 const NewProject = lazy(() => import("@/pages/NewProject"));
 const CinematicNewProject = lazy(() => import("@/components/cinematic/CinematicNewProject"));
 const ProjectStep = lazy(() => import("@/pages/ProjectStep"));
@@ -129,6 +130,7 @@ export function App() {
             <Route path="/dashboard" element={<Page><Dashboard /></Page>} />
             <Route path="/home" element={<Navigate to="/dashboard" replace />} />
             <Route path="/projects" element={<Page><Projects /></Page>} />
+            <Route path="/project/:id" element={<Page><BlocksProject /></Page>} />
             <Route path="/wiki" element={<Page><WikiIndex /></Page>} />
             <Route path="/new" element={<Page><NewProject /></Page>} />
             <Route path="/p/:id" element={<ProjectRoute />}>
