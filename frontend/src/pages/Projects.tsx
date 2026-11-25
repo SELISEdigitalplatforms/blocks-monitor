@@ -1,10 +1,14 @@
-import { readOidcSession } from "@/blocks/oidcSession";
 import { BlocksProjectsView } from "@/components/home/BlocksProjectsView";
 import { ProjectsView } from "@/components/home/ProjectsView";
 
+function hasOidcSession(): boolean {
+  try {
+    const raw = globalThis.sessionStorage?.getItem("madp-oidc-session-v1");
+    return raw !== null && raw !== undefined;
+  } catch { return false; }
+}
+
 export default function Projects() {
-  // OIDC session: show Blocks projects from the OS API
-  const oidc = readOidcSession();
-  if (oidc) return <BlocksProjectsView />;
+  if (hasOidcSession()) return <BlocksProjectsView />;
   return <ProjectsView />;
 }

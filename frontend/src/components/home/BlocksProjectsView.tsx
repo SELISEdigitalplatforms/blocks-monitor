@@ -4,19 +4,35 @@
  */
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FolderKanban, Plus, ExternalLink, Github } from "lucide-react";
+import { FolderKanban, Plus, ExternalLink, FolderGit2 } from "lucide-react";
 import { Button, Card, EmptyState, PageHeader } from "@/ui/kit";
-import { getOidcAccessToken } from "@/blocks/oidcSession";
+function getOidcAccessToken(): string | undefined {
+  try {
+    const raw = sessionStorage.getItem("madp-oidc-session-v1");
+    if (!raw) return undefined;
+    const data = JSON.parse(raw) as { accessToken?: string; expiresAtMs?: number };
+    if (data.accessToken && data.expiresAtMs && data.expiresAtMs > Date.now()) return data.accessToken;
+  } catch { /* ignore */ }
+  return undefined;
+}
 import { t } from "@/i18n";
 
 interface BlocksProject {
+  itemId?: string;
   ItemId?: string;
+  name?: string;
   Name?: string;
   ProjectName?: string;
   TenantGroupId?: string;
+  tenantGroupId?: string;
+  tenantId?: string;
+  domain?: string;
   Domain?: string;
-  Status?: string;
+  environment?: string;
+  isDisabled?: boolean;
+  applications?: Array<{ domain?: string; cookieDomain?: string }>;
   Resources?: Array<{ ResourceId?: string; Name?: string; Link?: string }>;
+  createdDate?: string;
   CreatedDate?: string;
 }
 
@@ -29,13 +45,23 @@ export function BlocksProjectsView() {
   useEffect(() => {
     const token = getOidcAccessToken();
     if (!token) { setError("Not authenticated"); setLoading(false); return; }
-    fetch("/api/blocks-project/list?page=1&pageSize=50", {
+    fetch("/api/blocks-project/list?page=0&pageSize=100", {
       headers: { authorization: `Bearer ${token}`, accept: "application/json" },
     })
       .then(async (res) => {
         if (!res.ok) throw new Error(`${res.status}`);
-        const data = await res.json() as { data?: { items?: BlocksProject[] }; items?: BlocksProject[] };
-        setProjects(data.data?.items || data.items || (Array.isArray(data) ? data : []));
+        const data = await res.json();
+        // Response is array of { tenantGroupId, projects: [...] }
+        const groups = Array.isArray(data) ? data : (data?.data?.items || data?.items || []);
+        const all: BlocksProject[] = [];
+        for (const g of groups) {
+          const tgId = g.tenantGroupId || "";
+          const projs = Array.isArray(g.projects) ? g.projects : [g];
+          for (const p of projs) {
+            all.push({ ...p, TenantGroupId: tgId });
+          }
+        }
+        setProjects(all);
       })
       .catch((e) => setError(String(e.message || "Failed to load projects")))
       .finally(() => setLoading(false));
@@ -80,9 +106,11 @@ export function BlocksProjectsView() {
       {!loading && projects.length > 0 && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((p) => {
-            const id = p.TenantGroupId || p.ItemId || "";
-            const name = p.ProjectName || p.Name || "Untitled";
-            const domain = p.Domain || "";
+            const id = p.TenantGroupId || p.tenantGroupId || p.ItemId || p.itemId || "";
+            const name = p.name || p.Name || p.ProjectName || "Untitled";
+            const apps = p.applications || [];
+            const domain = apps[0]?.domain || p.domain || p.Domain || "";
+            const env = p.environment || "dev";
             const resources = p.Resources || [];
             return (
               <Card key={id} className="flex flex-col gap-3 p-5">
@@ -97,7 +125,7 @@ export function BlocksProjectsView() {
                     )}
                   </div>
                   <span className="shrink-0 rounded-full bg-accent/10 px-2.5 py-0.5 text-[11px] font-medium text-accent">
-                    {p.Status || "active"}
+                    {env}
                   </span>
                 </div>
 
@@ -106,7 +134,7 @@ export function BlocksProjectsView() {
                     {resources.map((r, i) => (
                       <a key={i} href={r.Link} target="_blank" rel="noopener noreferrer"
                         className="flex items-center gap-1.5 text-[13px] text-ink2 hover:text-accent">
-                        <Github size={14} /> {r.Name || "Repository"}
+                        <FolderGit2 size={14} /> {r.Name || "Repository"}
                       </a>
                     ))}
                   </div>
@@ -116,8 +144,9 @@ export function BlocksProjectsView() {
                   <p className="text-[12px] text-ink3">No repositories connected</p>
                 )}
 
-                <div className="mt-auto pt-2 text-[11px] text-ink3">
-                  {id.slice(0, 8)}…
+                <div className="mt-auto flex items-center justify-between pt-2 text-[11px] text-ink3">
+                  <span>{id.slice(0, 12)}…</span>
+                  <span>{p.createdDate ? new Date(p.createdDate).toLocaleDateString() : ""}</span>
                 </div>
               </Card>
             );

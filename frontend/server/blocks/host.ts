@@ -505,17 +505,20 @@ export function createBlocksHost(o: {
       const page = params.get("page") || "1";
       const pageSize = params.get("pageSize") || "50";
       try {
-        const upstream = await fetch(`${blocksOsUrl}/api/Project/Gets?page=${page}&pageSize=${pageSize}&tenantGroupId=${encodeURIComponent(tokenTenant)}`, {
+        const targetUrl = `${blocksOsUrl}/api/Project/Gets?page=${page}&pageSize=${pageSize}&tenantGroupId=`;
+        console.log("[blocks-project/list] calling:", targetUrl);
+        const upstream = await fetch(targetUrl, {
           method: "GET",
           headers: { authorization: `Bearer ${accessToken}`, "x-blocks-key": tokenTenant, accept: "application/json" },
           signal: AbortSignal.timeout(15_000),
         });
         const responseText = await upstream.text();
+        console.log("[blocks-project/list] response:", upstream.status, responseText.slice(0, 300));
         res.statusCode = upstream.status;
         res.setHeader("content-type", "application/json");
         res.setHeader("cache-control", "no-store");
         res.end(responseText);
-      } catch { send(res, 503, { error: "blocks_os_unavailable" }); }
+      } catch (err) { console.error("[blocks-project/list] failed:", err); send(res, 503, { error: "blocks_os_unavailable" }); }
     })();
   };
 
