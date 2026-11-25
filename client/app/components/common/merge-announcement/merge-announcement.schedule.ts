@@ -25,5 +25,13 @@ export function msUntilNextPhaseChange(now: number): number | null {
   return next === null ? null : Math.min(next - now, MAX_TIMEOUT_MS);
 }
 
+/** How long ✕ hides the banner before it comes back. */
+export const DISMISS_TTL_MS = 60 * 60 * 1000;
+
+/** True while a dismissal stored at `dismissedAt` (epoch ms) still hides the banner. */
+export function isDismissalActive(dismissedAt: number | null, now: number): boolean {
+  return dismissedAt !== null && dismissedAt <= now && now - dismissedAt < DISMISS_TTL_MS;
+}
+
 export const dismissStorageKey = (phase: MergePhase) =>
   `blocks-merge-announcement-dismissed:${phase}`;

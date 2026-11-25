@@ -13,7 +13,9 @@ import { Clock, Info, Link2, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import "./merge-announcement.css";
 import {
+  DISMISS_TTL_MS,
   dismissStorageKey,
+  isDismissalActive,
   getMergePhase,
   msUntilNextPhaseChange,
   type MergePhase,
@@ -23,20 +25,67 @@ import {
 // into Blocks OS. Shown after login, above every layout; it switches from the "before" to the
 // "after" text at 28 Nov 2026 18:00 UTC and disappears at 20 Dec 2026 18:00 UTC.
 
-function readDismissed(phase: MergePhase): boolean {
+const PHASES: readonly MergePhase[] = ["before", "after"];
+
+function readDismissedAt(phase: MergePhase): number | null {
   try {
-    return globalThis.localStorage?.getItem(dismissStorageKey(phase)) === "1";
+    const value = Number(globalThis.localStorage?.getItem(dismissStorageKey(phase)));
+    return Number.isFinite(value) && value > 0 ? value : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
-function writeDismissed(phase: MergePhase) {
+function writeDismissedAt(phase: MergePhase, at: number | null) {
   try {
-    globalThis.localStorage?.setItem(dismissStorageKey(phase), "1");
+    if (at === null) globalThis.localStorage?.removeItem(dismissStorageKey(phase));
+    else globalThis.localStorage?.setItem(dismissStorageKey(phase), String(at));
   } catch {
-    // Storage blocked (private mode etc.): the banner just hides for this page view.
+    // Storage blocked (private mode etc.): the dismissal only lasts for this page view.
   }
+}
+
+/**
+ * ✕ hides the banner for DISMISS_TTL_MS (it then comes back, also in an open tab).
+ * Any login or logout clears it, so the banner shows again after every login. A page reload
+ * keeps it: genesis-os restores isAuthenticated synchronously from localStorage.
+ */
+function useDismissal(phase: MergePhase | null, isAuthenticated: boolean) {
+  const [now, setNow] = useState(() => Date.now());
+  const [dismissedAt, setDismissedAt] = useState(
+    () =>
+      Object.fromEntries(PHASES.map((p) => [p, readDismissedAt(p)])) as Record<
+        MergePhase,
+        number | null
+      >,
+  );
+
+  const previousAuth = useRef(isAuthenticated);
+  useEffect(() => {
+    if (previousAuth.current === isAuthenticated) return;
+    previousAuth.current = isAuthenticated;
+    PHASES.forEach((p) => writeDismissedAt(p, null));
+    setDismissedAt({ before: null, after: null });
+  }, [isAuthenticated]);
+
+  const at = phase === null ? null : dismissedAt[phase];
+  const dismissed = isDismissalActive(at, now);
+
+  useEffect(() => {
+    if (!dismissed || at === null) return;
+    const timer = setTimeout(() => setNow(Date.now()), at + DISMISS_TTL_MS - Date.now() + 500);
+    return () => clearTimeout(timer);
+  }, [dismissed, at]);
+
+  const dismiss = () => {
+    if (phase === null) return;
+    const stamp = Date.now();
+    writeDismissedAt(phase, stamp);
+    setDismissedAt((current) => ({ ...current, [phase]: stamp }));
+    setNow(stamp);
+  };
+
+  return { dismissed, dismiss };
 }
 
 /** Re-renders when the phase changes, so an open tab moves from "before" to "after" on its own. */
@@ -55,13 +104,11 @@ export function MergeAnnouncementBanner() {
   const { t } = useT("monitor.shared");
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const phase = useMergePhase();
-  const [dismissedPhases, setDismissedPhases] = useState<MergePhase[]>(() =>
-    (["before", "after"] as const).filter(readDismissed),
-  );
+  const { dismissed, dismiss } = useDismissal(phase, isAuthenticated);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const bannerRef = useRef<HTMLDivElement>(null);
 
-  const visible = isAuthenticated && phase !== null && !dismissedPhases.includes(phase);
+  const visible = isAuthenticated && phase !== null && !dismissed;
 
   // Tell the layout fix-ups in merge-announcement.css how tall the banner is.
   useLayoutEffect(() => {
@@ -82,11 +129,6 @@ export function MergeAnnouncementBanner() {
   }, [visible]);
 
   if (!visible || phase === null) return null;
-
-  const dismiss = () => {
-    writeDismissed(phase);
-    setDismissedPhases((current) => [...current, phase]);
-  };
 
   const learnMore = (
     <button
