@@ -84,7 +84,10 @@ export default function BlocksProject() {
   // Connect GitHub: open the Blocks OS project page where the user can connect GitHub
   const connectGithub = () => {
     const active = getActiveProject();
-    const osUrl = active?.domain || `https://dev-os.blocksdevelopers.com`;
+    const clientId = "Ov23liqWywFtITPvQ4Z9";
+    const redirectUri = `${window.location.origin}/api/github/callback`;
+    const state = crypto.randomUUID();
+    const osUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo%20read:user&state=${state}`;
     // Open Blocks OS in a popup — the user connects GitHub there
     const popup = window.open(osUrl, "blocks-os-github", "width=1000,height=700,popup=yes");
     // Poll for auth status after the user connects in Blocks OS

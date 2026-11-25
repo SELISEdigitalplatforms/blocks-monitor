@@ -591,6 +591,36 @@ export function createBlocksHost(o: {
       } catch { send(res, 503, { error: "blocks_logic_unavailable" }); }
     })();
   };
+  /** GET /api/github/callback: GitHub OAuth callback — exchanges the code via Blocks Logic API
+   *  and shows a success page that auto-closes. */
+  const githubOAuthCallback: Handler = (req, res, next) => {
+    const url = new URL(req.url || "/", o.appOrigin);
+    if (url.pathname !== "/api/github/callback") return next();
+    void (async () => {
+      const code = url.searchParams.get("code") || "";
+      if (!code) {
+        res.statusCode = 400;
+        res.setHeader("content-type", "text/html");
+        res.end("<html><body><p>GitHub authorization failed.</p><script>window.close();</script></body></html>");
+        return;
+      }
+      // Exchange the code via Blocks Logic API
+      const accessToken = await resolveAccessToken(req, res);
+      if (accessToken && logicBaseUrl) {
+        try {
+          const tokenTenant = tenantFromJwt(accessToken);
+          await fetch(`${logicBaseUrl}/api/auth/accessToken?code=${encodeURIComponent(code)}&ProjectKey=${encodeURIComponent(tokenTenant)}`, {
+            method: "GET",
+            headers: { authorization: `Bearer ${accessToken}`, "x-blocks-key": tokenTenant, accept: "application/json" },
+            signal: AbortSignal.timeout(15_000),
+          });
+        } catch { /* best effort */ }
+      }
+      res.statusCode = 200;
+      res.setHeader("content-type", "text/html");
+      res.end("<html><body><p>GitHub connected! You can close this window.</p><script>window.close();</script></body></html>");
+    })();
+  };
   const githubRoutes: Handler = (req, res, next) => {
     if (!(req.url ?? "").startsWith("/api/github/")) return next();
     if (!github) return send(res, 503, { error: "github_not_configured" });
@@ -843,7 +873,7 @@ export function createBlocksHost(o: {
     })();
   };
   return {
-    auth, bearerAuth, iamOidc, fn, dataAndBridge, githubRoutes, logicProxy, blocksProjectList, blocksProjectCreate, blocksProjectAddAsset, readAsCaller, readings, callProjectOp, publicPlans, publicI18n,
+    auth, bearerAuth, iamOidc, fn, dataAndBridge, githubOAuthCallback, githubRoutes, logicProxy, blocksProjectList, blocksProjectCreate, blocksProjectAddAsset, readAsCaller, readings, callProjectOp, publicPlans, publicI18n,
     /** Starts the background work (the project purge worker); a host made only to answer requests never starts it. */
     startBackground() { purge?.start(); },
     stopBackground() { purge?.stop(); },
