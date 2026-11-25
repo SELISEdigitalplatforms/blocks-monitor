@@ -52,7 +52,6 @@ function initialSessionState(): SessionState {
     if (raw) {
       const data = JSON.parse(raw) as { accessToken?: string; profile?: Record<string, unknown>; expiresAtMs?: number };
       if (data.accessToken && data.profile && data.expiresAtMs && data.expiresAtMs > Date.now()) {
-        // Schedule auto-redirect when token expires
         const ttl = data.expiresAtMs - Date.now();
         if (typeof globalThis.setTimeout === "function") {
           globalThis.setTimeout(() => {
@@ -77,11 +76,9 @@ function initialSessionState(): SessionState {
           notice: null,
         };
       }
-      } else {
-        // Token expired — clear stale session
-        globalThis.sessionStorage?.removeItem("madp-oidc-session-v1");
-        globalThis.sessionStorage?.removeItem("madp-active-blocks-project-v1");
-      }
+      // Token expired — clear stale session
+      globalThis.sessionStorage.removeItem("madp-oidc-session-v1");
+      globalThis.sessionStorage.removeItem("madp-active-blocks-project-v1");
     }
   } catch { /* no sessionStorage or invalid data */ }
   return { status: "restoring", profile: null, notice: null };

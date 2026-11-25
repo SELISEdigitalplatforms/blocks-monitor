@@ -88,31 +88,34 @@ export default function BlocksProject() {
       .catch(() => setGithubAuthed(false));
   }, []);
 
-  // Connect GitHub: open the Blocks OS project page where the user can connect GitHub
-  const connectGithub = () => {
-    const active = getActiveProject();
-    const clientId = "Ov23lihZrhV84qB0u85W";
-    const redirectUri = `${window.location.origin}/api/github/callback`;
-    const state = crypto.randomUUID();
-    const osUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo%20read:user%20read:org&state=${state}`;
-    const popup = window.open(osUrl, "github-oauth", "width=600,height=700,popup=yes");
-    // Listen for the popup to reach our callback URL (same-origin)
+  // Connect GitHub via MADP BFF's /api/github/connect (creates state + returns OAuth URL)
+  const connectGithub = async () => {
+    const token = getOidcToken();
+    if (!token) return;
+    let userId = "";
+    try { const p = JSON.parse(atob(token.split(".")[1])); userId = p.user_id || p.sub || ""; } catch {}
+    if (!userId) return;
+    const popup = window.open("about:blank", "github-oauth", "width=600,height=700,popup=yes");
+    try {
+      const res = await fetch("/api/github/connect", {
+        method: "POST", credentials: "include",
+        headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+        body: JSON.stringify({ userId }),
+      });
+      const data = await res.json() as { url?: string; error?: string };
+      if (data.url && popup) {
+        popup.location.href = data.url;
+      } else { popup?.close(); return; }
+    } catch { popup?.close(); return; }
     const poll = setInterval(() => {
       try {
-        if (popup?.closed) {
-          clearInterval(poll);
-          // Popup closed — assume GitHub was connected, re-check status
-          setGithubAuthed(true);
-          return;
-        }
-        // Check if popup navigated to our callback (same-origin, can read URL)
+        if (popup?.closed) { clearInterval(poll); setGithubAuthed(true); return; }
         const loc = popup?.location?.href;
         if (loc && loc.includes("/api/github/callback")) {
-          clearInterval(poll);
-          setGithubAuthed(true);
-          setTimeout(() => { try { popup?.close(); } catch {} }, 1000);
+          clearInterval(poll); setGithubAuthed(true);
+          setTimeout(() => { try { popup?.close(); } catch {} }, 1500);
         }
-      } catch { /* cross-origin — keep polling */ }
+      } catch { /* cross-origin */ }
     }, 500);
     setTimeout(() => clearInterval(poll), 300_000);
   };
