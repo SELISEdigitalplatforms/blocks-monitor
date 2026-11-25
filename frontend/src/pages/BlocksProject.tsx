@@ -3,7 +3,7 @@
  * and actions (connect repo, trigger build, deploy).
  */
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ExternalLink, FolderGit2, Plus, Rocket, Settings, Check, Link2 } from "lucide-react";
 import { Button, Card, EmptyState, PageHeader } from "@/ui/kit";
 import { getActiveProject, setActiveProject, clearActiveProject } from "@/blocks/activeProject";
@@ -253,8 +253,8 @@ export default function BlocksProject() {
         subtitle={domain ? <a href={domain} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-ink2 hover:text-accent"><ExternalLink size={13} /> {domain.replace("https://", "")}</a> : `Tenant: ${tenantId}`}
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="secondary" icon={<Settings size={16} />} onClick={() => {}}>Settings</Button>
-            <Button variant="primary" icon={<Rocket size={16} />} onClick={() => {}}>Deploy</Button>
+            <Button variant="secondary" icon={<Settings size={16} />} onClick={() => navigate(`/project/${id}/settings`)}>Settings</Button>
+            <Button variant="primary" icon={<Rocket size={16} />} onClick={() => navigate(`/project/${id}/deploy`)}>Deploy</Button>
           </div>
         }
       />
@@ -274,6 +274,29 @@ export default function BlocksProject() {
           <div className="mt-1 truncate text-[13px] font-mono">{tenantId}</div>
         </Card>
       </div>
+
+      {/* Project Tabs */}
+      {(() => {
+        const loc = useLocation();
+        const path = loc.pathname;
+        const tab = path.endsWith("/build") ? "build" : path.endsWith("/deploy") ? "deploy" : path.endsWith("/settings") ? "settings" : path.endsWith("/analysis") ? "analysis" : "overview";
+        const tabs = [
+          { key: "overview", label: "Overview", to: `/project/${id}` },
+          { key: "analysis", label: "Analysis", to: `/project/${id}/analysis` },
+          { key: "build", label: "Build & Deploy", to: `/project/${id}/build` },
+          { key: "settings", label: "Settings", to: `/project/${id}/settings` },
+        ];
+        return (
+          <nav className="mb-5 flex gap-1 rounded-block bg-surface2 p-1">
+            {tabs.map((t) => (
+              <button key={t.key} type="button" onClick={() => navigate(t.to)}
+                className={`rounded-block px-4 py-2 text-[13px] font-medium transition ${tab === t.key ? "bg-surface text-ink shadow-card" : "text-ink3 hover:text-ink"}`}>
+                {t.label}
+              </button>
+            ))}
+          </nav>
+        );
+      })()}
 
       {/* GitHub Connection */}
       <Card title="GitHub Connection" icon={<Link2 size={18} />} className="mb-5">
@@ -314,7 +337,7 @@ export default function BlocksProject() {
               <a href={r.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[14px] text-ink hover:text-accent">
                 <FolderGit2 size={16} /> {r.name}
               </a>
-              <Button variant="secondary" size="sm" icon={<Rocket size={14} />} onClick={() => {}}>Build</Button>
+              <Button variant="secondary" size="sm" icon={<Rocket size={14} />} onClick={() => navigate(`/project/${id}/build`)}>Build</Button>
             </div>
           ));
         })()}

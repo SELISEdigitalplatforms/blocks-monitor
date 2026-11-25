@@ -131,6 +131,10 @@ export function App() {
             <Route path="/home" element={<Navigate to="/dashboard" replace />} />
             <Route path="/projects" element={<Page><Projects /></Page>} />
             <Route path="/project/:id" element={<Page><BlocksProject /></Page>} />
+            <Route path="/project/:id/build" element={<Page><BlocksProject /></Page>} />
+            <Route path="/project/:id/deploy" element={<Page><BlocksProject /></Page>} />
+            <Route path="/project/:id/settings" element={<Page><BlocksProject /></Page>} />
+            <Route path="/project/:id/analysis" element={<Page><BlocksProject /></Page>} />
             <Route path="/wiki" element={<Page><WikiIndex /></Page>} />
             <Route path="/new" element={<Page><NewProject /></Page>} />
             <Route path="/p/:id" element={<ProjectRoute />}>
