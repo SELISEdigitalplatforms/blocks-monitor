@@ -259,8 +259,8 @@ export default function BlocksProject() {
             <Button variant="primary" icon={<Rocket size={16} />} onClick={() => navigate(`/project/${id}/deploy`)}>Deploy</Button>
             <Button variant="primary" onClick={async () => {
               const token = getOidcToken();
-              if (!token) return;
-              // Look up existing MADP project
+              if (!token) { navigate("/new"); return; }
+              // Look up existing MADP project linked to this Blocks project
               try {
                 const res = await window.fetch("/api/data", {
                   method: "POST", credentials: "include",
@@ -273,18 +273,9 @@ export default function BlocksProject() {
                   navigate(`/p/${existing.ItemId}/business`);
                   return;
                 }
-              } catch { /* continue to create */ }
-              // Create MADP project linked to this Blocks project
-              try {
-                const res = await window.fetch("/api/fn/project", {
-                  method: "POST", credentials: "include",
-                  headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
-                  body: JSON.stringify({ op: "project.create", requestId: crypto.randomUUID(), args: { name: name, projectType: "greenfield", blocksProjectRef: id } }),
-                });
-                const result = await res.json() as { ok?: boolean; data?: { project?: { ItemId?: string } } };
-                const pid = result.data?.project?.ItemId;
-                if (pid) navigate(`/p/${pid}/business`);
-              } catch { /* failed */ }
+              } catch { /* fall through */ }
+              // No MADP project yet — go to /new with the Blocks project pre-linked
+              navigate("/new", { state: { blocksProjectRef: id, prefillName: name } });
             }}>Open Analysis</Button>
           </div>
         }
