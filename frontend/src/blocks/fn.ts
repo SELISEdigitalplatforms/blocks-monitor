@@ -378,12 +378,16 @@ export async function localPost(path: string, body: unknown): Promise<{ status: 
     const pt = getActiveProjectTenant();
     if (pt) { headers["x-blocks-project-tenant"] = pt; hasProjectTenant = true; }
   } catch { /* ignore */ }
-  // OIDC session: suppress all MADP fn calls. Blocks projects use Blocks OS APIs directly,
-  // not the MADP BFF fn handlers (billing, admin, workspace don't exist per-project).
+  // OIDC session: suppress all MADP fn calls. Blocks projects use Blocks OS APIs directly.
   try {
     const oidc = sessionStorage.getItem("madp-oidc-session-v1");
     if (oidc) {
-      return { status: 200, body: { ok: true, data: {} }, retryAfter: null };
+      // Return well-shaped empty data so MADP components don't crash on undefined fields
+      return { status: 200, body: { ok: true, data: {
+        roles: [], assignments: [], permissions: [], workspaces: [], members: [],
+        workspace: null, subscription: null, credit: null, usage: null,
+        platformPermissions: [], accepted: [],
+      } }, retryAfter: null };
     }
   } catch { /* continue */ }
   const res = await fetch(path, { method: "POST", credentials: "include", headers, body: JSON.stringify(body) });
