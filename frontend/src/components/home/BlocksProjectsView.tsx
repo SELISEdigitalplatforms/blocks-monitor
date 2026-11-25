@@ -151,11 +151,11 @@ export function BlocksProjectsView() {
                     type="button"
                     onClick={async () => {
                       setActiveProject({ tenantGroupId: id, tenantId: p.tenantId || `D${id}`, name, domain: apps[0]?.domain });
-                      // Look up the MADP project linked to this Blocks project
+                      // Look up the MADP project linked to this Blocks project (direct fetch, bypasses transport suppression)
                       const token = getOidcAccessToken();
                       if (token) {
                         try {
-                          const res = await fetch("/api/data", {
+                          const res = await window.fetch("/api/data", {
                             method: "POST", credentials: "include",
                             headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
                             body: JSON.stringify({ reads: [{ schema: "Project", fields: ["ItemId", "BlocksProjectRef", "Stage"], filter: [{ field: "BlocksProjectRef", op: "eq", value: id }], pageNo: 1, pageSize: 1 }] }),
