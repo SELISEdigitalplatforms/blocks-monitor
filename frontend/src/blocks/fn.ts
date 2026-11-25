@@ -378,19 +378,23 @@ export async function localPost(path: string, body: unknown): Promise<{ status: 
     const pt = getActiveProjectTenant();
     if (pt) { headers["x-blocks-project-tenant"] = pt; hasProjectTenant = true; }
   } catch { /* ignore */ }
-  // OIDC session: suppress background MADP fn calls but allow write ops through
+  // OIDC session: suppress background calls (billing, admin, workspace) but allow:
+  // 1. Write ops (project.create, share.create, business.*, etc.)
+  // 2. All calls when inside an MADP project page (/p/:id/*)
   try {
     const oidc = sessionStorage.getItem("madp-oidc-session-v1");
     if (oidc) {
-      const parsed = typeof body === "object" ? body : JSON.parse(body as string);
-      const op = String((parsed as Record<string, unknown>)?.op || "");
-      // Allow project/share/business/delivery/scope writes — they create real data
-      if (!op.startsWith("project.") && !op.startsWith("share.") && !op.startsWith("business.") && !op.startsWith("delivery.") && !op.startsWith("scope.")) {
-        return { status: 200, body: { ok: true, data: {
-          roles: [], assignments: [], permissions: [], workspaces: [], members: [],
-          workspace: null, subscription: null, credit: null, usage: null,
-          platformPermissions: [], accepted: [],
-        } }, retryAfter: null };
+      const inMadpProject = /^\/p\/[^/]+/.test(window.location.pathname);
+      if (!inMadpProject) {
+        const parsed = typeof body === "object" ? body : JSON.parse(body as string);
+        const op = String((parsed as Record<string, unknown>)?.op || "");
+        if (!op.startsWith("project.") && !op.startsWith("share.") && !op.startsWith("business.") && !op.startsWith("delivery.") && !op.startsWith("scope.") && !op.startsWith("collab.") && !op.startsWith("workspace.")) {
+          return { status: 200, body: { ok: true, data: {
+            roles: [], assignments: [], permissions: [], workspaces: [], members: [],
+            workspace: null, subscription: null, credit: null, usage: null,
+            platformPermissions: [], accepted: [],
+          } }, retryAfter: null };
+        }
       }
     }
   } catch { /* continue */ }

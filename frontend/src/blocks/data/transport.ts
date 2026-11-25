@@ -141,12 +141,15 @@ export function createDataTransport(o: {
       const pt = getActiveProjectTenant();
       if (pt) headers["x-blocks-project-tenant"] = pt;
     } catch { /* ignore */ }
-    // OIDC session: suppress all MADP data reads. Blocks projects use Blocks OS APIs directly.
+    // OIDC session: suppress data reads UNLESS inside an MADP project page (/p/:id/*)
     try {
       const oidc = sessionStorage.getItem("madp-oidc-session-v1");
       if (oidc) {
-        const emptyResults = reads.map(() => ({ ok: true, items: [], totalCount: 0, pageNo: 1, pageSize: 10, hasNextPage: false }));
-        return new Response(JSON.stringify({ results: emptyResults }), { status: 200, headers: { "content-type": "application/json" } });
+        const inMadpProject = typeof window !== "undefined" && /^\/p\/[^/]+/.test(window.location.pathname);
+        if (!inMadpProject) {
+          const emptyResults = reads.map(() => ({ ok: true, items: [], totalCount: 0, pageNo: 1, pageSize: 10, hasNextPage: false }));
+          return new Response(JSON.stringify({ results: emptyResults }), { status: 200, headers: { "content-type": "application/json" } });
+        }
       }
     } catch { /* continue */ }
     return o.fetch(DATA_ENDPOINT, {

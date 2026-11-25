@@ -138,7 +138,19 @@ export default function NewProject() {
             }
           }
         } catch (err) { console.warn("[NewProject] Blocks project creation failed:", err); }
+        // Navigate to the MADP project's analysis page
         navigate(`/p/${r.project.id}/business`, { replace: true });
+        // Also set active project context if Blocks project was created
+        try {
+          const { setActiveProject } = await import("@/blocks/activeProject");
+          const blocksResult = sessionStorage.getItem("last-blocks-project-create");
+          if (blocksResult) {
+            const bp = JSON.parse(blocksResult) as { tenantGroupId?: string };
+            if (bp.tenantGroupId) {
+              setActiveProject({ tenantGroupId: bp.tenantGroupId, tenantId: `D${bp.tenantGroupId}`, name: trimmed || r.project.name || "Project" });
+            }
+          }
+        } catch { /* ignore */ }
       },
       (e: unknown) => { setFailure(isNotConfigured(e) ? NOT_CONFIGURED_MESSAGE : messageFor(e)); },
     );
