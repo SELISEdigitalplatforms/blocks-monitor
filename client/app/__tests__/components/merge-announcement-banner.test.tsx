@@ -1,11 +1,13 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MergeAnnouncementBanner } from "@/components/common/merge-announcement/merge-announcement-banner";
 import {
+  DISMISS_TTL_MS,
   FORWARDING_ENDS_AT,
   MERGE_AT,
   dismissStorageKey,
   getMergePhase,
+  isDismissalActive,
   msUntilNextPhaseChange,
 } from "@/components/common/merge-announcement/merge-announcement.schedule";
 
@@ -32,6 +34,17 @@ describe("merge announcement schedule", () => {
     expect(msUntilNextPhaseChange(MERGE_AT - 30 * 24 * HOUR)).toBe(2_147_483_647);
     expect(msUntilNextPhaseChange(FORWARDING_ENDS_AT - HOUR)).toBe(HOUR);
     expect(msUntilNextPhaseChange(FORWARDING_ENDS_AT)).toBeNull();
+  });
+});
+
+describe("dismissal TTL", () => {
+  it("is active for one hour after the click", () => {
+    const at = MERGE_AT - 10 * HOUR;
+    expect(isDismissalActive(null, at)).toBe(false);
+    expect(isDismissalActive(at, at)).toBe(true);
+    expect(isDismissalActive(at, at + HOUR - 1)).toBe(true);
+    expect(isDismissalActive(at, at + HOUR)).toBe(false);
+    expect(isDismissalActive(at + HOUR, at)).toBe(false);
   });
 });
 
@@ -90,19 +103,58 @@ describe("MergeAnnouncementBanner", () => {
     expect(screen.getByText(/are now in Blocks OS/)).toBeInTheDocument();
   });
 
-  it("remembers a dismissal per phase", () => {
-    vi.setSystemTime(MERGE_AT - 2 * HOUR);
+  it("hides after a dismissal, per phase, across a reload", () => {
+    vi.setSystemTime(MERGE_AT - 20 * 60 * 1000);
     const { unmount } = render(<MergeAnnouncementBanner />);
     fireEvent.click(screen.getByRole("button", { name: "Dismiss announcement" }));
     expect(screen.queryByTestId("merge-announcement-banner")).not.toBeInTheDocument();
-    expect(localStorage.getItem(dismissStorageKey("before"))).toBe("1");
+    expect(localStorage.getItem(dismissStorageKey("before"))).toBe(String(Date.now()));
     unmount();
 
     render(<MergeAnnouncementBanner />);
     expect(screen.queryByTestId("merge-announcement-banner")).not.toBeInTheDocument();
+    cleanup();
 
-    vi.setSystemTime(MERGE_AT + HOUR);
+    // Within the TTL, but the "after" phase has its own dismissal.
+    vi.setSystemTime(MERGE_AT + 20 * 60 * 1000);
     render(<MergeAnnouncementBanner />);
+    expect(screen.getByTestId("merge-announcement-banner")).toBeInTheDocument();
+  });
+
+  it("comes back once the dismissal TTL has passed, also in an open tab", () => {
+    expect(DISMISS_TTL_MS).toBe(HOUR);
+    vi.setSystemTime(MERGE_AT - 24 * HOUR);
+    render(<MergeAnnouncementBanner />);
+    fireEvent.click(screen.getByRole("button", { name: "Dismiss announcement" }));
+    act(() => {
+      vi.advanceTimersByTime(HOUR - 60 * 1000);
+    });
+    expect(screen.queryByTestId("merge-announcement-banner")).not.toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(2 * 60 * 1000);
+    });
+    expect(screen.getByTestId("merge-announcement-banner")).toBeInTheDocument();
+  });
+
+  it("treats a stored value from the first release as expired", () => {
+    vi.setSystemTime(MERGE_AT - 2 * HOUR);
+    localStorage.setItem(dismissStorageKey("before"), "1");
+    render(<MergeAnnouncementBanner />);
+    expect(screen.getByTestId("merge-announcement-banner")).toBeInTheDocument();
+  });
+
+  it("shows again after the next login", () => {
+    vi.setSystemTime(MERGE_AT - 2 * HOUR);
+    const { rerender } = render(<MergeAnnouncementBanner />);
+    fireEvent.click(screen.getByRole("button", { name: "Dismiss announcement" }));
+    expect(screen.queryByTestId("merge-announcement-banner")).not.toBeInTheDocument();
+
+    auth.isAuthenticated = false;
+    rerender(<MergeAnnouncementBanner />);
+    expect(localStorage.getItem(dismissStorageKey("before"))).toBeNull();
+
+    auth.isAuthenticated = true;
+    rerender(<MergeAnnouncementBanner />);
     expect(screen.getByTestId("merge-announcement-banner")).toBeInTheDocument();
   });
 
