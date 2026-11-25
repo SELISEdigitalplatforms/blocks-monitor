@@ -1,4 +1,5 @@
 import "./i18n";
+import { MergeAnnouncementBanner } from "@/components/common/merge-announcement/merge-announcement-banner";
 import { Toaster, TooltipProvider } from "@/components/core";
 import { SERVICE_NAME } from "@/constants/service.constant";
 import QueryProvider, { getQueryClient } from "@/providers/query-provider";
@@ -41,6 +42,8 @@ createRoot(document.getElementById("root")!).render(
                   name: "blocks-monitor",
                 }}
               >
+                {/* Temporary: Blocks OS merge announcement (until 20 Dec 2026). */}
+                <MergeAnnouncementBanner />
                 <RouterProvider router={router} />
               </BlocksAppLayout>
               <Toaster />

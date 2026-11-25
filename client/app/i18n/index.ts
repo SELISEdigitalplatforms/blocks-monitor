@@ -2,13 +2,13 @@
  * i18n modules. English lives here (`<module>.en.json`); other languages come from the
  * localization service.
  *
- * - `monitor.shared` (17 keys): components/common, components/core, constants, hooks, utils, routes, layouts
+ * - `monitor.shared` (48 keys): components/common, components/core, constants, hooks, utils, routes, layouts
  * - `monitor.monitors` (132 keys): pages/monitor, components/module/monitor, constants/monitor.constant.ts, constants/alert.constant.ts
  * - `monitor.alerts` (25 keys): components/module/alert, hooks/use-alerts.ts, models/alerts.model.ts
  * - `monitor.console` (10 keys): pages/incidents, components/module/incident
  * - `monitor.alert-recipients` (78 keys): pages/alert-recipients, components/module/alert-recipients
  * - `monitor.repos` (141 keys): pages/repos, components/module/repos
- * Total: 403 keys.
+ * Total: 434 keys.
  */
 import { registerTranslations } from "@seliseblocks/genesis-os/i18n";
 import shared from "./monitor.shared.en.json";
