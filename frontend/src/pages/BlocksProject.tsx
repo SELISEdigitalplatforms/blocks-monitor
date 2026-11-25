@@ -41,6 +41,8 @@ export default function BlocksProject() {
   const [repoUrl, setRepoUrl] = useState("");
   const [repoMsg, setRepoMsg] = useState("");
   const [selectedRepos, setSelectedRepos] = useState<Set<string>>(new Set());
+  const [repoSearch, setRepoSearch] = useState("");
+  const [connectedRepos, setConnectedRepos] = useState<Array<{ name: string; link: string }>>([]);
 
   // Ensure active project is set
   useEffect(() => {
@@ -179,6 +181,12 @@ export default function BlocksProject() {
         });
       } catch { /* continue */ }
     }
+    // Add to local connected repos list
+    const newRepos = [...selectedRepos].map((fullName) => {
+      const repo = repos.find((r) => r.full_name === fullName);
+      return { name: fullName, link: repo?.html_url || `https://github.com/${fullName}` };
+    });
+    setConnectedRepos((prev) => [...prev, ...newRepos]);
     setRepoMsg(`Connected ${selectedRepos.size} repo(s)!`);
     setSelectedRepos(new Set());
     setAddingRepo(false);
@@ -293,20 +301,23 @@ export default function BlocksProject() {
 
       {/* Connected Repos */}
       <Card title="Connected Repositories" icon={<FolderGit2 size={18} />} className="mb-5">
-        {(project?.resources || []).length === 0 && !addingRepo && (
-          <EmptyState
-            title="No repositories connected"
-            text={githubAuthed ? "Click 'Add Repository' above to connect a repo." : "Connect GitHub first, then add repositories."}
-          />
-        )}
-        {(project?.resources || []).map((r, i) => (
-          <div key={i} className="flex items-center justify-between rounded-block bg-surface2 p-3 mb-2">
-            <a href={r.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[14px] text-ink hover:text-accent">
-              <FolderGit2 size={16} /> {r.name}
-            </a>
-            <Button variant="secondary" size="sm" icon={<Rocket size={14} />} onClick={() => {}}>Build</Button>
-          </div>
-        ))}
+        {(() => {
+          const allRepos = [...(project?.resources || []), ...connectedRepos];
+          if (allRepos.length === 0 && !addingRepo) {
+            return <EmptyState
+              title="No repositories connected"
+              text={githubAuthed ? "Click 'Add Repository' above to connect a repo." : "Connect GitHub first, then add repositories."}
+            />;
+          }
+          return allRepos.map((r, i) => (
+            <div key={i} className="flex items-center justify-between rounded-block bg-surface2 p-3 mb-2">
+              <a href={r.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[14px] text-ink hover:text-accent">
+                <FolderGit2 size={16} /> {r.name}
+              </a>
+              <Button variant="secondary" size="sm" icon={<Rocket size={14} />} onClick={() => {}}>Build</Button>
+            </div>
+          ));
+        })()}
 
         {/* Repo picker */}
         {addingRepo && (
@@ -314,8 +325,12 @@ export default function BlocksProject() {
             {loadingRepos && <p className="text-[13px] text-ink3">Loading your repositories…</p>}
             {!loadingRepos && repos.length === 0 && <p className="text-[13px] text-ink3">No repositories found. Try reconnecting GitHub.</p>}
             {!loadingRepos && repos.length > 0 && (
+              <div>
+                <input type="text" value={repoSearch} onChange={(e) => setRepoSearch(e.target.value)}
+                  placeholder="Search repositories..."
+                  className="mb-2 w-full rounded-block border border-line bg-surface px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-accent" />
               <div className="max-h-[300px] overflow-y-auto space-y-1 rounded-block border border-line p-2">
-                {repos.map((r) => (
+                {repos.filter((r) => !repoSearch || r.full_name.toLowerCase().includes(repoSearch.toLowerCase())).map((r) => (
                   <label key={r.id} className="flex cursor-pointer items-center gap-3 rounded-block p-2 hover:bg-surface2">
                     <input type="checkbox" checked={selectedRepos.has(r.full_name)}
                       onChange={(e) => {
@@ -330,6 +345,7 @@ export default function BlocksProject() {
                     </div>
                   </label>
                 ))}
+              </div>
               </div>
             )}
             <div className="mt-3 flex items-center gap-2">
