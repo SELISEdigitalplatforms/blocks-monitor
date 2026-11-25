@@ -4,7 +4,8 @@
  */
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FolderKanban, Plus, ExternalLink, FolderGit2 } from "lucide-react";
+import { FolderKanban, Plus, ExternalLink, FolderGit2, ArrowUpRight } from "lucide-react";
+import { setActiveProject } from "@/blocks/activeProject";
 import { Button, Card, EmptyState, PageHeader } from "@/ui/kit";
 function getOidcAccessToken(): string | undefined {
   try {
@@ -144,9 +145,18 @@ export function BlocksProjectsView() {
                   <p className="text-[12px] text-ink3">No repositories connected</p>
                 )}
 
-                <div className="mt-auto flex items-center justify-between pt-2 text-[11px] text-ink3">
-                  <span>{id.slice(0, 12)}…</span>
-                  <span>{p.createdDate ? new Date(p.createdDate).toLocaleDateString() : ""}</span>
+                <div className="mt-auto flex items-center justify-between pt-2">
+                  <span className="text-[11px] text-ink3">{p.createdDate ? new Date(p.createdDate).toLocaleDateString() : ""}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveProject({ tenantGroupId: id, tenantId: p.tenantId || `D${id}`, name, domain: apps[0]?.domain });
+                      navigate(`/p/${id}/business`);
+                    }}
+                    className="inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-[12px] font-medium text-white hover:bg-accent-hover"
+                  >
+                    Open <ArrowUpRight size={12} />
+                  </button>
                 </div>
               </Card>
             );

@@ -371,6 +371,12 @@ export async function localPost(path: string, body: unknown): Promise<{ status: 
     } catch { /* ignore */ }
   }
   if (t) headers.authorization = "Bearer " + t;
+  // Per-project isolation: include the active project tenant
+  try {
+    const { getActiveProjectTenant } = await import("./activeProject");
+    const pt = getActiveProjectTenant();
+    if (pt) headers["x-blocks-project-tenant"] = pt;
+  } catch { /* ignore */ }
   const res = await fetch(path, { method: "POST", credentials: "include", headers, body: JSON.stringify(body) });
   return { status: res.status, body: await res.json().catch(() => null), retryAfter: res.headers.get("retry-after") };
 }

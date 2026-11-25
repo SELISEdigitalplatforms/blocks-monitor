@@ -434,23 +434,23 @@ export function createBlocksHost(o: {
         const bySession = limit.session(sessionSid);
         if (!bySession.ok) return tooMany(res, bySession);
       }
-      // If the token is cross-tenant (OIDC), use the BFF's service token for data operations.
-      // The user was already authenticated by the BFF (session or JWT decode) — the service token
-      // accesses the MADP tenant's data on behalf of the authenticated user.
+      // Per-project isolation: if the frontend sends x-blocks-project-tenant, use that tenant.
+      // Otherwise fall back to the MADP tenant with service token for cross-tenant OIDC users.
+      const projectTenant = String(req.headers["x-blocks-project-tenant"] || "").trim();
+      let sdkTenant = projectTenant || env.tenant;
       let sdkToken = accessToken;
-      try {
-        const payload = JSON.parse(Buffer.from(accessToken.split(".")[1], "base64url").toString("utf8")) as Record<string, unknown>;
-        const tokenTenant = String(payload.tenant_id || "");
-        if (tokenTenant && tokenTenant !== env.tenant) {
-          if (svcTokens) {
+      // If using the user's own project tenant, the OIDC token should work directly (same tenant).
+      // If no project tenant (shared MADP data), use the service token for cross-tenant access.
+      if (!projectTenant) {
+        try {
+          const payload = JSON.parse(Buffer.from(accessToken.split(".")[1], "base64url").toString("utf8")) as Record<string, unknown>;
+          const tokenTenant = String(payload.tenant_id || "");
+          if (tokenTenant && tokenTenant !== env.tenant && svcTokens) {
             sdkToken = await svcTokens.token();
-            console.log("[data] using service token for cross-tenant request");
-          } else {
-            console.warn("[data] svcTokens not configured — cannot access MADP data with cross-tenant OIDC token");
           }
-        }
-      } catch (err) { console.error("[data] service token error:", err); }
-      const sdk = createBlocksClient({ apiUrl: env.apiUrl, xBlocksKey: env.tenant, accessToken: sdkToken, fetch: fetchWithTimeout(DATA_CALL_TIMEOUT_MS) });
+        } catch { /* use original */ }
+      }
+      const sdk = createBlocksClient({ apiUrl: env.apiUrl, xBlocksKey: sdkTenant, accessToken: sdkToken, fetch: fetchWithTimeout(DATA_CALL_TIMEOUT_MS) });
       let body: unknown;
       if (method === "POST") {
         const raw = await readBody(req, 1_000_000, 10_000);

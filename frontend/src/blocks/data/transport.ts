@@ -135,6 +135,12 @@ export function createDataTransport(o: {
         }
       } catch { /* ignore */ }
     }
+    // Per-project isolation: include the active project tenant so the BFF routes to the correct data gateway
+    try {
+      const { getActiveProjectTenant } = await import("../activeProject");
+      const pt = getActiveProjectTenant();
+      if (pt) headers["x-blocks-project-tenant"] = pt;
+    } catch { /* ignore */ }
     return o.fetch(DATA_ENDPOINT, {
       method: "POST",
       headers,

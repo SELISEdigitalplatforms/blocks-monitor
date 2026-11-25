@@ -571,7 +571,7 @@ export function createFnMiddleware(deps: FnMiddlewareDeps) {
               ...((deps.utilitiesFor ?? []).includes(name) ? { utilitiesCaller: { token, organizationId: context.organizationId || null } } : {}),
               env: {
                 BLOCKS_API_URL: deps.apiUrl ?? (e.MF_BLOCKS_API_URL || DEFAULT_API_URL),
-                BLOCKS_TENANT: e.MF_BLOCKS_TENANT,
+                BLOCKS_TENANT: (header(req, "x-blocks-project-tenant") || e.MF_BLOCKS_TENANT) as string,
                 SVC_CLIENT_ID: e.MF_SVC_CLIENT_ID,
                 SVC_CLIENT_SECRET: e.MF_SVC_CLIENT_SECRET,
                 ...(e.MF_FACTORY_DESIGN_WORKER_ID ? { FACTORY_DESIGN_WORKER_ID: e.MF_FACTORY_DESIGN_WORKER_ID } : {}),
