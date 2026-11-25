@@ -255,6 +255,35 @@ export default function BlocksProject() {
           <div className="flex items-center gap-2">
             <Button variant="secondary" icon={<Settings size={16} />} onClick={() => navigate(`/project/${id}/settings`)}>Settings</Button>
             <Button variant="primary" icon={<Rocket size={16} />} onClick={() => navigate(`/project/${id}/deploy`)}>Deploy</Button>
+            <Button variant="primary" onClick={async () => {
+              const token = getOidcToken();
+              if (!token) return;
+              // Look up existing MADP project
+              try {
+                const res = await window.fetch("/api/data", {
+                  method: "POST", credentials: "include",
+                  headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+                  body: JSON.stringify({ reads: [{ schema: "Project", fields: ["ItemId", "Stage"], filter: [{ field: "BlocksProjectRef", op: "eq", value: id }], pageNo: 1, pageSize: 1 }] }),
+                });
+                const data = await res.json() as { results?: Array<{ items?: Array<{ ItemId: string; Stage?: string }> }> };
+                const existing = data.results?.[0]?.items?.[0];
+                if (existing) {
+                  navigate(`/p/${existing.ItemId}/business`);
+                  return;
+                }
+              } catch { /* continue to create */ }
+              // Create MADP project linked to this Blocks project
+              try {
+                const res = await window.fetch("/api/fn/project", {
+                  method: "POST", credentials: "include",
+                  headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+                  body: JSON.stringify({ op: "project.create", requestId: crypto.randomUUID(), args: { name: name, projectType: "greenfield", blocksProjectRef: id } }),
+                });
+                const result = await res.json() as { ok?: boolean; data?: { project?: { ItemId?: string } } };
+                const pid = result.data?.project?.ItemId;
+                if (pid) navigate(`/p/${pid}/business`);
+              } catch { /* failed */ }
+            }}>Open Analysis</Button>
           </div>
         }
       />
