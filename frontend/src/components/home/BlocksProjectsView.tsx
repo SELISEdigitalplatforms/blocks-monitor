@@ -149,8 +149,26 @@ export function BlocksProjectsView() {
                   <span className="text-[11px] text-ink3">{p.createdDate ? new Date(p.createdDate).toLocaleDateString() : ""}</span>
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       setActiveProject({ tenantGroupId: id, tenantId: p.tenantId || `D${id}`, name, domain: apps[0]?.domain });
+                      // Look up the MADP project linked to this Blocks project
+                      const token = getOidcAccessToken();
+                      if (token) {
+                        try {
+                          const res = await fetch("/api/data", {
+                            method: "POST", credentials: "include",
+                            headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+                            body: JSON.stringify({ reads: [{ schema: "Project", fields: ["ItemId", "BlocksProjectRef", "Stage"], filter: [{ field: "BlocksProjectRef", op: "eq", value: id }], pageNo: 1, pageSize: 1 }] }),
+                          });
+                          const data = await res.json() as { results?: Array<{ items?: Array<{ ItemId: string; Stage?: string }> }> };
+                          const madpProject = data.results?.[0]?.items?.[0];
+                          if (madpProject) {
+                            const step = madpProject.Stage === "build" ? "build" : madpProject.Stage === "release" ? "delivered" : "business";
+                            navigate(`/p/${madpProject.ItemId}/${step}`);
+                            return;
+                          }
+                        } catch { /* fall through */ }
+                      }
                       navigate(`/project/${id}`);
                     }}
                     className="inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-[12px] font-medium text-white hover:bg-accent-hover"
