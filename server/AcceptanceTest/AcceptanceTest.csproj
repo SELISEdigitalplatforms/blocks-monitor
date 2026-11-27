@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- I04-WP7: Gherkin acceptance tests for blocks-monitor. They call a RUNNING blocks-selfhost over HTTP (never the main
+       stack): see README.md in this folder. Not part of Blocks.slnx, so a plain `dotnet test` of the solution does not
+       need the stack; the gate (L2) runs this project on its own. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>AcceptanceTest</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Reqnroll.xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Written by selfhost\new-acceptance-settings.ps1 (git-excluded); missing file = the scenarios FAIL with a clear message. -->
+    <None Update="acceptance.settings.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="reqnroll.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

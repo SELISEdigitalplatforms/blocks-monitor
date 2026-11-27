@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -121,6 +121,38 @@ namespace XUnitTest.Monitor
 
             pinged.Task.IsCompletedSuccessfully.Should().BeTrue();
             _ping.Verify(p => p.MonitorPingAsync(It.IsAny<MonitorConfiguration>()), Times.AtLeastOnce);
+        }
+
+        [Fact]
+        public async Task WorkerLoop_PingsWithTheLatestLoadedConfig_NotTheOneQueuedBeforeAnUpdate()
+        {
+            // I04-WP36: the queued task holds the config read when the monitor was created (no recipients). A later
+            // reload (the recipient was saved) replaces the config in the active set. The first ping must use it.
+            var queuedConfig = new MonitorConfiguration { ItemId = "a", Url = "http://a", Emails = new List<string>() };
+            var updatedConfig = new MonitorConfiguration { ItemId = "a", Url = "http://a", Emails = new List<string> { "alerts@example.test" } };
+            var dueTask = new MonitorQueueTask(queuedConfig) { NextExecutionTime = DateTime.UtcNow.AddSeconds(-1) };
+            _repo.SetupSequence(r => r.GetAllConfigurationListAsync())
+                .ReturnsAsync(new List<MonitorConfiguration> { updatedConfig });
+            var dequeued = 0;
+            _queue.Setup(q => q.Peek()).Returns(() => Volatile.Read(ref dequeued) == 0 ? dueTask : null);
+            _queue.Setup(q => q.Dequeue()).Returns(() =>
+            {
+                Interlocked.Exchange(ref dequeued, 1);
+                return dueTask;
+            });
+            MonitorConfiguration? pingedWith = null;
+            var pinged = new TaskCompletionSource();
+            _ping.Setup(p => p.MonitorPingAsync(It.IsAny<MonitorConfiguration>()))
+                .Callback<MonitorConfiguration>(c => { pingedWith = c; pinged.TrySetResult(); })
+                .ReturnsAsync(new MonitorPingLog());
+
+            using var cts = new CancellationTokenSource();
+            var run = CreateSut().StartAsync(cts.Token);
+            await Task.WhenAny(pinged.Task, Task.Delay(TimeSpan.FromSeconds(10)));
+            cts.Cancel();
+
+            pinged.Task.IsCompletedSuccessfully.Should().BeTrue();
+            pingedWith!.Emails.Should().Equal("alerts@example.test");
         }
 
         [Fact]
